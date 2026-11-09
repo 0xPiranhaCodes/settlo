@@ -5,9 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_home.dart';
-import 'support/golden.dart';
 
 /// Pumps Home in the shell with [repository], inside a router whose other
 /// routes record where Home sent the user.

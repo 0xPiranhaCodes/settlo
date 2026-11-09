@@ -40,6 +40,8 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  settlo_test_support:
+    path: ../packages/test_support
 
 flutter:
   uses-material-design: true

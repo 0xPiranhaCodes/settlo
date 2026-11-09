@@ -12,9 +12,9 @@ import 'package:settlo_loans/settlo_loans.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:settlo_settle/settlo_settle.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
+import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_session.dart';
-import 'support/golden.dart';
 
 GoRouter _router(WidgetTester tester) =>
     ProviderScope.containerOf(tester.element(find.byType(app.SettloApp)))

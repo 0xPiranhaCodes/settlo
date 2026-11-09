@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_phone_auth.dart';
-import 'support/golden.dart';
 
 /// Overflow checks for the sign-in screens at the compact size. Flutter
 /// reports any overflow to the test binding, which fails the test; nothing
