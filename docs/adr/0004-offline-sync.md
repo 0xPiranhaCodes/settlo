@@ -17,5 +17,6 @@ Users add expenses on trips and in flats with bad signal. The app has to read an
 - Retrying is always safe, so the client can retry freely after timeouts where it cannot tell whether the write landed.
 - Backend (#10 and later RPCs) must store idempotency keys with a unique constraint per user; this ADR is the contract between `local` and `supabase/`.
 - Ordered, one-at-a-time replay is slower than batching but keeps dependent writes (create space, then add expense to it) correct. Batching would need a new ADR.
+- Server-side keys for mutations that create no row (`private.idempotency_keys`, #59) are honoured for 30 days and then purged (#70), so a queued mutation must be replayed within 30 days of first being sent or dropped and refreshed; see the replay window in docs/api.md.
 - Optimistic rows can disappear after a rejection; the UI must show that clearly.
 - Sync code needs 80% unit coverage (context pack), including replay after a lost response and rejection rollback.
