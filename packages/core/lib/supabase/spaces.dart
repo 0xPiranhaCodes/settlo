@@ -56,6 +56,7 @@ final class SpaceSummary {
     required this.name,
     required this.kind,
     required this.members,
+    this.departed = const [],
     this.month,
     this.monthTotal = Paise.zero,
     this.yourFairShare = Paise.zero,
@@ -73,6 +74,10 @@ final class SpaceSummary {
 
   /// Active members in the order they were added; exactly one is you.
   final List<SpaceMember> members;
+
+  /// Members who left. They are not in the space any more, but what they
+  /// paid still counts in its history and this month's paid bar.
+  final List<SpaceMember> departed;
 
   /// The first day of the current month; null when not loaded.
   final DateTime? month;
@@ -202,8 +207,21 @@ final class SupabaseSpacesRepository implements SpacesRepository {
       }
       final rows = [
         for (final m in members)
-          if (m['space_id'] == mine['space_id'] && m['left_at'] == null) m,
+          if (m['space_id'] == mine['space_id']) m,
       ];
+      SpaceMember member(_Row m) => SpaceMember(
+        id: m['id'] as String,
+        name:
+            (m['name'] as String?) ??
+            names[m['user_id']] ??
+            m['phone'] as String,
+        phone: m['phone'] as String,
+        isYou: m['id'] == mine['id'],
+        isOwner: m['role'] == 'owner',
+        joined: m['accepted_at'] != null,
+        balance: money(balanceOf[m['id']], 'balance_minor'),
+        monthPaid: money(fairnessOf[m['id']], 'paid_minor'),
+      );
       final you = fairnessOf[mine['id']];
       spaces.add(
         SpaceSummary(
@@ -213,24 +231,17 @@ final class SupabaseSpacesRepository implements SpacesRepository {
           month: month,
           monthTotal: money(you, 'month_total_minor'),
           yourFairShare: money(you, 'fair_share_minor'),
+          // Members who left count too: their payments are still history.
           hasExpenses: rows.any(
             (m) => money(balanceOf[m['id']], 'paid_minor').value > 0,
           ),
           members: [
             for (final m in rows)
-              SpaceMember(
-                id: m['id'] as String,
-                name:
-                    (m['name'] as String?) ??
-                    names[m['user_id']] ??
-                    m['phone'] as String,
-                phone: m['phone'] as String,
-                isYou: m['id'] == mine['id'],
-                isOwner: m['role'] == 'owner',
-                joined: m['accepted_at'] != null,
-                balance: money(balanceOf[m['id']], 'balance_minor'),
-                monthPaid: money(fairnessOf[m['id']], 'paid_minor'),
-              ),
+              if (m['left_at'] == null) member(m),
+          ],
+          departed: [
+            for (final m in rows)
+              if (m['left_at'] != null) member(m),
           ],
         ),
       );

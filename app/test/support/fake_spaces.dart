@@ -108,6 +108,37 @@ final spaceEmpty = SpaceSummary(
   ],
 );
 
+/// A space whose only payer left this month and you paid nothing: it is
+/// not empty, and its paid bar still shows the departed payer.
+final spaceDepartedPayer = SpaceSummary(
+  id: 's7',
+  name: 'Old flat',
+  kind: SpaceKind.flat,
+  month: DateTime(2026, 11),
+  monthTotal: const Paise(100000),
+  yourFairShare: const Paise(66667),
+  hasExpenses: true,
+  members: const [
+    SpaceMember(
+      id: 'm1',
+      name: 'Sana',
+      phone: '+919876543210',
+      isYou: true,
+      isOwner: true,
+      balance: Paise(-66667),
+    ),
+  ],
+  departed: const [
+    SpaceMember(
+      id: 'm2',
+      name: 'Arun',
+      phone: '+919100000002',
+      balance: Paise(66667),
+      monthPaid: Paise(100000),
+    ),
+  ],
+);
+
 /// A [SpacesRepository] over [spaces] that creates spaces as the server
 /// would: a replayed key returns the first id and adds nothing.
 class FakeSpacesRepository implements SpacesRepository {

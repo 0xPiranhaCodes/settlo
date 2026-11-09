@@ -8,7 +8,8 @@ spacesProvider = AsyncNotifierProvider<SpacesController, List<SpaceSummary>>(
 );
 
 /// Loads the spaces and creates new ones. A created space reloads the
-/// list, so it appears as the server recorded it.
+/// list, so it appears as the server recorded it, and bumps
+/// [ledgerRevisionProvider] so Home reloads too.
 class SpacesController extends AsyncNotifier<List<SpaceSummary>> {
   @override
   Future<List<SpaceSummary>> build() =>
@@ -30,6 +31,7 @@ class SpacesController extends AsyncNotifier<List<SpaceSummary>> {
           members: members,
           idempotencyKey: idempotencyKey,
         );
+    ref.read(ledgerRevisionProvider.notifier).bump();
     ref.invalidateSelf();
     await future;
     return id;

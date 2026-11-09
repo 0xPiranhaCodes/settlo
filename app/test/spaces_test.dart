@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:settlo/main.dart';
 import 'package:settlo/shell.dart';
+import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
+import 'support/fake_home.dart';
+import 'support/fake_session.dart';
 import 'support/fake_spaces.dart';
 
 /// Pumps the Spaces tab in the shell at [initialLocation] with
@@ -53,7 +57,10 @@ Future<GoRouter> _pump(
   addTearDown(router.dispose);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [spacesRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
+        spacesRepositoryProvider.overrideWithValue(repository),
+      ],
       child: MaterialApp.router(
         theme: SettloTheme.dark(),
         routerConfig: router,
@@ -133,6 +140,31 @@ void main() {
         ),
         findsOne,
       );
+    });
+
+    testWidgets('a payer who left still counts in the bar and history', (
+      tester,
+    ) async {
+      final router = await _pump(
+        tester,
+        FakeSpacesRepository([spaceDepartedPayer]),
+      );
+
+      // You paid nothing; fair share 66,667 of 1,00,000 paise rounds to 67.
+      expect(find.text('You paid 0% of ₹1,000'), findsOne);
+      expect(find.text('fair share 67%'), findsOne);
+      // Arun's segment, sized by the paise he paid.
+      expect(
+        find.byWidgetPredicate((w) => w is Expanded && w.flex == 100000),
+        findsOne,
+      );
+      expect(find.text('−₹666.67'), findsOne);
+
+      await tester.tap(find.text('Old flat'));
+      await tester.pumpAndSettle();
+      expect(router.state.uri.toString(), SettloRoutes.space('s7'));
+      expect(find.text('NOVEMBER'), findsNothing, reason: 'not Space · empty');
+      expect(find.byType(SPlaceholderScreen), findsOne);
     });
 
     testWidgets('the chips filter by kind', (tester) async {
@@ -271,6 +303,19 @@ void main() {
       expect(find.text('Tom'), findsNothing);
     });
 
+    for (final mine in ['98765 43210', '+91 98765 43210', '09876543210']) {
+      testWidgets('your own number is refused: $mine', (tester) async {
+        await _pump(tester, FakeSpacesRepository(const []));
+        await _openSheet(tester);
+        await _addPerson(tester, mine, 'Me');
+        expect(
+          find.text("That's your number. You're in the space already."),
+          findsOne,
+        );
+        expect(find.byTooltip('Remove Me'), findsNothing);
+      });
+    }
+
     testWidgets('a person without a name is shown by number', (tester) async {
       final repository = FakeSpacesRepository(const []);
       await _pump(tester, repository);
@@ -280,6 +325,75 @@ void main() {
       expect(find.text('+919800000009'), findsOne);
       await _tapCreate(tester);
       expect(repository.spaces.single.others.single.name, '+919800000009');
+    });
+  });
+
+  group('Home refreshes after a space is created', () {
+    test('creating bumps the ledger revision Home watches', () async {
+      final home = FakeHomeRepository(homeEmpty);
+      final c = ProviderContainer(
+        overrides: [
+          homeRepositoryProvider.overrideWithValue(home),
+          spacesRepositoryProvider.overrideWithValue(
+            FakeSpacesRepository(const []),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      expect((await c.read(homeProvider.future)).isEmpty, isTrue);
+      final sub = c.listen(homeProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      home.data = homeMain;
+      await c
+          .read(spacesProvider.notifier)
+          .create(
+            name: 'Flat 402',
+            kind: SpaceKind.flat,
+            members: const [],
+            idempotencyKey: 'k1',
+          );
+
+      expect((await c.read(homeProvider.future)).spaces, isNotEmpty);
+    });
+
+    testWidgets('Home → create on Spaces → Home shows it', (tester) async {
+      final home = FakeHomeRepository(homeEmpty);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sessionProvider.overrideWith(
+              () => FakeSessionNotifier(fakeSession),
+            ),
+            homeRepositoryProvider.overrideWithValue(home),
+            spacesRepositoryProvider.overrideWithValue(
+              FakeSpacesRepository(const []),
+            ),
+          ],
+          child: const SettloApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Record a loan'), findsOne);
+      Finder tab(String label) => find.descendant(
+        of: find.byType(SGlassTabBar),
+        matching: find.text(label),
+      );
+
+      await tester.tap(tab('Spaces'));
+      await tester.pumpAndSettle();
+      await _openSheet(tester);
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Name'),
+        'Flat 402',
+      );
+      home.data = homeMain;
+      await _tapCreate(tester);
+      await tester.tap(tab('Home'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Record a loan'), findsNothing);
+      expect(find.text('Rahul, Priya'), findsOne);
     });
   });
 

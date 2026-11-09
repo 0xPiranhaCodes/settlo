@@ -19,6 +19,7 @@ const _spaces = <String, Map<String, String?>>{
   's3': {'name': 'Old flat', 'kind': 'flat', 'deleted_at': _at},
   's4': {'name': 'Claim', 'kind': 'other', 'deleted_at': null},
   's5': {'name': 'Left', 'kind': 'other', 'deleted_at': null},
+  's6': {'name': 'Shared', 'kind': 'other', 'deleted_at': null},
 };
 
 Map<String, Object?> _member(
@@ -53,11 +54,18 @@ final _tables = <String, List<Map<String, Object?>>>{
     _member('m6', 's3', user: _me),
     _member('m7', 's4', user: _me, accepted: false),
     _member('m8', 's5', user: _me, left: true),
+    // Arun paid the only expense, then left; you paid nothing.
+    _member('m11', 's6', user: _me),
+    _member('m12', 's6', user: 'u-arun', name: 'Arun', left: true),
+    _member('m13', 's6', name: 'Bela'),
   ],
   'space_member_balances': [
     {'member_id': 'm1', 'paid_minor': 900000, 'balance_minor': 285000},
     {'member_id': 'm2', 'paid_minor': 0, 'balance_minor': -285000},
     {'member_id': 'm5', 'paid_minor': 0, 'balance_minor': 0},
+    {'member_id': 'm11', 'paid_minor': 0, 'balance_minor': -33333},
+    {'member_id': 'm12', 'paid_minor': 100000, 'balance_minor': 66666},
+    {'member_id': 'm13', 'paid_minor': 0, 'balance_minor': -33333},
   ],
   'space_monthly_fairness': [
     {
@@ -72,6 +80,17 @@ final _tables = <String, List<Map<String, Object?>>>{
       'fair_share_minor': 615000,
       'month_total_minor': 1845000,
     },
+    for (final (id, paid, fair) in [
+      ('m11', 0, 33333),
+      ('m12', 100000, 33334),
+      ('m13', 0, 33333),
+    ])
+      {
+        'member_id': id,
+        'paid_minor': paid,
+        'fair_share_minor': fair,
+        'month_total_minor': 100000,
+      },
   ],
   'profiles': [
     {'id': _me, 'name': 'Sana'},
@@ -147,7 +166,7 @@ void main() {
       ),
     );
     // Deleted spaces, spaces you left and unaccepted claims are left out.
-    expect([for (final s in spaces) s.id], ['s1', 's2']);
+    expect([for (final s in spaces) s.id], ['s1', 's2', 's6']);
 
     final flat = spaces.first;
     expect(
@@ -179,10 +198,30 @@ void main() {
       ],
     );
     expect(flat.others.map((m) => m.name), ['Rahul', 'Priya']);
+    expect(flat.departed.map((m) => m.name), ['Gone']);
 
-    final fresh = spaces.last;
+    final fresh = spaces[1];
     expect((fresh.hasExpenses, fresh.monthTotal), (false, Paise.zero));
     expect(fresh.members.single.isYou, isTrue);
+    expect(fresh.departed, isEmpty);
+  });
+
+  test('a member who left still counts in history and the month', () async {
+    final shared = (await repository().load()).last;
+
+    // The only payer left and you paid nothing: the space is not empty.
+    expect(shared.hasExpenses, isTrue);
+    expect(shared.balance.value, -33333);
+    expect(shared.you.monthPaid, Paise.zero);
+    expect(shared.others.map((m) => m.name), ['Bela']);
+    expect(
+      [for (final m in shared.departed) (m.name, m.monthPaid.value)],
+      [('Arun', 100000)],
+    );
+    expect(
+      (shared.monthTotal.value, shared.yourFairShare.value),
+      (100000, 33333),
+    );
   });
 
   test('creates a space through create_space with the key', () async {

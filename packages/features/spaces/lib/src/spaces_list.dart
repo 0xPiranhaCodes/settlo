@@ -249,7 +249,8 @@ class _SpaceCard extends StatelessWidget {
                   ),
                 ],
               ),
-              if (total > 0 && others.isNotEmpty) ...[
+              if (total > 0 &&
+                  (others.isNotEmpty || s.departed.isNotEmpty)) ...[
                 const SizedBox(height: 16),
                 _PaidBar(s),
                 const SizedBox(height: 6),
@@ -281,7 +282,8 @@ class _SpaceCard extends StatelessWidget {
 }
 
 /// Who paid what share of this month's spending: you first in primary
-/// text, then everyone else in the order they were added.
+/// text, then everyone else in the order they were added, then members
+/// who have left since.
 class _PaidBar extends StatelessWidget {
   const new(this.space);
 
@@ -291,7 +293,7 @@ class _PaidBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final payers = [
-      for (final m in [space.you, ...space.others])
+      for (final m in [space.you, ...space.others, ...space.departed])
         if (m.monthPaid.value > 0) m,
     ];
     return ExcludeSemantics(

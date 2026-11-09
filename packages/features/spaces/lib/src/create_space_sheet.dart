@@ -10,6 +10,8 @@ Future<void> showCreateSpaceSheet(BuildContext context) {
   final c = SettloColors.of(context);
   return showModalBottomSheet<void>(
     context: context,
+    // Above the shell, so the floating tab bar never covers the sheet.
+    useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: c.surface,
@@ -62,9 +64,14 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
 
   void _add() {
     final phone = toE164(_phone.text);
+    // GoTrue stores the verified number without its `+`.
+    final mine = ref.read(sessionProvider)?.user.phone;
     setState(() {
       if (phone == null) {
         _phoneError = 'Enter a mobile number, like 98765 43210';
+      } else if (mine != null &&
+          phone == toE164('+${mine.replaceFirst('+', '')}')) {
+        _phoneError = "That's your number. You're in the space already.";
       } else if (_members.any((m) => m.phone == phone)) {
         _phoneError = '${groupPhone(phone)} is already added';
       } else {
