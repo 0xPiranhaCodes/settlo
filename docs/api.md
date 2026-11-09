@@ -249,6 +249,13 @@ these keep theirs server-side (`private.idempotency_keys`, no client access), un
 user's identical key never collides. A concurrent call with the same key waits for the first to
 commit, then replays it (same payload) or conflicts.
 
+**Replay window (#70).** A key in `private.idempotency_keys` is honoured for **30 days** from its first
+use; a pg_cron job (`purge-idempotency-keys`, daily at 03:17 UTC) then deletes it. Within the window a
+replay returns without writing; after it, the same key runs as a new call (so it may apply again or
+fail on the current state, e.g. `already_member`). Clients must not replay a mutation more than 30
+days after first sending it: drop it and refresh from the server (ADR 0004). Keys held on the rows
+that `add_expense` and `create_space` create are never purged.
+
 Edits and deletes are open to the expense's **creator or a space owner**; the `expenses` update
 policy matches. Payers and splits are written **only** by `add_expense` and `update_expense`: clients
 have no insert, update or delete privilege on `expense_payers` / `expense_splits`, so no balance can
@@ -267,10 +274,10 @@ Further hints, all on `22023`:
 | Hint | When |
 | --- | --- |
 | `balance_not_zero` | A member with a non-zero balance would leave or be removed |
-| `last_owner` | The space's last active owner would leave or be removed |
+| `last_owner` | The space's last active owner would leave, be removed or be demoted |
+| `not_accepted` | `set_member_role` would make a pending member an owner |
 | `member_departed` | An edit, delete or restore would change a departed member's balance |
 | `already_member` | `add_space_members` names an active member's phone |
-| `former_member` | `add_space_members` names a departed member's phone (re-adding is not supported yet) |
 | `invalid_vpa` | A malformed UPI id |
 
 ### `update_expense(p jsonb)`
@@ -311,8 +318,15 @@ POST /rest/v1/rpc/delete_expense  {"p_expense_id": "c4a1e7f2-…", "p_idempotenc
 Adds members by phone to a space the caller is an accepted, active member of. `p_members` is
 `create_space`'s format (`[{"phone": "+91…", "name": "…"}]`), non-empty, distinct E.164 phones. New
 rows are `member`s, pending until each number verifies and accepts (#9). An active member's phone is
-`22023` with hint `already_member`; a departed member's is `22023` with hint `former_member`
-(re-adding a former member is not supported yet).
+`22023` with hint `already_member`.
+
+A departed member's phone **rejoins** (#70): their old row is reactivated (same member id, history and
+past payers and splits kept) as a pending `member`, so it is a new claim to accept, and a given name
+replaces the old one. The row keeps its `user_id`: an accepted former member gets the claim back
+whatever number they now hold, while a row never linked or rejected is matched by phone like a new
+one. A departed balance is frozen and normally zero; if it is not (a rejected claim departs whatever
+its balance), the re-add is `22023` with hint `balance_not_zero`, so nobody inherits it. A direct
+`left_at` update back to null is `42501`: rejoining goes through this RPC only.
 The fingerprint is the space and the members sorted by phone. Returns nothing.
 
 ```
@@ -324,8 +338,8 @@ POST /rest/v1/rpc/add_space_members
 Without `p_member_id` the caller leaves; with it an owner removes that member (`42501` for anyone
 else). Leaving sets `left_at`; history stays. Only at a **zero balance** (`space_member_balances`):
 otherwise `22023` with hint `balance_not_zero`, so the client sends the user to settle up first. The
-space's last active owner cannot leave or be removed (`22023`, hint `last_owner`). There is no RPC to
-promote an owner yet, so a sole owner stays until one exists (or deletes the space). Both rules are
+space's last active owner cannot leave or be removed (`22023`, hint `last_owner`); a sole owner hands
+over with `set_member_role` first. Both rules are
 a trigger on `space_members`, so a direct `left_at` update is held to them too, and they hold under
 concurrency: departures in a space are serialised on the space row, and a leave and an expense
 naming the same member wait for each other. The key is
@@ -335,6 +349,26 @@ checked before membership, so a replay returns after the caller has left. Return
 POST /rest/v1/rpc/leave_space  {"p_space_id": "6f1c…", "p_idempotency_key": "9c3d…"}
 
 400 {"code": "22023", "hint": "balance_not_zero", "message": "member … has a balance of -500 and cannot leave until it is settled", …}
+```
+
+### `set_member_role(p_space_id uuid, p_member_id uuid, p_role member_role, p_idempotency_key uuid)`
+An owner promotes an active member to `owner` or demotes an owner (themselves included) to `member`.
+Setting the current role is a no-op. Returns nothing. The fingerprint is the space, member and role.
+
+- `42501`: the caller is not an accepted, active owner of the space (checked again after the locks
+  below, so an owner demoted concurrently is refused).
+- `22023`: a missing argument, or `p_member_id` is not an active member of the space; hint
+  `not_accepted` to promote a pending member; hint `last_owner` to demote the space's last accepted,
+  active owner.
+- Concurrency: like a leave, it locks the member row, then the space row, so role changes and
+  departures in a space run one after the other and the space always keeps an owner.
+- The key is checked before ownership, so a replay returns after the caller has stepped down.
+
+Hand-over: the sole owner promotes someone, then demotes themselves or leaves.
+
+```
+POST /rest/v1/rpc/set_member_role
+{"p_space_id": "6f1c…", "p_member_id": "<Bilal>", "p_role": "owner", "p_idempotency_key": "4e5f…"}
 ```
 
 ### `update_profile(p_name text, p_upi_id text)`

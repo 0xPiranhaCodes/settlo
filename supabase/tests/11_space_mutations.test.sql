@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(79);
+select plan(78);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000005901', '919590000001', now()),
@@ -292,9 +292,6 @@ select ok((select left_at is not null from public.space_members where id = '0000
   'leave_space: X has left');
 select is(pg_temp.hint_of($$update public.expenses set deleted_at = null where id = (select id from pg_temp.e1)$$),
   'member_departed', 'expenses: restoring E1 would change departed X''s balance, so it is refused');
-select is(pg_temp.hint_of($$select public.add_space_members('00000000-0000-0000-0000-000000005910',
-    '[{"phone": "+919590000009"}]', '00000000-0000-0000-0000-000000005966')$$),
-  'former_member', 'add_space_members: re-adding departed X is rejected with hint former_member');
 select pg_temp.login('00000000-0000-0000-0000-000000005902');
 select throws_ok($$select public.leave_space('00000000-0000-0000-0000-000000005910', '00000000-0000-0000-0000-000000005974',
     (select id from public.space_members where phone = '+919590000077'))$$,
