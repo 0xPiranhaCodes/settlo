@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:settlo/router/router.dart';
+import 'package:settlo_core/settlo_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() => runApp(const ProviderScope(child: SettloApp()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final config = SupabaseConfig.fromEnvironment();
+  await Supabase.initialize(url: config.url, publishableKey: config.anonKey);
+  runApp(const ProviderScope(child: SettloApp()));
+}
 
-final _router = GoRouter(
-  routes: [GoRoute(path: '/', builder: (_, _) => const SizedBox.shrink())],
-);
-
-/// Root widget. Screens and theme arrive with their feature issues.
-class SettloApp extends StatelessWidget {
+/// Root widget: the router with the auth guard, in the system theme.
+class SettloApp extends ConsumerWidget {
   /// Creates the root widget.
   const new({super.key});
 
   @override
-  Widget build(BuildContext context) =>
-      MaterialApp.router(title: 'Settlo', routerConfig: _router);
+  Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
+    title: 'Settlo',
+    debugShowCheckedModeBanner: false,
+    theme: SettloTheme.light(),
+    darkTheme: SettloTheme.dark(),
+    routerConfig: ref.watch(routerProvider),
+  );
 }

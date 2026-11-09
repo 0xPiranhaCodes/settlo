@@ -13,8 +13,25 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^3.5.0
   go_router: ^18.1.3
+  settlo_activity:
+    path: ../packages/features/activity
+  settlo_auth:
+    path: ../packages/features/auth
+  settlo_balances:
+    path: ../packages/features/balances
   settlo_core:
     path: ../packages/core
+  settlo_expenses:
+    path: ../packages/features/expenses
+  settlo_loans:
+    path: ../packages/features/loans
+  settlo_profile:
+    path: ../packages/features/profile
+  settlo_settle:
+    path: ../packages/features/settle
+  settlo_spaces:
+    path: ../packages/features/spaces
+  supabase_flutter: ^2.18.3
 
 dev_dependencies:
   flutter_test:
