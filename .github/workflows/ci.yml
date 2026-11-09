@@ -257,7 +257,7 @@ jobs:
 
       - name: Regenerate app goldens
         working-directory: app
-        run: flutter test test/golden_harness_sample_test.dart --update-goldens
+        run: flutter test --update-goldens
 
       - name: Commit app goldens
         shell: bash
