@@ -140,6 +140,15 @@ final _tables = <String, List<Map<String, Object?>>>{
       'next_due_on': null,
     },
   ],
+  'loan_repayments': [
+    {
+      'id': 'r1',
+      'loan_id': 'l1',
+      'amount_minor': 2500000,
+      'recorded_by': 'u-arjun',
+      'status': 'pending',
+    },
+  ],
   'profiles': [
     {'id': _me, 'name': 'Sana', 'phone': '+919876543210'},
     {'id': 'u-rahul', 'name': 'Rahul', 'phone': '+919100000001'},
@@ -228,6 +237,10 @@ void main() {
         loan.nextDueOn,
       ),
       (2500000, 13, 40, DateTime(2026, 12, 5)),
+    );
+    expect(
+      (loan.pendingRepaymentId, loan.pendingRepaymentAmount?.value),
+      ('r1', 2500000),
     );
 
     expect(

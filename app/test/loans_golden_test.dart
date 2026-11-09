@@ -57,4 +57,43 @@ void main() {
       }
     }
   }
+
+  for (final device in SettloGoldenDevices.all) {
+    for (final (themeName, theme) in [
+      ('dark', SettloTheme.dark()),
+      ('light', SettloTheme.light()),
+    ]) {
+      testWidgets('${device.name} $themeName confirm repayment golden', (
+        tester,
+      ) async {
+        final container = ProviderContainer(
+          overrides: [
+            loansRepositoryProvider.overrideWithValue(
+              FakeLoansRepository(loansList()),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        container.listen(loansProvider, (_, _) {});
+        await container.read(loansProvider.future);
+
+        await pumpSettloGolden(
+          tester,
+          device: device,
+          theme: theme,
+          child: UncontrolledProviderScope(
+            container: container,
+            child: const ConfirmRepaymentScreen(repaymentId: 'r3'),
+          ),
+        );
+
+        await expectLater(
+          find.byKey(settloGoldenSurfaceKey),
+          matchesGoldenFile(
+            'goldens/confirm_repayment_${device.name}_$themeName.png',
+          ),
+        );
+      });
+    }
+  }
 }

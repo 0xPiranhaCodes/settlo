@@ -8,6 +8,7 @@ import 'package:settlo_loans/src/glyphs.dart';
 import 'package:settlo_loans/src/loan_ring.dart';
 import 'package:settlo_loans/src/loans_provider.dart';
 import 'package:settlo_loans/src/record_repayment_sheet.dart';
+import 'package:settlo_loans/src/repayment_decision.dart';
 
 /// A loan (Loan artboard, canvas note n20): a ring for progress, three
 /// tiles for how much each time, when next and whether it is on track,
@@ -115,6 +116,7 @@ class LoanDetailScreen extends ConsumerWidget {
                         for (final (i, r) in loan.repayments.indexed)
                           RepaymentRow(
                             r,
+                            key: ValueKey(r.id),
                             counterparty: loan.counterparty,
                             divider: i < loan.repayments.length - 1,
                           ),
@@ -332,35 +334,25 @@ class RepaymentRow extends ConsumerStatefulWidget {
 }
 
 class _RepaymentRowState extends ConsumerState<RepaymentRow> {
-  /// Made once, so a retried confirmation is never applied twice.
-  final String _confirmKey = newIdempotencyKey();
-  bool _busy = false;
-  String? _error;
+  late final RepaymentDecisionController _decision;
 
-  Future<void> _confirm() async {
-    // The button disables only on the next frame; a second tap in this
-    // one must not send again.
-    if (_busy) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    final ledger = ref.read(ledgerRevisionProvider.notifier);
-    try {
-      await ref
-          .read(loansRepositoryProvider)
-          .confirmRepayment(widget.repayment.id, idempotencyKey: _confirmKey);
-      ledger.bump();
-      // Done: stay busy, so a tap still queued on this frame is dropped.
-      return;
-    } on LoanRejected catch (e) {
-      _error = e.message;
-    } on Exception {
-      _error =
-          "We couldn't confirm it. Check your connection and try again. "
-          "It won't be counted twice.";
-    }
-    if (mounted) setState(() => _busy = false);
+  @override
+  void initState() {
+    super.initState();
+    _decision = RepaymentDecisionController(ref, widget.repayment.id)
+      ..addListener(_changed);
+  }
+
+  void _changed() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _decision
+      ..removeListener(_changed)
+      ..dispose();
+    super.dispose();
   }
 
   @override
@@ -382,44 +374,58 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              SizedBox(
-                width: 44,
-                child: Text(dayMonth(r.paidOn), style: small),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: switch (r.status) {
-                  RepaymentStatus.confirmed => Text(
-                    '$how · confirmed by $by',
-                    style: text,
-                  ),
-                  RepaymentStatus.disputed => Text(
-                    '$how · disputed by $by',
-                    style: text.copyWith(color: c.textSecondary),
-                  ),
-                  RepaymentStatus.pending => Row(
-                    children: [
-                      Text(how, style: text),
-                      const SizedBox(width: SettloSpacing.x1),
-                      Flexible(
-                        child: _Badge(
-                          r.awaitsYou ? 'awaiting you' : 'awaiting $who',
+          Semantics(
+            button: r.awaitsYou,
+            label: r.awaitsYou ? 'Review repayment' : null,
+            child: InkWell(
+              onTap: r.awaitsYou
+                  ? () => context.push(SettloRoutes.confirmRepayment(r.id))
+                  : null,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: SettloSpacing.minTouchTarget,
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 44,
+                      child: Text(dayMonth(r.paidOn), style: small),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: switch (r.status) {
+                        RepaymentStatus.confirmed => Text(
+                          '$how · confirmed by $by',
+                          style: text,
                         ),
-                      ),
-                    ],
-                  ),
-                },
+                        RepaymentStatus.disputed => Text(
+                          '$how · disputed by $by',
+                          style: text.copyWith(color: c.textSecondary),
+                        ),
+                        RepaymentStatus.pending => Row(
+                          children: [
+                            Text(how, style: text),
+                            const SizedBox(width: SettloSpacing.x1),
+                            Flexible(
+                              child: _Badge(
+                                r.awaitsYou ? 'awaiting you' : 'awaiting $who',
+                              ),
+                            ),
+                          ],
+                        ),
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    MoneyText(
+                      r.amount,
+                      tone: r.status == RepaymentStatus.disputed
+                          ? MoneyTone.settled
+                          : MoneyTone.neutral,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(width: 12),
-              MoneyText(
-                r.amount,
-                tone: r.status == RepaymentStatus.disputed
-                    ? MoneyTone.settled
-                    : MoneyTone.neutral,
-              ),
-            ],
+            ),
           ),
           if (r.disputeReason case final reason?)
             Padding(
@@ -434,19 +440,20 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
                 spacing: SettloSpacing.x1,
                 children: [
                   _Pill(
-                    label: _busy ? 'Confirming…' : 'Confirm received',
+                    label: _decision.busy ? 'Confirming…' : 'Confirm received',
                     primary: true,
-                    onTap: _busy ? null : _confirm,
+                    onTap: _decision.busy ? null : _decision.confirm,
                   ),
                   _Pill(
                     label: "Didn't get it",
-                    onTap: _busy
+                    onTap: _decision.busy
                         ? null
                         : () => showSettloSheet<void>(
                             context: context,
                             builder: (context) => DisputeSheet(
                               repayment: r,
                               counterparty: who,
+                              decision: _decision,
                               onClose: () => Navigator.of(context).pop(),
                             ),
                           ),
@@ -455,7 +462,7 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
               ),
             ),
           ],
-          if (_error case final error?)
+          if (_decision.error case final error?)
             Padding(
               padding: const EdgeInsets.only(left: 56, top: 4),
               child: Text(
@@ -554,12 +561,13 @@ class _Pill extends StatelessWidget {
 }
 
 /// "Didn't get it": asks why, then disputes the repayment. Final, so it
-/// says so. One key per sheet.
+/// says so. It shares the same busy guard and idempotency state as confirm.
 class DisputeSheet extends ConsumerStatefulWidget {
   /// Disputing [repayment], recorded by [counterparty].
   const new({
     required this.repayment,
     required this.counterparty,
+    required this.decision,
     required this.onClose,
     super.key,
   });
@@ -570,6 +578,9 @@ class DisputeSheet extends ConsumerStatefulWidget {
   /// Who recorded it.
   final String counterparty;
 
+  /// The shared decision state for this repayment.
+  final RepaymentDecisionController decision;
+
   /// Closes the sheet; also called once the dispute is saved.
   final VoidCallback onClose;
 
@@ -578,44 +589,27 @@ class DisputeSheet extends ConsumerStatefulWidget {
 }
 
 class _DisputeSheetState extends ConsumerState<DisputeSheet> {
-  final String _key = newIdempotencyKey();
   final _reason = TextEditingController();
-  bool _busy = false;
-  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.decision.addListener(_changed);
+  }
+
+  void _changed() {
+    if (mounted) setState(() {});
+  }
 
   @override
   void dispose() {
+    widget.decision.removeListener(_changed);
     _reason.dispose();
     super.dispose();
   }
 
   Future<void> _send() async {
-    // The button disables only on the next frame; a second tap in this
-    // one must not send again.
-    if (_busy) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    final ledger = ref.read(ledgerRevisionProvider.notifier);
-    try {
-      await ref
-          .read(loansRepositoryProvider)
-          .disputeRepayment(
-            widget.repayment.id,
-            reason: _reason.text.trim(),
-            idempotencyKey: _key,
-          );
-      ledger.bump();
-      widget.onClose();
-      // Done: stay busy, so a tap still queued on this frame is dropped.
-      return;
-    } on LoanRejected catch (e) {
-      _error = e.message;
-    } on Exception {
-      _error = "We couldn't send it. Check your connection and try again.";
-    }
-    if (mounted) setState(() => _busy = false);
+    if (await widget.decision.dispute(_reason.text)) widget.onClose();
   }
 
   @override
@@ -665,7 +659,10 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
                 autofocus: true,
                 maxLength: 500,
                 textCapitalization: TextCapitalization.sentences,
-                onChanged: (_) => setState(() => _error = null),
+                onChanged: (_) {
+                  widget.decision.clearError();
+                  setState(() {});
+                },
                 style: SettloTypography.figtree(15, color: c.textPrimary),
                 decoration: const InputDecoration(
                   hintText: 'Not received yet',
@@ -673,7 +670,7 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
                 ),
               ),
             ),
-            if (_error case final error?) ...[
+            if (widget.decision.error case final error?) ...[
               const SizedBox(height: 12),
               Text(
                 error,
@@ -682,13 +679,13 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
             ],
             const SizedBox(height: 16),
             SPrimaryButton(
-              label: _busy ? 'Sending…' : 'Mark as not received',
-              onPressed: _busy || reason.isEmpty ? null : _send,
+              label: widget.decision.busy ? 'Sending…' : 'Mark as not received',
+              onPressed: widget.decision.busy || reason.isEmpty ? null : _send,
             ),
             const SizedBox(height: 10),
             SSecondaryButton(
               label: 'Cancel',
-              onPressed: _busy ? null : widget.onClose,
+              onPressed: widget.decision.busy ? null : widget.onClose,
             ),
           ],
         ),

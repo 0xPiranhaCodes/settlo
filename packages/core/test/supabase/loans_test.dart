@@ -313,7 +313,8 @@ void main() {
       loanId: 'l1',
       amount: const Paise.rupees(25000),
       method: RepaymentMethod.cash,
-      reference: null,
+      paidOn: DateTime(2026, 10, 4),
+      reference: 'UPI 4321',
     ), idempotencyKey: '7b1c0000-0000-4000-8000-000000000001');
 
     expect(id, 'k-record');
@@ -323,6 +324,8 @@ void main() {
         'idempotency_key': '7b1c0000-0000-4000-8000-000000000001',
         'amount_minor': 2500000,
         'method': 'cash',
+        'paid_on': '2026-10-04',
+        'reference': 'UPI 4321',
       },
     });
     expect(requests, ['POST rpc/record_repayment  $body']);
@@ -396,6 +399,7 @@ void main() {
           loanId: 'l1',
           amount: const Paise(100),
           method: null,
+          paidOn: null,
           reference: null,
         ), idempotencyKey: 'k-conflict'),
         throwsA(isA<IdempotencyConflict>()),

@@ -40,6 +40,8 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
       _ => '',
     },
   );
+  final _reference = TextEditingController();
+  DateTime? _paidOn;
   RepaymentMethod _method = RepaymentMethod.upi;
   bool _busy = false;
   String? _error;
@@ -49,6 +51,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
   @override
   void dispose() {
     _amount.dispose();
+    _reference.dispose();
     super.dispose();
   }
 
@@ -66,7 +69,11 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
         loanId: widget.loan.id,
         amount: amount,
         method: _method,
-        reference: null,
+        paidOn: _paidOn,
+        reference: switch (_reference.text.trim()) {
+          '' => null,
+          final value => value,
+        },
       ), idempotencyKey: _key);
       ledger.bump();
       widget.onClose();
@@ -83,6 +90,18 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
           "It won't be recorded twice.";
     }
     if (mounted) setState(() => _busy = false);
+  }
+
+  Future<void> _pickDate() async {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _paidOn ?? today,
+      firstDate: DateTime(today.year - 1, today.month, today.day),
+      lastDate: today,
+    );
+    if (picked == null) return;
+    setState(() => _paidOn = picked == today ? null : picked);
   }
 
   @override
@@ -163,6 +182,34 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
                 ),
             ],
           ),
+          const SizedBox(height: 18),
+          Text('PAID ON', style: _sheetLabel(c)),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: SChip(
+              label: switch (_paidOn) {
+                null => 'Today',
+                final d => '${d.day} ${_months[d.month - 1]} ${d.year}',
+              },
+              selected: _paidOn != null,
+              onSelected: (_) => _pickDate(),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text('REFERENCE · OPTIONAL', style: _sheetLabel(c)),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _reference,
+            maxLength: 120,
+            textCapitalization: TextCapitalization.characters,
+            onChanged: (_) => setState(() => _error = null),
+            style: SettloTypography.figtree(15, color: c.textPrimary),
+            decoration: const InputDecoration(
+              hintText: 'UPI or bank reference',
+              counterText: '',
+            ),
+          ),
           if (over || _error != null) ...[
             const SizedBox(height: 14),
             Text(
@@ -197,3 +244,21 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
 
 /// Rupees as typed: up to nine digits, commas allowed, two decimals.
 final _rupees = RegExp(r'^[\d,]{0,11}(\.\d{0,2})?$');
+
+const _months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+TextStyle _sheetLabel(SettloColors c) =>
+    SettloTypography.figtree(12, letterSpacing: 0.3, color: c.textSecondary);

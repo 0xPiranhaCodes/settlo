@@ -60,6 +60,8 @@ final class HomeLoan {
     this.installmentsPaid,
     this.installmentsTotal,
     this.nextDueOn,
+    this.pendingRepaymentId,
+    this.pendingRepaymentAmount,
   });
 
   /// `loans.id`.
@@ -85,6 +87,12 @@ final class HomeLoan {
 
   /// The next instalment's date; null when none is left.
   final DateTime? nextDueOn;
+
+  /// A pending repayment recorded by the other party, for Home review.
+  final String? pendingRepaymentId;
+
+  /// The amount of [pendingRepaymentId].
+  final Paise? pendingRepaymentAmount;
 
   /// [outstanding] from your side: positive when you lent.
   Paise get balance => youLent ? outstanding : -outstanding;
@@ -239,6 +247,7 @@ final class SupabaseHomeRepository implements HomeRepository {
       fairness,
       loans,
       summaries,
+      repayments,
       profiles,
     ] = await Future.wait<List<_Row>>([
       _db
@@ -268,6 +277,12 @@ final class SupabaseHomeRepository implements HomeRepository {
             'installment_minor, installments_total, installments_paid, '
             'next_due_on',
           ),
+      _db
+          .from('loan_repayments')
+          .select('id, loan_id, amount_minor, recorded_by, status')
+          .eq('status', 'pending')
+          .order('paid_on', ascending: false)
+          .order('created_at', ascending: false),
       _db.from('profiles').select('id, name, phone'),
     ]);
 
@@ -350,6 +365,14 @@ final class SupabaseHomeRepository implements HomeRepository {
       final counterparty =
           names[l['${other}_id']] ?? l['${other}_phone'] as String;
       final s = summaryOf[l['id']] ?? const <String, dynamic>{};
+      final pending = repayments
+          .where(
+            (r) =>
+                r['loan_id'] == l['id'] &&
+                r['recorded_by'] != userId &&
+                r['status'] == 'pending',
+          )
+          .firstOrNull;
       Paise? money(String key) => s[key] == null ? null : Paise(s[key] as int);
       if (l['${side}_accepted_at'] != null) {
         homeLoans.add(
@@ -363,6 +386,11 @@ final class SupabaseHomeRepository implements HomeRepository {
             installmentsTotal: s['installments_total'] as int?,
             nextDueOn: switch (s['next_due_on']) {
               final String d => DateTime.parse(d),
+              _ => null,
+            },
+            pendingRepaymentId: pending?['id'] as String?,
+            pendingRepaymentAmount: switch (pending?['amount_minor']) {
+              final int amount => Paise(amount),
               _ => null,
             },
           ),

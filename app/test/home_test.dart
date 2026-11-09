@@ -37,6 +37,7 @@ Future<GoRouter> _pump(
         SettloRoutes.spacePattern,
         SettloRoutes.loans,
         SettloRoutes.newLoan,
+        SettloRoutes.confirmRepaymentPattern,
         SettloRoutes.loanPattern,
         SettloRoutes.activity,
         SettloRoutes.profile,
@@ -245,6 +246,16 @@ void main() {
         expect(router.state.uri.toString(), location);
       });
     }
+
+    testWidgets('pending repayment opens its confirmation receipt', (
+      tester,
+    ) async {
+      final router = await _pump(tester, FakeHomeRepository(homeMain));
+      await _scrollToEnd(tester);
+      await tester.tap(find.text('₹25,000 · Review repayment'));
+      await tester.pumpAndSettle();
+      expect(router.state.uri.toString(), SettloRoutes.confirmRepayment('r3'));
+    });
 
     testWidgets('a borrowed, flexible loan reads from your side', (
       tester,

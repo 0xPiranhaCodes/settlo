@@ -193,6 +193,7 @@ typedef NewRepayment = ({
   String loanId,
   Paise amount,
   RepaymentMethod? method,
+  DateTime? paidOn,
   String? reference,
 });
 
@@ -266,6 +267,8 @@ abstract interface class LoansRepository {
   Future<String> createLoan(NewLoan loan, {required String idempotencyKey});
 
   /// Records [repayment] as pending and returns its id (the key).
+  /// The repayment's paid-on date is null for today; its reference is a
+  /// trimmed UPI, bank or cash reference when the recorder supplied one.
   Future<String> recordRepayment(
     NewRepayment repayment, {
     required String idempotencyKey,
@@ -433,6 +436,11 @@ final class SupabaseLoansRepository implements LoansRepository {
         'idempotency_key': idempotencyKey,
         'amount_minor': repayment.amount.value,
         'method': ?repayment.method?.name,
+        if (repayment.paidOn case final d?)
+          'paid_on':
+              '${d.year.toString().padLeft(4, '0')}-'
+              '${d.month.toString().padLeft(2, '0')}-'
+              '${d.day.toString().padLeft(2, '0')}',
         'reference': ?repayment.reference,
       },
     });

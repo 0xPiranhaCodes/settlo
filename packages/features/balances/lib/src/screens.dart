@@ -585,6 +585,21 @@ class _LoansCard extends StatelessWidget {
             trailing: MoneyText(l.outstanding),
             onTap: () => context.go(SettloRoutes.loan(l.id)),
           ),
+          if ((l.pendingRepaymentId, l.pendingRepaymentAmount) case (
+            final repaymentId?,
+            final amount?,
+          )) ...[
+            const SizedBox(height: 10),
+            _Row(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              leading: const SizedBox(width: 44),
+              title: '${l.counterparty} says they paid',
+              detail: '${formatInr(amount)} · Review repayment',
+              detailSpoken: '${spokenInr(amount)} · Review repayment',
+              onTap: () =>
+                  context.push(SettloRoutes.confirmRepayment(repaymentId)),
+            ),
+          ],
           if (l
               case HomeLoan(
                 installmentsPaid: final paid?,

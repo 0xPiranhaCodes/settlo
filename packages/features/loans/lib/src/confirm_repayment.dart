@@ -1,0 +1,350 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_loans/src/glyphs.dart';
+import 'package:settlo_loans/src/loan_detail.dart';
+import 'package:settlo_loans/src/loans_provider.dart';
+import 'package:settlo_loans/src/repayment_decision.dart';
+
+/// A pending repayment as a checkable receipt (ConfirmRepayment, note n23).
+class ConfirmRepaymentScreen extends ConsumerStatefulWidget {
+  /// The receipt for [repaymentId].
+  const new({required this.repaymentId, super.key});
+
+  /// The repayment to review.
+  final String repaymentId;
+
+  @override
+  ConsumerState<ConfirmRepaymentScreen> createState() => _ConfirmState();
+}
+
+class _ConfirmState extends ConsumerState<ConfirmRepaymentScreen> {
+  late final RepaymentDecisionController _decision;
+
+  @override
+  void initState() {
+    super.initState();
+    _decision = RepaymentDecisionController(ref, widget.repaymentId)
+      ..addListener(_changed);
+  }
+
+  void _changed() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _decision
+      ..removeListener(_changed)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final data = ref.watch(loansProvider);
+    final found = _find(data.value?.loans ?? const [], widget.repaymentId);
+    if (found case (final loan, final repayment)) {
+      return _Receipt(loan: loan, repayment: repayment, decision: _decision);
+    }
+    return _Unavailable(loading: data.isLoading, failed: data.hasError);
+  }
+}
+
+(Loan, LoanRepayment)? _find(List<Loan> loans, String id) {
+  for (final loan in loans) {
+    for (final repayment in loan.repayments) {
+      if (repayment.id == id) return (loan, repayment);
+    }
+  }
+  return null;
+}
+
+class _Unavailable extends StatelessWidget {
+  const new({required this.loading, required this.failed});
+
+  final bool loading;
+  final bool failed;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: _bar(context),
+    body: Center(
+      child: Text(
+        loading
+            ? 'Loading…'
+            : failed
+            ? "We couldn't load this repayment. Try again."
+            : 'This repayment is no longer available.',
+      ),
+    ),
+  );
+}
+
+AppBar _bar(BuildContext context) {
+  final c = SettloColors.of(context);
+  return AppBar(
+    toolbarHeight: 104,
+    leadingWidth: 84,
+    leading: Padding(
+      padding: const EdgeInsets.only(left: 20),
+      child: Center(
+        child: IconButton(
+          tooltip: 'Back',
+          onPressed: context.pop,
+          style: IconButton.styleFrom(
+            fixedSize: const Size.square(SettloSpacing.minTouchTarget),
+            backgroundColor: c.surface,
+            side: BorderSide(color: c.hairline),
+          ),
+          icon: LoanGlyph(LoanGlyph.back, color: c.textPrimary),
+        ),
+      ),
+    ),
+    title: Text(
+      'Confirm',
+      style: SettloTypography.figtree(
+        15,
+        weight: FontWeight.w500,
+        color: c.textPrimary,
+      ),
+    ),
+    centerTitle: true,
+  );
+}
+
+class _Receipt extends StatelessWidget {
+  const new({
+    required this.loan,
+    required this.repayment,
+    required this.decision,
+  });
+
+  final Loan loan;
+  final LoanRepayment repayment;
+  final RepaymentDecisionController decision;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final canAct = repayment.awaitsYou;
+    final after = loan.outstanding - repayment.amount;
+    final method = repayment.method?.label ?? 'Repayment';
+    final reference = repayment.reference?.trim();
+    final referenceText = reference == null || reference.isEmpty
+        ? ''
+        : ' · ref $reference';
+    final amount = formatInr(repayment.amount);
+    final paidOn = dayMonth(repayment.paidOn);
+    final recordedBy = repayment.recordedByYou ? 'You' : loan.counterparty;
+    final guidance = canAct
+        ? 'Check your bank or UPI app for $amount from ${loan.counterparty} '
+              'on $paidOn before confirming. Confirming is final and updates '
+              'both ledgers.'
+        : repayment.recordedByYou
+        ? '${loan.counterparty} must confirm this. Only the person who did '
+              'not record it can act.'
+        : 'This repayment has already been answered and is read-only.';
+    return Scaffold(
+      appBar: _bar(context),
+      body: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SAvatar(loan.counterparty, size: 72),
+                      const SizedBox(height: 14),
+                      Text(
+                        repayment.recordedByYou
+                            ? 'You recorded this payment'
+                            : '${loan.counterparty} says he paid you',
+                        style: SettloTypography.figtree(
+                          15,
+                          color: c.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Semantics(
+                        label: spokenInr(repayment.amount),
+                        excludeSemantics: true,
+                        child: MoneyText(repayment.amount, size: 52),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'on $paidOn · $method$referenceText',
+                        textAlign: TextAlign.center,
+                        style: SettloTypography.figtree(
+                          13,
+                          color: c.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SCard(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        child: Column(
+                          children: [
+                            _Row(
+                              'Loan',
+                              '${loan.counterparty} · '
+                                  '${formatInr(loan.principal)}',
+                              spoken:
+                                  '${loan.counterparty}, '
+                                  '${spokenInr(loan.principal)}',
+                            ),
+                            _Row('Instalment', switch ((
+                              loan.installmentsPaid,
+                              loan.installmentsTotal,
+                            )) {
+                              (final paid?, final total?) => '$paid of $total',
+                              _ => 'Flexible',
+                            }),
+                            _Row(
+                              'Outstanding after',
+                              formatInr(after),
+                              spoken: spokenInr(after),
+                            ),
+                            _Row(
+                              'Recorded by',
+                              '$recordedBy · $paidOn',
+                              last: true,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SCard(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            LoanGlyph(
+                              LoanGlyph.shieldCheck,
+                              size: 20,
+                              color: c.textSecondary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                guidance,
+                                style: SettloTypography.figtree(
+                                  13,
+                                  color: c.textSecondary,
+                                ).copyWith(height: 1.5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (decision.error case final error?) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          error,
+                          textAlign: TextAlign.center,
+                          style: SettloTypography.figtree(
+                            13,
+                            color: c.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              if (canAct) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: SPrimaryButton(
+                    label: decision.busy
+                        ? 'Confirming…'
+                        : 'Confirm $amount received',
+                    icon: LoanGlyph(
+                      LoanGlyph.check,
+                      color: c.onAction,
+                      size: 18,
+                      stroke: 1.9,
+                    ),
+                    onPressed: decision.busy ? null : decision.confirm,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: SSecondaryButton(
+                    label: "Didn't receive this",
+                    onPressed: decision.busy
+                        ? null
+                        : () => showSettloSheet<void>(
+                            context: context,
+                            builder: (context) => DisputeSheet(
+                              repayment: repayment,
+                              counterparty: loan.counterparty,
+                              decision: decision,
+                              onClose: () => Navigator.of(context).pop(),
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Row extends StatelessWidget {
+  const new(this.label, this.value, {this.spoken, this.last = false});
+
+  final String label;
+  final String value;
+  final String? spoken;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    return Semantics(
+      label: '$label, ${spoken ?? value}',
+      excludeSemantics: true,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 44),
+        decoration: BoxDecoration(
+          border: last ? null : Border(bottom: BorderSide(color: c.hairline)),
+        ),
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: SettloTypography.figtree(14, color: c.textSecondary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                value,
+                textAlign: TextAlign.end,
+                style: SettloTypography.figtree(
+                  14,
+                  weight: label == 'Outstanding after'
+                      ? FontWeight.w500
+                      : FontWeight.w400,
+                  color: c.textPrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
