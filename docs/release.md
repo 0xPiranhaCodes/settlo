@@ -13,6 +13,17 @@ This document is the release gate owned by Principal QA. Check each item against
 
 The checked evidence above is bound to issue [#65](https://github.com/0xPiranhaCodes/settlo/issues/65). The gate is not merge-ready until the final hosted checks are green and the merge rule below is satisfied.
 
+## M4 loan-flow gate
+
+- [x] The [real-stack loan integration test](../app/integration_test/loan_flow_test.dart) creates a ₹1,00,000 interest-free monthly loan through the UI, accepts it from the invited number, and records three referenced ₹25,000 repayments.
+- [x] The lender reviews every repayment from Activity › Needs you, confirms the first, disputes the second with a reason, and confirms the corrected third; each receipt, progress ring and stat tile is checked against hand-computed integer-paise values.
+- [x] A read-only server assertion proves the final `loan_summaries` row is ₹50,000 repaid, ₹50,000 outstanding, two confirmed, one disputed, none pending and on track; Activity contains all seven loan events.
+- [x] The iPhone 16 / iOS 18.2 [loan-flow recording](https://github.com/0xPiranhaCodes/settlo/blob/evidence/92-loan-flow/loan-flow-ios-18.2.mp4?raw=true) covers the passing flow.
+- [x] The existing flatmate gate passes with both settle-ups confirmed by their payees after recording, with a fresh iPhone 16 / iOS 18.2 [regression recording](https://github.com/0xPiranhaCodes/settlo/blob/evidence/92-loan-flow/flatmate-flow-ios-18.2.mp4?raw=true).
+- [ ] Required hosted CI checks are green for the loan-flow pull request.
+
+The evidence above is bound to issue [#92](https://github.com/0xPiranhaCodes/settlo/issues/92). The gate is not merge-ready until the final hosted checks are green and the merge rule below is satisfied.
+
 ## M6 Release gate
 
 - [ ] Store listings are complete for iOS and Android.
