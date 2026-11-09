@@ -23,6 +23,9 @@ Settle up never moves money (context pack). The pay side hands the payment to th
 - **`share_plus` for the WhatsApp request.** It cannot prefill a WhatsApp recipient; `wa.me` with `url_launcher` can.
 
 ## Consequences
-- One direct dependency in `settlo_settle` (`url_launcher`) and one on `settlo_platform`. No new package in the lockfile.
+- One direct dependency on `url_launcher`, now in `settlo_platform` (see the amendment), and `settlo_settle` depends on `settlo_platform`. No new package in the lockfile.
 - The SettlePay artboard's per-app tiles are replaced by one button that opens the chooser on Android and the registered app on iOS.
 - Whether the payment happened is the user's word. By design, Settlo cannot see the UPI result.
+
+## Amendment (10 Nov 2026, #88)
+New loan also opens WhatsApp, to tell the other person a loan was recorded with them. `openUrlProvider` and the `url_launcher` dependency move from `settlo_settle` to `packages/platform` (with `flutter_riverpod`), which both features use; ADR 0002 sends shared code down, not sideways. `settlo_settle` re-exports the provider, so its tests are unchanged. The loan message carries no amount, terms or link: nothing about a loan is shown before the number verifies (n43), and a store link waits for M6. Still no new package in the lockfile.

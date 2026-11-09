@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:settlo/main.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_profile/settlo_profile.dart';
@@ -44,22 +45,31 @@ class FakeSessionNotifier extends SessionNotifier {
 }
 
 /// [SettloApp] with the session faked to [session], an empty Home and the
-/// SpacesList spaces with their ledgers, and the Loans tab's loans.
+/// SpacesList spaces with their ledgers, and the Loans tab's loans; [home],
+/// [loans] and [overrides] replace those.
 Widget fakeSessionApp(
   Session? session, {
   ThemeMode themeMode = ThemeMode.dark,
   ThemeModeRepository? themeModeRepository,
+  HomeRepository? home,
+  LoansRepository? loans,
+  List<Override> overrides = const [],
 }) => ProviderScope(
   overrides: [
+    ...overrides,
     sessionProvider.overrideWith(() => FakeSessionNotifier(session)),
-    homeRepositoryProvider.overrideWithValue(FakeHomeRepository(homeEmpty)),
+    homeRepositoryProvider.overrideWithValue(
+      home ?? FakeHomeRepository(homeEmpty),
+    ),
     spacesRepositoryProvider.overrideWithValue(
       FakeSpacesRepository(spacesList),
     ),
     spaceLedgerRepositoryProvider.overrideWithValue(
       FakeSpaceLedgerRepository(),
     ),
-    loansRepositoryProvider.overrideWithValue(FakeLoansRepository(loansList())),
+    loansRepositoryProvider.overrideWithValue(
+      loans ?? FakeLoansRepository(loansList()),
+    ),
     profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
     themeModeRepositoryProvider.overrideWithValue(
       themeModeRepository ?? FakeThemeModeRepository(themeMode),

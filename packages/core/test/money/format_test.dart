@@ -76,6 +76,31 @@ void main() {
       expect(amountInWords(const Paise.rupees(90)), 'ninety rupees');
     });
 
+    test('lakh and crore boundaries', () {
+      for (final (rupees, words) in [
+        (99999, 'ninety-nine thousand nine hundred ninety-nine'),
+        (100000, 'one lakh'),
+        (100001, 'one lakh one'),
+        (
+          9999999,
+          'ninety-nine lakh ninety-nine thousand nine hundred ninety-nine',
+        ),
+        (10000000, 'one crore'),
+        (10000001, 'one crore one'),
+        (10100000, 'one crore one lakh'),
+      ]) {
+        expect(amountInWords(Paise.rupees(rupees)), '$words rupees');
+      }
+      expect(
+        amountInWords(const Paise(1000000001)),
+        'one crore rupees and one paisa',
+      );
+      expect(
+        amountInWords(const Paise(10000099)),
+        'one lakh rupees and ninety-nine paise',
+      );
+    });
+
     test('singular, zero and paise', () {
       expect(amountInWords(Paise.zero), 'zero rupees');
       expect(amountInWords(const Paise.rupees(1)), 'one rupee');

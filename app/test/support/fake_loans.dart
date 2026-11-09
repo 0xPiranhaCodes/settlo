@@ -144,6 +144,42 @@ class FakeLoansRepository implements LoansRepository {
     repayments: repayments ?? l.repayments,
   );
 
+  /// What [createLoan] was last sent.
+  NewLoan? created;
+
+  @override
+  Future<String> createLoan(
+    NewLoan loan, {
+    required String idempotencyKey,
+  }) async {
+    calls.add('create_loan $idempotencyKey');
+    await _throw();
+    created = loan;
+    final i = loan.installment;
+    data = LoansData(
+      today: data.today,
+      loans: [
+        ...data.loans,
+        // The other side has not joined, so it shows as their number.
+        Loan(
+          id: idempotencyKey,
+          counterparty: loan.counterpartyPhone,
+          youLent: loan.youLent,
+          principal: loan.principal,
+          repaid: Paise.zero,
+          startOn: loan.startOn,
+          installment: i,
+          dueDay: loan.dueDay,
+          installmentsPaid: i == null ? null : 0,
+          installmentsTotal: i == null
+              ? null
+              : (loan.principal.value + i.value - 1) ~/ i.value,
+        ),
+      ],
+    );
+    return idempotencyKey;
+  }
+
   @override
   Future<String> recordRepayment(
     NewRepayment repayment, {

@@ -9,7 +9,23 @@ import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_loans/settlo_loans.dart';
 import 'package:settlo_test_support/golden.dart';
 
+import 'support/fake_home.dart';
 import 'support/fake_loans.dart';
+import 'support/fake_session.dart';
+
+/// Links opened, such as WhatsApp's; reset by [_pump].
+final _opened = <Uri>[];
+
+/// Whether opening a link works; reset by [_pump].
+var _canOpen = true;
+
+/// The Loan artboard's start: ₹10 lakh at ₹25,000 from March ends Jul 2029.
+final _today = DateTime(2026, 3, 5);
+
+Future<bool> _open(Uri uri) async {
+  _opened.add(uri);
+  return _canOpen;
+}
 
 /// The Loans tab and its routes at 360x800, at [location].
 Future<({GoRouter router, FakeLoansRepository loans})> _pump(
@@ -23,6 +39,8 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final repo = loans ?? FakeLoansRepository(loansList());
+  _opened.clear();
+  _canOpen = true;
   final router = GoRouter(
     initialLocation: location,
     routes: [...loansRoutes, loansTabRoute],
@@ -30,7 +48,12 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
   addTearDown(router.dispose);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [loansRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        loansRepositoryProvider.overrideWithValue(repo),
+        sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
+        indiaTodayProvider.overrideWithValue(_today),
+        openUrlProvider.overrideWithValue(_open),
+      ],
       child: MaterialApp.router(
         theme: SettloTheme.dark(),
         routerConfig: router,
@@ -278,6 +301,260 @@ void main() {
     });
   });
 
+  group('New loan', () {
+    Finder field(String label) =>
+        find.ancestor(of: find.text(label), matching: find.byType(TextField));
+
+    /// The canvas loan: you lent Arjun Mehta ₹10 lakh at ₹25,000 a month.
+    Future<void> fill(
+      WidgetTester tester, {
+      String installment = '25,000',
+    }) async {
+      await tester.enterText(find.byType(TextField).first, '10,00,000');
+      await tester.enterText(field('Phone number'), '98200 11223');
+      await tester.enterText(field('Their name'), 'Arjun Mehta');
+      await _tap(tester, find.text('Add person'));
+      await tester.enterText(find.byType(TextField).last, installment);
+      await tester.pumpAndSettle();
+    }
+
+    Finder create() =>
+        find.widgetWithText(FilledButton, 'Create loan and share');
+
+    testWidgets('the + opens it; it creates the loan, tells them on '
+        'WhatsApp and lands on it', (tester) async {
+      final semantics = tester.ensureSemantics();
+      final (:router, :loans) = await _pump(tester);
+      await _tap(tester, find.byTooltip('New loan'));
+      expect(find.byType(NewLoanSheet), findsOne);
+      expect(tester.widget<FilledButton>(create()).onPressed, isNull);
+
+      await fill(tester);
+      expect(find.text('ten lakh rupees'), findsOne);
+      expect(find.text('+91 98200 11223'), findsOne);
+      expect(
+        find.textContaining(
+          'Arjun gets a WhatsApp message. Ends Jul 2029 at this pace.',
+        ),
+        findsOne,
+      );
+      expect(find.text('5th'), findsOne);
+      expect(find.text('Mar 2026'), findsOne);
+
+      await _tap(tester, create());
+      final key = loans.calls.single.split(' ').last;
+      expect(loans.calls.single, startsWith('create_loan '));
+      expect(loans.created, (
+        youLent: true,
+        counterpartyPhone: '+919820011223',
+        principal: const Paise.rupees(1000000),
+        installment: const Paise.rupees(25000),
+        dueDay: 5,
+        startOn: _today,
+      ));
+      // No amount or terms before they verify.
+      final whatsApp = _opened.single;
+      expect((whatsApp.host, whatsApp.path), ('wa.me', '/919820011223'));
+      expect(whatsApp.queryParameters['text'], startsWith('Hi Arjun, '));
+      expect(whatsApp.queryParameters['text'], isNot(matches(RegExp(r'\d'))));
+      expect(router.state.uri.toString(), SettloRoutes.loan(key));
+      expect(find.byType(LoanDetailScreen), findsOne);
+
+      router.go(SettloRoutes.loans);
+      await tester.pumpAndSettle();
+      expect(find.text('+919820011223 · interest free'), findsOne);
+      expect(find.text('0 of 40 · next 5 Dec'), findsNothing);
+      semantics.dispose();
+    });
+
+    testWidgets('borrowed with no monthly amount is flexible', (tester) async {
+      final (router: _, :loans) = await _pump(
+        tester,
+        location: SettloRoutes.newLoan,
+      );
+      await _tap(tester, find.text('I borrowed'));
+      await fill(tester, installment: '');
+      expect(find.text('FROM'), findsOne);
+      expect(find.textContaining('No monthly schedule'), findsOne);
+      await _tap(tester, create());
+      expect(
+        (
+          loans.created?.youLent,
+          loans.created?.installment,
+          loans.created?.dueDay,
+        ),
+        (false, null, null),
+      );
+    });
+
+    testWidgets('a monthly amount over the principal cannot be saved', (
+      tester,
+    ) async {
+      await _pump(tester, location: SettloRoutes.newLoan);
+      await fill(tester, installment: '10,00,001');
+      expect(find.textContaining('at most the principal'), findsOne);
+      expect(tester.widget<FilledButton>(create()).onPressed, isNull);
+    });
+
+    testWidgets('your own number or a bad one is refused', (tester) async {
+      await _pump(tester, location: SettloRoutes.newLoan);
+      await tester.enterText(field('Phone number'), '12345');
+      await _tap(tester, find.text('Add person'));
+      expect(find.text('Enter a mobile number, like 98765 43210'), findsOne);
+      await tester.enterText(field('Phone number'), '98765 43210');
+      await _tap(tester, find.text('Add person'));
+      expect(
+        find.text("That's your number. A loan is with someone else."),
+        findsOne,
+      );
+    });
+
+    testWidgets('a retry after a dropped connection reuses the key', (
+      tester,
+    ) async {
+      final repo = FakeLoansRepository(loansList())
+        ..error = Exception('offline');
+      final (:router, loans: _) = await _pump(
+        tester,
+        location: SettloRoutes.newLoan,
+        loans: repo,
+      );
+      await fill(tester);
+      await _tap(tester, create());
+      expect(find.textContaining("won't be created twice"), findsOne);
+      expect(_opened, isEmpty);
+      await _tap(tester, create());
+      expect(repo.calls, hasLength(2));
+      expect(repo.calls.first, repo.calls.last);
+      expect(router.state.uri.toString(), startsWith('/loans/'));
+      expect(find.byType(LoanDetailScreen), findsOne);
+    });
+
+    testWidgets('a refusal shows plain copy and stays open', (tester) async {
+      await _pump(
+        tester,
+        location: SettloRoutes.newLoan,
+        loans: FakeLoansRepository(loansList())
+          ..error = const LoanRejected(LoanRejection.invalid),
+      );
+      await fill(tester);
+      await _tap(tester, create());
+      expect(
+        find.text("That didn't go through. Check it and try again."),
+        findsOne,
+      );
+      expect(find.byType(NewLoanSheet), findsOne);
+    });
+
+    testWidgets('without WhatsApp it says so and still shows the loan', (
+      tester,
+    ) async {
+      await _pump(tester, location: SettloRoutes.newLoan);
+      _canOpen = false;
+      await fill(tester);
+      await _tap(tester, create());
+      expect(find.text("Couldn't open WhatsApp"), findsOne);
+      expect(find.byType(LoanDetailScreen), findsOne);
+    });
+
+    testWidgets('close goes back to Loans', (tester) async {
+      final (:router, loans: _) = await _pump(
+        tester,
+        location: SettloRoutes.newLoan,
+      );
+      await _tap(tester, find.bySemanticsLabel('Close'));
+      expect(router.state.uri.toString(), SettloRoutes.loans);
+    });
+
+    testWidgets('interest is off, with the later path shown', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await _pump(tester, location: SettloRoutes.newLoan);
+      await tester.scrollUntilVisible(
+        find.byType(Switch),
+        100,
+        scrollable: find
+            .descendant(
+              of: find.byType(ListView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      final toggle = tester.widget<Switch>(find.byType(Switch));
+      expect((toggle.value, toggle.onChanged), (false, null));
+      expect(
+        tester.getSemantics(find.byType(Switch)),
+        matchesSemantics(
+          label: 'Interest\nInterest free · add simple or reducing later',
+          hasToggledState: true,
+          hasEnabledState: true,
+        ),
+      );
+      semantics.dispose();
+    });
+
+    test('ends in the month of the last instalment', () {
+      const lakh = Paise.rupees(100000);
+      expect(
+        loanEndMonth(
+          DateTime(2026, 3, 5),
+          const Paise.rupees(1000000),
+          const Paise.rupees(25000),
+        ),
+        DateTime(2029, 7),
+      );
+      // A part instalment still takes a month.
+      expect(
+        loanEndMonth(DateTime(2026, 11, 30), lakh, const Paise.rupees(30000)),
+        DateTime(2027, 3),
+      );
+      expect(loanEndMonth(DateTime(2026, 12), lakh, lakh), DateTime(2027));
+    });
+  });
+
+  testWidgets('Home opens New loan, and shows the loan once created', (
+    tester,
+  ) async {
+    _opened.clear();
+    await loadSettloFonts();
+    tester.view
+      ..physicalSize = SettloGoldenDevices.canvas390.size
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final loans = FakeLoansRepository(LoansData(today: _today));
+    await tester.pumpWidget(
+      fakeSessionApp(
+        fakeSession,
+        home: _HomeOverLoans(loans),
+        loans: loans,
+        overrides: [
+          indiaTodayProvider.overrideWithValue(_today),
+          openUrlProvider.overrideWithValue(_open),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _tap(tester, find.text('Record a loan'));
+    expect(find.byType(NewLoanSheet), findsOne);
+
+    await tester.enterText(find.byType(TextField).first, '50,000');
+    await tester.enterText(
+      find.ancestor(
+        of: find.text('Phone number'),
+        matching: find.byType(TextField),
+      ),
+      '98200 11223',
+    );
+    await _tap(tester, find.text('Add person'));
+    await _tap(
+      tester,
+      find.widgetWithText(FilledButton, 'Create loan and share'),
+    );
+    expect(find.byType(LoanDetailScreen), findsOne);
+
+    await _tap(tester, find.text('Home'));
+    expect(find.text('+919820011223 · interest free'), findsOne);
+  });
+
   group('a double tap in one frame sends once', () {
     // Two taps with no pump between while the first write is in flight:
     // the button is still enabled for the second, as it would be for a
@@ -319,6 +596,29 @@ void main() {
       expect(loans.calls, [startsWith('confirm_repayment ')]);
     });
 
+    testWidgets('create', (tester) async {
+      final (router: _, :loans) = await _pump(
+        tester,
+        location: SettloRoutes.newLoan,
+      );
+      await tester.enterText(find.byType(TextField).first, '10,00,000');
+      await tester.enterText(
+        find.ancestor(
+          of: find.text('Phone number'),
+          matching: find.byType(TextField),
+        ),
+        '98200 11223',
+      );
+      await _tap(tester, find.text('Add person'));
+      await twice(
+        tester,
+        loans,
+        find.widgetWithText(FilledButton, 'Create loan and share'),
+      );
+      expect(loans.calls, [startsWith('create_loan ')]);
+      expect(_opened, hasLength(1));
+    });
+
     testWidgets('dispute', (tester) async {
       final (router: _, :loans) = await _pump(
         tester,
@@ -353,6 +653,20 @@ void main() {
       });
     }
 
+    testWidgets('new loan sheet', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await _pump(tester, location: SettloRoutes.newLoan);
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      await tester.enterText(find.byType(TextField).at(1), '98200 11223');
+      await _tap(tester, find.text('Add person'));
+      await tester.drag(find.byType(ListView), const Offset(0, -800));
+      await tester.pumpAndSettle();
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
+    });
+
     testWidgets('record repayment sheet', (tester) async {
       final semantics = tester.ensureSemantics();
       await _pump(tester, location: SettloRoutes.loan('l1'));
@@ -361,4 +675,31 @@ void main() {
       semantics.dispose();
     });
   });
+}
+
+/// Home as the server builds it: the open loans in [loans].
+class _HomeOverLoans extends FakeHomeRepository {
+  new(this.loans) : super(homeEmpty);
+
+  final FakeLoansRepository loans;
+
+  @override
+  Future<HomeData> load() async => HomeData(
+    phone: homePhone,
+    month: DateTime(2026, 11),
+    loans: [
+      for (final l in loans.data.loans)
+        if (!l.closed)
+          HomeLoan(
+            id: l.id,
+            counterparty: l.counterparty,
+            youLent: l.youLent,
+            outstanding: l.outstanding,
+            installment: l.installment,
+            installmentsPaid: l.installmentsPaid,
+            installmentsTotal: l.installmentsTotal,
+            nextDueOn: l.nextDueOn,
+          ),
+    ],
+  );
 }

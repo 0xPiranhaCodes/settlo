@@ -174,6 +174,17 @@ final class LoansData {
   final List<Loan> loans;
 }
 
+/// A loan to create: monthly with `installment` and `dueDay` (1–28),
+/// flexible with neither. Loans are interest free in v1.
+typedef NewLoan = ({
+  bool youLent,
+  String counterpartyPhone,
+  Paise principal,
+  Paise? installment,
+  int? dueDay,
+  DateTime startOn,
+});
+
 /// A repayment to record; the loan's other party then confirms it.
 typedef NewRepayment = ({
   String loanId,
@@ -201,7 +212,8 @@ enum LoanRejection {
   /// You are not an accepted party to the loan (`42501`).
   notAllowed,
 
-  /// Anything else the server refused (`22023`), such as a bad reason.
+  /// Anything else the server refused (`22023`), such as a bad reason or
+  /// a loan with your own number.
   invalid,
 }
 
@@ -231,7 +243,7 @@ final class LoanRejected implements Exception {
   String toString() => 'LoanRejected(${reason.name})';
 }
 
-/// Loans' reads and the repayment writes. Features use this rather than
+/// Loans' reads and writes. Features use this rather than
 /// the Supabase client
 /// (docs/decisions/2026-11-09-interim-online-repositories.md); tests fake
 /// it.
@@ -244,6 +256,11 @@ final class LoanRejected implements Exception {
 abstract interface class LoansRepository {
   /// The loans you have accepted, with their repayments.
   Future<LoansData> load();
+
+  /// Creates [loan] between you and its counterparty's number and returns
+  /// its id (the key). Their side is a pending claim until that number
+  /// verifies and accepts; nothing about them is revealed before then.
+  Future<String> createLoan(NewLoan loan, {required String idempotencyKey});
 
   /// Records [repayment] as pending and returns its id (the key).
   Future<String> recordRepayment(
@@ -273,7 +290,8 @@ DateTime? _day(Object? d) => d is String ? DateTime.parse(d) : null;
 
 /// [LoansRepository] over PostgREST: `loans`, `loan_summaries`,
 /// `loan_repayments` and `profiles` joined on device, and the
-/// `record_repayment`, `confirm_repayment` and `dispute_repayment` RPCs
+/// `create_loan`, `record_repayment`, `confirm_repayment` and
+/// `dispute_repayment` RPCs
 /// (docs/api.md).
 final class SupabaseLoansRepository implements LoansRepository {
   /// Reads as [userId] through [_db]; [now] dates the load.
@@ -379,6 +397,25 @@ final class SupabaseLoansRepository implements LoansRepository {
       today: DateTime(ist.year, ist.month, ist.day),
       loans: result,
     );
+  }
+
+  @override
+  Future<String> createLoan(
+    NewLoan loan, {
+    required String idempotencyKey,
+  }) async {
+    final id = await _call<String>('create_loan', {
+      'p': {
+        'idempotency_key': idempotencyKey,
+        'direction': loan.youLent ? 'lent' : 'borrowed',
+        'counterparty_phone': loan.counterpartyPhone,
+        'principal_minor': loan.principal.value,
+        'installment_minor': ?loan.installment?.value,
+        'due_day': ?loan.dueDay,
+        'start_on': loan.startOn.toIso8601String().substring(0, 10),
+      },
+    });
+    return id!;
   }
 
   @override

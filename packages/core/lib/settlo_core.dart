@@ -5,6 +5,7 @@ export 'money/format.dart';
 export 'money/paise.dart';
 export 'money/simplify.dart';
 export 'money/split.dart';
+export 'phone/e164.dart';
 export 'router/routes.dart';
 export 'supabase/config.dart';
 export 'supabase/expenses.dart';

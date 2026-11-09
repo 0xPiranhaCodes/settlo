@@ -123,7 +123,7 @@ void main() {
       SettloRoutes.spaceBalances('s1'): SpaceScreen,
       SettloRoutes.loans: LoanScreen,
       SettloRoutes.loan('l1'): LoanDetailScreen,
-      SettloRoutes.newLoan: NewLoanScreen,
+      SettloRoutes.newLoan: NewLoanSheet,
       SettloRoutes.confirmRepayment('r1'): ConfirmRepaymentScreen,
       SettloRoutes.activity: ActivityScreen,
       SettloRoutes.addExpense: AddExpenseScreen,

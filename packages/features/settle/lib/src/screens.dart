@@ -1,4 +1,3 @@
-
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -8,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_settle/src/settle_sheet.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 /// Your spaces with their balances, reloaded whenever
 /// [ledgerRevisionProvider] is bumped, such as by a recorded settle-up.
@@ -17,13 +15,6 @@ final FutureProvider<List<SpaceSummary>> settleSpacesProvider =
       ref.watch(ledgerRevisionProvider);
       return ref.watch(spacesRepositoryProvider).load();
     });
-
-/// Opens a link, such as WhatsApp's, in another app. False when nothing
-/// on the phone can open it. Tests override this.
-final openUrlProvider = Provider<Future<bool> Function(Uri)>(
-  (ref) =>
-      (uri) => launchUrl(uri, mode: LaunchMode.externalApplication),
-);
 
 /// Opens a `upi://pay` intent: through Android's app chooser, or on iOS,
 /// which has no chooser, in the app the system picks (ADR 0011). False
