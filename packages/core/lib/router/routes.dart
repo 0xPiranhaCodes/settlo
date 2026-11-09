@@ -35,6 +35,9 @@ abstract final class SettloRoutes {
   /// Loans tab.
   static const loans = '/loans';
 
+  /// A loan's detail; pattern for [loan].
+  static const loanPattern = '/loans/:loanId';
+
   /// New loan.
   static const newLoan = '/loans/new';
 
@@ -83,6 +86,9 @@ abstract final class SettloRoutes {
 
   /// A space's balances.
   static String spaceBalances(String spaceId) => '/spaces/$spaceId/balances';
+
+  /// Loan [loanId]: its progress, schedule and repayments.
+  static String loan(String loanId) => '/loans/$loanId';
 
   /// The repayment [repaymentId], for the other party to confirm.
   static String confirmRepayment(String repaymentId) =>

@@ -9,6 +9,7 @@ export 'router/routes.dart';
 export 'supabase/config.dart';
 export 'supabase/expenses.dart';
 export 'supabase/home.dart';
+export 'supabase/loans.dart';
 export 'supabase/phone_auth.dart';
 export 'supabase/providers.dart';
 export 'supabase/space_ledger.dart';
