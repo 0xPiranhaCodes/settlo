@@ -5,29 +5,12 @@ import 'package:settlo_spaces/src/glyphs.dart';
 import 'package:settlo_spaces/src/spaces_controller.dart';
 import 'package:settlo_spaces/src/text.dart';
 
-/// Shows [CreateSpaceSheet] as a modal bottom sheet.
-Future<void> showCreateSpaceSheet(BuildContext context) {
-  final c = SettloColors.of(context);
-  return showModalBottomSheet<void>(
-    context: context,
-    // Above the shell, so the floating tab bar never covers the sheet.
-    useRootNavigator: true,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: c.surface,
-    barrierColor: c.background.withValues(alpha: 0.6),
-    elevation: 0,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(SettloRadius.cardHero),
-      ),
-    ),
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: const CreateSpaceSheet(),
-    ),
-  );
-}
+/// Shows [CreateSpaceSheet] with [showSettloSheet].
+Future<void> showCreateSpaceSheet(BuildContext context) =>
+    showSettloSheet<void>(
+      context: context,
+      builder: (_) => const CreateSpaceSheet(),
+    );
 
 /// New space: a name, what it is for, and people by phone number. People
 /// do not need the app yet; they see the space when they verify.
@@ -119,11 +102,11 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
     final text = Theme.of(context).textTheme;
     const gap = SizedBox(height: SettloSpacing.x2);
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         SettloSpacing.screenMargin,
         10,
         SettloSpacing.screenMargin,
-        26,
+        26 + MediaQuery.paddingOf(context).bottom,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

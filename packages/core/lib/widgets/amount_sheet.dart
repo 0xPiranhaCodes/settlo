@@ -3,6 +3,7 @@ import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
 import 'package:settlo_core/widgets/pressable.dart';
+import 'package:settlo_core/widgets/sheet.dart';
 
 /// Font size of the amount at the top of an amount-entry sheet.
 const double _amountSize = 52;
@@ -192,29 +193,21 @@ class SAmountSheet extends StatelessWidget {
   }
 }
 
-/// Shows [builder]'s [SAmountSheet] as a modal bottom sheet that rises to
-/// 54px below the top of the screen, as on the canvas.
+/// Shows [builder]'s [SAmountSheet] with [showSettloSheet], risen to 54px
+/// below the top of the screen, as on the canvas.
 Future<T?> showSAmountSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
-}) {
-  final c = SettloColors.of(context);
-  return showModalBottomSheet<T>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: c.background.withValues(alpha: 0.6),
-    elevation: 0,
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        top: 54 - MediaQuery.paddingOf(context).top.clamp(0, 54),
-        bottom: MediaQuery.viewInsetsOf(context).bottom,
-      ),
-      child: builder(context),
+}) => showSettloSheet<T>(
+  context: context,
+  backgroundColor: Colors.transparent,
+  builder: (context) => Padding(
+    padding: EdgeInsets.only(
+      top: 54 - MediaQuery.paddingOf(context).top.clamp(0, 54),
     ),
-  );
-}
+    child: builder(context),
+  ),
+);
 
 /// The canvas close icon: an X in a 24 box, stroke 1.6, round caps.
 class _CrossPainter extends CustomPainter {

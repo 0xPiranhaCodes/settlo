@@ -44,15 +44,8 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
 
   Future<void> _pickCountry() async {
     final current = ref.read(signInProvider).country;
-    final picked = await showModalBottomSheet<Country>(
+    final picked = await showSettloSheet<Country>(
       context: context,
-      backgroundColor: SettloColors.of(context).surface,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(SettloRadius.cardHero),
-        ),
-      ),
       // As in AuthPage: no ambient letter spacing.
       builder: (_) => DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0),
