@@ -38,7 +38,9 @@ change still runs as `settlo` on the default ports; once nobody is using it, sto
 
 `config.local-dev.toml` holds the dev-only auth values: test OTP numbers
 (`+919000000001`–`3`, code `123456`) and a placeholder Twilio provider that GoTrue needs before
-it enables phone login. Run the raw CLI on `config.toml` alone and phone login is off locally.
+it enables phone login. It does not override the base SMS OTP expiry: `config.toml` sets the hosted
+Auth expiry to 10 minutes (`600` seconds) when pushed. Run the raw CLI on `config.toml` alone and
+phone login is off locally.
 
 ## Production config
 
