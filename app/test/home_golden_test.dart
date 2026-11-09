@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_home.dart';
-import 'support/golden.dart';
 
 /// Home in the shell with [data] already loaded. Riverpod pauses widgets
 /// under a disabled [TickerMode], as the golden harness sets, so the data

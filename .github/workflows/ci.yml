@@ -245,7 +245,7 @@ jobs:
         run: deno test
 
   regenerate-goldens:
-    name: Regenerate app goldens
+    name: Regenerate app and core goldens
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     permissions:
@@ -264,20 +264,31 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Regenerate app goldens
-        working-directory: app
-        run: flutter test --update-goldens
+      - name: Regenerate app and core goldens
+        shell: bash
+        run: |
+          set -euo pipefail
+          (
+            cd app
+            flutter test --update-goldens
+          )
+          (
+            cd packages/core
+            flutter test --update-goldens
+          )
 
-      - name: Commit app goldens
+      - name: Commit app and core goldens
         shell: bash
         run: |
           set -euo pipefail
           git add app/test/goldens/*.png
+          git add packages/core/test/theme/goldens/*.png
+          git add packages/core/test/widgets/goldens/*.png
           if git diff --cached --quiet; then
-            echo "App goldens are already current."
+            echo "App and core goldens are already current."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "test: regenerate app goldens on ubuntu-24.04"
+          git commit -m "test: regenerate goldens on ubuntu-24.04"
           git push origin "HEAD:${GITHUB_REF_NAME}"

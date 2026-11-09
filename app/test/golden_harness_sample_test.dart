@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
 
-import 'support/golden.dart';
+import 'package:settlo_test_support/golden.dart';
 
 void main() {
   for (final device in SettloGoldenDevices.all) {

@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_phone_auth.dart';
-import 'support/golden.dart';
 
 /// A container with the sign-in flow kept alive and a fake [PhoneAuth].
 ProviderContainer _container() {
