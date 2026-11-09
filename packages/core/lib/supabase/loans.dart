@@ -165,10 +165,13 @@ final class Loan {
 @immutable
 final class LoansData {
   /// Loaded loans.
-  const new({required this.today, this.loans = const []});
+  const new({required this.today, this.loans = const [], this.yourName});
 
   /// India's date when loaded, at midnight.
   final DateTime today;
+
+  /// Your profile name (`profiles.name`), if set.
+  final String? yourName;
 
   /// Open loans first, then closed ones, oldest first within each.
   final List<Loan> loans;
@@ -396,6 +399,7 @@ final class SupabaseLoansRepository implements LoansRepository {
     return LoansData(
       today: DateTime(ist.year, ist.month, ist.day),
       loans: result,
+      yourName: names[userId],
     );
   }
 

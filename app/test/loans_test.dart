@@ -355,7 +355,11 @@ void main() {
       // No amount or terms before they verify.
       final whatsApp = _opened.single;
       expect((whatsApp.host, whatsApp.path), ('wa.me', '/919820011223'));
-      expect(whatsApp.queryParameters['text'], startsWith('Hi Arjun, '));
+      expect(
+        whatsApp.queryParameters['text'],
+        'Hi, this is Sana. I recorded a loan between us on Settlo. You will '
+        'see it in Settlo once you verify this number.',
+      );
       expect(whatsApp.queryParameters['text'], isNot(matches(RegExp(r'\d'))));
       expect(router.state.uri.toString(), SettloRoutes.loan(key));
       expect(find.byType(LoanDetailScreen), findsOne);
@@ -365,6 +369,40 @@ void main() {
       expect(find.text('+919820011223 · interest free'), findsOne);
       expect(find.text('0 of 40 · next 5 Dec'), findsNothing);
       semantics.dispose();
+    });
+
+    // Whatever is typed as their name, the message is the same: nothing
+    // typed about them can carry an amount, terms or a link.
+    testWidgets('the WhatsApp text never carries the label typed', (
+      tester,
+    ) async {
+      final texts = <String?>[];
+      for (final label in [
+        'Arjun Mehta',
+        '₹10,00,000',
+        'https://example.com',
+        '5% a month, due 5th',
+        '',
+      ]) {
+        await _pump(tester, location: SettloRoutes.newLoan);
+        await tester.enterText(find.byType(TextField).first, '10,00,000');
+        await tester.enterText(field('Phone number'), '98200 11223');
+        await tester.enterText(field('Their name'), label);
+        await _tap(tester, find.text('Add person'));
+        await _tap(tester, create());
+        texts.add(_opened.single.queryParameters['text']);
+      }
+      expect(texts.toSet(), hasLength(1));
+      expect(texts.first, startsWith('Hi, this is Sana. '));
+      expect(texts.first, isNot(matches(RegExp(r'\d|https?:|₹'))));
+    });
+
+    test('without a profile name the greeting is fixed', () {
+      expect(
+        loanInviteText(null),
+        startsWith('Hi. I recorded a loan between us on Settlo.'),
+      );
+      expect(loanInviteText('  '), loanInviteText(null));
     });
 
     testWidgets('borrowed with no monthly amount is flexible', (tester) async {

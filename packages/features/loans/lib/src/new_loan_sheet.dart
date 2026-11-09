@@ -86,7 +86,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
     if (picked != null) setState(() => _start = picked);
   }
 
-  Future<void> _create(NewLoan loan, String name) async {
+  Future<void> _create(NewLoan loan) async {
     // The button disables only on the next frame; a second tap in this
     // one must not send again.
     if (_busy) return;
@@ -103,14 +103,9 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
           .read(loansRepositoryProvider)
           .createLoan(loan, idempotencyKey: _key);
       ledger.bump();
-      // No amount or terms before they verify (n43).
-      // shortcut: no app link in the text until store links exist; add one
-      // with them (M6).
       final opened = await open(
         Uri.https('wa.me', '/${loan.counterpartyPhone.substring(1)}', {
-          'text':
-              'Hi $name, I recorded a loan between us on Settlo. You will '
-              'see it in Settlo once you verify this number.',
+          'text': loanInviteText(_yourName),
         }),
       ).catchError((_) => false);
       router.go(SettloRoutes.loan(id));
@@ -139,8 +134,12 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
     if (mounted) setState(() => _busy = false);
   }
 
+  /// Your profile name, from the loans load (kept alive while open).
+  String? get _yourName => ref.read(loansProvider).value?.yourName;
+
   @override
   Widget build(BuildContext context) {
+    ref.watch(loansProvider);
     final c = SettloColors.of(context);
     final media = MediaQuery.of(context);
     final label = SettloTypography.figtree(
@@ -404,9 +403,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                     stroke: 1.9,
                   ),
                 ),
-                onPressed: _busy || loan == null
-                    ? null
-                    : () => _create(loan, first!),
+                onPressed: _busy || loan == null ? null : () => _create(loan),
               ),
             ],
           ),
@@ -589,6 +586,17 @@ class _Interest extends StatelessWidget {
       ),
     );
   }
+}
+
+/// What WhatsApp is opened with: your profile name and fixed copy only.
+/// Nothing the user typed about the other person goes in, so no amount,
+/// terms or link can reach a number before it verifies (n43).
+// shortcut: no app link until store links exist; add one with them (M6).
+String loanInviteText(String? yourName) {
+  final name = yourName?.trim() ?? '';
+  return '${name.isEmpty ? 'Hi' : 'Hi, this is $name'}. I recorded a loan '
+      'between us on Settlo. You will see it in Settlo once you verify this '
+      'number.';
 }
 
 /// The schedule fields' padding, narrower than the theme's so three fit

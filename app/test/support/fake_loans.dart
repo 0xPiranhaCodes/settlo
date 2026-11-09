@@ -61,6 +61,7 @@ Loan arjunLoan({List<LoanRepayment>? repayments, Paise? repaid}) => Loan(
 /// and one with Dev that is fully repaid.
 LoansData loansList() => LoansData(
   today: DateTime(2026, 11, 9),
+  yourName: 'Sana',
   loans: [
     arjunLoan(),
     Loan(
@@ -120,6 +121,7 @@ class FakeLoansRepository implements LoansRepository {
 
   void _update(String loanId, Loan Function(Loan) change) => data = LoansData(
     today: data.today,
+    yourName: data.yourName,
     loans: [
       for (final l in data.loans)
         if (l.id == loanId) change(l) else l,
@@ -158,6 +160,7 @@ class FakeLoansRepository implements LoansRepository {
     final i = loan.installment;
     data = LoansData(
       today: data.today,
+      yourName: data.yourName,
       loans: [
         ...data.loans,
         // The other side has not joined, so it shows as their number.

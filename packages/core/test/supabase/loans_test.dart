@@ -189,6 +189,7 @@ void main() {
     final data = await repository().load();
 
     expect(data.today, DateTime(2026, 11, 9));
+    expect(data.yourName, 'Sana');
     expect([for (final l in data.loans) l.id], ['l1', 'l4', 'l3']);
 
     final arjun = data.loans.first;
