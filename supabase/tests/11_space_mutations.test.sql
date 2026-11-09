@@ -291,7 +291,7 @@ select lives_ok($$select public.leave_space('00000000-0000-0000-0000-00000000591
 select ok((select left_at is not null from public.space_members where id = '00000000-0000-0000-0000-000000005923'),
   'leave_space: X has left');
 select is(pg_temp.hint_of($$update public.expenses set deleted_at = null where id = (select id from pg_temp.e1)$$),
-  'member_departed', 'expenses: restoring E1 would change departed X''s balance, so it is refused');
+  'departed_member', 'expenses: restoring E1 would change departed X''s balance, so it is refused');
 select pg_temp.login('00000000-0000-0000-0000-000000005902');
 select throws_ok($$select public.leave_space('00000000-0000-0000-0000-000000005910', '00000000-0000-0000-0000-000000005974',
     (select id from public.space_members where phone = '+919590000077'))$$,

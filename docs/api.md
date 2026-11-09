@@ -261,8 +261,8 @@ policy matches. Payers and splits are written **only** by `add_expense` and `upd
 have no insert, update or delete privilege on `expense_payers` / `expense_splits`, so no balance can
 change without an `activity` row.
 
-A departed member's balance stays at zero: an edit, delete or restore of an expense that involves a
-member who has left is refused (`22023`, hint `member_departed`). Leaving and allocation changes lock
+A departed membership's balance is frozen: an edit, delete or restore of an expense that involves a
+member who has left is refused (`22023`, hint `departed_member`). Leaving and allocation changes lock
 the member rows involved, so a concurrent expense and leave cannot both succeed.
 
 History: every edit and delete writes an `activity` row (`edited` / `deleted`) whose `before` is the
@@ -276,7 +276,7 @@ Further hints, all on `22023`:
 | `balance_not_zero` | A member with a non-zero balance would leave or be removed |
 | `last_owner` | The space's last active owner would leave, be removed or be demoted |
 | `not_accepted` | `set_member_role` would make a pending member an owner |
-| `member_departed` | An edit, delete or restore would change a departed member's balance |
+| `departed_member` | An edit, delete or restore of an expense whose payers or splits include a departed membership |
 | `already_member` | `add_space_members` names an active member's phone |
 | `invalid_vpa` | A malformed UPI id |
 
@@ -290,7 +290,7 @@ the current date; other omitted optional fields take the `add_expense` defaults.
 - `42501`: not the creator or an owner, not an accepted member, the space is deleted, or the expense
   is unknown.
 - `22023`: invalid payload, the expense is deleted, or it involves a departed member
-  (`member_departed`).
+  (`departed_member`).
 - Concurrent edits of one expense run one after the other (row lock), so each `activity` row has a
   consistent before image.
 
@@ -307,7 +307,7 @@ POST /rest/v1/rpc/update_expense
 ### `delete_expense(p_expense_id uuid, p_idempotency_key uuid)`
 Soft-deletes the expense (`deleted_at`): it stops counting in every view and is frozen (only a
 restore could change it). Returns nothing. Deleting an already-deleted expense with a new key is
-`22023`, as is one that involves a departed member (`member_departed`); a replay with the same key
+`22023`, as is one that involves a departed member (`departed_member`); a replay with the same key
 succeeds.
 
 ```
@@ -320,13 +320,13 @@ Adds members by phone to a space the caller is an accepted, active member of. `p
 rows are `member`s, pending until each number verifies and accepts (#9). An active member's phone is
 `22023` with hint `already_member`.
 
-A departed member's phone **rejoins** (#70): their old row is reactivated (same member id, history and
-past payers and splits kept) as a pending `member`, so it is a new claim to accept, and a given name
-replaces the old one. The row keeps its `user_id`: an accepted former member gets the claim back
-whatever number they now hold, while a row never linked or rejected is matched by phone like a new
-one. A departed balance is frozen and normally zero; if it is not (a rejected claim departs whatever
-its balance), the re-add is `22023` with hint `balance_not_zero`, so nobody inherits it. A direct
-`left_at` update back to null is `42501`: rejoining goes through this RPC only.
+A departed member's phone can be added again (#70). It gets a **fresh membership**: a new
+`space_members` row and id, a pending `member` like any new number. The departed row stays departed
+with its history and its balance (normally zero; a rejected claim departs whatever it is), and no RPC
+or direct write can make its allocations live again: editing, deleting or restoring an expense whose
+payers or splits include it is `22023` with hint `departed_member`. So a rejoining member starts at
+zero and never inherits a pre-departure balance. A phone (and a user) has at most one active row per
+space; departed rows may repeat. A direct `left_at` update back to null is `42501`.
 The fingerprint is the space and the members sorted by phone. Returns nothing.
 
 ```

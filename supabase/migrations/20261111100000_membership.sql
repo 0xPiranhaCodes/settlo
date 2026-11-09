@@ -1,8 +1,8 @@
 -- Space membership follow-ups (#70): set_member_role, re-adding a former member, and retention of
 -- private idempotency keys. Same contract as #59: security invoker RPCs, a fixed empty search_path,
 -- verified callers only, payload-bound keys, codes 22023 / 42501 / PT409.
--- Clients may update only left_at on space_members, so role changes and rejoining go through
--- security definer helpers in private that re-check the caller.
+-- Clients may update only left_at on space_members, so role changes go through a security definer
+-- helper in private that re-checks the caller.
 
 -- Changes a member's role. Lock order matches a leave (the member row, then the space row in
 -- guard_member_leave), and the owner checks run after both locks, so a concurrent leave, promotion
@@ -64,36 +64,70 @@ begin
   perform private.write_member_role(p_space_id, p_member_id, p_role);
 end $$;
 
--- Re-adding a former member reactivates their row: history (created_at, past payers and splits)
--- stays on it, and it becomes a pending member again, to be accepted as a new claim. It keeps its
--- user_id, so an accepted former member gets the claim back rather than whoever now holds the number;
--- a row never linked (or rejected) is matched by phone like a new one.
--- A departed balance is frozen (#59), and normally zero. A non-zero one (a rejected claim departs
--- whatever its balance) is refused, so a rejoining member never inherits it.
-create function private.rejoin_members(p_space_id uuid, p_members jsonb) returns void
+-- Re-adding a former member creates a fresh membership: a new row and id, pending until accepted.
+-- The departed row stays departed with its history, so an old allocation can never count for the
+-- new membership. One active row per phone and per user; departed rows may repeat.
+alter table public.space_members
+  drop constraint space_members_space_id_phone_key,
+  drop constraint space_members_space_id_user_id_key;
+create unique index space_members_active_phone_key on public.space_members (space_id, phone) where left_at is null;
+create unique index space_members_active_user_key on public.space_members (space_id, user_id) where left_at is null;
+
+-- A departed membership's balance is frozen for good: no edit, delete or restore may change an
+-- expense whose payers or splits include one. As #59, with the hint renamed departed_member.
+create or replace function private.store_allocations(p_expense_id uuid, p jsonb, p_caller text) returns void
 language plpgsql security definer set search_path = '' as $$
+declare
+  v_space uuid := (select e.space_id from public.expenses e where e.id = p_expense_id and e.deleted_at is null);
 begin
-  if not public.is_accepted_member(p_space_id) then
-    raise exception 'add_space_members: caller is not an active member of space %', p_space_id
+  if v_space is null or not public.can_edit_expense(p_expense_id) then
+    raise exception '%: only the creator or a space owner may change expense %', p_caller, p_expense_id
       using errcode = '42501';
   end if;
-  perform from public.space_members m join jsonb_array_elements(p_members) e on m.phone = e ->> 'phone'
-   where m.space_id = p_space_id and m.left_at is not null
-   order by m.id for update of m;
-  if exists (select from public.space_members m join jsonb_array_elements(p_members) e on m.phone = e ->> 'phone'
-               join public.space_member_balances b on b.member_id = m.id
-              where m.space_id = p_space_id and m.left_at is not null and b.balance_minor <> 0) then
-    raise exception 'add_space_members: a former member of space % left with a balance and cannot rejoin', p_space_id
-      using errcode = '22023', hint = 'balance_not_zero';
+  perform from public.space_members m
+   where m.id in (select x.member_id from public.expense_payers x where x.expense_id = p_expense_id
+                  union select x.member_id from public.expense_splits x where x.expense_id = p_expense_id
+                  union select (e ->> 'member_id')::uuid from jsonb_array_elements(p -> 'payers') e
+                  union select (e ->> 'member_id')::uuid from jsonb_array_elements(p -> 'splits') e)
+   order by m.id for share;
+  if exists (select from public.space_members m
+              where m.left_at is not null
+                and m.id in (select x.member_id from public.expense_payers x where x.expense_id = p_expense_id
+                             union select x.member_id from public.expense_splits x where x.expense_id = p_expense_id)) then
+    raise exception '%: expense % involves a member who has left', p_caller, p_expense_id
+      using errcode = '22023', hint = 'departed_member';
   end if;
-  update public.space_members m
-     set left_at = null, rejected_at = null, accepted_at = null, role = 'member',
-         name = coalesce(nullif(btrim(e ->> 'name'), ''), m.name)
-    from jsonb_array_elements(p_members) e
-   where m.space_id = p_space_id and m.phone = e ->> 'phone' and m.left_at is not null;
+
+  delete from public.expense_payers where expense_id = p_expense_id;
+  delete from public.expense_splits where expense_id = p_expense_id;
+  with a as (select * from public.resolve_allocations(p, v_space, p_caller)),
+  payers as (
+    insert into public.expense_payers (expense_id, member_id, amount_minor)
+    select p_expense_id, a.member_id, a.amount_minor from a where a.kind = 'payer'
+  )
+  insert into public.expense_splits (expense_id, member_id, split_type, amount_minor, shares, percent_bp)
+  select p_expense_id, a.member_id, coalesce(p ->> 'split_type', 'equal')::public.split_type,
+         a.amount_minor, a.shares, a.percent_bp
+    from a where a.kind = 'split';
 end $$;
 
--- add_space_members from #59; former members now rejoin instead of failing with former_member.
+create or replace function public.guard_expense_members() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  perform from public.space_members m
+   where m.id in (select x.member_id from public.expense_payers x where x.expense_id = new.id
+                  union select x.member_id from public.expense_splits x where x.expense_id = new.id)
+   order by m.id for share;
+  if exists (select from public.space_members m
+              where m.left_at is not null
+                and m.id in (select x.member_id from public.expense_payers x where x.expense_id = new.id
+                             union select x.member_id from public.expense_splits x where x.expense_id = new.id)) then
+    raise exception 'expense % involves a member who has left', new.id using errcode = '22023', hint = 'departed_member';
+  end if;
+  return new;
+end $$;
+
+-- add_space_members from #59; a former member's phone now gets a new row instead of failing with former_member.
 create or replace function public.add_space_members(p_space_id uuid, p_members jsonb, p_idempotency_key uuid) returns void
 language plpgsql security invoker set search_path = '' as $$
 declare
@@ -132,15 +166,13 @@ begin
     raise exception 'add_space_members: a phone is already a member of space %', p_space_id
       using errcode = '22023', hint = 'already_member';
   end if;
-  perform private.rejoin_members(p_space_id, p_members);
   insert into public.space_members (space_id, phone, name, role)
   select p_space_id, (e ->> 'phone')::public.e164, nullif(btrim(e ->> 'name'), ''), 'member'
-    from jsonb_array_elements(p_members) e
-   where not exists (select from public.space_members m where m.space_id = p_space_id and m.phone = e ->> 'phone');
+    from jsonb_array_elements(p_members) e;
 end $$;
 
--- Rejoining goes through add_space_members only: a direct left_at update could otherwise revive an
--- accepted row (skipping the new claim) or a departed balance.
+-- A departed row stays departed: a direct left_at update back to null would revive its allocations
+-- (and skip the new claim). Rejoining is a new row from add_space_members.
 create function public.guard_member_rejoin() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
@@ -170,10 +202,8 @@ select cron.schedule('purge-idempotency-keys', '17 3 * * *', 'select private.pur
 revoke execute on function public.guard_member_rejoin() from public, anon, authenticated;
 revoke execute on function private.purge_idempotency_keys() from public, anon, authenticated;
 revoke execute on function
-  private.write_member_role(uuid, uuid, public.member_role), private.rejoin_members(uuid, jsonb),
-  public.set_member_role(uuid, uuid, public.member_role, uuid)
+  private.write_member_role(uuid, uuid, public.member_role), public.set_member_role(uuid, uuid, public.member_role, uuid)
   from public, anon;
 grant execute on function
-  private.write_member_role(uuid, uuid, public.member_role), private.rejoin_members(uuid, jsonb),
-  public.set_member_role(uuid, uuid, public.member_role, uuid)
+  private.write_member_role(uuid, uuid, public.member_role), public.set_member_role(uuid, uuid, public.member_role, uuid)
   to authenticated;
