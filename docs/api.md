@@ -443,7 +443,7 @@ Further hints:
 | `22023` | `overpayment` | A repayment over what is outstanding (principal minus confirmed), or a confirmation that would pass the principal |
 | `22023` | `loan_closed` | `record_repayment` on a closed loan |
 | `22023` | `paid_on_before_start`, `paid_on_future` | A repayment dated before its loan's `start_on` or after today in India |
-| `22023` | `reference_invalid` | A repayment reference over 64 characters (after trimming) or with control characters |
+| `22023` | `reference_invalid` | A repayment reference over 64 code points after trimming, or with a `Cc` / `Cf` character (see `record_repayment`) |
 | `22023` | `not_pending` | Confirming or disputing a repayment already confirmed or disputed |
 | `42501` | `own_record` | Confirming or disputing a repayment your own side recorded |
 
@@ -484,7 +484,18 @@ repayment id (the key).
 | `amount_minor` | bigint | Required, > 0, at most the outstanding principal (`overpayment`) |
 | `paid_on` | date | Default: today in India; from the loan's `start_on` to today in India (`paid_on_before_start`, `paid_on_future`) |
 | `method` | `upi`, `cash`, `bank`, `other` | Optional |
-| `reference` | text | Optional, trimmed, at most 64 printable characters (`reference_invalid`; e.g. a UPI transaction id) |
+| `reference` | text | Optional (e.g. a UPI transaction id); see the reference rule below (`reference_invalid`) |
+
+The reference rule, applied in this order (clients mirror it exactly):
+
+1. Trim Unicode `White_Space` from both ends: U+0009–000D, U+0020, U+0085, U+00A0, U+1680,
+   U+2000–200A, U+2028, U+2029, U+202F, U+205F, U+3000. Whitespace inside is kept. Empty after
+   trimming is stored as null.
+2. At most 64 code points (not UTF-16 units or grapheme clusters).
+3. No Unicode `Cc` or `Cf` character anywhere (Unicode 16): U+0000–001F, U+007F–009F, U+00AD,
+   U+0600–0605, U+061C, U+06DD, U+070F, U+0890–0891, U+08E2, U+180E, U+200B–200F, U+202A–202E,
+   U+2060–2064, U+2066–206F, U+FEFF, U+FFF9–FFFB, U+110BD, U+110CD, U+13430–1343F, U+1BCA0–1BCA3,
+   U+1D173–1D17A, U+E0001, U+E0020–E007F. U+FEFF is refused, not trimmed, even at an end.
 
 Pending repayments do not reduce what is outstanding, so two pending repayments may together exceed
 it; whichever is confirmed second is then refused (`overpayment`) and can be disputed. A replay

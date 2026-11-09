@@ -1,10 +1,11 @@
 -- Repayment bounds (#99): paid_on within the loan's start_on..today (Asia/Kolkata), reference
--- trimmed, at most 64 printable characters. Through record_repayment and a direct insert alike.
+-- trimmed of Unicode whitespace, at most 64 characters, no Cc or Cf characters.
+-- Through record_repayment and a direct insert alike.
 -- L lends B 100000 on loan K, which started three days ago in India; O is an outsider.
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(18);
+select plan(34);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000009901', '919990000001', now()),
@@ -73,9 +74,37 @@ select lives_ok(pg_temp.record(12, pg_temp.today(), '  ' || repeat('₹', 64) ||
 select is(pg_temp.reference_of(12), repeat('₹', 64), 'reference: it is stored trimmed');
 select is(pg_temp.hint_of(pg_temp.record(13, pg_temp.today(), E'UPI\n4321')), 'reference_invalid',
   'reference: a newline is refused');
-select is(pg_temp.hint_of(pg_temp.record(14, pg_temp.today(), E'UPI 4321\t')), 'reference_invalid',
-  'reference: a trailing tab is refused');
+select lives_ok(pg_temp.record(14, pg_temp.today(), E'\tUPI 4321\n'), 'reference: a surrounding tab and newline are trimmed');
+select is(pg_temp.reference_of(14), 'UPI 4321', 'reference: it is stored without them');
 select lives_ok(pg_temp.record(15, pg_temp.today(), null), 'reference: null is accepted');
+-- Unicode whitespace (#100 review): trimmed at both ends as White_Space, kept inside.
+select lives_ok(pg_temp.record(16, pg_temp.today(), E'\u00A0UPI\u00A0123\u00A0'),
+  'reference: no-break spaces around it are accepted');
+select is(pg_temp.reference_of(16), E'UPI\u00A0123', 'reference: they are trimmed at the ends only');
+select lives_ok(pg_temp.record(17, pg_temp.today(), E'\u3000\u2003\u202FUPI 123\u205F\u1680\u2029'),
+  'reference: other Unicode spaces around it are accepted');
+select is(pg_temp.reference_of(17), 'UPI 123', 'reference: they are trimmed');
+select lives_ok(pg_temp.record(18, pg_temp.today(), E'\u00A0' || repeat('x', 64) || E'\u3000'),
+  'reference: 64 characters within Unicode spaces are accepted');
+select lives_ok(pg_temp.record(19, pg_temp.today(), E'\u00A0\u3000'), 'reference: only Unicode spaces is accepted');
+select is(pg_temp.reference_of(19), null, 'reference: and stored as null');
+-- Format (Cf) and control (Cc) characters are refused anywhere, edges included.
+select is(pg_temp.hint_of(pg_temp.record(20, pg_temp.today(), E'UPI \u200B123')), 'reference_invalid',
+  'reference: a zero-width space (U+200B) is refused');
+select is(pg_temp.hint_of(pg_temp.record(21, pg_temp.today(), E'UPI \u202E123')), 'reference_invalid',
+  'reference: a right-to-left override (U+202E) is refused');
+select is(pg_temp.hint_of(pg_temp.record(22, pg_temp.today(), E'\uFEFFUPI 123')), 'reference_invalid',
+  'reference: a leading byte order mark (U+FEFF) is refused');
+select is(pg_temp.hint_of(pg_temp.record(23, pg_temp.today(), E'UPI 123\u2066')), 'reference_invalid',
+  'reference: a trailing bidi isolate (U+2066) is refused');
+select is(pg_temp.hint_of(pg_temp.record(24, pg_temp.today(), E'UPI\u00AD123')), 'reference_invalid',
+  'reference: a soft hyphen (U+00AD) is refused');
+select is(pg_temp.hint_of(pg_temp.record(25, pg_temp.today(), E'UPI\u0085123')), 'reference_invalid',
+  'reference: a C1 control (U+0085) inside is refused');
+select is(pg_temp.hint_of(pg_temp.record(26, pg_temp.today(), E'UPI 123\U000E0041')), 'reference_invalid',
+  'reference: a tag character (U+E0041) is refused');
+select lives_ok(pg_temp.record(27, pg_temp.today(), E'UPI\u200A123 \U0001F600'),
+  'reference: a hair space and an emoji inside are accepted');
 
 -- A direct insert is held to the same bounds.
 select is(pg_temp.hint_of(format(
