@@ -16,6 +16,9 @@ const _months = [
 ];
 const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+/// The repaint boundary around the fair-share card, for colour probes.
+const Key fairnessCardKey = ValueKey('space-fairness-card');
+
 /// A space's ledger through [spaceLedgerRepositoryProvider], by space id.
 /// Reloads whenever [ledgerRevisionProvider] is bumped.
 final AsyncNotifierProviderFamily<SpaceLedgerController, SpaceLedger, String>
@@ -568,56 +571,59 @@ class _FairnessCard extends StatelessWidget {
     final shares = {for (final (_, f) in rows) f.fairShare};
     final month = _months[ledger.month.month - 1];
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return SCard(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'WHO PAID VS FAIR SHARE · '
-                  '${month.substring(0, 3).toUpperCase()}',
-                  style: sectionLabel(c),
+    final group = space.kind == SpaceKind.flat ? 'house' : 'space';
+    return RepaintBoundary(
+      key: fairnessCardKey,
+      child: SCard(
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'WHO PAID VS FAIR SHARE · '
+                    '${month.substring(0, 3).toUpperCase()}',
+                    style: sectionLabel(c),
+                  ),
                 ),
-              ),
-              if (shares.length == 1 && rows.length > 1)
-                Text(
-                  '${formatInr(shares.single)} EACH',
-                  semanticsLabel: '${spokenInr(shares.single)} each',
-                  style: sectionLabel(c),
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          if (total == 0)
-            Text(
-              'Nothing spent in $month yet.',
-              style: SettloTypography.figtree(13, color: c.textSecondary),
-            )
-          else ...[
-            for (final (i, (m, f)) in rows.indexed)
-              FairShareBar(
-                name: m.isYou ? 'You' : m.name,
-                paid: f.paid,
-                fairShare: f.fairShare,
-                monthTotal: Paise(total),
-                divider: i < rows.length - 1,
-              ),
-            const SizedBox(height: 12),
-            Text(
-              'The ${dark ? 'white' : 'dark'} tick is the fair share. A bar '
-              'past it means that person '
-              'carried the ${space.kind == SpaceKind.flat ? 'house' : 'space'} '
-              'this month.',
-              style: SettloTypography.figtree(
-                12,
-                color: c.textSecondary,
-              ).copyWith(height: 1.5),
+                if (shares.length == 1 && rows.length > 1)
+                  Text(
+                    '${formatInr(shares.single)} EACH',
+                    semanticsLabel: '${spokenInr(shares.single)} each',
+                    style: sectionLabel(c),
+                  ),
+              ],
             ),
+            const SizedBox(height: 10),
+            if (total == 0)
+              Text(
+                'Nothing spent in $month yet.',
+                style: SettloTypography.figtree(13, color: c.textSecondary),
+              )
+            else ...[
+              for (final (i, (m, f)) in rows.indexed)
+                FairShareBar(
+                  name: m.isYou ? 'You' : m.name,
+                  paid: f.paid,
+                  fairShare: f.fairShare,
+                  monthTotal: Paise(total),
+                  divider: i < rows.length - 1,
+                ),
+              const SizedBox(height: 12),
+              Text(
+                'The ${dark ? 'white' : 'dark'} tick is the fair share. A bar '
+                'past it means that person '
+                'carried the $group this month.',
+                style: SettloTypography.figtree(
+                  12,
+                  color: c.textSecondary,
+                ).copyWith(height: 1.5),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -703,11 +709,8 @@ class FairShareBar extends StatelessWidget {
                   difference,
                   size: 14,
                   signed: true,
-                  tone: switch (difference.value) {
-                    > 0 => MoneyTone.owedToYou,
-                    < 0 => MoneyTone.youOwe,
-                    _ => MoneyTone.settled,
-                  },
+                  // This is a share-of-spend delta, not outstanding debt.
+                  tone: MoneyTone.settled,
                 ),
               ],
             ),

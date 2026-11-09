@@ -316,6 +316,20 @@ void main() {
     await tester.tap(find.text('Name and UPI ID'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('profile-name')), findsOneWidget);
+    final nameField = find.byKey(const ValueKey('profile-name'));
+    final nameLabel = find.descendant(
+      of: nameField,
+      matching: find.text('Name'),
+    );
+    final typedName = find.descendant(
+      of: nameField,
+      matching: find.byType(EditableText),
+    );
+    expect(
+      tester.getRect(nameLabel).overlaps(tester.getRect(typedName)),
+      isFalse,
+      reason: 'the settled floating label must not cover the typed name',
+    );
     await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
 

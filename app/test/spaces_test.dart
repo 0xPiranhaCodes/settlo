@@ -119,6 +119,58 @@ Future<void> _scrollToEnd(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+Future<int> _moneyColourPixels(WidgetTester tester) async {
+  final data = (await tester.runAsync(() async {
+    final image = await captureImage(
+      tester.element(find.byKey(fairnessCardKey)),
+    );
+    return await image.toByteData();
+  }))!;
+  final colours = [
+    SettloColors.dark.money(MoneyTone.owedToYou),
+    SettloColors.dark.money(MoneyTone.youOwe),
+  ];
+  int channel(double value) => (value * 255).round();
+  var count = 0;
+  for (var i = 0; i < data.lengthInBytes; i += 4) {
+    for (final colour in colours) {
+      if ((data.getUint8(i) - channel(colour.r)).abs() <= 4 &&
+          (data.getUint8(i + 1) - channel(colour.g)).abs() <= 4 &&
+          (data.getUint8(i + 2) - channel(colour.b)).abs() <= 4) {
+        count++;
+        break;
+      }
+    }
+  }
+  return count;
+}
+
+SpaceSummary _settledFlat() {
+  final flat = spacesList.first;
+  return SpaceSummary(
+    id: flat.id,
+    name: flat.name,
+    kind: flat.kind,
+    month: flat.month,
+    monthTotal: flat.monthTotal,
+    yourFairShare: flat.yourFairShare,
+    hasExpenses: flat.hasExpenses,
+    members: [
+      for (final member in flat.members)
+        SpaceMember(
+          id: member.id,
+          name: member.name,
+          phone: member.phone,
+          isYou: member.isYou,
+          isOwner: member.isOwner,
+          joined: member.joined,
+          monthPaid: member.monthPaid,
+          upiId: member.upiId,
+        ),
+    ],
+  );
+}
+
 void main() {
   test('spacesProvider creates a space and reloads it into the list', () async {
     final repository = FakeSpacesRepository(spacesList);
@@ -603,6 +655,25 @@ void main() {
         router.state.uri.toString(),
         SettloRoutes.settleWith('s1', memberId: 'm3'),
       );
+    });
+
+    testWidgets('fairness card never uses outstanding-balance colours', (
+      tester,
+    ) async {
+      for (final spaces in [
+        spacesList,
+        [_settledFlat(), ...spacesList.skip(1)],
+      ]) {
+        await _pump(
+          tester,
+          FakeSpacesRepository(spaces),
+          initialLocation: SettloRoutes.spaceBalances('s1'),
+        );
+
+        expect(find.text('+₹2,850'), findsOne);
+        expect(find.text('−₹2,100'), findsOne);
+        expect(await _moneyColourPixels(tester), 0);
+      }
     });
 
     testWidgets('paid and fair share are read in rupees', (tester) async {
