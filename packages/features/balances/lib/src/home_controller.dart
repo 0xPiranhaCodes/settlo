@@ -7,9 +7,13 @@ final AsyncNotifierProvider<HomeController, HomeData> homeProvider =
 
 /// Loads Home and settles claims. A settled claim reloads Home, so an
 /// accepted one moves into the balances and a rejected one disappears.
+/// Home also reloads when another tab bumps [ledgerRevisionProvider].
 class HomeController extends AsyncNotifier<HomeData> {
   @override
-  Future<HomeData> build() => ref.watch(homeRepositoryProvider).load();
+  Future<HomeData> build() {
+    ref.watch(ledgerRevisionProvider);
+    return ref.watch(homeRepositoryProvider).load();
+  }
 
   /// Accepts [claim]. Throws if the server refuses; Home is unchanged.
   Future<void> accept(Claim claim) =>

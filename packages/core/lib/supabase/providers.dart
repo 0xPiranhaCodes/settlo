@@ -26,3 +26,19 @@ class SessionNotifier extends Notifier<Session?> {
     return auth.currentSession;
   }
 }
+
+/// Bumped after a write that changes what more than one tab shows, such as
+/// a new space. Screens that cache data watch it so they reload; features
+/// cannot reach each other's providers (ADR 0002).
+final ledgerRevisionProvider = NotifierProvider<LedgerRevision, int>(
+  LedgerRevision.new,
+);
+
+/// The counter behind [ledgerRevisionProvider].
+class LedgerRevision extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  /// Tells every watcher the ledger changed.
+  void bump() => state++;
+}

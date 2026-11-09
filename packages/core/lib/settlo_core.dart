@@ -10,6 +10,7 @@ export 'supabase/config.dart';
 export 'supabase/home.dart';
 export 'supabase/phone_auth.dart';
 export 'supabase/providers.dart';
+export 'supabase/spaces.dart';
 export 'theme/colors.dart';
 export 'theme/theme.dart';
 export 'theme/tokens.dart';

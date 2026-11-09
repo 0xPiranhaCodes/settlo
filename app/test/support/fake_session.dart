@@ -5,6 +5,7 @@ import 'package:settlo_core/settlo_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'fake_home.dart';
+import 'fake_spaces.dart';
 
 /// A signed-in session for a test user; no network or storage involved.
 final fakeSession = Session(
@@ -38,11 +39,15 @@ class FakeSessionNotifier extends SessionNotifier {
   void signOut() => state = null;
 }
 
-/// [SettloApp] with the session faked to [session] and an empty Home.
+/// [SettloApp] with the session faked to [session], an empty Home and the
+/// SpacesList spaces.
 Widget fakeSessionApp(Session? session) => ProviderScope(
   overrides: [
     sessionProvider.overrideWith(() => FakeSessionNotifier(session)),
     homeRepositoryProvider.overrideWithValue(FakeHomeRepository(homeEmpty)),
+    spacesRepositoryProvider.overrideWithValue(
+      FakeSpacesRepository(spacesList),
+    ),
   ],
   child: const SettloApp(),
 );

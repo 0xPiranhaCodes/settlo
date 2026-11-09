@@ -3,17 +3,12 @@ import 'package:settlo/shell.dart';
 import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_loans/settlo_loans.dart';
-import 'package:settlo_spaces/settlo_spaces.dart';
 
 import 'package:settlo_test_support/golden.dart';
 
 void main() {
-  // Home is covered by home_golden_test.dart, with its data faked.
-  const tabs = [
-    ('spaces', SpacesListScreen()),
-    ('loans', LoanScreen()),
-    ('activity', ActivityScreen()),
-  ];
+  // Home and Spaces are covered by their own golden tests, with data faked.
+  const tabs = [('loans', LoanScreen()), ('activity', ActivityScreen())];
   for (final device in SettloGoldenDevices.all) {
     for (final (themeName, theme) in [
       ('dark', SettloTheme.dark()),
@@ -28,7 +23,7 @@ void main() {
             device: device,
             theme: theme,
             child: SettloShell(
-              currentIndex: i + 1,
+              currentIndex: i + 2,
               onTabSelected: (_) {},
               child: screen,
             ),
