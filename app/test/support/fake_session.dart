@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo/main.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -44,7 +44,10 @@ class FakeSessionNotifier extends SessionNotifier {
 
 /// [SettloApp] with the session faked to [session], an empty Home and the
 /// SpacesList spaces with their ledgers.
-Widget fakeSessionApp(Session? session) => ProviderScope(
+Widget fakeSessionApp(
+  Session? session, {
+  ThemeMode themeMode = ThemeMode.system,
+}) => ProviderScope(
   overrides: [
     sessionProvider.overrideWith(() => FakeSessionNotifier(session)),
     homeRepositoryProvider.overrideWithValue(FakeHomeRepository(homeEmpty)),
@@ -55,7 +58,9 @@ Widget fakeSessionApp(Session? session) => ProviderScope(
       FakeSpaceLedgerRepository(),
     ),
     profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
-    themeModeRepositoryProvider.overrideWithValue(FakeThemeModeRepository()),
+    themeModeRepositoryProvider.overrideWithValue(
+      FakeThemeModeRepository(themeMode),
+    ),
   ],
   child: const SettloApp(),
 );
