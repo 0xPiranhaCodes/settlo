@@ -267,13 +267,8 @@ template = "Your code is {{ .Code }}"
 # Controls the minimum amount of time that must pass before sending another sms otp.
 max_frequency = "5s"
 
-# Use pre-defined map of phone number to OTP for testing.
-# Keys are the phone number with country code and without the + prefix.
-# Dev only: these numbers never hit an SMS provider. Prod uses the MSG91 Send-SMS hook.
-[auth.sms.test_otp]
-919000000001 = "123456"
-919000000002 = "123456"
-919000000003 = "123456"
+# Test OTP numbers and the dev SMS provider live in config.local-dev.toml, never here: this file
+# is what `supabase config push` sends to a linked project. See supabase/README.md.
 
 # Configure logged in session timeouts.
 # [auth.sessions]
@@ -292,15 +287,7 @@ max_frequency = "5s"
 # enabled = true
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
-# Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
-# Dev placeholder: GoTrue disables phone login without a provider. Test numbers above never
-# reach Twilio; any other number fails. Prod replaces this with the MSG91 Send-SMS hook.
-[auth.sms.twilio]
-enabled = true
-account_sid = "dev-placeholder"
-message_service_sid = "dev-placeholder"
-# DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+# No SMS provider is declared: prod sends OTPs through the MSG91 Send-SMS hook (#13).
 
 # Multi-factor-authentication is available to Supabase Pro plan.
 [auth.mfa]

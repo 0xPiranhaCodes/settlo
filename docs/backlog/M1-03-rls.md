@@ -9,4 +9,4 @@ M1 Auth and backend core
 - [ ] Unverified numbers see nothing; a verified number sees rows recorded against it only after verification
 
 ## Test plan (gate M1→M2)
-pgTAP per policy with at least one negative case per table; `supabase db reset && supabase test db` green in CI.
+pgTAP per policy with at least one negative case per table; `scripts/supabase-local.sh db reset && scripts/supabase-local.sh test db` green in CI.

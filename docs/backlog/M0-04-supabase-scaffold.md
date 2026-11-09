@@ -9,4 +9,4 @@ M0 Foundations
 - [ ] `.env.example` lists the client keys; no secrets committed
 
 ## Test plan
-`supabase db reset && supabase test db` green locally.
+`scripts/supabase-local.sh db reset && scripts/supabase-local.sh test db` green locally.

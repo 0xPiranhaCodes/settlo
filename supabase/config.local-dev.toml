@@ -1,0 +1,17 @@
+# Local-dev auth overlay. scripts/supabase-local.sh appends this to config.toml in a generated
+# workdir; it is never read by a raw `supabase` command, so `config push` cannot send it.
+# Tables here must not also appear in config.toml (TOML rejects duplicate tables).
+
+# Fixed OTPs for test numbers (country code, no +). These never hit an SMS provider.
+[auth.sms.test_otp]
+919000000001 = "123456"
+919000000002 = "123456"
+919000000003 = "123456"
+
+# Placeholder provider: GoTrue disables phone login without one. Test numbers above never
+# reach Twilio; any other number fails.
+[auth.sms.twilio]
+enabled = true
+account_sid = "dev-placeholder"
+message_service_sid = "dev-placeholder"
+auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
