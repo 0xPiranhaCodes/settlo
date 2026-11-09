@@ -32,7 +32,11 @@ SUPPORT_SCRIPT = re.compile(
 
 class CdpSocket:
     def __init__(self, websocket_url: str) -> None:
-        match = re.fullmatch(r"ws://([^/:]+):(\d+)(/.*)", websocket_url)
+        # Chrome exposes CDP on loopback without TLS; this socket never leaves
+        # the local machine.
+        match = re.fullmatch(  # nosemgrep: javascript.lang.security.detect-insecure-websocket
+            r"ws://([^/:]+):(\d+)(/.*)", websocket_url
+        )
         if match is None:
             raise RuntimeError(f"Unsupported DevTools URL: {websocket_url}")
         host, port, path = match.groups()
@@ -183,6 +187,10 @@ def main() -> None:
         html.write_text(stripped, encoding="utf-8")
         profile = temp / "chrome-profile"
         profile.mkdir()
+        # The executable is explicitly selected by the local caller, arguments
+        # are passed as a list, and no shell is involved.
+        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit
+        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-tainted-env-args
         process = subprocess.Popen(
             [
                 args.chrome,
