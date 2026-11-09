@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -835,6 +837,44 @@ void main() {
       );
       expect(find.text("settle-up · you didn't receive it"), findsOne);
     });
+
+    for (final dispute in [false, true]) {
+      final button = dispute ? 'Mark as not received' : 'Yes, I received ₹300';
+      testWidgets('a double tap on "$button" answers once, closing only the '
+          'sheet', (tester) async {
+        final ledger = FakeSpaceLedgerRepository({
+          's1': flatLedgerWithSettleUp,
+        });
+        await _pump(
+          tester,
+          FakeSpacesRepository(spacesList),
+          initialLocation: SettloRoutes.space('s1'),
+          ledger: ledger,
+        );
+        await openExpense(tester, 'Rahul paid you back');
+        if (dispute) {
+          await tester.tap(find.text("I didn't receive this"));
+          await tester.pumpAndSettle();
+          await tester.enterText(find.byType(TextField), 'Not in my account');
+        }
+
+        // No pump between the taps, and the first answer still in flight:
+        // the button is not rebuilt disabled yet.
+        ledger.gate = Completer();
+        await tester.tap(find.text(button));
+        await tester.tap(find.text(button), warnIfMissed: false);
+        ledger.gate!.complete();
+        await tester.pumpAndSettle();
+
+        expect(ledger.calls, hasLength(1));
+        expect(find.text(button), findsNothing);
+        expect(
+          find.text('Rahul paid you back'),
+          findsOne,
+          reason: 'one pop: the space stays open under the sheet',
+        );
+      });
+    }
 
     testWidgets('a split by amounts keeps its amount', (tester) async {
       await pumpSpace(tester);

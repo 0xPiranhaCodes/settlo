@@ -1295,6 +1295,9 @@ class _ConfirmSettlementSheetState
   }
 
   Future<void> _run(Future<void> Function(SpaceLedgerController) write) async {
+    // The buttons disable only on the next frame; a second tap in this one
+    // must not answer (or pop) again.
+    if (_busy) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -1302,6 +1305,8 @@ class _ConfirmSettlementSheetState
     try {
       await write(ref.read(spaceLedgerProvider(widget.space.id).notifier));
       if (mounted) Navigator.of(context).pop();
+      // Done: stay busy, so a tap still queued on this frame is dropped.
+      return;
     } on IdempotencyConflict {
       _error = 'You already answered this. Close this to see it.';
     } on SettlementChanged {
@@ -1312,9 +1317,8 @@ class _ConfirmSettlementSheetState
       _error =
           "We couldn't save that. Check your connection and try again. "
           "It won't be saved twice.";
-    } finally {
-      if (mounted) setState(() => _busy = false);
     }
+    if (mounted) setState(() => _busy = false);
   }
 
   Future<void> _confirm() => _run(

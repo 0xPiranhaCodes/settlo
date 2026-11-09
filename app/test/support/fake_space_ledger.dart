@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:settlo_core/settlo_core.dart';
 
 SpaceExpense _expense(
@@ -179,6 +181,9 @@ class FakeSpaceLedgerRepository implements SpaceLedgerRepository {
   /// When set, the next call throws it.
   Exception? failure;
 
+  /// When set, every answer waits for it, like a slow network.
+  Completer<void>? gate;
+
   /// Every write, as `update <key> <id> <description> <paise>`,
   /// `delete <key> <id>`, `confirm <key> <id>` or
   /// `dispute <key> <id> <reason>`.
@@ -287,6 +292,7 @@ class FakeSpaceLedgerRepository implements SpaceLedgerRepository {
     String? reason,
   ]) async {
     calls.add(call);
+    await gate?.future;
     _throwOnce();
     if (!_seen.add(key)) return;
     _replace(
