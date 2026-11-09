@@ -583,7 +583,7 @@ class _LoansCard extends StatelessWidget {
             detail: _detail(l, formatInr),
             detailSpoken: _detail(l, spokenInr),
             trailing: MoneyText(l.outstanding),
-            onTap: () => context.go(SettloRoutes.loans),
+            onTap: () => context.go(SettloRoutes.loan(l.id)),
           ),
           if (l
               case HomeLoan(
