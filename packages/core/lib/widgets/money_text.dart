@@ -47,10 +47,19 @@ class MoneyText extends StatelessWidget {
     final text = amount == null
         ? '₹—'
         : formatInr(amount, signed: signed).replaceFirst('-', '−');
+    // Read aloud in rupees, in words, at every size: a screen reader would
+    // otherwise say the glyphs ("plus rupee six comma seventy-four…").
+    final spoken = amount == null
+        ? 'not known yet'
+        : spokenInr(amount, signed: signed);
     final color = SettloColors.of(context).money(tone);
     final style = SettloTypography.amount(size, color: color);
     if (size < SettloTypography.serifFrom) {
-      return Text(text, style: style, maxLines: 1, softWrap: false);
+      return Semantics(
+        label: spoken,
+        excludeSemantics: true,
+        child: Text(text, style: style, maxLines: 1, softWrap: false),
+      );
     }
     final rupee = text.indexOf('₹');
     assert(rupee >= 0, 'formatInr always includes ₹');
@@ -64,7 +73,7 @@ class MoneyText extends StatelessWidget {
       color: color,
     ).copyWith(height: 1);
     return Semantics(
-      label: amount == null ? 'not known yet' : text,
+      label: spoken,
       excludeSemantics: true,
       child: Text.rich(
         TextSpan(

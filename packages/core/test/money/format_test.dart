@@ -24,6 +24,26 @@ void main() {
     });
   });
 
+  test('spokenInr says rupees in words with the sign, never paise', () {
+    expect(
+      spokenInr(const Paise.rupees(4200)),
+      'four thousand two hundred rupees',
+    );
+    expect(
+      spokenInr(const Paise(-365000)),
+      'minus three thousand six hundred fifty rupees',
+    );
+    expect(
+      spokenInr(const Paise.rupees(674200), signed: true),
+      'plus six lakh seventy-four thousand two hundred rupees',
+    );
+    expect(spokenInr(Paise.zero, signed: true), 'zero rupees');
+    expect(
+      spokenInr(const Paise(42050)),
+      'four hundred twenty rupees and fifty paise',
+    );
+  });
+
   group('amountInWords', () {
     test('Indian system', () {
       expect(amountInWords(const Paise.rupees(1000000)), 'ten lakh rupees');

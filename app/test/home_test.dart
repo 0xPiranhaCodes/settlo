@@ -298,6 +298,130 @@ void main() {
     });
   });
 
+  group('every control is at least 44x44pt', () {
+    Future<void> expectTargets(WidgetTester tester, Finder finder) async {
+      expect(finder, findsWidgets);
+      for (final element in finder.evaluate()) {
+        final size = tester.getSize(find.byWidget(element.widget));
+        expect(size.width, greaterThanOrEqualTo(44), reason: '$finder');
+        expect(size.height, greaterThanOrEqualTo(44), reason: '$finder');
+      }
+    }
+
+    Finder tappable(String text, Type type) =>
+        find.ancestor(of: find.text(text), matching: find.byType(type)).first;
+
+    for (final (name, data) in [
+      ('Home', homeMain),
+      ('Home · empty', homeEmpty),
+      ('Home · ledger found', homeFound),
+    ]) {
+      testWidgets('$name meets the iOS tap target guideline', (tester) async {
+        final semantics = tester.ensureSemantics();
+        await _pump(tester, FakeHomeRepository(data));
+        await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+        await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+        await _scrollToEnd(tester);
+        await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+        semantics.dispose();
+      });
+    }
+
+    testWidgets('header, See all and the loan row', (tester) async {
+      await _pump(tester, FakeHomeRepository(homeMain));
+      await expectTargets(tester, find.byType(IconButton));
+      await expectTargets(tester, tappable('S', InkWell));
+      await expectTargets(tester, tappable('SEE ALL', GestureDetector));
+      await expectTargets(tester, tappable('Arjun · interest free', InkWell));
+    });
+
+    testWidgets('a single-line loan row still has a 44pt target', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        FakeHomeRepository(
+          HomeData(
+            phone: homePhone,
+            month: DateTime(2026, 11),
+            loans: const [
+              HomeLoan(
+                id: 'l1',
+                counterparty: 'Arjun',
+                youLent: true,
+                outstanding: Paise.rupees(500),
+                installmentsPaid: 1,
+                installmentsTotal: 2,
+              ),
+            ],
+          ),
+        ),
+      );
+      await expectTargets(tester, tappable('Arjun · interest free', InkWell));
+    });
+
+    testWidgets('claim actions and Allow', (tester) async {
+      await _pump(tester, FakeHomeRepository(homeFound));
+      await expectTargets(tester, find.widgetWithText(TextButton, 'Accept'));
+      await expectTargets(
+        tester,
+        find.widgetWithText(TextButton, "This isn't me"),
+      );
+      await _pump(tester, FakeHomeRepository(homeEmpty));
+      await _scrollToEnd(tester);
+      await expectTargets(tester, find.widgetWithText(TextButton, 'Allow'));
+    });
+  });
+
+  testWidgets('amounts are announced in rupees beside their labels', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await _pump(tester, FakeHomeRepository(homeMain));
+    for (final label in [
+      [
+        'NET POSITION',
+        'plus six lakh seventy-four thousand two hundred rupees',
+        'owed to you across 2 spaces and 1 loan',
+      ].join('\n'),
+      [
+        'Arjun',
+        'Arjun · interest free',
+        '13 of 40 · next twenty-five thousand rupees on 5 Dec',
+        'six lakh seventy-five thousand rupees',
+      ].join('\n'),
+      [
+        'You are owed',
+        'six lakh seventy-seven thousand eight hundred fifty rupees',
+      ].join('\n'),
+      'You owe\nthree thousand six hundred fifty rupees',
+      'Nov spend\neighteen thousand four hundred fifty rupees',
+      'Flat 402\nRahul, Priya\nplus two thousand eight hundred fifty rupees',
+    ]) {
+      expect(find.bySemanticsLabel(label), findsOne, reason: label);
+    }
+    expect(find.bySemanticsLabel(RegExp('₹|paise')), findsNothing);
+    semantics.dispose();
+  });
+
+  testWidgets('claims are announced in rupees', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await _pump(tester, FakeHomeRepository(homeFound));
+    expect(
+      find.bySemanticsLabel(
+        RegExp('Rahul says you owe seven hundred fifty rupees · 3 people'),
+      ),
+      findsOne,
+    );
+    expect(
+      find.bySemanticsLabel(RegExp('Arjun says you lent ten lakh rupees')),
+      findsOne,
+    );
+    expect(find.bySemanticsLabel(RegExp('₹—')), findsNothing);
+    expect(find.bySemanticsLabel(RegExp('₹[0-9]|paise')), findsNothing);
+    semantics.dispose();
+  });
+
   // Flutter reports any overflow to the test binding, which fails the
   // test; nothing here consumes it (docs/release.md).
   group('fits 360x800 without overflow', () {

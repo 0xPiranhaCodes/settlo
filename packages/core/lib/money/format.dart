@@ -38,6 +38,18 @@ String amountInWords(Paise amount) {
   return rupees == 0 ? p : '$r and $p';
 }
 
+/// [amount] as a screen reader should say it: rupees in words (Indian
+/// system), `minus` when negative and, with [signed], `plus` when positive.
+/// Never a raw paise count.
+///
+/// `-₹3,650` is `minus three thousand six hundred fifty rupees`.
+String spokenInr(Paise amount, {bool signed = false}) {
+  final v = amount.value;
+  final words = amountInWords(Paise(v.abs()));
+  if (v < 0) return 'minus $words';
+  return signed && v > 0 ? 'plus $words' : words;
+}
+
 final _pairs = RegExp(r'\B(?=(\d{2})+$)');
 
 const _ones = [

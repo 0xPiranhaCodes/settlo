@@ -309,19 +309,23 @@ class _Stat extends StatelessWidget {
   final bool end;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: end ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: SettloTypography.figtree(
-          12,
-          color: SettloColors.of(context).textSecondary,
+  Widget build(BuildContext context) => MergeSemantics(
+    child: Column(
+      crossAxisAlignment: end
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: SettloTypography.figtree(
+            12,
+            color: SettloColors.of(context).textSecondary,
+          ),
         ),
-      ),
-      const SizedBox(height: 2),
-      MoneyText(amount, tone: tone, size: 17),
-    ],
+        const SizedBox(height: 2),
+        MoneyText(amount, tone: tone, size: 17),
+      ],
+    ),
   );
 }
 
@@ -369,30 +373,45 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return SCard(
+    final card = SCard(
       padding: EdgeInsets.fromLTRB(20, 18, 20, bottom),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: _label(c)),
-              if (action case (final label, final route))
-                Semantics(
-                  button: true,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => context.go(route),
-                    child: Text(label, style: _label(c)),
-                  ),
-                ),
-            ],
-          ),
+          Text(title, style: _label(c)),
           const SizedBox(height: 10),
           ...children,
         ],
       ),
+    );
+    final action = this.action;
+    if (action == null) return card;
+    final (label, route) = action;
+    // The link is drawn where the canvas puts it (19 from the top, 21 from
+    // the right, counting the 1px edge) inside a 44pt-tall target that
+    // covers the card's corner, so the larger target moves nothing.
+    return Stack(
+      children: [
+        card,
+        Positioned(
+          top: 0,
+          right: 0,
+          child: Semantics(
+            button: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => context.go(route),
+              child: Container(
+                constraints: const BoxConstraints(
+                  minHeight: SettloSpacing.minTouchTarget,
+                ),
+                padding: const EdgeInsets.fromLTRB(12, 19, 21, 0),
+                child: Text(label, style: _label(c)),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -403,6 +422,7 @@ class _Row extends StatelessWidget {
     required this.leading,
     required this.title,
     required this.detail,
+    this.detailSpoken,
     this.trailing,
     this.onTap,
     this.divider = false,
@@ -412,6 +432,9 @@ class _Row extends StatelessWidget {
   final Widget leading;
   final String title;
   final String detail;
+
+  /// What a screen reader says for [detail] when it holds an amount.
+  final String? detailSpoken;
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool divider;
@@ -421,45 +444,51 @@ class _Row extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final trailing = this.trailing;
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: padding,
-        decoration: divider
-            ? BoxDecoration(
-                border: Border(bottom: BorderSide(color: c.hairline)),
-              )
-            : null,
-        child: Row(
-          children: [
-            leading,
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SettloTypography.figtree(15, color: c.textPrimary),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    detail,
-                    style: SettloTypography.figtree(
-                      12,
-                      color: c.textSecondary,
-                    ).copyWith(height: 1.3),
-                  ),
-                ],
+    return MergeSemantics(
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: SettloSpacing.minTouchTarget,
+          ),
+          padding: padding,
+          decoration: divider
+              ? BoxDecoration(
+                  border: Border(bottom: BorderSide(color: c.hairline)),
+                )
+              : null,
+          child: Row(
+            children: [
+              leading,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SettloTypography.figtree(15, color: c.textPrimary),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      detail,
+                      semanticsLabel: detailSpoken,
+                      style: SettloTypography.figtree(
+                        12,
+                        color: c.textSecondary,
+                      ).copyWith(height: 1.3),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            if (trailing != null) ...[
-              const SizedBox(width: SettloSpacing.x1),
-              trailing,
+              if (trailing != null) ...[
+                const SizedBox(width: SettloSpacing.x1),
+                trailing,
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -565,7 +594,8 @@ class _LoansCard extends StatelessWidget {
             padding: EdgeInsets.zero,
             leading: SAvatar(l.counterparty),
             title: '${l.counterparty} · interest free',
-            detail: _detail(l),
+            detail: _detail(l, formatInr),
+            detailSpoken: _detail(l, spokenInr),
             trailing: MoneyText(l.outstanding),
             onTap: () => context.go(SettloRoutes.loans),
           ),
@@ -592,14 +622,16 @@ class _LoansCard extends StatelessWidget {
     );
   }
 
-  static String _detail(HomeLoan l) {
+  /// [money] writes the instalment: [formatInr] to show, [spokenInr] to
+  /// read.
+  static String _detail(HomeLoan l, String Function(Paise) money) {
     final side = l.youLent ? 'you lent' : 'you borrowed';
     final (paid, total) = (l.installmentsPaid, l.installmentsTotal);
     if (paid == null || total == null) return '$side · flexible repayments';
     final next = l.nextDueOn;
     final installment = l.installment;
     if (next == null || installment == null) return '$paid of $total';
-    return '$paid of $total · next ${formatInr(installment)} on '
+    return '$paid of $total · next ${money(installment)} on '
         '${next.day} ${_months[next.month - 1]}';
   }
 }
@@ -698,6 +730,7 @@ class _ContactsNote extends StatelessWidget {
           _TextAction(
             'Allow',
             color: c.action,
+            alignment: Alignment.centerRight,
             onTap: () => context.go(SettloRoutes.profile),
           ),
         ],
@@ -706,20 +739,29 @@ class _ContactsNote extends StatelessWidget {
   }
 }
 
-/// A text-only action, at least 44pt tall.
+/// A text-only action with a target of at least 44x44pt.
 class _TextAction extends StatelessWidget {
-  const new(this.label, {required this.color, required this.onTap});
+  const new(
+    this.label, {
+    required this.color,
+    required this.onTap,
+    this.alignment = Alignment.centerLeft,
+  });
 
   final String label;
   final Color color;
   final VoidCallback onTap;
+
+  /// Where a label shorter than the target sits inside it.
+  final AlignmentGeometry alignment;
 
   @override
   Widget build(BuildContext context) => TextButton(
     onPressed: onTap,
     style: TextButton.styleFrom(
       foregroundColor: color,
-      minimumSize: const Size(0, SettloSpacing.minTouchTarget),
+      alignment: alignment,
+      minimumSize: const Size.square(SettloSpacing.minTouchTarget),
       padding: EdgeInsets.zero,
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       textStyle: SettloTypography.figtree(13, weight: FontWeight.w500),
@@ -811,9 +853,10 @@ class _ClaimRow extends ConsumerWidget {
   final bool divider;
 
   /// `Rahul says you owe ₹750 · 3 people`: their word, in their name.
-  String get _says {
+  /// [money] writes the amount: [formatInr] to show, [spokenInr] to read.
+  String _says(String Function(Paise) money) {
     final who = claim.recordedBy;
-    final amount = formatInr(Paise(claim.amount.value.abs()));
+    final amount = money(Paise(claim.amount.value.abs()));
     return switch (claim) {
       Claim(kind: ClaimKind.loan, youLent: true) =>
         '$who says you lent $amount',
@@ -872,7 +915,8 @@ class _ClaimRow extends ConsumerWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  _says,
+                  _says(formatInr),
+                  semanticsLabel: _says(spokenInr),
                   style: SettloTypography.figtree(
                     12,
                     color: c.textSecondary,
