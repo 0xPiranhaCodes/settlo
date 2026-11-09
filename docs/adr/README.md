@@ -12,5 +12,6 @@ One file per decision: Context, Decision, Consequences, Status. Superseding an A
 | [0006](0006-fonts.md) | Fonts: bundled Figtree and IBM Plex Serif, no google_fonts | Accepted |
 | [0007](0007-supabase-flutter.md) | Supabase client: supabase_flutter | Proposed |
 | [0008](0008-integration-test.md) | Integration tests: the SDK's integration_test | Proposed |
+| [0009](0009-native-splash-and-icons.md) | Native splash and app icon: flutter_native_splash and flutter_launcher_icons | Proposed |
 
 Owner-level process calls that are not architecture live in `docs/decisions/`.
