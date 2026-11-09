@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo/router/router.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_profile/settlo_profile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
@@ -11,9 +12,7 @@ Future<void> main() async {
   runApp(const ProviderScope(child: SettloApp()));
 }
 
-/// Root widget: the router with the auth guard. Dark whatever the system
-/// says (Settlo is dark-first); light stays complete for a later Profile
-/// setting.
+/// Root widget: the router, auth guard and persisted appearance preference.
 class SettloApp extends ConsumerWidget {
   /// Creates the root widget.
   const new({super.key});
@@ -24,7 +23,7 @@ class SettloApp extends ConsumerWidget {
     debugShowCheckedModeBanner: false,
     theme: SettloTheme.light(),
     darkTheme: SettloTheme.dark(),
-    themeMode: ThemeMode.dark,
+    themeMode: ref.watch(themeModeProvider).value ?? ThemeMode.system,
     routerConfig: ref.watch(routerProvider),
   );
 }
