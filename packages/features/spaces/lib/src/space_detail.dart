@@ -132,9 +132,8 @@ class SpaceDetailView extends ConsumerWidget {
                             size: 18,
                             stroke: 1.9,
                           ),
-                          // shortcut: a stub route until Add expense (#62)
-                          // lands; it does not know the space yet.
-                          onPressed: () => context.go(SettloRoutes.addExpense),
+                          onPressed: () =>
+                              context.push(SettloRoutes.addExpenseIn(space.id)),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -1056,6 +1055,7 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
         category: e.category,
         amount: amount,
         spentOn: e.spentOn,
+        isSettlement: e.isSettlement,
         splitType: e.splitType,
         payers: _amountEditable
             ? [(memberId: e.payers.single.memberId, amount: amount)]

@@ -9,6 +9,7 @@ SpaceExpense _expense(
   List<String> between = const ['m1', 'm2', 'm3'],
   String? category,
   bool byYou = false,
+  bool settlement = false,
   String splitType = 'equal',
 }) {
   final amount = Paise.rupees(rupees);
@@ -20,6 +21,7 @@ SpaceExpense _expense(
     amount: amount,
     spentOn: DateTime(2026, 11, day),
     splitType: splitType,
+    isSettlement: settlement,
     createdByYou: byYou,
     payers: [(memberId: paidBy, amount: amount)],
     splits: [
@@ -112,6 +114,27 @@ final flatLedger = SpaceLedger(
   ],
 );
 
+/// [flatLedger] with Rahul paying you back ₹500 today: a settle-up, so
+/// it is listed but is not spending.
+final flatLedgerWithSettleUp = SpaceLedger(
+  today: flatLedger.today,
+  fairness: flatLedger.fairness,
+  categories: flatLedger.categories,
+  expenses: [
+    _expense(
+      'e10',
+      'Rahul paid you back',
+      500,
+      9,
+      paidBy: 'm2',
+      between: ['m1'],
+      settlement: true,
+      splitType: 'exact',
+    ),
+    ...flatLedger.expenses,
+  ],
+);
+
 /// Goa trip (`spacesList`'s `s2`), where you are not an owner: you may
 /// change only what you recorded.
 final tripLedger = SpaceLedger(
@@ -195,6 +218,7 @@ class FakeSpaceLedgerRepository implements SpaceLedgerRepository {
         category: update.category,
         amount: update.amount,
         spentOn: update.spentOn,
+        isSettlement: update.isSettlement,
         splitType: update.splitType,
         createdByYou: e.createdByYou,
         payers: update.payers,

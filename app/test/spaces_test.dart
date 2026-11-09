@@ -524,7 +524,7 @@ void main() {
       for (final (label, location) in [
         ('Balances', SettloRoutes.spaceBalances('s1')),
         ('Activity', SettloRoutes.activity),
-        ('Add expense', SettloRoutes.addExpense),
+        ('Add expense', SettloRoutes.addExpenseIn('s1')),
         ('Settle up', SettloRoutes.settle),
       ]) {
         final (router, _) = await pumpSpace(tester);
@@ -654,6 +654,35 @@ void main() {
       expect(first, matches(RegExp(r'^update \S{36} e1 Groceries 200050$')));
       expect(find.text('Groceries'), findsOne);
       expect(find.text('₹2,000.50'), findsOne);
+    });
+
+    testWidgets('editing a settle-up leaves the spend unchanged', (
+      tester,
+    ) async {
+      final ledger = FakeSpaceLedgerRepository({'s1': flatLedgerWithSettleUp});
+      await _pump(
+        tester,
+        FakeSpacesRepository(spacesList),
+        initialLocation: SettloRoutes.space('s1'),
+        ledger: ledger,
+      );
+      expect(find.text('settle-up'), findsOne);
+      expect(find.text('₹4,140 today'), findsOne, reason: 'not spending');
+
+      await openExpense(tester, 'Rahul paid you back');
+      await tester.enterText(find.byType(TextField).last, 'Paid back in cash');
+      await tester.tap(find.text('Save changes'));
+      await tester.pumpAndSettle();
+
+      final [edited, ...] = (await ledger.load('s1')).expenses;
+      expect(
+        (edited.description, edited.isSettlement),
+        ('Paid back in cash', true),
+      );
+      expect(find.text('settle-up'), findsOne);
+      await tester.drag(find.byType(ListView), const Offset(0, 2000));
+      await tester.pumpAndSettle();
+      expect(find.text('₹4,140 today'), findsOne, reason: 'still not spending');
     });
 
     testWidgets('a split by amounts keeps its amount', (tester) async {

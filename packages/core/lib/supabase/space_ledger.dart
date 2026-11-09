@@ -1,21 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/money/paise.dart';
+import 'package:settlo_core/supabase/expenses.dart';
 import 'package:settlo_core/supabase/providers.dart';
 import 'package:settlo_core/supabase/spaces.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Who paid part of an expense.
 typedef ExpensePayer = ({String memberId, Paise amount});
-
-/// One member's part of an expense, with the weight it came from for
-/// `percent` (basis points) and `shares` splits.
-typedef ExpenseSplit = ({
-  String memberId,
-  Paise amount,
-  int? percentBp,
-  int? shares,
-});
 
 /// An expense in a space that has not been deleted.
 @immutable
@@ -101,13 +93,15 @@ final class SpaceLedger {
 }
 
 /// An edit to a [SpaceExpense]: `update_expense` replaces every field,
-/// so this carries the payers and splits to keep as well.
+/// so this carries the payers, splits and settlement flag to keep as
+/// well. An omitted `is_settlement` would reset a settle-up to spending.
 typedef ExpenseUpdate = ({
   String id,
   String description,
   String? category,
   Paise amount,
   DateTime spentOn,
+  bool isSettlement,
   String splitType,
   List<ExpensePayer> payers,
   List<ExpenseSplit> splits,
@@ -262,6 +256,7 @@ final class SupabaseSpaceLedgerRepository implements SpaceLedgerRepository {
       'category': update.category,
       'amount_minor': update.amount.value,
       'spent_on': _date(update.spentOn),
+      'is_settlement': update.isSettlement,
       'split_type': update.splitType,
       'payers': [
         for (final p in update.payers)

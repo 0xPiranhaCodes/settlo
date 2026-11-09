@@ -56,6 +56,22 @@ final _tables = <String, List<Map<String, Object?>>>{
       'expense_splits': [_split('m2', 500, '2026-11-01T10:01:00Z')],
     },
     {
+      'id': 'e4',
+      'description': 'Rahul paid you back',
+      'category': null,
+      'amount_minor': 50000,
+      'spent_on': '2026-11-07',
+      'is_settlement': true,
+      'created_by': _me,
+      'deleted_at': null,
+      'expense_payers': [
+        {'member_id': 'm2', 'amount_minor': 50000},
+      ],
+      'expense_splits': [
+        {..._split('m1', 50000, '2026-11-01T10:00:00Z'), 'split_type': 'exact'},
+      ],
+    },
+    {
       'id': 'e3',
       'description': 'Wifi',
       'category': null,
@@ -170,7 +186,11 @@ void main() {
       (DateTime(2026, 11, 9), DateTime(2026, 11)),
     );
     // A soft-deleted row is hidden even if the filter is missed.
-    expect([for (final e in ledger.expenses) e.id], ['e1', 'e3']);
+    expect([for (final e in ledger.expenses) e.id], ['e1', 'e4', 'e3']);
+    expect(
+      [for (final e in ledger.expenses) e.isSettlement],
+      [false, true, false],
+    );
 
     final groceries = ledger.expenses.first;
     expect(
@@ -212,6 +232,7 @@ void main() {
       category: wifi.category,
       amount: wifi.amount,
       spentOn: wifi.spentOn,
+      isSettlement: wifi.isSettlement,
       splitType: wifi.splitType,
       payers: wifi.payers,
       splits: wifi.splits,
@@ -225,6 +246,7 @@ void main() {
         'category': null,
         'amount_minor': 119900,
         'spent_on': '2026-11-08',
+        'is_settlement': false,
         'split_type': 'shares',
         'payers': [
           {'member_id': 'm2', 'amount_minor': 119900},
@@ -248,6 +270,7 @@ void main() {
       category: groceries.category,
       amount: const Paise(12000),
       spentOn: groceries.spentOn,
+      isSettlement: false,
       splitType: 'equal',
       payers: [(memberId: 'm2', amount: const Paise(12000))],
       splits: groceries.splits,
@@ -263,6 +286,28 @@ void main() {
       {'member_id': 'm2'},
       {'member_id': 'm3'},
     ]);
+  });
+
+  test('editing a settle-up keeps it a settle-up', () async {
+    final settleUp = (await repository().load('s1')).expenses[1];
+    requests.clear();
+
+    await repository().updateExpense((
+      id: settleUp.id,
+      description: 'Rahul paid you back in cash',
+      category: settleUp.category,
+      amount: settleUp.amount,
+      spentOn: settleUp.spentOn,
+      isSettlement: settleUp.isSettlement,
+      splitType: settleUp.splitType,
+      payers: settleUp.payers,
+      splits: settleUp.splits,
+    ), idempotencyKey: '5d2e0000-0000-4000-8000-000000000004');
+
+    // update_expense resets an omitted is_settlement to false, which would
+    // start counting the transfer as spending (docs/api.md).
+    final p = (jsonDecode(requests.single.split('  ').last) as Map)['p'] as Map;
+    expect((p['expense_id'], p['is_settlement']), ('e4', true));
   });
 
   test('deletes through delete_expense with the key', () async {
