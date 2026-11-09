@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(68);
+select plan(69);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000005901', '919590000001', now()),
@@ -268,6 +268,15 @@ select lives_ok($$select public.leave_space('00000000-0000-0000-0000-00000000591
   'leave_space: owner A removes X, whose balance is zero');
 select ok((select left_at is not null from public.space_members where id = '00000000-0000-0000-0000-000000005923'),
   'leave_space: X has left');
+select throws_ok($q$do $$ begin
+    insert into public.expenses (id, space_id, description, amount_minor)
+    values ('00000000-0000-0000-0000-000000005934', '00000000-0000-0000-0000-000000005910', 'Ghost', 100);
+    insert into public.expense_payers (expense_id, member_id, amount_minor)
+    values ('00000000-0000-0000-0000-000000005934', '00000000-0000-0000-0000-000000005921', 100);
+    insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
+    values ('00000000-0000-0000-0000-000000005934', '00000000-0000-0000-0000-000000005923', 'exact', 100);
+  end $$$q$,
+  '42501', null, 'expense_splits_insert: a direct write cannot name departed X');
 select pg_temp.login('00000000-0000-0000-0000-000000005902');
 select throws_ok($$select public.leave_space('00000000-0000-0000-0000-000000005910', '00000000-0000-0000-0000-000000005974',
     (select id from public.space_members where phone = '+919590000077'))$$,

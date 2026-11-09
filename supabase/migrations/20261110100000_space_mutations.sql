@@ -267,6 +267,16 @@ language sql stable security definer set search_path = '' as $$
        and (e.created_by = public.verified_uid() or public.is_space_owner(e.space_id)))
 $$;
 
+-- As in #9, but the named member must still be active, as resolve_allocations requires.
+create or replace function public.can_allocate(p_expense_id uuid, p_member_id uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (
+    select from public.expenses e
+      join public.space_members m on m.space_id = e.space_id
+     where e.id = p_expense_id and m.id = p_member_id and m.left_at is null
+       and public.is_accepted_member(e.space_id))
+$$;
+
 drop policy expenses_update on public.expenses;
 create policy expenses_update on public.expenses for update to authenticated
   using (public.can_edit_expense(id)) with check (public.can_edit_expense(id));
