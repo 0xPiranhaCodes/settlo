@@ -119,5 +119,8 @@ Future<void> pumpSettloGolden(
     await tester.pumpAndSettle();
   }
   await tester.pumpWidget(surface(tickers: false));
-  await tester.pump();
+  // Package images decode asynchronously on their first use. Settle that
+  // first frame so a golden cannot silently omit an asset that later tests
+  // find in Flutter's image cache.
+  await tester.pumpAndSettle();
 }
