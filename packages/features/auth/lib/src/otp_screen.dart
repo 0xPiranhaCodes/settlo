@@ -124,12 +124,14 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               _TextAction(
                 label: 'change',
                 semanticLabel: 'Change number',
+                size: 15,
                 onTap: () => StepHeader.goBack(context),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 36),
+        // 36 on the canvas, less the 11px of target under the change link.
+        const SizedBox(height: 25),
         _CodeBoxes(
           controller: _code,
           focusNode: _focus,
@@ -296,9 +298,15 @@ class _CodeBoxes extends StatelessWidget {
 
 /// An inline text action in the action colour, with a 44pt tall target.
 class _TextAction extends StatelessWidget {
-  const new({required this.label, required this.onTap, this.semanticLabel});
+  const new({
+    required this.label,
+    required this.onTap,
+    this.semanticLabel,
+    this.size = 13,
+  });
 
   final String label;
+  final double size;
   final String? semanticLabel;
   final VoidCallback? onTap;
 
@@ -314,12 +322,12 @@ class _TextAction extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Padding(
-          // A 44pt tall target around 13px text.
+          // A 44pt tall target around the text.
           padding: const EdgeInsets.symmetric(vertical: 11),
           child: Text(
             label,
             style: SettloTypography.figtree(
-              13,
+              size,
               color: onTap == null ? c.textMuted : c.action,
             ),
           ),
