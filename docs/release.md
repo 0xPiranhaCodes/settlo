@@ -2,6 +2,17 @@
 
 This document is the release gate owned by Principal QA. Check each item against the release candidate and link the supporting evidence before submission.
 
+## M3 to M4 flatmate gate
+
+- [x] The [real-stack integration test](../app/integration_test/flatmate_flow_test.dart) signs in all three fixed OTP identities and accepts the two invited members through the UI.
+- [x] Member 1 creates a three-person flat and records equal, exact and shares expenses, including a one-paisa remainder; every member checks the hand-computed balance and agreed-split fairness view.
+- [x] The owing member launches both UPI payments through the simulator's mocked platform channel, explicitly confirms each payment in Settlo, and a server read proves all three balances are zero.
+- [x] The iPhone 16 / iOS 18.2 [screen recording](https://github.com/0xPiranhaCodes/settlo/blob/evidence/65-flatmate-gate/flatmate-flow-ios-18.2.mp4?raw=true) covers the passing flow.
+- [x] Product defects found by the gate are tracked separately: [#81](https://github.com/0xPiranhaCodes/settlo/issues/81) and [#82](https://github.com/0xPiranhaCodes/settlo/issues/82). The gate contains no product-code fix.
+- [ ] Required hosted CI checks are green for the gate pull request.
+
+The checked evidence above is bound to issue [#65](https://github.com/0xPiranhaCodes/settlo/issues/65). The gate is not merge-ready until the final hosted checks are green and the merge rule below is satisfied.
+
 ## M6 Release gate
 
 - [ ] Store listings are complete for iOS and Android.
