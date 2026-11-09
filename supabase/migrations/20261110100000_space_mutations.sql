@@ -278,8 +278,11 @@ language sql stable security definer set search_path = '' as $$
 $$;
 
 drop policy expenses_update on public.expenses;
+-- WITH CHECK reads the new row's own columns (space_id and created_by are not client-updatable anyway).
 create policy expenses_update on public.expenses for update to authenticated
-  using (public.can_edit_expense(id)) with check (public.can_edit_expense(id));
+  using (public.can_edit_expense(id))
+  with check (public.is_accepted_member(space_id)
+              and (created_by = public.verified_uid() or public.is_space_owner(space_id)));
 
 drop policy expense_payers_insert on public.expense_payers;
 create policy expense_payers_insert on public.expense_payers for insert to authenticated
