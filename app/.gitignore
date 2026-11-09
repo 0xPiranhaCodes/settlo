@@ -50,3 +50,6 @@ app.*.map.json
 # Supabase settings for --dart-define-from-file; copy .env.example.json.
 .env.json
 !.env.example.json
+
+# Golden comparison output from local (non-Linux) runs.
+/test/failures/

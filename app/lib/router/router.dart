@@ -38,30 +38,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 
 final _rootKey = GlobalKey<NavigatorState>();
 
-GoRoute _route(String path, Widget Function(GoRouterState) build) => GoRoute(
-  path: path,
-  parentNavigatorKey: _rootKey,
-  builder: (_, state) => build(state),
-);
-
+// Each feature exports its routes (ADR 0002); the app only composes them.
+// Full-screen routes sit beside the shell, so they cover the tab bar.
 final _routes = <RouteBase>[
-  _route(SettloRoutes.splash, (_) => const SplashScreen()),
-  _route(SettloRoutes.welcome, (_) => const WelcomeScreen()),
-  _route(SettloRoutes.phone, (_) => const PhoneScreen()),
-  _route(SettloRoutes.otp, (_) => const OtpScreen()),
-  _route(
-    SettloRoutes.joinPattern,
-    (s) => JoinScreen(token: s.pathParameters['token']!),
-  ),
-  _route(SettloRoutes.addExpense, (_) => const AddExpenseScreen()),
-  _route(SettloRoutes.settle, (_) => const SettleScreen()),
-  _route(SettloRoutes.settlePay, (_) => const SettlePayScreen()),
-  _route(SettloRoutes.newLoan, (_) => const NewLoanScreen()),
-  _route(
-    SettloRoutes.confirmRepaymentPattern,
-    (s) =>
-        ConfirmRepaymentScreen(repaymentId: s.pathParameters['repaymentId']!),
-  ),
+  ...authRoutes,
+  ...expensesRoutes,
+  ...settleRoutes,
+  ...loansRoutes,
   StatefulShellRoute.indexedStack(
     builder: (_, _, shell) => SettloShell(
       currentIndex: shell.currentIndex,
@@ -70,33 +53,13 @@ final _routes = <RouteBase>[
       child: shell,
     ),
     branches: [
-      _branch(SettloRoutes.home, const HomeScreen(), [
-        GoRoute(path: 'profile', builder: (_, _) => const ProfileScreen()),
-      ]),
-      _branch(SettloRoutes.spaces, const SpacesListScreen(), [
-        GoRoute(
-          path: ':spaceId',
-          builder: (_, s) =>
-              SpaceExpensesScreen(spaceId: s.pathParameters['spaceId']!),
-          routes: [
-            GoRoute(
-              path: 'balances',
-              builder: (_, s) =>
-                  SpaceScreen(spaceId: s.pathParameters['spaceId']!),
-            ),
-          ],
-        ),
-      ]),
-      _branch(SettloRoutes.loans, const LoanScreen()),
-      _branch(SettloRoutes.activity, const ActivityScreen()),
+      for (final route in [
+        homeTabRoute(routes: [profileRoute]),
+        spacesTabRoute,
+        loansTabRoute,
+        activityTabRoute,
+      ])
+        StatefulShellBranch(routes: [route]),
     ],
   ),
 ];
-
-StatefulShellBranch _branch(
-  String path,
-  Widget screen, [
-  List<RouteBase> routes = const [],
-]) => StatefulShellBranch(
-  routes: [GoRoute(path: path, builder: (_, _) => screen, routes: routes)],
-);

@@ -10,5 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  go_router: ^18.1.3
   settlo_core:
     path: ../../core
