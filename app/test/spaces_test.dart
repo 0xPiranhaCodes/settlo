@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -744,7 +746,7 @@ void main() {
       expect(find.text('₹2,000.50'), findsOne);
     });
 
-    testWidgets('editing a settle-up leaves the spend unchanged', (
+    testWidgets('editing a pending settle-up leaves the spend unchanged', (
       tester,
     ) async {
       final ledger = FakeSpaceLedgerRepository({'s1': flatLedgerWithSettleUp});
@@ -754,24 +756,125 @@ void main() {
         initialLocation: SettloRoutes.space('s1'),
         ledger: ledger,
       );
-      expect(find.text('settle-up'), findsOne);
+      expect(find.text('settle-up · waiting for Priya to confirm'), findsOne);
       expect(find.text('₹4,140 today'), findsOne, reason: 'not spending');
 
-      await openExpense(tester, 'Rahul paid you back');
+      await openExpense(tester, 'You paid Priya back');
       await tester.enterText(find.byType(TextField).last, 'Paid back in cash');
       await tester.tap(find.text('Save changes'));
       await tester.pumpAndSettle();
 
-      final [edited, ...] = (await ledger.load('s1')).expenses;
+      final edited = (await ledger.load('s1')).expenses.first;
       expect(
-        (edited.description, edited.isSettlement),
-        ('Paid back in cash', true),
+        (edited.description, edited.isSettlement, edited.settlementStatus),
+        ('Paid back in cash', true, SettlementStatus.pending),
       );
-      expect(find.text('settle-up'), findsOne);
+      expect(find.text('settle-up · waiting for Priya to confirm'), findsOne);
       await tester.drag(find.byType(ListView), const Offset(0, 2000));
       await tester.pumpAndSettle();
       expect(find.text('₹4,140 today'), findsOne, reason: 'still not spending');
     });
+
+    testWidgets('the payee confirms a pending settle-up, once', (tester) async {
+      final ledger = FakeSpaceLedgerRepository({'s1': flatLedgerWithSettleUp});
+      await _pump(
+        tester,
+        FakeSpacesRepository(spacesList),
+        initialLocation: SettloRoutes.space('s1'),
+        ledger: ledger,
+      );
+      expect(find.text('settle-up · confirm you received it'), findsOne);
+
+      await openExpense(tester, 'Rahul paid you back');
+      expect(find.text('Save changes'), findsNothing, reason: 'not an edit');
+      expect(find.text('Rahul says they paid you'.toUpperCase()), findsOne);
+      ledger.failure = Exception('offline');
+      await tester.tap(find.text('Yes, I received ₹300'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining("We couldn't save that."), findsOne);
+
+      await tester.tap(find.text('Yes, I received ₹300'));
+      await tester.pumpAndSettle();
+      expect(find.text('Yes, I received ₹300'), findsNothing);
+      final [first, retry] = ledger.calls;
+      expect(first, retry, reason: 'a retry reuses the key');
+      expect(first, matches(RegExp(r'^confirm \S{36} e11 30000 m2$')));
+      expect(find.text('settle-up'), findsOne, reason: 'confirmed and final');
+
+      await tester.tap(find.text('Rahul paid you back'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Yes, I received ₹300'),
+        findsNothing,
+        reason: 'confirmed is final',
+      );
+    });
+
+    testWidgets("the payee says a settle-up didn't arrive, with a reason", (
+      tester,
+    ) async {
+      final ledger = FakeSpaceLedgerRepository({'s1': flatLedgerWithSettleUp});
+      await _pump(
+        tester,
+        FakeSpacesRepository(spacesList),
+        initialLocation: SettloRoutes.space('s1'),
+        ledger: ledger,
+      );
+      await openExpense(tester, 'Rahul paid you back');
+      await tester.tap(find.text("I didn't receive this"));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Mark as not received'));
+      await tester.pumpAndSettle();
+      expect(ledger.calls, isEmpty, reason: 'a reason is required');
+      expect(find.textContaining('Say what went wrong'), findsOne);
+
+      await tester.enterText(find.byType(TextField), ' Not in my account ');
+      await tester.tap(find.text('Mark as not received'));
+      await tester.pumpAndSettle();
+      expect(
+        ledger.calls.single,
+        matches(RegExp(r'^dispute \S{36} e11 Not in my account$')),
+      );
+      expect(find.text("settle-up · you didn't receive it"), findsOne);
+    });
+
+    for (final dispute in [false, true]) {
+      final button = dispute ? 'Mark as not received' : 'Yes, I received ₹300';
+      testWidgets('a double tap on "$button" answers once, closing only the '
+          'sheet', (tester) async {
+        final ledger = FakeSpaceLedgerRepository({
+          's1': flatLedgerWithSettleUp,
+        });
+        await _pump(
+          tester,
+          FakeSpacesRepository(spacesList),
+          initialLocation: SettloRoutes.space('s1'),
+          ledger: ledger,
+        );
+        await openExpense(tester, 'Rahul paid you back');
+        if (dispute) {
+          await tester.tap(find.text("I didn't receive this"));
+          await tester.pumpAndSettle();
+          await tester.enterText(find.byType(TextField), 'Not in my account');
+        }
+
+        // No pump between the taps, and the first answer still in flight:
+        // the button is not rebuilt disabled yet.
+        ledger.gate = Completer();
+        await tester.tap(find.text(button));
+        await tester.tap(find.text(button), warnIfMissed: false);
+        ledger.gate!.complete();
+        await tester.pumpAndSettle();
+
+        expect(ledger.calls, hasLength(1));
+        expect(find.text(button), findsNothing);
+        expect(
+          find.text('Rahul paid you back'),
+          findsOne,
+          reason: 'one pop: the space stays open under the sheet',
+        );
+      });
+    }
 
     testWidgets('a split by amounts keeps its amount', (tester) async {
       await pumpSpace(tester);

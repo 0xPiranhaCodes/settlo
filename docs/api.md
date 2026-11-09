@@ -12,8 +12,8 @@ applies (policies: #8). `authenticated` can `select`; `anon` cannot. They are re
 
 Common rules:
 - A soft-deleted expense (`deleted_at` set) never counts.
-- A settlement (`is_settlement`) is a transfer, not spending: it counts toward balances and is
-  left out of fairness and categories.
+- A settlement (`is_settlement`) is a transfer, not spending: it counts toward balances only once
+  the payee has confirmed it (#78), and is always left out of fairness and categories.
 - Months are the first day of the month of `expenses.spent_on`, as a `date`.
 
 ### `space_member_balances`
@@ -23,14 +23,30 @@ One row per space member (members who left included, so their balance stays visi
 | --- | --- | --- |
 | `space_id`, `member_id` | uuid | Member's space and `space_members.id` |
 | `phone`, `user_id` | e164, uuid | Member identity (`user_id` null until they join) |
-| `paid_minor` | bigint | Sum of their `expense_payers` rows |
-| `owed_minor` | bigint | Sum of their `expense_splits` rows |
+| `paid_minor` | bigint | Sum of their `expense_payers` rows (pending and disputed settle-ups excluded) |
+| `owed_minor` | bigint | Sum of their `expense_splits` rows (likewise) |
 | `balance_minor` | bigint | `paid - owed`: positive is owed to them, negative they owe |
 
 Balances in a space sum to zero. Debt simplification runs on device from these rows (ADR 0003).
 
 ```
 GET /rest/v1/space_member_balances?space_id=eq.<id>
+```
+
+### `pending_settlements`
+Settle-ups waiting for their payee (#78), one row each, in the spaces the caller can read. Space
+lists them as pending; Activity's 'Needs you' (#91) lists the rows with `awaiting_me`.
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `expense_id`, `space_id` | uuid | The settle-up (an `expenses` row) and its space |
+| `amount_minor`, `spent_on` | bigint, date | What was paid, and when |
+| `created_by`, `created_at` | uuid, timestamptz | Who recorded it, and when |
+| `payer_member_id`, `payee_member_id` | uuid | `space_members.id` of who paid and who was paid |
+| `awaiting_me` | boolean | The caller is the payee and may answer (an accepted, active member) |
+
+```
+GET /rest/v1/pending_settlements?awaiting_me=is.true&order=created_at.desc
 ```
 
 ### `space_monthly_fairness`
@@ -160,7 +176,7 @@ expense id. Security invoker: RLS applies, and the caller becomes `created_by`.
 | `category` | text | Optional |
 | `amount_minor` | integer | Required, > 0, paise |
 | `spent_on` | date | Optional, default today (UTC) |
-| `is_settlement` | boolean | Optional, default `false` |
+| `is_settlement` | boolean | Optional, default `false`. A settle-up: exactly one payer (who paid) and one split (the payee), different members, else `22023` hint `settlement_shape`. Pending until the payee confirms it, unless the caller is the payee (see [Settle-ups](#settle-ups-78)) |
 | `split_type` | text | `equal` (default), `exact`, `percent` or `shares` |
 | `payers` | array | `[{"member_id", "amount_minor"}]`: distinct active members, amounts > 0, summing to `amount_minor` |
 | `splits` | array | `[{"member_id", "amount_minor", "percent_bp", "shares"}]`: distinct active members |
@@ -290,7 +306,8 @@ the current date; other omitted optional fields take the `add_expense` defaults.
 - `42501`: not the creator or an owner, not an accepted member, the space is deleted, or the expense
   is unknown.
 - `22023`: invalid payload, the expense is deleted, or it involves a departed member
-  (`departed_member`).
+  (`departed_member`); for a settle-up, `settlement_kind`, `settlement_final` or `settlement_shape`
+  (#78).
 - Concurrent edits of one expense run one after the other (row lock), so each `activity` row has a
   consistent before image.
 
@@ -307,8 +324,8 @@ POST /rest/v1/rpc/update_expense
 ### `delete_expense(p_expense_id uuid, p_idempotency_key uuid)`
 Soft-deletes the expense (`deleted_at`): it stops counting in every view and is frozen (only a
 restore could change it). Returns nothing. Deleting an already-deleted expense with a new key is
-`22023`, as is one that involves a departed member (`departed_member`); a replay with the same key
-succeeds.
+`22023`, as is one that involves a departed member (`departed_member`) or a confirmed or disputed
+settle-up (`settlement_final`, #78); a replay with the same key succeeds.
 
 ```
 POST /rest/v1/rpc/delete_expense  {"p_expense_id": "c4a1e7f2-…", "p_idempotency_key": "8a1f…"}
@@ -504,4 +521,84 @@ is the repayment id and the trimmed reason.
 ```
 POST /rest/v1/rpc/dispute_repayment
 {"p_repayment_id": "7b1c…", "p_reason": "Not received yet", "p_idempotency_key": "e5f6…"}
+```
+
+## Settle-ups (#78)
+
+A settle-up is an expense with `is_settlement`: one payer pays one payee. It follows the loan
+repayment model (#87). Recorded by anyone but the payee, it is **pending**; only the payee confirms
+or disputes it, once, and both outcomes are final. When the payee records it with `add_expense` (or
+corrects a pending one with `update_expense`) it is confirmed at once. Only confirmed settle-ups count
+in `space_member_balances`; pending ones are listed in `pending_settlements`, and a disputed one stays
+visible with its reason and never counts. Settle-ups recorded before #78 were confirmed by the
+migration.
+
+`expenses` gains `settlement_status` (`pending`, `confirmed`, `disputed`; null for spending), derived
+from `confirmed_by` / `confirmed_at` / `disputed_by` / `disputed_at` / `dispute_reason`. Clients
+cannot write these columns. A trigger holds every write, the RPCs and direct updates alike, to the
+rules: an expense never changes between spending and a settle-up (`22023` hint `settlement_kind`), and
+a confirmed or disputed settle-up cannot be edited, deleted or restored (`22023` hint
+`settlement_final`). A pending one may still be edited or deleted by its creator or a space owner.
+
+One pending settle-up per payer and payee: recording another from the same payer to the same payee
+while one is pending is `22023` hint `settlement_pending`, whoever records it; it is the same payment
+recorded twice. Concurrent records of a pair are serialised (a transaction-scoped advisory lock), so
+of two at once the second is refused. Once the payee answers, a new one may be recorded; a disputed
+one's debt is owed again.
+
+Clients net the caller's own pending settle-ups (`pending_settlements` where the caller is the payer)
+out of the payments they offer, and show each as waiting for the payee; balances stay confirmed-only.
+
+Confirming changes both members' balances, so like an edit it is refused when the payer has left
+(`22023` hint `departed_member`); a member may leave while a settle-up is pending, as it does not
+count.
+
+Activity: `created`, then `confirmed` / `disputed` (before and after: the expense). A settle-up the
+payee records logs `created` then `confirmed`.
+
+| | Payee | Payer or other member | Pending claimant | Outsider / unverified / anon |
+| --- | --- | --- | --- | --- |
+| `confirm_settlement`, `dispute_settlement` | yes, while pending | `42501` hint `not_payee` | `42501` | `42501` |
+
+Further hints:
+
+| Code | Hint | When |
+| --- | --- | --- |
+| `22023` | `settlement_shape` | A settle-up without exactly one payer and one other payee |
+| `22023` | `settlement_pending` | Recording (or editing into) a settle-up from a payer to a payee while another between them is pending |
+| `22023` | `settlement_kind` | Turning spending into a settle-up or back |
+| `22023` | `settlement_final` | Editing, deleting or restoring a confirmed or disputed settle-up |
+| `22023` | `not_pending` | Confirming or disputing a settle-up that is already answered or deleted |
+| `22023` | `settlement_changed` | Confirming an amount or payer the settle-up no longer has (it was edited since it was shown) |
+| `42501` | `not_payee` | Confirming or disputing as anyone but the payee |
+
+### `confirm_settlement(p_expense_id uuid, p_amount_minor bigint, p_payer_member_id uuid, p_idempotency_key uuid)`
+The payee confirms a pending settle-up; it counts from now on. Final. Returns nothing. The payee
+sends the amount and payer they were shown: a pending settle-up can still be edited, and an edit that
+lands first is refused as `settlement_changed` rather than confirmed unseen. The key is claimed in
+`private.idempotency_keys` first, so a replay succeeds after the settle-up is no longer pending; the
+fingerprint is the expense id, amount and payer.
+
+- `42501`: not an accepted member of the space, not a settle-up, or `not_payee`.
+- `22023`: a missing argument, `not_pending`, `settlement_changed`, or `departed_member`.
+- Concurrency: a confirmation and a dispute of the same settle-up (two devices) lock the expense row
+  one after the other; the second is `not_pending`. An edit or delete waits the same way.
+- Security definer, so the shared step (`private.answer_settlement`) stays server-only; every check
+  is made against the caller's verified id, as RLS would.
+
+```
+POST /rest/v1/rpc/confirm_settlement
+{"p_expense_id": "0b9d…", "p_amount_minor": 50000, "p_payer_member_id": "<Rahul>", "p_idempotency_key": "c2d4…"}
+```
+
+### `dispute_settlement(p_expense_id uuid, p_reason text, p_idempotency_key uuid)`
+The payee disputes a pending settle-up with a reason (trimmed, 1–500 characters, else `22023`).
+Final: it stays visible with `dispute_reason` and never counts; the payer records a corrected one.
+Same errors and concurrency as `confirm_settlement`, without `departed_member` and
+`settlement_changed` (a dispute changes no balance). The fingerprint is the
+expense id and the trimmed reason.
+
+```
+POST /rest/v1/rpc/dispute_settlement
+{"p_expense_id": "0b9d…", "p_reason": "Not received yet", "p_idempotency_key": "e5f6…"}
 ```

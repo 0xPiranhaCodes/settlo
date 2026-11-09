@@ -11,12 +11,16 @@ import 'support/fake_spaces.dart';
 
 /// [screen] in the shell's Spaces tab with [spaces] already loaded; see
 /// `homeInShell` for why the data is loaded before the first frame.
-Future<Widget> spacesInShell(List<SpaceSummary> spaces, Widget screen) async {
+Future<Widget> spacesInShell(
+  List<SpaceSummary> spaces,
+  Widget screen, {
+  Map<String, SpaceLedger>? ledgers,
+}) async {
   final container = ProviderContainer(
     overrides: [
       spacesRepositoryProvider.overrideWithValue(FakeSpacesRepository(spaces)),
       spaceLedgerRepositoryProvider.overrideWithValue(
-        FakeSpaceLedgerRepository(),
+        FakeSpaceLedgerRepository(ledgers),
       ),
     ],
   );
@@ -32,7 +36,8 @@ Future<Widget> spacesInShell(List<SpaceSummary> spaces, Widget screen) async {
 }
 
 /// SpacesList and both tabs of Flat 402 in dark and light, and Space ·
-/// empty in dark, against their artboards.
+/// empty in dark, against their artboards; and Flat 402's expenses with
+/// pending settle-ups (#78) in dark.
 void main() {
   final states = [
     ('list', spacesList, const SpacesListScreen(), ['dark', 'light']),
@@ -79,5 +84,25 @@ void main() {
         });
       }
     }
+  }
+
+  for (final device in SettloGoldenDevices.all) {
+    testWidgets('${device.name} dark spaces settle-ups golden', (tester) async {
+      await pumpSettloGolden(
+        tester,
+        device: device,
+        theme: SettloTheme.dark(),
+        child: await spacesInShell(
+          spacesList,
+          SpaceExpensesScreen(spaceId: spacesList.first.id),
+          ledgers: {'s1': flatLedgerWithSettleUp},
+        ),
+      );
+
+      await expectLater(
+        find.byKey(settloGoldenSurfaceKey),
+        matchesGoldenFile('goldens/spaces_settle_ups_${device.name}_dark.png'),
+      );
+    });
   }
 }

@@ -28,12 +28,12 @@ insert into public.space_members (id, space_id, phone, role) values
 -- E3 Nov: 9000 food paid by B 6000 + A 3000, exact: A 2000, B 3000, C 4000.
 -- S  Nov: settlement, B pays A 5000 (payer B, split A).
 -- E4 Nov: 50000 rent paid by C, equal (C 16668, A 16666, B 16666), then soft-deleted.
-insert into public.expenses (id, space_id, description, category, amount_minor, spent_on, is_settlement) values
-  ('00000000-0000-0000-0000-0000000014a1', '00000000-0000-0000-0000-0000000012a1', 'Groceries', 'groceries', 10001, '2026-10-15', false),
-  ('00000000-0000-0000-0000-0000000014a2', '00000000-0000-0000-0000-0000000012a1', 'Rent', 'rent', 30000, '2026-11-01', false),
-  ('00000000-0000-0000-0000-0000000014a3', '00000000-0000-0000-0000-0000000012a1', 'Dinner', 'food', 9000, '2026-11-10', false),
-  ('00000000-0000-0000-0000-0000000014a4', '00000000-0000-0000-0000-0000000012a1', 'Settle up', null, 5000, '2026-11-15', true),
-  ('00000000-0000-0000-0000-0000000014a5', '00000000-0000-0000-0000-0000000012a1', 'Rent again', 'rent', 50000, '2026-11-20', false);
+insert into public.expenses (id, space_id, description, category, amount_minor, spent_on, is_settlement, confirmed_at) values
+  ('00000000-0000-0000-0000-0000000014a1', '00000000-0000-0000-0000-0000000012a1', 'Groceries', 'groceries', 10001, '2026-10-15', false, null),
+  ('00000000-0000-0000-0000-0000000014a2', '00000000-0000-0000-0000-0000000012a1', 'Rent', 'rent', 30000, '2026-11-01', false, null),
+  ('00000000-0000-0000-0000-0000000014a3', '00000000-0000-0000-0000-0000000012a1', 'Dinner', 'food', 9000, '2026-11-10', false, null),
+  ('00000000-0000-0000-0000-0000000014a4', '00000000-0000-0000-0000-0000000012a1', 'Settle up', null, 5000, '2026-11-15', true, now()),
+  ('00000000-0000-0000-0000-0000000014a5', '00000000-0000-0000-0000-0000000012a1', 'Rent again', 'rent', 50000, '2026-11-20', false, null);
 insert into public.expense_payers (expense_id, member_id, amount_minor) values
   ('00000000-0000-0000-0000-0000000014a1', '00000000-0000-0000-0000-0000000013a3', 10001),
   ('00000000-0000-0000-0000-0000000014a2', '00000000-0000-0000-0000-0000000013a1', 30000),

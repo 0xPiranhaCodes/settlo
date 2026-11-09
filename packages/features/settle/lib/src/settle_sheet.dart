@@ -8,7 +8,8 @@ import 'package:settlo_settle/src/upi.dart';
 /// (SettlePay, n44) the amount is coral and the primary action opens a
 /// UPI app; when you are paid (Settle, n22) it is a request. Either way a
 /// settle-up is recorded only after you confirm the money moved, with one
-/// idempotency key for every retry.
+/// idempotency key for every retry. When you paid, it counts once the
+/// payee confirms it (#78); when you were paid, it counts at once.
 class SettleSheet extends ConsumerStatefulWidget {
   /// Settling [payment] in [space].
   const new({
@@ -41,6 +42,9 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
   late bool _cash = widget.payment.to.upiId == null;
 
   bool _busy = false;
+
+  /// Recorded; the sheet is closing and must not record again.
+  bool _recorded = false;
   String? _error;
 
   Payment<SpaceMember> get _p => widget.payment;
@@ -89,6 +93,8 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
   );
 
   Future<void> _record() async {
+    // A second tap can land before the rebuild that disables the button.
+    if (_busy || _recorded) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -113,11 +119,17 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
           ),
         ],
       ), idempotencyKey: _key);
+      _recorded = true;
       ledger.bump();
       widget.onClose();
     } on IdempotencyConflict {
       ledger.bump();
       _error = 'This settle-up was already recorded. Close this to see it.';
+    } on SettlementPending {
+      ledger.bump();
+      _error =
+          'A payment to ${_p.to.name} is already waiting for them to '
+          'confirm. Close this to see it.';
     } on ExpenseRejected {
       _error =
           "This doesn't match the space any more. Someone may have left. "
@@ -215,8 +227,8 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
         children: [
           note(
             _youPay
-                ? "Settlo doesn't move money. After you pay, confirm it here "
-                      'and both ledgers update.'
+                ? "Settlo doesn't move money. After you pay, ${_other.name} "
+                      'confirms and both ledgers update.'
                 : "Settlo doesn't move money. Nothing is recorded until you "
                       'confirm the payment arrived.',
           ),

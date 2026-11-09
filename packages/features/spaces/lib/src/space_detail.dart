@@ -59,6 +59,34 @@ class SpaceLedgerController extends AsyncNotifier<SpaceLedger> {
             .deleteExpense(expenseId, idempotencyKey: idempotencyKey),
       );
 
+  /// Confirms pending settle-up [expense] as shown, as its payee; a retry
+  /// must pass the same [idempotencyKey].
+  Future<void> confirmSettlement(
+    SpaceExpense expense, {
+    required String idempotencyKey,
+  }) => _changed(
+    ref
+        .read(spaceLedgerRepositoryProvider)
+        .confirmSettlement(
+          expense.id,
+          amount: expense.amount,
+          payerMemberId: expense.payers.single.memberId,
+          idempotencyKey: idempotencyKey,
+        ),
+  );
+
+  /// Disputes pending settle-up [expenseId] as its payee with [reason]; a
+  /// retry must pass the same [idempotencyKey] and [reason].
+  Future<void> disputeSettlement(
+    String expenseId,
+    String reason, {
+    required String idempotencyKey,
+  }) => _changed(
+    ref
+        .read(spaceLedgerRepositoryProvider)
+        .disputeSettlement(expenseId, reason, idempotencyKey: idempotencyKey),
+  );
+
   /// Loads the ledger again.
   Future<void> reload() async {
     ref.invalidateSelf();
@@ -487,14 +515,37 @@ class _ExpenseRow extends StatelessWidget {
       final SpaceMember p => '${p.name} paid',
       null => '${e.payers.length} paid',
     };
-    final detail = e.isSettlement
-        ? 'settle-up'
-        : e.splits.length == 1
-        ? '$paid · for one'
-        : '$paid · split ${e.splits.length} ways';
-    // Its creator or an owner may change it (docs/api.md); nobody else
-    // sees the action.
-    final editable = e.createdByYou || space.you.isOwner;
+    final payee = e.isSettlement && e.splits.length == 1
+        ? people[e.splits.single.memberId]
+        : null;
+    // A pending or disputed settle-up does not count, so it says so and
+    // its amount is grey (#78).
+    final detail = switch (e.settlementStatus) {
+      _ when !e.isSettlement =>
+        e.splits.length == 1
+            ? '$paid · for one'
+            : '$paid · split ${e.splits.length} ways',
+      SettlementStatus.pending when payee?.isYou ?? false =>
+        'settle-up · confirm you received it',
+      SettlementStatus.pending =>
+        'settle-up · waiting for ${payee?.name ?? 'them'} to confirm',
+      SettlementStatus.disputed when payee?.isYou ?? false =>
+        "settle-up · you didn't receive it",
+      SettlementStatus.disputed =>
+        "settle-up · ${payee?.name ?? 'they'} didn't receive it",
+      _ => 'settle-up',
+    };
+    final pending = e.settlementStatus == SettlementStatus.pending;
+    final uncounted =
+        pending || e.settlementStatus == SettlementStatus.disputed;
+    final answerable = pending && (payee?.isYou ?? false);
+    // Its creator or an owner may change it (docs/api.md), and only while
+    // a settle-up is pending: answered ones are final. Nobody else sees
+    // the action. The payee answers a pending one instead.
+    final editable =
+        !answerable &&
+        (!e.isSettlement || pending) &&
+        (e.createdByYou || space.you.isOwner);
     final row = Container(
       constraints: const BoxConstraints(
         minHeight: SettloSpacing.minTouchTarget,
@@ -530,10 +581,31 @@ class _ExpenseRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: SettloSpacing.x1),
-          MoneyText(e.amount),
+          MoneyText(
+            e.amount,
+            tone: uncounted ? MoneyTone.settled : MoneyTone.neutral,
+          ),
         ],
       ),
     );
+    if (answerable) {
+      return MergeSemantics(
+        child: Semantics(
+          hint: 'Confirm or dispute',
+          child: InkWell(
+            onTap: () => showSAmountSheet<void>(
+              context: context,
+              builder: (_) => ConfirmSettlementSheet(
+                space: space,
+                expense: e,
+                payer: payer?.name ?? 'They',
+              ),
+            ),
+            child: row,
+          ),
+        ),
+      );
+    }
     if (!editable) return MergeSemantics(child: row);
     return MergeSemantics(
       child: Semantics(
@@ -770,7 +842,8 @@ class FairShareBar extends StatelessWidget {
 }
 
 /// Balances simplified to the fewest payments (ADR 0003), with a way to
-/// ask for or make each one that involves you.
+/// ask for or make each one that involves you, then the settle-ups you
+/// paid that wait for their payee (#78), which are not offered again.
 class _SettleCard extends StatelessWidget {
   const new(this.space);
 
@@ -780,6 +853,7 @@ class _SettleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final payments = space.payments;
+    final waiting = space.pendingFromYou;
     return SCard(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
       child: Column(
@@ -800,7 +874,7 @@ class _SettleCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          if (payments.isEmpty)
+          if (payments.isEmpty && waiting.isEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
@@ -809,7 +883,18 @@ class _SettleCard extends StatelessWidget {
               ),
             ),
           for (final (i, p) in payments.indexed)
-            _PaymentRow(space, p, divider: i < payments.length - 1),
+            _PaymentRow(
+              space,
+              p,
+              divider: i < payments.length - 1 || waiting.isNotEmpty,
+            ),
+          for (final (i, p) in waiting.indexed)
+            _PaymentRow(
+              space,
+              p,
+              divider: i < waiting.length - 1,
+              waiting: true,
+            ),
         ],
       ),
     );
@@ -817,17 +902,30 @@ class _SettleCard extends StatelessWidget {
 }
 
 class _PaymentRow extends StatelessWidget {
-  const new(this.space, this.payment, {required this.divider});
+  const new(
+    this.space,
+    this.payment, {
+    required this.divider,
+    this.waiting = false,
+  });
 
   final SpaceSummary space;
   final Payment<SpaceMember> payment;
   final bool divider;
+
+  /// You paid it and the payee has not confirmed: grey, with no action.
+  final bool waiting;
 
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final p = payment;
     final (other, label, action) = switch (p) {
+      (:final to, from: _, amount: _) when waiting => (
+        to,
+        'Waiting for ${to.name} to confirm',
+        null,
+      ),
       (to: SpaceMember(isYou: true), :final from, amount: _) => (
         from,
         '${from.name} pays you',
@@ -870,7 +968,10 @@ class _PaymentRow extends StatelessWidget {
                       style: SettloTypography.figtree(14, color: c.textPrimary),
                     ),
                   ),
-                  MoneyText(p.amount),
+                  MoneyText(
+                    p.amount,
+                    tone: waiting ? MoneyTone.settled : MoneyTone.neutral,
+                  ),
                 ],
               ),
             ),
@@ -1145,6 +1246,183 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
       action: SPrimaryButton(
         label: 'Save changes',
         onPressed: _saving ? null : _save,
+      ),
+    );
+  }
+}
+
+/// The payee's answer to a pending settle-up, as on ConfirmRepayment:
+/// confirm it arrived, or say it didn't with a reason. Both are final.
+/// Each answer's idempotency key is made once when the sheet opens.
+class ConfirmSettlementSheet extends ConsumerStatefulWidget {
+  /// The sheet for settle-up [expense] in [space], paid by [payer].
+  const new({
+    required this.space,
+    required this.expense,
+    required this.payer,
+    super.key,
+  });
+
+  /// The space it belongs to.
+  final SpaceSummary space;
+
+  /// The pending settle-up; you are its payee.
+  final SpaceExpense expense;
+
+  /// The payer's name.
+  final String payer;
+
+  @override
+  ConsumerState<ConfirmSettlementSheet> createState() =>
+      _ConfirmSettlementSheetState();
+}
+
+class _ConfirmSettlementSheetState
+    extends ConsumerState<ConfirmSettlementSheet> {
+  final String _confirmKey = newIdempotencyKey();
+  final String _disputeKey = newIdempotencyKey();
+  final _reason = TextEditingController();
+
+  /// Asking why, before disputing.
+  bool _disputing = false;
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  Future<void> _run(Future<void> Function(SpaceLedgerController) write) async {
+    // The buttons disable only on the next frame; a second tap in this one
+    // must not answer (or pop) again.
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await write(ref.read(spaceLedgerProvider(widget.space.id).notifier));
+      if (mounted) Navigator.of(context).pop();
+      // Done: stay busy, so a tap still queued on this frame is dropped.
+      return;
+    } on IdempotencyConflict {
+      _error = 'You already answered this. Close this to see it.';
+    } on SettlementChanged {
+      ref.read(ledgerRevisionProvider.notifier).bump();
+      _error =
+          'This settle-up was just changed. Close this and check it again.';
+    } on Exception {
+      _error =
+          "We couldn't save that. Check your connection and try again. "
+          "It won't be saved twice.";
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  Future<void> _confirm() => _run(
+    (ledger) =>
+        ledger.confirmSettlement(widget.expense, idempotencyKey: _confirmKey),
+  );
+
+  Future<void> _dispute() async {
+    final reason = _reason.text.trim();
+    if (reason.isEmpty) {
+      setState(() => _error = 'Say what went wrong, like "Not in my account"');
+      return;
+    }
+    await _run(
+      (ledger) => ledger.disputeSettlement(
+        widget.expense.id,
+        reason,
+        idempotencyKey: _disputeKey,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final amount = formatInr(widget.expense.amount);
+    return SAmountSheet(
+      title: 'Confirm settle-up · ${widget.space.name}',
+      onClose: () => Navigator.of(context).pop(),
+      amountLabel: '${widget.payer} says they paid you',
+      amount: Semantics(
+        label: spokenInr(widget.expense.amount),
+        excludeSemantics: true,
+        child: Text(amount.substring(1)),
+      ),
+      body: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          Text(
+            _disputing
+                ? 'It stays in the space, marked as not received, and '
+                      "doesn't count. ${widget.payer} can record it again."
+                : 'Check your bank or UPI app for $amount from '
+                      '${widget.payer} before confirming. Confirming is '
+                      'final and updates both ledgers.',
+            textAlign: TextAlign.center,
+            style: SettloTypography.figtree(13, color: c.textSecondary),
+          ),
+          if (_disputing) ...[
+            const SizedBox(height: SettloSpacing.x2),
+            TextField(
+              controller: _reason,
+              enabled: !_busy,
+              maxLength: 500,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(labelText: 'What went wrong'),
+            ),
+          ],
+          if (_error case final error?) ...[
+            const SizedBox(height: SettloSpacing.x2),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: SettloTypography.figtree(13, color: c.textPrimary),
+            ),
+          ],
+        ],
+      ),
+      action: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: _disputing
+            ? [
+                SPrimaryButton(
+                  label: _busy ? 'Saving…' : 'Mark as not received',
+                  onPressed: _busy ? null : _dispute,
+                ),
+                const SizedBox(height: 10),
+                SSecondaryButton(
+                  label: 'Back',
+                  onPressed: _busy
+                      ? null
+                      : () => setState(() {
+                          _disputing = false;
+                          _error = null;
+                        }),
+                ),
+              ]
+            : [
+                SPrimaryButton(
+                  label: _busy ? 'Saving…' : 'Yes, I received $amount',
+                  onPressed: _busy ? null : _confirm,
+                ),
+                const SizedBox(height: 10),
+                SSecondaryButton(
+                  label: "I didn't receive this",
+                  onPressed: _busy
+                      ? null
+                      : () => setState(() {
+                          _disputing = true;
+                          _error = null;
+                        }),
+                ),
+              ],
       ),
     );
   }

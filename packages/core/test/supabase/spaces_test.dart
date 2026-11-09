@@ -92,6 +92,11 @@ final _tables = <String, List<Map<String, Object?>>>{
         'month_total_minor': 100000,
       },
   ],
+  // You paid Arun ₹100 that he has not confirmed; Bela's to Arun is hers.
+  'pending_settlements': [
+    {'payer_member_id': 'm11', 'payee_member_id': 'm12', 'amount_minor': 10000},
+    {'payer_member_id': 'm13', 'payee_member_id': 'm12', 'amount_minor': 5000},
+  ],
   'profiles': [
     {'id': _me, 'name': 'Sana'},
     {'id': 'u-rahul', 'name': 'Rahul', 'upi_id': 'rahul@okaxis'},
@@ -231,10 +236,22 @@ void main() {
       (shared.monthTotal.value, shared.yourFairShare.value),
       (100000, 33333),
     );
-    // Both still pay Arun, so two payments for three people.
+    // Both still pay Arun, so two payments for three people. Your pending
+    // ₹100 is not offered again; Bela's pending one is not yours to net.
     expect(
-      [for (final p in shared.payments) (p.from.name, p.to.name)],
-      [('Sana', 'Arun'), ('Bela', 'Arun')],
+      [
+        for (final p in shared.pendingFromYou)
+          (p.from.name, p.to.name, p.amount.value),
+      ],
+      [('Sana', 'Arun', 10000)],
+    );
+    expect(shared.balance.value, -33333, reason: 'balances stay confirmed');
+    expect(
+      [
+        for (final p in shared.payments)
+          (p.from.name, p.to.name, p.amount.value),
+      ],
+      [('Bela', 'Arun', 33333), ('Sana', 'Arun', 23333)],
     );
   });
 

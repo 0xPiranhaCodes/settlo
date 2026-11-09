@@ -66,6 +66,7 @@ final class SpaceSummary {
     this.monthTotal = Paise.zero,
     this.yourFairShare = Paise.zero,
     this.hasExpenses = false,
+    this.pendingFromYou = const [],
   });
 
   /// `spaces.id`.
@@ -96,6 +97,11 @@ final class SpaceSummary {
   /// Whether anything has ever been recorded in the space.
   final bool hasExpenses;
 
+  /// Settle-ups you paid that wait for their payee to confirm (#78). They
+  /// do not count in balances yet, but [payments] does not offer them
+  /// again; a disputed one is no longer pending, so its debt returns.
+  final List<Payment<SpaceMember>> pendingFromYou;
+
   /// The signed-in user's row.
   SpaceMember get you => members.firstWhere((m) => m.isYou);
 
@@ -110,14 +116,27 @@ final class SpaceSummary {
 
   /// The fewest payments that settle everyone, members who left
   /// included (ADR 0003): at most one fewer than the people owed or
-  /// owing.
+  /// owing. Counts [pendingFromYou] as if confirmed, so you are never
+  /// offered a payment you already made.
   List<Payment<SpaceMember>> get payments {
     final nets = {
-      for (final m in [...members, ...departed]) m: m.balance,
+      for (final m in [...members, ...departed]) m.id: m.balance,
+    };
+    for (final p in pendingFromYou) {
+      if (nets.containsKey(p.from.id) && nets.containsKey(p.to.id)) {
+        nets[p.from.id] = nets[p.from.id]! + p.amount;
+        nets[p.to.id] = nets[p.to.id]! - p.amount;
+      }
+    }
+    final byId = {
+      for (final m in [...members, ...departed]) m.id: m,
     };
     // Balances always sum to zero; never let a bad read crash a screen.
     return nets.values.fold(0, (s, b) => s + b.value) == 0
-        ? simplifyDebts(nets)
+        ? [
+            for (final p in simplifyDebts(nets))
+              (from: byId[p.from]!, to: byId[p.to]!, amount: p.amount),
+          ]
         : const [];
   }
 }
@@ -191,6 +210,7 @@ final class SupabaseSpacesRepository implements SpacesRepository {
       balances,
       fairness,
       profiles,
+      pending,
     ] = await Future.wait<List<_Row>>([
       _db
           .from('space_members')
@@ -207,6 +227,9 @@ final class SupabaseSpacesRepository implements SpacesRepository {
           .select('member_id, paid_minor, fair_share_minor, month_total_minor')
           .eq('month', monthKey),
       _db.from('profiles').select('id, name, upi_id'),
+      _db
+          .from('pending_settlements')
+          .select('payer_member_id, payee_member_id, amount_minor'),
     ]);
 
     final names = {for (final p in profiles) p['id']: p['name'] as String?};
@@ -243,6 +266,7 @@ final class SupabaseSpacesRepository implements SpacesRepository {
         upiId: upiIds[m['user_id']],
       );
       final you = fairnessOf[mine['id']];
+      final byId = {for (final m in rows) m['id']: member(m)};
       spaces.add(
         SpaceSummary(
           id: mine['space_id'] as String,
@@ -257,11 +281,21 @@ final class SupabaseSpacesRepository implements SpacesRepository {
           ),
           members: [
             for (final m in rows)
-              if (m['left_at'] == null) member(m),
+              if (m['left_at'] == null) byId[m['id']]!,
           ],
           departed: [
             for (final m in rows)
-              if (m['left_at'] != null) member(m),
+              if (m['left_at'] != null) byId[m['id']]!,
+          ],
+          pendingFromYou: [
+            for (final p in pending)
+              if (byId[p['payee_member_id']] case final to?
+                  when p['payer_member_id'] == mine['id'])
+                (
+                  from: byId[mine['id']]!,
+                  to: to,
+                  amount: Paise(p['amount_minor'] as int),
+                ),
           ],
         ),
       );
