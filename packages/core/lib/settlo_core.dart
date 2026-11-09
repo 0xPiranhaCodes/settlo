@@ -11,6 +11,7 @@ export 'supabase/expenses.dart';
 export 'supabase/home.dart';
 export 'supabase/phone_auth.dart';
 export 'supabase/providers.dart';
+export 'supabase/space_ledger.dart';
 export 'supabase/spaces.dart';
 export 'theme/colors.dart';
 export 'theme/theme.dart';

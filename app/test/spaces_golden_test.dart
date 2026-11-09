@@ -6,6 +6,7 @@ import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
+import 'support/fake_space_ledger.dart';
 import 'support/fake_spaces.dart';
 
 /// [screen] in the shell's Spaces tab with [spaces] already loaded; see
@@ -14,18 +15,24 @@ Future<Widget> spacesInShell(List<SpaceSummary> spaces, Widget screen) async {
   final container = ProviderContainer(
     overrides: [
       spacesRepositoryProvider.overrideWithValue(FakeSpacesRepository(spaces)),
+      spaceLedgerRepositoryProvider.overrideWithValue(
+        FakeSpaceLedgerRepository(),
+      ),
     ],
   );
   addTearDown(container.dispose);
   await container.read(spacesProvider.future);
+  for (final s in spaces) {
+    await container.read(spaceLedgerProvider(s.id).future);
+  }
   return UncontrolledProviderScope(
     container: container,
     child: SettloShell(currentIndex: 1, onTabSelected: (_) {}, child: screen),
   );
 }
 
-/// SpacesList in dark and light, and Space · empty in dark, against their
-/// artboards.
+/// SpacesList and both tabs of Flat 402 in dark and light, and Space ·
+/// empty in dark, against their artboards.
 void main() {
   final states = [
     ('list', spacesList, const SpacesListScreen(), ['dark', 'light']),
@@ -34,6 +41,18 @@ void main() {
       [spaceEmpty],
       SpaceExpensesScreen(spaceId: spaceEmpty.id),
       ['dark'],
+    ),
+    (
+      'expenses',
+      spacesList,
+      SpaceExpensesScreen(spaceId: spacesList.first.id),
+      ['dark', 'light'],
+    ),
+    (
+      'balances',
+      spacesList,
+      SpaceScreen(spaceId: spacesList.first.id),
+      ['dark', 'light'],
     ),
   ];
   for (final device in SettloGoldenDevices.all) {
