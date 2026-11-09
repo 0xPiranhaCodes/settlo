@@ -1,0 +1,10 @@
+# App icon (#32). Regenerate with: dart run flutter_launcher_icons
+# shortcut: placeholder S-mark icon, replace it when the owner supplies the real mark.
+flutter_launcher_icons:
+  image_path: assets/launch/icon.png
+  android: true
+  adaptive_icon_background: "#0A0B0D"
+  adaptive_icon_foreground: assets/launch/icon_foreground.png
+  min_sdk_android: 26
+  ios: true
+  remove_alpha_ios: true

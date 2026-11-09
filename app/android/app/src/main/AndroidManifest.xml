@@ -2,7 +2,7 @@
     <!-- Supabase auth and API calls. Debug and profile manifests already grant it. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="settlo"
+        android:label="Settlo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
