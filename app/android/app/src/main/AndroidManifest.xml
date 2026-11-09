@@ -43,15 +43,11 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
-        <!-- Settle up opens upi://pay in a UPI app and wa.me in WhatsApp (ADR 0010).
-             Android 11+ hides other apps from url_launcher without these. -->
+        <!-- Settle up checks for a UPI app before showing the chooser (ADR 0011).
+             Android 11+ hides other apps without this. -->
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="upi"/>
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW"/>
-            <data android:scheme="https"/>
         </intent>
     </queries>
 </manifest>

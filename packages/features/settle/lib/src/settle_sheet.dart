@@ -48,11 +48,13 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
   SpaceMember get _other => _youPay ? _p.to : _p.from;
   String get _amount => formatInr(_p.amount);
 
-  Future<void> _open(Uri uri, String failure) async {
+  Future<void> _open(
+    Provider<Future<bool> Function(Uri)> opener,
+    Uri uri,
+    String failure,
+  ) async {
     setState(() => _error = null);
-    final opened = await ref
-        .read(openUrlProvider)(uri)
-        .catchError((_) => false);
+    final opened = await ref.read(opener)(uri).catchError((_) => false);
     if (!mounted) return;
     setState(() {
       if (!opened) {
@@ -65,17 +67,19 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
   }
 
   void _pay() => _open(
+    openUpiProvider,
     upiPayUri(
       payee: _p.to.upiId!,
       name: _p.to.name,
       amount: _p.amount,
       note: 'Settlo: ${widget.space.name}',
     ),
-    'No UPI app on this phone opened it. Pay ${_p.to.name} another way, '
+    "There's no UPI app on this phone. Pay ${_p.to.name} another way, "
     'then record it here.',
   );
 
   void _request() => _open(
+    openUrlProvider,
     Uri.https('wa.me', '/${_p.from.phone.replaceAll(RegExp(r'\D'), '')}', {
       'text':
           'Hi ${_p.from.name}, settling up ${widget.space.name}: please pay '

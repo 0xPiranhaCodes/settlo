@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -34,6 +36,7 @@ Future<_Harness> _pump(
   WidgetTester tester, {
   String location = SettloRoutes.settle,
   List<SpaceSummary>? spaces,
+  bool realUpi = false,
 }) async {
   await loadSettloFonts();
   tester.view
@@ -57,6 +60,7 @@ Future<_Harness> _pump(
         spacesRepositoryProvider.overrideWithValue(repo),
         expensesRepositoryProvider.overrideWithValue(expenses),
         openUrlProvider.overrideWithValue(links.open),
+        if (!realUpi) openUpiProvider.overrideWithValue(links.open),
       ],
       child: MaterialApp.router(
         theme: SettloTheme.dark(),
@@ -74,6 +78,9 @@ Future<void> _tap(WidgetTester tester, String text) async {
   await tester.tap(find.text(text));
   await tester.pumpAndSettle();
 }
+
+/// The channel `MainActivity` answers (packages/platform).
+const upiChooserChannel = MethodChannel('app.settlo/upi');
 
 void main() {
   testWidgets('settle up: both payments, then everyone is at zero', (
@@ -144,6 +151,38 @@ void main() {
     expect(h.links.opened, hasLength(2));
   });
 
+  testWidgets('someone who left is never offered as payer or payee', (
+    tester,
+  ) async {
+    const left =
+        "Arun has left Goa trip, so a settle-up with them can't be recorded "
+        'here.';
+    final h = await _pump(tester, spaces: settleSpacesWithDeparted());
+    expect(find.text('1 PAYMENT'), findsOne);
+    expect(find.text('You pay Kabir'), findsOne);
+    expect(find.text('You pay Arun'), findsNothing);
+    expect(find.text(left), findsOne);
+
+    // Settling with Kabir records only active members.
+    await _tap(tester, 'You pay Kabir');
+    await _tap(tester, 'I already paid in cash');
+    await _tap(tester, 'Yes, I paid');
+    final e = h.expenses.calls.single.expense;
+    expect(e.payers.keys, ['m4']);
+    expect([for (final s in e.splits) s.memberId], ['m5']);
+
+    // Only the debt to Arun is left, and it is explained, not offered.
+    expect(find.text(left), findsOne);
+    expect(find.textContaining('PAYMENT'), findsNothing);
+
+    // A link straight to Arun gets the same plain message.
+    unawaited(h.router.push(SettloRoutes.settlePayTo('s2', 'm6')));
+    await tester.pumpAndSettle();
+    expect(find.text(left), findsWidgets);
+    expect(find.textContaining('Pay ₹'), findsNothing);
+    expect(h.expenses.calls, hasLength(1));
+  });
+
   testWidgets('no UPI app: a plain message and nothing recorded', (
     tester,
   ) async {
@@ -154,12 +193,77 @@ void main() {
     h.links.answer = false;
     await _tap(tester, 'Pay ₹3,650 via UPI');
 
-    expect(
-      find.textContaining('No UPI app on this phone opened it.'),
-      findsOne,
-    );
+    expect(find.textContaining("There's no UPI app on this phone."), findsOne);
     expect(find.text('Did you pay Kabir ₹3,650?'), findsNothing);
     expect(h.expenses.calls, isEmpty);
+  });
+
+  group('the UPI app', () {
+    final upi = upiPayUri(
+      payee: 'kabir@oksbi',
+      name: 'Kabir',
+      amount: const Paise.rupees(3650),
+      note: 'Settlo: Goa trip',
+    );
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    tearDown(() {
+      debugDefaultTargetPlatformOverride = null;
+      messenger.setMockMethodCallHandler(upiChooserChannel, null);
+    });
+
+    testWidgets('Android: always through the OS chooser', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      final calls = <MethodCall>[];
+      var installed = false;
+      messenger.setMockMethodCallHandler(upiChooserChannel, (call) async {
+        calls.add(call);
+        return installed;
+      });
+      final h = await _pump(
+        tester,
+        location: SettloRoutes.settlePayTo('s2', 'm5'),
+        realUpi: true,
+      );
+
+      // No UPI app: a plain message, nothing recorded.
+      await _tap(tester, 'Pay ₹3,650 via UPI');
+      expect(
+        find.textContaining("There's no UPI app on this phone."),
+        findsOne,
+      );
+
+      installed = true;
+      await _tap(tester, 'Pay ₹3,650 via UPI');
+      expect(
+        [for (final c in calls) c.method],
+        ['openWithChooser', 'openWithChooser'],
+      );
+      expect((calls.last.arguments as Map)['uri'], '$upi');
+      expect(h.links.opened, isEmpty, reason: 'not url_launcher');
+      expect(find.text('Did you pay Kabir ₹3,650?'), findsOne);
+      expect(h.expenses.calls, isEmpty);
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('iOS: opens upi:// directly, no chooser', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      var chooser = false;
+      messenger.setMockMethodCallHandler(upiChooserChannel, (_) async {
+        chooser = true;
+        return true;
+      });
+      final h = await _pump(
+        tester,
+        location: SettloRoutes.settlePayTo('s2', 'm5'),
+        realUpi: true,
+      );
+
+      await _tap(tester, 'Pay ₹3,650 via UPI');
+      expect(h.links.opened, [upi]);
+      expect(chooser, isFalse);
+      debugDefaultTargetPlatformOverride = null;
+    });
   });
 
   testWidgets('payee without a UPI ID: plain message, record cash instead', (

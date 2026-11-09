@@ -1,9 +1,12 @@
+
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_settle/src/settle_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -15,23 +18,54 @@ final FutureProvider<List<SpaceSummary>> settleSpacesProvider =
       return ref.watch(spacesRepositoryProvider).load();
     });
 
-/// Opens a link in another app: a UPI app through the OS chooser, or
-/// WhatsApp. False when nothing on the phone can open it. Tests override
-/// this.
+/// Opens a link, such as WhatsApp's, in another app. False when nothing
+/// on the phone can open it. Tests override this.
 final openUrlProvider = Provider<Future<bool> Function(Uri)>(
   (ref) =>
       (uri) => launchUrl(uri, mode: LaunchMode.externalApplication),
 );
 
+/// Opens a `upi://pay` intent: through Android's app chooser, or on iOS,
+/// which has no chooser, in the app the system picks (ADR 0011). False
+/// when no UPI app is installed. Tests override this.
+final openUpiProvider = Provider<Future<bool> Function(Uri)>(
+  (ref) => switch (defaultTargetPlatform) {
+    TargetPlatform.android => openUpiChooser,
+    _ => ref.watch(openUrlProvider),
+  },
+);
+
 /// A payment that involves you, with the space it settles.
 typedef _Owed = ({SpaceSummary space, Payment<SpaceMember> payment});
 
-List<_Owed> _yours(List<SpaceSummary> spaces, String? spaceId) => [
-  for (final s in spaces)
-    if (spaceId == null || s.id == spaceId)
-      for (final p in s.payments)
-        if (p.from.isYou || p.to.isYou) (space: s, payment: p),
-];
+/// The payments that involve you, in [spaceId] or every space, split by
+/// whether the other person is still in the space. `add_expense` takes
+/// only active members, so a payment with someone who left can be shown
+/// but never recorded.
+({List<_Owed> active, List<_Owed> departed}) _yours(
+  List<SpaceSummary> spaces,
+  String? spaceId,
+) {
+  final active = <_Owed>[];
+  final departed = <_Owed>[];
+  for (final s in spaces) {
+    if (spaceId != null && s.id != spaceId) continue;
+    for (final p in s.payments) {
+      if (!p.from.isYou && !p.to.isYou) continue;
+      final inSpace = s.members.contains(p.from) && s.members.contains(p.to);
+      (inSpace ? active : departed).add((space: s, payment: p));
+    }
+  }
+  return (active: active, departed: departed);
+}
+
+/// Why a payment with someone who left cannot be settled here.
+String _leftMessage(List<_Owed> departed) {
+  final (:space, :payment) = departed.first;
+  final other = payment.from.isYou ? payment.to : payment.from;
+  return '${other.name} has left ${space.name}, so a settle-up with them '
+      "can't be recorded here.";
+}
 
 /// Settle up (Settle artboard). With [memberId] it is the request side:
 /// they pay you (canvas note n22). Without, it lists the simplified
@@ -86,14 +120,13 @@ class _SettleRoute extends ConsumerWidget {
     void close() =>
         context.canPop() ? context.pop() : context.go(SettloRoutes.home);
     final list = spaces.value;
-    final owed = list == null ? null : _yours(list, spaceId);
-    final match = owed
-        ?.where(
-          (o) => youPay
-              ? o.payment.from.isYou && o.payment.to.id == memberId
-              : o.payment.to.isYou && o.payment.from.id == memberId,
-        )
-        .firstOrNull;
+    final yours = list == null ? null : _yours(list, spaceId);
+    bool isThem(_Owed o) => youPay
+        ? o.payment.from.isYou && o.payment.to.id == memberId
+        : o.payment.to.isYou && o.payment.from.id == memberId;
+    final owed = yours?.active;
+    final match = owed?.where(isThem).firstOrNull;
+    final left = [...?yours?.departed.where(isThem)];
     return Padding(
       padding: EdgeInsets.only(
         top: math.max(54, media.padding.top),
@@ -118,15 +151,24 @@ class _SettleRoute extends ConsumerWidget {
             ),
           ),
           (null, _) => _Frame(onClose: close),
+          (_?, null) when left.isNotEmpty => _Frame(
+            onClose: close,
+            message: _leftMessage(left),
+          ),
           (final owed?, null) when memberId != null || owed.isEmpty => _Frame(
             onClose: close,
-            message: owed.isEmpty
-                ? "You're all settled up."
-                : "You're settled up with them.",
+            message: switch (yours!.departed) {
+              final d when memberId == null && d.isNotEmpty => _leftMessage(d),
+              _ when memberId == null => "You're all settled up.",
+              _ => "You're settled up with them.",
+            },
           ),
           (final owed?, null) => _Frame(
             onClose: close,
             label: owed.length == 1 ? '1 PAYMENT' : '${owed.length} PAYMENTS',
+            message: yours!.departed.isEmpty
+                ? null
+                : _leftMessage(yours.departed),
             children: [for (final o in owed) _PaymentRow(o)],
           ),
         },
@@ -212,6 +254,7 @@ class _Frame extends StatelessWidget {
             ],
             ...children,
             if (message case final message?) ...[
+              if (children.isNotEmpty) const SizedBox(height: SettloSpacing.x2),
               Text(
                 message,
                 style: SettloTypography.figtree(15, color: c.textPrimary),

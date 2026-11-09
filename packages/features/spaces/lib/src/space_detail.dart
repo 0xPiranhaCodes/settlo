@@ -872,7 +872,10 @@ class _PaymentRow extends StatelessWidget {
               ),
             ),
           ),
-          if (action case (final text, final route)) ...[
+          // add_expense takes only active members, so nobody can settle
+          // with someone who left.
+          if (action case (final text, final route)
+              when space.members.contains(other)) ...[
             const SizedBox(width: 12),
             TextButton(
               onPressed: () => context.push(route),

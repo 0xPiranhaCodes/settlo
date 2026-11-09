@@ -56,6 +56,43 @@ List<SpaceSummary> settleSpaces({
   ),
 ];
 
+/// Goa trip where you owe ₹3,650: ₹1,650 to Kabir, still in the space,
+/// and ₹2,000 to Arun, who has left.
+List<SpaceSummary> settleSpacesWithDeparted() => [
+  const SpaceSummary(
+    id: 's2',
+    name: 'Goa trip',
+    kind: SpaceKind.trip,
+    hasExpenses: true,
+    members: [
+      SpaceMember(
+        id: 'm4',
+        name: 'Sana',
+        phone: '+919876543210',
+        isYou: true,
+        balance: Paise.rupees(-3650),
+        upiId: 'sana@okaxis',
+      ),
+      SpaceMember(
+        id: 'm5',
+        name: 'Kabir',
+        phone: '+919800002210',
+        balance: Paise.rupees(1650),
+        upiId: 'kabir@oksbi',
+      ),
+    ],
+    departed: [
+      SpaceMember(
+        id: 'm6',
+        name: 'Arun',
+        phone: '+919100000002',
+        balance: Paise.rupees(2000),
+        upiId: 'arun@okicici',
+      ),
+    ],
+  ),
+];
+
 /// Records expenses as [FakeExpensesRepository] does, and moves the
 /// balances in [spaces] as the server would: payers up, splits down.
 class SettlingExpensesRepository extends FakeExpensesRepository {
@@ -84,6 +121,7 @@ class SettlingExpensesRepository extends FakeExpensesRepository {
       name: s.name,
       kind: s.kind,
       hasExpenses: s.hasExpenses,
+      departed: s.departed,
       members: [
         for (final m in s.members)
           SpaceMember(

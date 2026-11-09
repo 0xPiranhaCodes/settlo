@@ -189,6 +189,20 @@ void main() {
       expect(find.byType(SpaceDetailView), findsOne);
     });
 
+    testWidgets('no Pay to someone who left: it cannot be recorded', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        FakeSpacesRepository([spaceDepartedPayer]),
+        initialLocation: SettloRoutes.spaceBalances('s7'),
+      );
+      await _scrollToEnd(tester);
+
+      expect(find.text('You pay Arun'), findsOne);
+      expect(find.text('Pay'), findsNothing);
+    });
+
     testWidgets('the chips filter by kind', (tester) async {
       await _pump(tester, FakeSpacesRepository(spacesList));
 
