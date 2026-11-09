@@ -35,5 +35,6 @@ flutter:
           weight: 500
   # Licence texts for the fonts above.
   assets:
+    - assets/brand/settlo_mark.png
     - assets/fonts/Figtree-OFL.txt
     - assets/fonts/IBMPlexSerif-OFL.txt

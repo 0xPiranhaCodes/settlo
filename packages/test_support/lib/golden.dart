@@ -113,11 +113,17 @@ Future<void> pumpSettloGolden(
     ),
   );
 
-  if (act != null) {
-    await tester.pumpWidget(surface(tickers: true));
-    await act(tester);
-    await tester.pumpAndSettle();
-  }
+  // Build once with tickers enabled so package images can enter Flutter's
+  // image cache before the stable, ticker-free frame is captured.
+  await tester.pumpWidget(surface(tickers: true));
+  await act?.call(tester);
+  await tester.pumpAndSettle();
+  final context = tester.element(find.byKey(settloGoldenSurfaceKey));
+  await tester.runAsync(() async {
+    for (final image in tester.widgetList<Image>(find.byType(Image))) {
+      await precacheImage(image.image, context);
+    }
+  });
   await tester.pumpWidget(surface(tickers: false));
   await tester.pump();
 }

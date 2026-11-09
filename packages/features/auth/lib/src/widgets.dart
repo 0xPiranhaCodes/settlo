@@ -17,9 +17,6 @@ enum AuthGlyph {
 
   /// Shield with a tick beside the code-safety note.
   shield,
-
-  /// The two bars of the mark on Welcome.
-  mark,
 }
 
 /// [glyph] at [size] in [color], stroked [stroke] units wide on the 24 grid.
@@ -95,12 +92,6 @@ class _GlyphPainter extends CustomPainter {
         ..moveTo(9, 12)
         ..lineTo(11, 14)
         ..lineTo(15, 10),
-    AuthGlyph.mark =>
-      Path()
-        ..moveTo(5, 9)
-        ..lineTo(19, 9)
-        ..moveTo(5, 15)
-        ..lineTo(19, 15),
   };
 
   @override
