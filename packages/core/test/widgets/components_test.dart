@@ -83,6 +83,50 @@ void main() {
     expect(value, 1);
   });
 
+  testWidgets('amounts are read in rupees at list and hero sizes', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await _pump(
+      tester,
+      const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          MoneyText(Paise.rupees(4200), tone: MoneyTone.owedToYou, size: 17),
+          MoneyText(Paise.rupees(-3650), tone: MoneyTone.youOwe),
+          MoneyText(Paise.rupees(674200), size: 46, signed: true),
+        ],
+      ),
+    );
+    for (final label in [
+      'four thousand two hundred rupees',
+      'minus three thousand six hundred fifty rupees',
+      'plus six lakh seventy-four thousand two hundred rupees',
+    ]) {
+      expect(find.bySemanticsLabel(label), findsOneWidget);
+    }
+    expect(find.bySemanticsLabel(RegExp('₹|paise')), findsNothing);
+    semantics.dispose();
+  });
+
+  testWidgets('a blank amount shows ₹— in grey and reads as unknown', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await _pump(
+      tester,
+      const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [MoneyText.blank(), MoneyText.blank(size: 46)],
+      ),
+    );
+    expect(find.text('₹—'), findsOneWidget);
+    expect(find.bySemanticsLabel('not known yet'), findsNWidgets(2));
+    final small = tester.widget<Text>(find.text('₹—'));
+    expect(small.style?.color, SettloColors.dark.textSecondary);
+    semantics.dispose();
+  });
+
   testWidgets('an avatar shows an initial, or ? for no name', (tester) async {
     await _pump(
       tester,

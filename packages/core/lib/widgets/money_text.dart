@@ -22,8 +22,15 @@ class MoneyText extends StatelessWidget {
     super.key,
   });
 
-  /// The amount.
-  final Paise amount;
+  /// `₹—` in secondary grey: a balance that is not known yet, such as
+  /// before recorded claims are reviewed.
+  const new blank({this.size = 15, super.key})
+    : amount = null,
+      tone = MoneyTone.settled,
+      signed = false;
+
+  /// The amount; null for [MoneyText.blank].
+  final Paise? amount;
 
   /// Which way the money points.
   final MoneyTone tone;
@@ -36,11 +43,23 @@ class MoneyText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = formatInr(amount, signed: signed).replaceFirst('-', '−');
+    final amount = this.amount;
+    final text = amount == null
+        ? '₹—'
+        : formatInr(amount, signed: signed).replaceFirst('-', '−');
+    // Read aloud in rupees, in words, at every size: a screen reader would
+    // otherwise say the glyphs ("plus rupee six comma seventy-four…").
+    final spoken = amount == null
+        ? 'not known yet'
+        : spokenInr(amount, signed: signed);
     final color = SettloColors.of(context).money(tone);
     final style = SettloTypography.amount(size, color: color);
     if (size < SettloTypography.serifFrom) {
-      return Text(text, style: style, maxLines: 1, softWrap: false);
+      return Semantics(
+        label: spoken,
+        excludeSemantics: true,
+        child: Text(text, style: style, maxLines: 1, softWrap: false),
+      );
     }
     final rupee = text.indexOf('₹');
     assert(rupee >= 0, 'formatInr always includes ₹');
@@ -54,7 +73,7 @@ class MoneyText extends StatelessWidget {
       color: color,
     ).copyWith(height: 1);
     return Semantics(
-      label: text,
+      label: spoken,
       excludeSemantics: true,
       child: Text.rich(
         TextSpan(

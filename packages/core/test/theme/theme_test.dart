@@ -162,7 +162,12 @@ void main() {
         tester,
         const MoneyText(Paise.rupees(674200), size: 46, signed: true),
       );
-      expect(find.bySemanticsLabel('+₹6,74,200'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(
+          'plus six lakh seventy-four thousand two hundred rupees',
+        ),
+        findsOneWidget,
+      );
       final rupee = tester.widget<Text>(find.text('₹'));
       expect(rupee.style!.fontFamily, 'packages/settlo_core/Figtree');
       expect(rupee.style!.fontSize, closeTo(46 * 0.56, 0.001));

@@ -6,6 +6,7 @@ import 'package:settlo/router/router.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
 
+import 'support/fake_home.dart';
 import 'support/fake_phone_auth.dart';
 import 'support/fake_session.dart';
 
@@ -32,6 +33,9 @@ void main() {
         overrides: [
           sessionProvider.overrideWith(() => FakeSessionNotifier(null)),
           phoneAuthProvider.overrideWithValue(auth),
+          homeRepositoryProvider.overrideWithValue(
+            FakeHomeRepository(homeEmpty),
+          ),
         ],
         child: const SettloApp(),
       ),
