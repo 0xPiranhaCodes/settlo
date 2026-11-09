@@ -128,6 +128,9 @@ void main() {
     'k-closed': (400, '22023', 'loan_closed'),
     'k-answered': (400, '22023', 'not_pending'),
     'k-own': (403, '42501', 'own_record'),
+    'k-before': (400, '22023', 'paid_on_before_start'),
+    'k-future': (400, '22023', 'paid_on_future'),
+    'k-reference': (400, '22023', 'reference_invalid'),
     'k-outsider': (403, '42501', null),
     'k-reason': (400, '22023', null),
     'k-interest': (400, '22023', 'interest_not_supported'),
@@ -372,6 +375,21 @@ void main() {
         'k-own',
         LoanRejection.ownRecord,
         'Your side recorded this one, so the other person confirms it.',
+      ),
+      (
+        'k-before',
+        LoanRejection.paidOnBeforeStart,
+        "Paid on can't be before the loan started.",
+      ),
+      (
+        'k-future',
+        LoanRejection.paidOnFuture,
+        "Paid on can't be in the future.",
+      ),
+      (
+        'k-reference',
+        LoanRejection.referenceInvalid,
+        'Reference must be 64 characters or fewer, with no hidden controls.',
       ),
       ('k-outsider', LoanRejection.notAllowed, "You can't change this loan."),
       (

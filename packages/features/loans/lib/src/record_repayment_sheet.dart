@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_loans/src/loans_provider.dart';
 
 /// Opens [RecordRepaymentSheet] for [loan].
 Future<void> showRecordRepaymentSheet(BuildContext context, Loan loan) =>
@@ -34,6 +35,7 @@ class RecordRepaymentSheet extends ConsumerStatefulWidget {
 
 class _RecordState extends ConsumerState<RecordRepaymentSheet> {
   final String _key = newIdempotencyKey();
+  late final DateTime _today = ref.read(indiaTodayProvider);
   late final _amount = TextEditingController(
     text: switch (widget.loan.installment) {
       final i? when i.value <= widget.loan.outstanding.value => _typed(i),
@@ -70,7 +72,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
         amount: amount,
         method: _method,
         paidOn: _paidOn,
-        reference: switch (_reference.text.trim()) {
+        reference: switch (_normalizeReference(_reference.text)) {
           '' => null,
           final value => value,
         },
@@ -93,15 +95,14 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
   }
 
   Future<void> _pickDate() async {
-    final today = DateUtils.dateOnly(DateTime.now());
     final picked = await showDatePicker(
       context: context,
-      initialDate: _paidOn ?? today,
+      initialDate: _paidOn ?? _today,
       firstDate: DateUtils.dateOnly(widget.loan.startOn),
-      lastDate: today,
+      lastDate: _today,
     );
     if (picked == null) return;
-    setState(() => _paidOn = picked == today ? null : picked);
+    setState(() => _paidOn = picked == _today ? null : picked);
   }
 
   @override
@@ -202,6 +203,8 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
           TextField(
             controller: _reference,
             maxLength: 64,
+            maxLengthEnforcement: MaxLengthEnforcement.none,
+            inputFormatters: [_RepaymentReferenceFormatter()],
             textCapitalization: TextCapitalization.characters,
             onChanged: (_) => setState(() => _error = null),
             style: SettloTypography.figtree(15, color: c.textPrimary),
@@ -244,6 +247,97 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
 
 /// Rupees as typed: up to nine digits, commas allowed, two decimals.
 final _rupees = RegExp(r'^[\d,]{0,11}(\.\d{0,2})?$');
+
+/// Mirrors the server's Unicode whitespace trim before its 64-code-point
+/// bound. Controls and format characters are filtered client-side.
+String _normalizeReference(String value) =>
+    _trimUnicodeWhitespace(_withoutControlOrFormat(value));
+
+String _withoutControlOrFormat(String value) => String.fromCharCodes(
+  value.runes.where((rune) => !_isControlOrFormat(rune)),
+);
+
+String _trimUnicodeWhitespace(String value) {
+  final runes = value.runes.toList(growable: false);
+  var start = 0;
+  var end = runes.length;
+  while (start < end && _isUnicodeWhitespace(runes[start])) {
+    start++;
+  }
+  while (end > start && _isUnicodeWhitespace(runes[end - 1])) {
+    end--;
+  }
+  return String.fromCharCodes(runes.sublist(start, end));
+}
+
+bool _isUnicodeWhitespace(int rune) =>
+    (rune >= 0x0009 && rune <= 0x000D) ||
+    rune == 0x0020 ||
+    rune == 0x0085 ||
+    rune == 0x00A0 ||
+    rune == 0x1680 ||
+    (rune >= 0x2000 && rune <= 0x200A) ||
+    (rune >= 0x2028 && rune <= 0x2029) ||
+    rune == 0x202F ||
+    rune == 0x205F ||
+    rune == 0x3000;
+
+bool _isControlOrFormat(int rune) =>
+    rune <= 0x001F ||
+    (rune >= 0x007F && rune <= 0x009F) ||
+    rune == 0x00AD ||
+    (rune >= 0x0600 && rune <= 0x0605) ||
+    rune == 0x061C ||
+    rune == 0x06DD ||
+    rune == 0x070F ||
+    (rune >= 0x0890 && rune <= 0x0891) ||
+    rune == 0x08E2 ||
+    (rune >= 0x17B4 && rune <= 0x17B5) ||
+    rune == 0x180E ||
+    (rune >= 0x200B && rune <= 0x200F) ||
+    (rune >= 0x202A && rune <= 0x202E) ||
+    (rune >= 0x2060 && rune <= 0x2064) ||
+    (rune >= 0x2066 && rune <= 0x206F) ||
+    rune == 0xFEFF ||
+    (rune >= 0xFFF9 && rune <= 0xFFFB) ||
+    rune == 0x110BD ||
+    rune == 0x110CD ||
+    (rune >= 0x13430 && rune <= 0x1343F) ||
+    (rune >= 0x1BCA0 && rune <= 0x1BCA3) ||
+    (rune >= 0x1D173 && rune <= 0x1D17A) ||
+    rune == 0xE0001 ||
+    (rune >= 0xE0020 && rune <= 0xE007F);
+
+final class _RepaymentReferenceFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final filtered = _withoutControlOrFormat(newValue.text);
+    final normalized = _trimUnicodeWhitespace(filtered);
+    final normalizedRunes = normalized.runes.toList(growable: false);
+    final text = normalizedRunes.length <= 64
+        ? filtered
+        : String.fromCharCodes(normalizedRunes.take(64));
+    int remap(int offset) {
+      if (offset < 0) return offset;
+      final end = offset.clamp(0, newValue.text.length);
+      return _withoutControlOrFormat(newValue.text.substring(0, end)).length
+          .clamp(0, text.length);
+    }
+
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection(
+        baseOffset: remap(newValue.selection.baseOffset),
+        extentOffset: remap(newValue.selection.extentOffset),
+        affinity: newValue.selection.affinity,
+        isDirectional: newValue.selection.isDirectional,
+      ),
+    );
+  }
+}
 
 const _months = [
   'Jan',

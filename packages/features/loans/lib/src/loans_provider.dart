@@ -34,12 +34,15 @@ String ordinal(int n) =>
 
 /// Today's date in India, where loans are dated (docs/api.md). Tests
 /// override this.
-final Provider<DateTime> indiaTodayProvider = Provider.autoDispose<DateTime>((
-  ref,
-) {
-  final ist = DateTime.now().toUtc().add(const Duration(hours: 5, minutes: 30));
+final Provider<DateTime> indiaTodayProvider = Provider.autoDispose<DateTime>(
+  (ref) => indiaDate(DateTime.now()),
+);
+
+/// The calendar day in India at [instant], independent of device timezone.
+DateTime indiaDate(DateTime instant) {
+  final ist = instant.toUtc().add(const Duration(hours: 5, minutes: 30));
   return DateTime(ist.year, ist.month, ist.day);
-});
+}
 
 /// The month of a monthly loan's last instalment: instalment k falls in
 /// the k-th month after [start]'s, and there are principal ÷ instalment

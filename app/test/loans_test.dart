@@ -76,6 +76,12 @@ Finder _said(String label) =>
     find.bySemanticsLabel(RegExp(RegExp.escape(label)));
 
 void main() {
+  test('India date crosses midnight independently of a UTC-8 device', () {
+    final justAfterIstMidnight = DateTime.parse('2026-11-09T10:45:00-08:00');
+
+    expect(indiaDate(justAfterIstMidnight), DateTime(2026, 11, 10));
+  });
+
   group('ring geometry', () {
     test("the canvas ring: r 51 in a 112 box, from twelve o'clock", () {
       final g = const LoanRingPainter(
@@ -249,7 +255,54 @@ void main() {
         find.byType(CalendarDatePicker),
       );
       expect(calendar.firstDate, DateTime(2026, 3, 5));
-      expect(calendar.lastDate, DateUtils.dateOnly(DateTime.now()));
+      expect(calendar.lastDate, _today);
+    });
+
+    testWidgets('reference trims Unicode whitespace and filters Cc/Cf', (
+      tester,
+    ) async {
+      final (router: _, :loans) = await _pump(
+        tester,
+        location: SettloRoutes.loan('l1'),
+      );
+      await _tap(tester, find.text('Record repayment'));
+      final reference = find.widgetWithText(TextField, 'UPI or bank reference');
+
+      await tester.enterText(
+        reference,
+        '\u00A0UPI\u200B\u202E\uFEFF\u0007 123\u2003',
+      );
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(reference).controller!.text,
+        '\u00A0UPI 123\u2003',
+      );
+
+      await _tap(tester, find.text('Record repayment').last);
+      expect(loans.data.loans.first.repayments.first.reference, 'UPI 123');
+    });
+
+    testWidgets('reference limit counts Unicode code points', (tester) async {
+      await _pump(tester, location: SettloRoutes.loan('l1'));
+      await _tap(tester, find.text('Record repayment'));
+      final reference = find.widgetWithText(TextField, 'UPI or bank reference');
+      final sixtyFourRupees = List.filled(64, '₹').join();
+
+      await tester.enterText(reference, '\u00A0$sixtyFourRupees\u3000');
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(reference).controller!.text,
+        '\u00A0$sixtyFourRupees\u3000',
+      );
+
+      final fortyCombinedGraphemes = List.filled(40, 'e\u0301').join();
+
+      await tester.enterText(reference, fortyCombinedGraphemes);
+      await tester.pump();
+
+      final text = tester.widget<TextField>(reference).controller!.text;
+      expect(text.runes, hasLength(64));
+      expect(text, List.filled(32, 'e\u0301').join());
     });
 
     testWidgets('a retried confirmation reuses its key and shows plain copy', (

@@ -245,6 +245,16 @@ enum LoanRejection {
   /// Answering a repayment your own side recorded (`own_record`).
   ownRecord,
 
+  /// The repayment predates its loan (`paid_on_before_start`).
+  paidOnBeforeStart,
+
+  /// The repayment is after today in India (`paid_on_future`).
+  paidOnFuture,
+
+  /// The reference is too long or contains control/format characters
+  /// (`reference_invalid`).
+  referenceInvalid,
+
   /// You are not an accepted party to the loan (`42501`).
   notAllowed,
 
@@ -271,6 +281,11 @@ final class LoanRejected implements Exception {
       'This repayment was already answered. Pull down to see it.',
     LoanRejection.ownRecord =>
       'Your side recorded this one, so the other person confirms it.',
+    LoanRejection.paidOnBeforeStart =>
+      "Paid on can't be before the loan started.",
+    LoanRejection.paidOnFuture => "Paid on can't be in the future.",
+    LoanRejection.referenceInvalid =>
+      'Reference must be 64 characters or fewer, with no hidden controls.',
     LoanRejection.notAllowed => "You can't change this loan.",
     LoanRejection.invalid => "That didn't go through. Check it and try again.",
   };
@@ -509,6 +524,13 @@ final class SupabaseLoansRepository implements LoansRepository {
         (_, 'loan_closed') => const LoanRejected(LoanRejection.closed),
         (_, 'not_pending') => const LoanRejected(LoanRejection.notPending),
         (_, 'own_record') => const LoanRejected(LoanRejection.ownRecord),
+        (_, 'paid_on_before_start') => const LoanRejected(
+          LoanRejection.paidOnBeforeStart,
+        ),
+        (_, 'paid_on_future') => const LoanRejected(LoanRejection.paidOnFuture),
+        (_, 'reference_invalid') => const LoanRejected(
+          LoanRejection.referenceInvalid,
+        ),
         ('42501', _) => const LoanRejected(LoanRejection.notAllowed),
         ('22023', _) => const LoanRejected(LoanRejection.invalid),
         _ => e,
