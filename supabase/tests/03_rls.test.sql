@@ -288,6 +288,16 @@ select pg_temp.tagged(lives_ok(
 select pg_temp.tagged(lives_ok('set constraints all immediate', 'expenses added under RLS pass the commit-time balance check'));
 set constraints all deferred;
 
+-- A settles B's +500, so B may leave (#59: only at a zero balance).
+do $$ begin
+  insert into public.expenses (id, space_id, description, amount_minor, is_settlement)
+  values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008101', 'Settle', 500, true);
+  insert into public.expense_payers (expense_id, member_id, amount_minor)
+  values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008201', 500);
+  insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
+  values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008202', 'exact', 500);
+end $$;
+
 select pg_temp.tagged(throws_ok(
   $q$do $$ begin
     insert into public.expenses (space_id, description, amount_minor)

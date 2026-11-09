@@ -288,14 +288,14 @@ select pg_temp.tagged(lives_ok(
     'payers', jsonb_build_array(jsonb_build_object('member_id', '00000000-0000-0000-0000-00000000f202', 'amount_minor', 1000)),
     'splits', jsonb_build_array(jsonb_build_object('member_id', '00000000-0000-0000-0000-00000000f202')))),
   'accepted N adds an expense through add_expense [+expenses_insert]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.expenses set description = 'Rent (Nov)' where id = '00000000-0000-0000-0000-00000000f301'$$),
-  1, 'accepted N edits an expense [+expenses_update]'));
+select pg_temp.tagged(is(pg_temp.affected($$update public.expenses set description = 'Rent (Nov)' where id = '00000000-0000-0000-0000-00000000f302'$$),
+  1, 'accepted N edits its own expense [+expenses_update]'));
 select pg_temp.tagged(is(pg_temp.affected($$update public.expense_payers set amount_minor = amount_minor
-                              where expense_id = '00000000-0000-0000-0000-00000000f301'$$),
-  1, 'accepted N edits a payer [+expense_payers_update]'));
+                              where expense_id = '00000000-0000-0000-0000-00000000f302'$$),
+  1, 'accepted N edits a payer of its own expense [+expense_payers_update]'));
 select pg_temp.tagged(is(pg_temp.affected($$update public.expense_splits set amount_minor = amount_minor
-                              where expense_id = '00000000-0000-0000-0000-00000000f301'$$),
-  1, 'accepted N edits a split [+expense_splits_update]'));
+                              where expense_id = '00000000-0000-0000-0000-00000000f302'$$),
+  1, 'accepted N edits a split of its own expense [+expense_splits_update]'));
 select pg_temp.tagged(is(pg_temp.affected($$delete from public.expense_payers where expense_id = '00000000-0000-0000-0000-00000000f302'$$),
   1, 'accepted N removes a payer [+expense_payers_delete]'));
 select pg_temp.tagged(is(pg_temp.affected($$delete from public.expense_splits where expense_id = '00000000-0000-0000-0000-00000000f302'$$),
