@@ -338,6 +338,9 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
   String? _error;
 
   Future<void> _confirm() async {
+    // The button disables only on the next frame; a second tap in this
+    // one must not send again.
+    if (_busy) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -348,15 +351,16 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
           .read(loansRepositoryProvider)
           .confirmRepayment(widget.repayment.id, idempotencyKey: _confirmKey);
       ledger.bump();
+      // Done: stay busy, so a tap still queued on this frame is dropped.
+      return;
     } on LoanRejected catch (e) {
       _error = e.message;
     } on Exception {
       _error =
           "We couldn't confirm it. Check your connection and try again. "
           "It won't be counted twice.";
-    } finally {
-      if (mounted) setState(() => _busy = false);
     }
+    if (mounted) setState(() => _busy = false);
   }
 
   @override
@@ -586,6 +590,9 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
   }
 
   Future<void> _send() async {
+    // The button disables only on the next frame; a second tap in this
+    // one must not send again.
+    if (_busy) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -601,13 +608,14 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
           );
       ledger.bump();
       widget.onClose();
+      // Done: stay busy, so a tap still queued on this frame is dropped.
+      return;
     } on LoanRejected catch (e) {
       _error = e.message;
     } on Exception {
       _error = "We couldn't send it. Check your connection and try again.";
-    } finally {
-      if (mounted) setState(() => _busy = false);
     }
+    if (mounted) setState(() => _busy = false);
   }
 
   @override

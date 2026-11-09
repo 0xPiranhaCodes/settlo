@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:settlo_core/settlo_core.dart';
 
 /// The Loan artboard: you lent Arjun ₹10 lakh at ₹25,000 a month from
@@ -97,6 +99,9 @@ class FakeLoansRepository implements LoansRepository {
   /// Every write, as `rpc key`.
   final calls = <String>[];
 
+  /// While set, writes wait for it, as a slow network would.
+  Completer<void>? hold;
+
   /// Whether the next [load] fails.
   bool failLoad = false;
 
@@ -106,7 +111,8 @@ class FakeLoansRepository implements LoansRepository {
     return data;
   }
 
-  void _throw() {
+  Future<void> _throw() async {
+    await hold?.future;
     final e = error;
     error = null;
     if (e != null) throw e;
@@ -144,7 +150,7 @@ class FakeLoansRepository implements LoansRepository {
     required String idempotencyKey,
   }) async {
     calls.add('record_repayment $idempotencyKey');
-    _throw();
+    await _throw();
     _update(
       repayment.loanId,
       (l) => _copy(
@@ -206,7 +212,7 @@ class FakeLoansRepository implements LoansRepository {
     required String idempotencyKey,
   }) async {
     calls.add('confirm_repayment $idempotencyKey');
-    _throw();
+    await _throw();
     await _answer(repaymentId, RepaymentStatus.confirmed);
   }
 
@@ -217,7 +223,7 @@ class FakeLoansRepository implements LoansRepository {
     required String idempotencyKey,
   }) async {
     calls.add('dispute_repayment $idempotencyKey $reason');
-    _throw();
+    await _throw();
     await _answer(repaymentId, RepaymentStatus.disputed, reason);
   }
 }

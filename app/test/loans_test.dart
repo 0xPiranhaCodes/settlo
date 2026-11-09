@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -274,6 +275,64 @@ void main() {
       );
       await _tap(tester, find.byTooltip('Back'));
       expect(router.state.uri.toString(), SettloRoutes.loans);
+    });
+  });
+
+  group('a double tap in one frame sends once', () {
+    // Two taps with no pump between while the first write is in flight:
+    // the button is still enabled for the second, as it would be for a
+    // fast double tap.
+    Future<void> twice(
+      WidgetTester tester,
+      FakeLoansRepository loans,
+      Finder finder,
+    ) async {
+      await tester.ensureVisible(finder);
+      await tester.pumpAndSettle();
+      final hold = loans.hold = Completer<void>();
+      await tester.tap(finder);
+      await tester.tap(finder);
+      hold.complete();
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('record', (tester) async {
+      final (router: _, :loans) = await _pump(
+        tester,
+        location: SettloRoutes.loan('l1'),
+      );
+      await _tap(tester, find.text('Record repayment'));
+      await twice(
+        tester,
+        loans,
+        find.widgetWithText(FilledButton, 'Record repayment').last,
+      );
+      expect(loans.calls, [startsWith('record_repayment ')]);
+    });
+
+    testWidgets('confirm', (tester) async {
+      final (router: _, :loans) = await _pump(
+        tester,
+        location: SettloRoutes.loan('l1'),
+      );
+      await twice(tester, loans, find.text('Confirm received'));
+      expect(loans.calls, [startsWith('confirm_repayment ')]);
+    });
+
+    testWidgets('dispute', (tester) async {
+      final (router: _, :loans) = await _pump(
+        tester,
+        location: SettloRoutes.loan('l1'),
+      );
+      await _tap(tester, find.text("Didn't get it"));
+      await tester.enterText(find.byType(TextField), 'Not received yet');
+      await tester.pump();
+      await twice(
+        tester,
+        loans,
+        find.widgetWithText(FilledButton, 'Mark as not received'),
+      );
+      expect(loans.calls, [startsWith('dispute_repayment ')]);
     });
   });
 

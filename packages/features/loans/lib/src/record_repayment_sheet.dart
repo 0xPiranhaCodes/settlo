@@ -53,6 +53,9 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
   }
 
   Future<void> _save(Paise amount) async {
+    // The button disables only on the next frame; a second tap in this
+    // one must not send again.
+    if (_busy) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -67,6 +70,8 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
       ), idempotencyKey: _key);
       ledger.bump();
       widget.onClose();
+      // Done: stay busy, so a tap still queued on this frame is dropped.
+      return;
     } on IdempotencyConflict {
       ledger.bump();
       _error = 'This repayment was already recorded. Close this to see it.';
@@ -76,9 +81,8 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
       _error =
           "We couldn't record it. Check your connection and try again. "
           "It won't be recorded twice.";
-    } finally {
-      if (mounted) setState(() => _busy = false);
     }
+    if (mounted) setState(() => _busy = false);
   }
 
   @override
