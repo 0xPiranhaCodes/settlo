@@ -103,6 +103,34 @@ Map<String, int> _splits(FakeExpensesRepository r) => {
   for (final s in r.calls.last.expense.splits) s.memberId: s.amount.value,
 };
 
+/// Gold pixels in the sheet's page outside the Save button, and inside it.
+Future<(int, int)> _gold(WidgetTester tester) async {
+  var boundary = tester.renderObject(find.byType(AddExpenseSheet));
+  while (!boundary.isRepaintBoundary) {
+    boundary = boundary.parent!;
+  }
+  final origin = (boundary as RenderBox).localToGlobal(Offset.zero);
+  final save = tester.getRect(find.byType(FilledButton)).shift(-origin);
+  final (width, data) = (await tester.runAsync(() async {
+    final image = await captureImage(
+      tester.element(find.byType(AddExpenseSheet)),
+    );
+    return (image.width, (await image.toByteData())!);
+  }))!;
+  final gold = SettloColors.dark.action;
+  int channel(double v) => (v * 255).round();
+  var (outside, inside) = (0, 0);
+  for (var i = 0; i < data.lengthInBytes; i += 4) {
+    if ((data.getUint8(i) - channel(gold.r)).abs() <= 4 &&
+        (data.getUint8(i + 1) - channel(gold.g)).abs() <= 4 &&
+        (data.getUint8(i + 2) - channel(gold.b)).abs() <= 4) {
+      final p = Offset((i ~/ 4 % width) + 0.5, (i ~/ 4 ~/ width) + 0.5);
+      save.contains(p) ? inside++ : outside++;
+    }
+  }
+  return (outside, inside);
+}
+
 void main() {
   testWidgets('opens on the space: you paid, split equally', (tester) async {
     await _pump(tester, FakeExpensesRepository());
@@ -361,6 +389,33 @@ void main() {
       await _tap(tester, find.text('Start a space'));
       expect(router.state.uri.toString(), SettloRoutes.spaces);
     });
+  });
+
+  // Gold means the one primary action (context pack); ruling on PR #71.
+  testWidgets('nothing but Save is gold, in every selection state', (
+    tester,
+  ) async {
+    await _pump(tester, FakeExpensesRepository());
+    await _fill(tester, '1800');
+    await _tap(tester, find.text('Groceries').first);
+    for (final mode in ['Equally', 'Exact', '%', 'Shares', 'Multiple payers']) {
+      await _tap(tester, _mode(mode));
+      if (mode == 'Exact') {
+        for (final id in ['m1', 'm2', 'm3']) {
+          await _type(tester, _input(SplitType.exact, id), '600');
+        }
+      }
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      final (outside, inside) = await _gold(tester);
+      expect(outside, 0, reason: '$mode: gold outside Save');
+      // A disabled Save (nothing typed for % yet) is not gold either.
+      expect(
+        inside,
+        _saveEnabled(tester) ? greaterThan(50) : 0,
+        reason: '$mode: Save',
+      );
+    }
   });
 
   testWidgets('amounts are announced in rupees', (tester) async {

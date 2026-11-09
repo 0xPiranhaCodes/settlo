@@ -80,12 +80,13 @@ abstract final class SettloTheme {
         ),
       ),
       // Gold means a tappable primary action. Everything Material would
-      // otherwise tint with `primary` is set neutral here; the exceptions
-      // from the canvas are checkboxes (AddExpense, Settle) and the focused
-      // OTP box, which opts into `action` where it is built.
+      // otherwise tint with `primary` is set neutral here; the one exception
+      // is the focused OTP box, which opts into `action` where it is built.
+      // Checked boxes are inverted like selected chips (ruling on PR #71),
+      // although the AddExpense and Settle artboards draw them gold.
       checkboxTheme: CheckboxThemeData(
-        fillColor: _selected(c.action, Colors.transparent),
-        checkColor: WidgetStatePropertyAll(c.onAction),
+        fillColor: _selected(c.textPrimary, Colors.transparent),
+        checkColor: WidgetStatePropertyAll(c.background),
         side: BorderSide(color: c.textSecondary, width: 1.5),
       ),
       radioTheme: RadioThemeData(
