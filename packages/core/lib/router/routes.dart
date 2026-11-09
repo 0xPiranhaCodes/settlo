@@ -62,6 +62,11 @@ abstract final class SettloRoutes {
   /// A space's expenses.
   static String space(String spaceId) => '/spaces/$spaceId';
 
+  /// Add expense in the space [spaceId]. Without a space, [addExpense]
+  /// asks which one when you have more than one.
+  static String addExpenseIn(String spaceId) =>
+      '$addExpense?space=${Uri.encodeQueryComponent(spaceId)}';
+
   /// A space's balances.
   static String spaceBalances(String spaceId) => '/spaces/$spaceId/balances';
 

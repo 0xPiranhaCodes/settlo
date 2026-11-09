@@ -65,12 +65,17 @@ abstract final class SettloGoldenDevices {
 const settloGoldenSurfaceKey = ValueKey<String>('settlo-golden-surface');
 
 /// Pumps [child] with deterministic viewport, theme, motion, and text settings.
+///
+/// [act] runs first, with tickers on, so the state it leaves (typed text,
+/// a focus change, a button that became enabled) finishes animating; the
+/// same tree is then pumped again with tickers off.
 Future<void> pumpSettloGolden(
   WidgetTester tester, {
   required Widget child,
   required GoldenDevice device,
   required ThemeData theme,
   GoldenFontLoader loadFonts = loadSettloFonts,
+  Future<void> Function(WidgetTester tester)? act,
 }) async {
   await loadFonts();
 
@@ -92,22 +97,27 @@ Future<void> pumpSettloGolden(
       ..clearAccessibilityFeaturesTestValue();
   });
 
-  await tester.pumpWidget(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: theme,
-      home: MediaQuery(
-        data: MediaQueryData(
-          size: device.size,
-          textScaler: TextScaler.noScaling,
-          disableAnimations: true,
-        ),
-        child: TickerMode(
-          enabled: false,
-          child: RepaintBoundary(key: settloGoldenSurfaceKey, child: child),
-        ),
+  Widget surface({required bool tickers}) => MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: theme,
+    home: MediaQuery(
+      data: MediaQueryData(
+        size: device.size,
+        textScaler: TextScaler.noScaling,
+        disableAnimations: true,
+      ),
+      child: TickerMode(
+        enabled: tickers,
+        child: RepaintBoundary(key: settloGoldenSurfaceKey, child: child),
       ),
     ),
   );
+
+  if (act != null) {
+    await tester.pumpWidget(surface(tickers: true));
+    await act(tester);
+    await tester.pumpAndSettle();
+  }
+  await tester.pumpWidget(surface(tickers: false));
   await tester.pump();
 }

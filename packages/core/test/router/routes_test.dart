@@ -7,6 +7,7 @@ void main() {
     expect(SettloRoutes.space('s'), '/spaces/s');
     expect(SettloRoutes.spaceBalances('s'), '/spaces/s/balances');
     expect(SettloRoutes.confirmRepayment('r'), '/loans/repayments/r');
+    expect(SettloRoutes.addExpenseIn('s 1'), '/expenses/new?space=s+1');
     for (final (pattern, path) in [
       (SettloRoutes.joinPattern, SettloRoutes.join(':token')),
       (SettloRoutes.spacePattern, SettloRoutes.space(':spaceId')),

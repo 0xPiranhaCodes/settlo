@@ -126,14 +126,17 @@ class SAmountSheet extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6, right: 6),
-                            child: Text(
-                              '₹',
-                              style: SettloTypography.figtree(
-                                28,
-                                weight: FontWeight.w500,
-                                color: c.textSecondary,
+                          // The amount's own semantics say rupees.
+                          ExcludeSemantics(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 6, right: 6),
+                              child: Text(
+                                '₹',
+                                style: SettloTypography.figtree(
+                                  28,
+                                  weight: FontWeight.w500,
+                                  color: c.textSecondary,
+                                ),
                               ),
                             ),
                           ),

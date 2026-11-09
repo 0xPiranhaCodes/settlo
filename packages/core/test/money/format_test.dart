@@ -24,6 +24,16 @@ void main() {
     });
   });
 
+  test('parseInr reads typed rupees straight into paise', () {
+    expect(parseInr('1,800'), const Paise.rupees(1800));
+    expect(parseInr(' 420.5 '), const Paise(42050));
+    expect(parseInr('0.05'), const Paise(5));
+    expect(parseInr('12.'), const Paise.rupees(12));
+    for (final bad in ['', '.5', '1.234', '-1', '1e3', '₹10']) {
+      expect(parseInr(bad), isNull, reason: bad);
+    }
+  });
+
   test('spokenInr says rupees in words with the sign, never paise', () {
     expect(
       spokenInr(const Paise.rupees(4200)),

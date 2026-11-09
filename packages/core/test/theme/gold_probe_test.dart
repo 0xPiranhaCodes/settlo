@@ -105,7 +105,7 @@ void main() {
         expect(await _goldPixels(tester, find.byKey(_probe)), 0);
       });
 
-      testWidgets('primary actions and checked checkboxes are gold', (
+      testWidgets('primary actions are gold; checked checkboxes are not', (
         tester,
       ) async {
         const button = Key('button');
@@ -126,10 +126,10 @@ void main() {
             ],
           ),
         );
-        // Light's button and checkbox are ink, so no gold at all.
+        // Light's button is ink, so no gold at all.
         final expected = name == 'dark' ? greaterThan(50) : equals(0);
         expect(await _goldPixels(tester, find.byKey(button)), expected);
-        expect(await _goldPixels(tester, find.byKey(checkbox)), expected);
+        expect(await _goldPixels(tester, find.byKey(checkbox)), 0);
       });
 
       testWidgets('no Settlo component but the primary button is gold', (

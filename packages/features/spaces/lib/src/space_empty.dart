@@ -162,7 +162,8 @@ class SpaceEmptyView extends StatelessWidget {
                       size: 18,
                       stroke: 1.9,
                     ),
-                    onPressed: () => context.go(SettloRoutes.addExpense),
+                    onPressed: () =>
+                        context.push(SettloRoutes.addExpenseIn(space.id)),
                   ),
                 ],
               ),
@@ -197,10 +198,10 @@ class SpaceEmptyView extends StatelessWidget {
                 children: [
                   Text('SET UP ONCE', style: sectionLabel(c)),
                   const SizedBox(height: 10),
-                  const _SetUpRow(
+                  _SetUpRow(
                     glyph: SpacesGlyph.clock,
                     label: 'Add rent as a monthly expense',
-                    route: SettloRoutes.addExpense,
+                    route: SettloRoutes.addExpenseIn(space.id),
                     divider: true,
                   ),
                   const _SetUpRow(
@@ -303,7 +304,7 @@ class _SetUpRow extends StatelessWidget {
     final c = SettloColors.of(context);
     return MergeSemantics(
       child: InkWell(
-        onTap: () => context.go(route),
+        onTap: () => context.push(route),
         child: Container(
           constraints: const BoxConstraints(
             minHeight: SettloSpacing.minTouchTarget,
