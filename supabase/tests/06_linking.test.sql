@@ -96,14 +96,17 @@ insert into public.space_members (id, space_id, phone, role) values
 insert into public.loans (id, lender_phone, borrower_phone, principal_minor, schedule_type) values
   ('00000000-0000-0000-0000-00000000f501', '+919000000011', '+919000000012', 100000, 'flexible'),
   ('00000000-0000-0000-0000-00000000f502', '+919000000012', '+919000000011', 50000, 'flexible');
+insert into public.expenses (id, space_id, description, amount_minor)
+values ('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000f101', 'Rent', 1000);
+-- Payers and splits as postgres: clients write them only through the RPCs (#59).
+reset role;
 do $$ begin
-  insert into public.expenses (id, space_id, description, amount_minor)
-  values ('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000f101', 'Rent', 1000);
   insert into public.expense_payers (expense_id, member_id, amount_minor)
   values ('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000f201', 1000);
   insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
   values ('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000f201', 'exact', 1000);
 end $$;
+set local role authenticated;
 insert into public.recurring_expenses (id, space_id, description, amount_minor, template, recurrence, next_run_on)
 values ('00000000-0000-0000-0000-00000000f401', '00000000-0000-0000-0000-00000000f101', 'Wifi', 500, '{}', 'monthly', current_date);
 insert into public.loan_repayments (id, loan_id, amount_minor, principal_minor)
@@ -226,21 +229,21 @@ select pg_temp.tagged(throws_ok(
 select pg_temp.tagged(throws_ok(
   $$insert into public.expense_payers (expense_id, member_id, amount_minor)
     values ('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000f202', 1000)$$,
-  '42501', null, 'pending N cannot add a payer [-expense_payers_insert]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.expense_payers set amount_minor = amount_minor
-                              where expense_id = '00000000-0000-0000-0000-00000000f301'$$),
-  0, 'pending N cannot edit a payer [-expense_payers_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$delete from public.expense_payers where expense_id = '00000000-0000-0000-0000-00000000f301'$$),
-  0, 'pending N cannot remove a payer [-expense_payers_delete]'));
+  '42501', null, 'pending N cannot add a payer'));
+select pg_temp.tagged(throws_ok($$update public.expense_payers set amount_minor = amount_minor
+                              where expense_id = '00000000-0000-0000-0000-00000000f301'$$,
+  '42501', null, 'expense_payers: direct update refused (RPCs only): pending N cannot edit a payer'));
+select pg_temp.tagged(throws_ok($$delete from public.expense_payers where expense_id = '00000000-0000-0000-0000-00000000f301'$$,
+  '42501', null, 'expense_payers: direct delete refused (RPCs only): pending N cannot remove a payer'));
 select pg_temp.tagged(throws_ok(
   $$insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
     values ('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000f202', 'exact', 0)$$,
-  '42501', null, 'pending N cannot add a split [-expense_splits_insert]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.expense_splits set amount_minor = amount_minor
-                              where expense_id = '00000000-0000-0000-0000-00000000f301'$$),
-  0, 'pending N cannot edit a split [-expense_splits_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$delete from public.expense_splits where expense_id = '00000000-0000-0000-0000-00000000f301'$$),
-  0, 'pending N cannot remove a split [-expense_splits_delete]'));
+  '42501', null, 'pending N cannot add a split'));
+select pg_temp.tagged(throws_ok($$update public.expense_splits set amount_minor = amount_minor
+                              where expense_id = '00000000-0000-0000-0000-00000000f301'$$,
+  '42501', null, 'expense_splits: direct update refused (RPCs only): pending N cannot edit a split'));
+select pg_temp.tagged(throws_ok($$delete from public.expense_splits where expense_id = '00000000-0000-0000-0000-00000000f301'$$,
+  '42501', null, 'expense_splits: direct delete refused (RPCs only): pending N cannot remove a split'));
 select pg_temp.tagged(throws_ok(
   $$insert into public.recurring_expenses (space_id, description, amount_minor, template, recurrence, next_run_on)
     values ('00000000-0000-0000-0000-00000000f101', 'x', 1, '{}', 'monthly', current_date)$$,
@@ -272,15 +275,16 @@ select pg_temp.tagged(lives_ok(
   $$insert into public.space_members (space_id, phone) values ('00000000-0000-0000-0000-00000000f101', '+919000000019')$$,
   'accepted N adds a member [+space_members_insert]'));
 select pg_temp.tagged(lives_ok(
-  $q$do $$ begin
-    insert into public.expenses (id, space_id, description, amount_minor)
-    values ('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000f101', 'Gas', 600);
-    insert into public.expense_payers (expense_id, member_id, amount_minor)
-    values ('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000f202', 600);
-    insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
-    values ('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000f202', 'exact', 600);
-  end $$$q$,
-  'accepted N adds an expense with payers and splits [+expenses_insert] [+expense_payers_insert] [+expense_splits_insert]'));
+  $$insert into public.expenses (id, space_id, description, amount_minor)
+    values ('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000f101', 'Gas', 600)$$,
+  'accepted N adds an expense [+expenses_insert]'));
+-- Its payers and splits, as postgres: clients write them only through the RPCs (#59).
+reset role;
+insert into public.expense_payers (expense_id, member_id, amount_minor)
+values ('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000f202', 600);
+insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
+values ('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000f202', 'exact', 600);
+set local role authenticated;
 select pg_temp.tagged(lives_ok(
   format('select public.add_expense(%L::jsonb)', jsonb_build_object(
     'space_id', '00000000-0000-0000-0000-00000000f101', 'idempotency_key', '00000000-0000-0000-0000-00000000f397',
@@ -290,25 +294,17 @@ select pg_temp.tagged(lives_ok(
   'accepted N adds an expense through add_expense [+expenses_insert]'));
 select pg_temp.tagged(is(pg_temp.affected($$update public.expenses set description = 'Rent (Nov)' where id = '00000000-0000-0000-0000-00000000f302'$$),
   1, 'accepted N edits its own expense [+expenses_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.expense_payers set amount_minor = amount_minor
-                              where expense_id = '00000000-0000-0000-0000-00000000f302'$$),
-  1, 'accepted N edits a payer of its own expense [+expense_payers_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.expense_splits set amount_minor = amount_minor
-                              where expense_id = '00000000-0000-0000-0000-00000000f302'$$),
-  1, 'accepted N edits a split of its own expense [+expense_splits_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$delete from public.expense_payers where expense_id = '00000000-0000-0000-0000-00000000f302'$$),
-  1, 'accepted N removes a payer [+expense_payers_delete]'));
-select pg_temp.tagged(is(pg_temp.affected($$delete from public.expense_splits where expense_id = '00000000-0000-0000-0000-00000000f302'$$),
-  1, 'accepted N removes a split [+expense_splits_delete]'));
-select lives_ok(
-  $q$do $$ begin
-    insert into public.expense_payers (expense_id, member_id, amount_minor)
-    values ('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000f201', 600);
-    insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
-    values ('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000f201', 'exact', 600);
-    set constraints all immediate;
-  end $$$q$,
-  'accepted N rebalances the expense and it passes the commit-time check');
+select pg_temp.tagged(throws_ok($$update public.expense_payers set amount_minor = amount_minor
+                              where expense_id = '00000000-0000-0000-0000-00000000f302'$$,
+  '42501', null, 'expense_payers: direct update refused (RPCs only): accepted N edits a payer of its own expense'));
+select pg_temp.tagged(throws_ok($$update public.expense_splits set amount_minor = amount_minor
+                              where expense_id = '00000000-0000-0000-0000-00000000f302'$$,
+  '42501', null, 'expense_splits: direct update refused (RPCs only): accepted N edits a split of its own expense'));
+select pg_temp.tagged(throws_ok($$delete from public.expense_payers where expense_id = '00000000-0000-0000-0000-00000000f302'$$,
+  '42501', null, 'expense_payers: direct delete refused (RPCs only): accepted N removes a payer'));
+select pg_temp.tagged(throws_ok($$delete from public.expense_splits where expense_id = '00000000-0000-0000-0000-00000000f302'$$,
+  '42501', null, 'expense_splits: direct delete refused (RPCs only): accepted N removes a split'));
+select lives_ok('set constraints all immediate', 'N''s expenses pass the commit-time check');
 set constraints all deferred;
 set constraints auth.link_verified_phone immediate;
 select pg_temp.tagged(lives_ok(
@@ -492,8 +488,6 @@ select is(
   (select array_agg(t order by t) from (
      select sign || p as t from unnest(array[
        'space_members_insert', 'space_members_update', 'spaces_update', 'expenses_insert', 'expenses_update',
-       'expense_payers_insert', 'expense_payers_update', 'expense_payers_delete',
-       'expense_splits_insert', 'expense_splits_update', 'expense_splits_delete',
        'recurring_expenses_insert', 'recurring_expenses_update', 'loans_select', 'loans_update',
        'loan_repayments_insert', 'loan_repayments_update']) p
      cross join (values ('+'), ('-')) v(sign)

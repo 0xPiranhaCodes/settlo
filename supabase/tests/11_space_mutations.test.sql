@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(69);
+select plan(79);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000005901', '919590000001', now()),
@@ -67,18 +67,25 @@ grant execute on all functions in schema pg_temp to public;
 -- Hardening.
 select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p
-    where p.pronamespace = 'public'::regnamespace
+    where p.pronamespace in ('public'::regnamespace, 'private'::regnamespace)
       and p.proname in ('update_expense', 'delete_expense', 'add_space_members', 'leave_space', 'update_profile',
-                        'claim_idempotency_key', 'normalise_expense', 'resolve_allocations', 'store_allocations',
-                        'can_edit_expense')
+                        'claim_idempotency_key', 'store_allocations',
+                        'normalise_expense', 'resolve_allocations', 'can_edit_expense')
       and (not coalesce(p.proconfig @> array['search_path=""'], false)
            or has_function_privilege('anon', p.oid, 'execute')
            or not has_function_privilege('authenticated', p.oid, 'execute'))),
   null,
   'new RPCs and helpers have a fixed search_path and are executable by authenticated only');
+select is(
+  (select array_agg(p.proname::text order by p.proname) from pg_proc p
+    where p.pronamespace = 'public'::regnamespace and p.proname in ('guard_member_leave', 'guard_expense_members')
+      and (not (p.prosecdef and p.proconfig @> array['search_path=""'])
+           or has_function_privilege('authenticated', p.oid, 'execute'))),
+  null,
+  'the guard triggers are security definer with a fixed search_path and not client-executable');
 select ok(
   not exists (select from pg_proc p, aclexplode(p.proacl) a
-               where p.pronamespace = 'public'::regnamespace and a.grantee = 0
+               where p.pronamespace in ('public'::regnamespace, 'private'::regnamespace) and a.grantee = 0
                  and p.proname in ('update_expense', 'delete_expense', 'add_space_members', 'leave_space',
                                    'update_profile', 'claim_idempotency_key', 'normalise_expense',
                                    'resolve_allocations', 'store_allocations', 'can_edit_expense')),
@@ -86,6 +93,14 @@ select ok(
 select ok(
   not has_table_privilege('authenticated', 'private.idempotency_keys', 'select, insert, update, delete'),
   'clients have no access to the idempotency keys');
+select ok(
+  not has_table_privilege('authenticated', 'public.expense_payers', 'insert, update, delete')
+  and not has_table_privilege('authenticated', 'public.expense_splits', 'insert, update, delete'),
+  'clients cannot write payers or splits directly; only the RPCs do, with history');
+select ok(
+  not exists (select from pg_proc p where p.pronamespace = 'private'::regnamespace
+               and has_function_privilege('anon', p.oid, 'execute')),
+  'anon cannot execute anything in private (and private is not a PostgREST schema)');
 
 set local role anon;
 select throws_ok($$select public.update_expense('{}')$$, '42501', null, 'anon cannot call update_expense');
@@ -163,7 +178,9 @@ select results_eq('select * from pg_temp.balances()',
            ('00000000-0000-0000-0000-000000005923', -3000), ('00000000-0000-0000-0000-000000005925', 0)$$,
   'update_expense: balances follow the second edit');
 select is(pg_temp.affected($$update public.expenses set category = 'food' where id = (select id from pg_temp.e1)$$),
-  1, 'expenses_update: creator B may still edit E1 directly');
+  1, 'expenses_update: creator B may still edit E1''s fields directly (logged by the activity trigger)');
+select throws_ok($$update public.expense_payers set amount_minor = 500 where expense_id = (select id from pg_temp.e1)$$,
+  '42501', null, 'expense_payers: even creator B cannot change payers outside update_expense');
 
 select pg_temp.login('00000000-0000-0000-0000-000000005905');
 select throws_ok(format('select public.update_expense(%L)', pg_temp.edit('00000000-0000-0000-0000-000000005944', 100,
@@ -172,13 +189,13 @@ select throws_ok(format('select public.update_expense(%L)', pg_temp.edit('000000
   '42501', null, 'update_expense: member E, neither creator nor owner, cannot edit E1');
 select is(pg_temp.affected($$update public.expenses set description = 'x' where id = (select id from pg_temp.e1)$$),
   0, 'expenses_update: E cannot edit E1 directly either');
-select is(pg_temp.affected($$delete from public.expense_payers where expense_id = (select id from pg_temp.e1)$$),
-  0, 'expense_payers_delete: E cannot remove E1''s payers');
-select is(pg_temp.affected($$update public.expense_splits set amount_minor = 0 where expense_id = (select id from pg_temp.e1)$$),
-  0, 'expense_splits_update: E cannot change E1''s splits');
+select throws_ok($$delete from public.expense_payers where expense_id = (select id from pg_temp.e1)$$,
+  '42501', null, 'expense_payers: E cannot remove E1''s payers');
+select throws_ok($$update public.expense_splits set amount_minor = 0 where expense_id = (select id from pg_temp.e1)$$,
+  '42501', null, 'expense_splits: E cannot change E1''s splits');
 select throws_ok(format($$insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
     values (%L, '00000000-0000-0000-0000-000000005925', 'equal', 0)$$, (select id from e1)),
-  '42501', null, 'expense_splits_insert: E cannot add a split to E1');
+  '42501', null, 'expense_splits: E cannot add a split to E1');
 select pg_temp.login('00000000-0000-0000-0000-000000005903');
 select throws_ok(format('select public.update_expense(%L)', pg_temp.edit('00000000-0000-0000-0000-000000005945', 100,
     'x', '[]', '[]')), '42501', null, 'update_expense: outsider C cannot edit E1');
@@ -210,8 +227,8 @@ select is((select count(*)::int from public.activity where expense_id = (select 
   1, 'delete_expense: a replay writes nothing');
 select throws_ok(format('select public.delete_expense(%L, %L)', gen_random_uuid(), '00000000-0000-0000-0000-000000005951'),
   '42501', null, 'delete_expense: an unknown expense is refused');
-select throws_ok(format('select public.delete_expense(%L, %L)', (select id from e1), '00000000-0000-0000-0000-000000005941'),
-  'PT409', null, 'delete_expense: a key used for another mutation is a conflict');
+select throws_ok(format('select public.delete_expense(%L, %L)', (select id from e1), '00000000-0000-0000-0000-000000005943'),
+  'PT409', null, 'delete_expense: a key B used for another mutation is a conflict');
 select throws_ok(format('select public.delete_expense(%L, %L)', (select id from e1), '00000000-0000-0000-0000-000000005952'),
   '22023', null, 'delete_expense: deleting again with a new key is rejected');
 select throws_ok(format('select public.update_expense(%L)', pg_temp.edit('00000000-0000-0000-0000-000000005953', 100,
@@ -236,12 +253,17 @@ select is((select count(*)::int from public.space_members where space_id = '0000
 select throws_ok($$select public.add_space_members('00000000-0000-0000-0000-000000005910',
     '[{"phone": "+919590000079"}]', '00000000-0000-0000-0000-000000005961')$$,
   'PT409', null, 'add_space_members: the same key with other members is a conflict');
-select throws_ok($$select public.add_space_members('00000000-0000-0000-0000-000000005910',
-    '[{"phone": "+919590000001"}]', '00000000-0000-0000-0000-000000005962')$$,
-  '22023', null, 'add_space_members: an existing member''s phone is rejected');
+select is(pg_temp.hint_of($$select public.add_space_members('00000000-0000-0000-0000-000000005910',
+    '[{"phone": "+919590000001"}]', '00000000-0000-0000-0000-000000005965')$$),
+  'already_member', 'add_space_members: an active member''s phone is rejected with hint already_member');
 select throws_ok($$select public.add_space_members('00000000-0000-0000-0000-000000005910', '[]',
     '00000000-0000-0000-0000-000000005963')$$,
   '22023', null, 'add_space_members: an empty list is rejected');
+-- Keys are per user (ADR 0004): A may use the key B just used.
+select pg_temp.login('00000000-0000-0000-0000-000000005901');
+select lives_ok($$select public.add_space_members('00000000-0000-0000-0000-000000005910',
+    '[{"phone": "+919590000088"}]', '00000000-0000-0000-0000-000000005961')$$,
+  'add_space_members: A uses the same key as B without a conflict');
 select pg_temp.login('00000000-0000-0000-0000-000000005903');
 select throws_ok($$select public.add_space_members('00000000-0000-0000-0000-000000005910',
     '[{"phone": "+919590000080"}]', '00000000-0000-0000-0000-000000005964')$$,
@@ -268,15 +290,11 @@ select lives_ok($$select public.leave_space('00000000-0000-0000-0000-00000000591
   'leave_space: owner A removes X, whose balance is zero');
 select ok((select left_at is not null from public.space_members where id = '00000000-0000-0000-0000-000000005923'),
   'leave_space: X has left');
-select throws_ok($q$do $$ begin
-    insert into public.expenses (id, space_id, description, amount_minor)
-    values ('00000000-0000-0000-0000-000000005934', '00000000-0000-0000-0000-000000005910', 'Ghost', 100);
-    insert into public.expense_payers (expense_id, member_id, amount_minor)
-    values ('00000000-0000-0000-0000-000000005934', '00000000-0000-0000-0000-000000005921', 100);
-    insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
-    values ('00000000-0000-0000-0000-000000005934', '00000000-0000-0000-0000-000000005923', 'exact', 100);
-  end $$$q$,
-  '42501', null, 'expense_splits_insert: a direct write cannot name departed X');
+select is(pg_temp.hint_of($$update public.expenses set deleted_at = null where id = (select id from pg_temp.e1)$$),
+  'member_departed', 'expenses: restoring E1 would change departed X''s balance, so it is refused');
+select is(pg_temp.hint_of($$select public.add_space_members('00000000-0000-0000-0000-000000005910',
+    '[{"phone": "+919590000009"}]', '00000000-0000-0000-0000-000000005966')$$),
+  'former_member', 'add_space_members: re-adding departed X is rejected with hint former_member');
 select pg_temp.login('00000000-0000-0000-0000-000000005902');
 select throws_ok($$select public.leave_space('00000000-0000-0000-0000-000000005910', '00000000-0000-0000-0000-000000005974',
     (select id from public.space_members where phone = '+919590000077'))$$,
@@ -299,6 +317,21 @@ select throws_ok($$select public.leave_space('00000000-0000-0000-0000-0000000059
   'PT409', null, 'leave_space: the same key with another member is a conflict');
 select throws_ok($$select public.leave_space('00000000-0000-0000-0000-000000005910', '00000000-0000-0000-0000-000000005975')$$,
   '42501', null, 'leave_space: a departed member cannot leave again');
+
+-- The last owner. A is S's only owner and has a zero balance.
+select pg_temp.login('00000000-0000-0000-0000-000000005901');
+select is(pg_temp.hint_of($$select public.leave_space('00000000-0000-0000-0000-000000005910', '00000000-0000-0000-0000-000000005981')$$),
+  'last_owner', 'leave_space: the last owner cannot leave');
+select is(pg_temp.hint_of($$update public.space_members set left_at = now() where id = '00000000-0000-0000-0000-000000005921'$$),
+  'last_owner', 'space_members_update: nor by updating left_at directly');
+reset role;
+update public.space_members set role = 'owner' where id = '00000000-0000-0000-0000-000000005922';
+set local role authenticated;
+select lives_ok($$select public.leave_space('00000000-0000-0000-0000-000000005910', '00000000-0000-0000-0000-000000005981')$$,
+  'leave_space: with B as a second owner, A may leave');
+select pg_temp.login('00000000-0000-0000-0000-000000005902');
+select is(pg_temp.hint_of($$select public.leave_space('00000000-0000-0000-0000-000000005910', '00000000-0000-0000-0000-000000005982')$$),
+  'last_owner', 'leave_space: now B is the last owner and cannot leave');
 
 -- update_profile
 select pg_temp.login('00000000-0000-0000-0000-000000005901');

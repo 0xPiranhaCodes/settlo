@@ -244,19 +244,34 @@ POST /rest/v1/rpc/lookup_phones
 
 Same rules as the RPCs above: `authenticated` only, verified callers, the same error codes, and
 payload-bound idempotency. `add_expense` and `create_space` keep their key on the row they create;
-these keep theirs server-side (`private.idempotency_keys`, no client access). A key belongs to one
-caller and one mutation: reusing it for another payload, another RPC or by another user is `PT409`.
+these keep theirs server-side (`private.idempotency_keys`, no client access), unique **per user**
+(ADR 0004). A caller reusing a key for another payload or another of these RPCs gets `PT409`; another
+user's identical key never collides. A concurrent call with the same key waits for the first to
+commit, then replays it (same payload) or conflicts.
 
-Edits and deletes are open to the expense's **creator or a space owner**. The table policies match
-(`expenses`, `expense_payers`, `expense_splits` updates, deletes and inserts on an existing expense),
-so a direct PostgREST write cannot do what the RPC refuses.
+Edits and deletes are open to the expense's **creator or a space owner**; the `expenses` update
+policy matches. Payers and splits are written **only** by `add_expense` and `update_expense`: clients
+have no insert, update or delete privilege on `expense_payers` / `expense_splits`, so no balance can
+change without an `activity` row.
+
+A departed member's balance stays at zero: an edit, delete or restore of an expense that involves a
+member who has left is refused (`22023`, hint `member_departed`). Leaving and allocation changes lock
+the member rows involved, so a concurrent expense and leave cannot both succeed.
 
 History: every edit and delete writes an `activity` row (`edited` / `deleted`) whose `before` is the
 full prior expense, including `payers` and `splits` arrays; `after` is the new expense row. The new
 payers and splits are the current rows (and the next edit's `before`).
 
-Further hints: `balance_not_zero` (`22023`) when a member with a non-zero balance would leave;
-`invalid_vpa` (`22023`) for a malformed UPI id.
+Further hints, all on `22023`:
+
+| Hint | When |
+| --- | --- |
+| `balance_not_zero` | A member with a non-zero balance would leave or be removed |
+| `last_owner` | The space's last active owner would leave or be removed |
+| `member_departed` | An edit, delete or restore would change a departed member's balance |
+| `already_member` | `add_space_members` names an active member's phone |
+| `former_member` | `add_space_members` names a departed member's phone (re-adding is not supported yet) |
+| `invalid_vpa` | A malformed UPI id |
 
 ### `update_expense(p jsonb)`
 Replaces an expense's fields, payers and splits in one transaction and returns its id. `p` is the
@@ -267,7 +282,10 @@ the current date; other omitted optional fields take the `add_expense` defaults.
 
 - `42501`: not the creator or an owner, not an accepted member, the space is deleted, or the expense
   is unknown.
-- `22023`: invalid payload, or the expense is deleted.
+- `22023`: invalid payload, the expense is deleted, or it involves a departed member
+  (`member_departed`).
+- Concurrent edits of one expense run one after the other (row lock), so each `activity` row has a
+  consistent before image.
 
 ```
 POST /rest/v1/rpc/update_expense
@@ -282,7 +300,8 @@ POST /rest/v1/rpc/update_expense
 ### `delete_expense(p_expense_id uuid, p_idempotency_key uuid)`
 Soft-deletes the expense (`deleted_at`): it stops counting in every view and is frozen (only a
 restore could change it). Returns nothing. Deleting an already-deleted expense with a new key is
-`22023`; a replay with the same key succeeds.
+`22023`, as is one that involves a departed member (`member_departed`); a replay with the same key
+succeeds.
 
 ```
 POST /rest/v1/rpc/delete_expense  {"p_expense_id": "c4a1e7f2-…", "p_idempotency_key": "8a1f…"}
@@ -291,8 +310,9 @@ POST /rest/v1/rpc/delete_expense  {"p_expense_id": "c4a1e7f2-…", "p_idempotenc
 ### `add_space_members(p_space_id uuid, p_members jsonb, p_idempotency_key uuid)`
 Adds members by phone to a space the caller is an accepted, active member of. `p_members` is
 `create_space`'s format (`[{"phone": "+91…", "name": "…"}]`), non-empty, distinct E.164 phones. New
-rows are `member`s, pending until each number verifies and accepts (#9). A phone already on the
-space, including a departed member, is `22023` (re-adding a former member is not supported yet).
+rows are `member`s, pending until each number verifies and accepts (#9). An active member's phone is
+`22023` with hint `already_member`; a departed member's is `22023` with hint `former_member`
+(re-adding a former member is not supported yet).
 The fingerprint is the space and the members sorted by phone. Returns nothing.
 
 ```
@@ -304,8 +324,12 @@ POST /rest/v1/rpc/add_space_members
 Without `p_member_id` the caller leaves; with it an owner removes that member (`42501` for anyone
 else). Leaving sets `left_at`; history stays. Only at a **zero balance** (`space_member_balances`):
 otherwise `22023` with hint `balance_not_zero`, so the client sends the user to settle up first. The
-balance rule is a trigger on `space_members`, so a direct `left_at` update is held to it too. The key
-is checked before membership, so a replay returns after the caller has left. Returns nothing.
+space's last active owner cannot leave or be removed (`22023`, hint `last_owner`). There is no RPC to
+promote an owner yet, so a sole owner stays until one exists (or deletes the space). Both rules are
+a trigger on `space_members`, so a direct `left_at` update is held to them too, and they hold under
+concurrency: departures in a space are serialised on the space row, and a leave and an expense
+naming the same member wait for each other. The key is
+checked before membership, so a replay returns after the caller has left. Returns nothing.
 
 ```
 POST /rest/v1/rpc/leave_space  {"p_space_id": "6f1c…", "p_idempotency_key": "9c3d…"}

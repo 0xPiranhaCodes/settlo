@@ -3,26 +3,33 @@
 -- RLS stays the gate, a fixed empty search_path, verified callers only, and payload-bound
 -- idempotency (same key and payload returns without writing; anything else is PT409).
 --
--- Edits and deletes are allowed to the expense's creator or a space owner. The policies are
--- tightened to match, so a direct table write cannot do what the RPC refuses.
+-- Edits and deletes are allowed to the expense's creator or a space owner. Payers and splits are
+-- written only through the RPCs (no client privileges), so every change is in activity.
+-- A departed member's balance is frozen at zero: leaving and every allocation change lock the
+-- member rows involved, so neither can slip past the other.
+
+-- Helpers that only the RPCs call. private is not a PostgREST schema, so clients cannot reach them;
+-- authenticated gets usage so the security invoker RPCs can, and execute only where granted below.
+grant usage on schema private to authenticated;
+alter default privileges in schema private revoke execute on functions from public;
 
 -- Keys for mutations that do not create a row to hold them (add_expense and create_space keep
--- theirs on the row they create). Server-only, like private.lookup_quota.
+-- theirs on the row they create). Unique per user (ADR 0004). Server-only.
 create table private.idempotency_keys (
-  key uuid primary key,
   user_id uuid not null references auth.users (id) on delete cascade,
+  key uuid not null,
   kind text not null,
   fingerprint text not null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  primary key (user_id, key)
 );
 alter table private.idempotency_keys enable row level security;
 
 -- Records p_key for the caller. True: first use, go ahead. False: a replay of the same mutation,
--- return without writing. Anything else (another kind, payload or user) raises PT409. A concurrent
--- call with the same key waits on the primary key until the first commits or rolls back, and the
--- claim rolls back with the mutation if it fails. Security definer: it writes private state.
--- Callable directly, but it can only burn the caller's own keys.
-create function public.claim_idempotency_key(p_kind text, p_key uuid, p_fingerprint text) returns boolean
+-- return without writing. The same key with another kind or payload raises PT409; other users'
+-- keys never collide. A concurrent call with the same key waits on the primary key until the first
+-- commits or rolls back, and the claim rolls back with the mutation if it fails.
+create function private.claim_idempotency_key(p_kind text, p_key uuid, p_fingerprint text) returns boolean
 language plpgsql security definer set search_path = '' as $$
 declare
   me uuid := public.verified_uid();
@@ -31,13 +38,13 @@ begin
   if me is null then
     raise exception 'claim_idempotency_key: caller has no verified phone' using errcode = '42501';
   end if;
-  insert into private.idempotency_keys (key, user_id, kind, fingerprint) values (p_key, me, p_kind, p_fingerprint)
-  on conflict (key) do nothing;
+  insert into private.idempotency_keys (user_id, key, kind, fingerprint) values (me, p_key, p_kind, p_fingerprint)
+  on conflict (user_id, key) do nothing;
   if found then
     return true;
   end if;
-  select * into k from private.idempotency_keys where key = p_key;
-  if k.user_id = me and k.kind = p_kind and k.fingerprint = p_fingerprint then
+  select * into k from private.idempotency_keys where user_id = me and key = p_key;
+  if k.kind = p_kind and k.fingerprint = p_fingerprint then
     return false;
   end if;
   raise exception '%: idempotency key % was already used with a different payload', p_kind, p_key
@@ -239,14 +246,40 @@ begin
     return v_existing.id;
   end if;
 
-  perform public.store_allocations(v_id, p, v_space, 'add_expense');
+  perform private.store_allocations(v_id, p, 'add_expense');
   return v_id;
 end $$;
 
--- Writes the resolved payers and splits of an expense that has none.
-create function public.store_allocations(p_expense_id uuid, p jsonb, p_space uuid, p_caller text) returns void
-language sql security invoker set search_path = '' as $$
-  with a as (select * from public.resolve_allocations(p, p_space, p_caller)),
+-- Replaces an expense's payers and splits with the resolved ones from p. The only writer of
+-- allocations for clients. Locks every member row involved (old and new) first: a concurrent
+-- leave either finishes before, and the checks below see it, or waits and then sees the new
+-- balance (guard_member_leave). A departed member's allocations cannot change.
+create function private.store_allocations(p_expense_id uuid, p jsonb, p_caller text) returns void
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_space uuid := (select e.space_id from public.expenses e where e.id = p_expense_id and e.deleted_at is null);
+begin
+  if v_space is null or not public.can_edit_expense(p_expense_id) then
+    raise exception '%: only the creator or a space owner may change expense %', p_caller, p_expense_id
+      using errcode = '42501';
+  end if;
+  perform from public.space_members m
+   where m.id in (select x.member_id from public.expense_payers x where x.expense_id = p_expense_id
+                  union select x.member_id from public.expense_splits x where x.expense_id = p_expense_id
+                  union select (e ->> 'member_id')::uuid from jsonb_array_elements(p -> 'payers') e
+                  union select (e ->> 'member_id')::uuid from jsonb_array_elements(p -> 'splits') e)
+   order by m.id for share;
+  if exists (select from public.space_members m
+              where m.left_at is not null
+                and m.id in (select x.member_id from public.expense_payers x where x.expense_id = p_expense_id
+                             union select x.member_id from public.expense_splits x where x.expense_id = p_expense_id)) then
+    raise exception '%: expense % involves a member who has left', p_caller, p_expense_id
+      using errcode = '22023', hint = 'member_departed';
+  end if;
+
+  delete from public.expense_payers where expense_id = p_expense_id;
+  delete from public.expense_splits where expense_id = p_expense_id;
+  with a as (select * from public.resolve_allocations(p, v_space, p_caller)),
   payers as (
     insert into public.expense_payers (expense_id, member_id, amount_minor)
     select p_expense_id, a.member_id, a.amount_minor from a where a.kind = 'payer'
@@ -255,7 +288,7 @@ language sql security invoker set search_path = '' as $$
   select p_expense_id, a.member_id, coalesce(p ->> 'split_type', 'equal')::public.split_type,
          a.amount_minor, a.shares, a.percent_bp
     from a where a.kind = 'split';
-$$;
+end $$;
 
 -- Whether the caller may edit or delete the expense: an accepted member of its live space who
 -- created it or owns the space.
@@ -267,16 +300,6 @@ language sql stable security definer set search_path = '' as $$
        and (e.created_by = public.verified_uid() or public.is_space_owner(e.space_id)))
 $$;
 
--- As in #9, but the named member must still be active, as resolve_allocations requires.
-create or replace function public.can_allocate(p_expense_id uuid, p_member_id uuid) returns boolean
-language sql stable security definer set search_path = '' as $$
-  select exists (
-    select from public.expenses e
-      join public.space_members m on m.space_id = e.space_id
-     where e.id = p_expense_id and m.id = p_member_id and m.left_at is null
-       and public.is_accepted_member(e.space_id))
-$$;
-
 drop policy expenses_update on public.expenses;
 -- WITH CHECK reads the new row's own columns (space_id and created_by are not client-updatable anyway).
 create policy expenses_update on public.expenses for update to authenticated
@@ -284,27 +307,38 @@ create policy expenses_update on public.expenses for update to authenticated
   with check (public.is_accepted_member(space_id)
               and (created_by = public.verified_uid() or public.is_space_owner(space_id)));
 
+-- Payers and splits change only through add_expense / update_expense (private.store_allocations),
+-- so no direct write can change a balance without an activity row.
+revoke insert, update, delete on public.expense_payers, public.expense_splits from authenticated;
 drop policy expense_payers_insert on public.expense_payers;
-create policy expense_payers_insert on public.expense_payers for insert to authenticated
-  with check (public.can_allocate(expense_id, member_id) and public.can_edit_expense(expense_id));
 drop policy expense_payers_update on public.expense_payers;
-create policy expense_payers_update on public.expense_payers for update to authenticated
-  using (public.can_edit_expense(expense_id))
-  with check (public.can_allocate(expense_id, member_id) and public.can_edit_expense(expense_id));
 drop policy expense_payers_delete on public.expense_payers;
-create policy expense_payers_delete on public.expense_payers for delete to authenticated
-  using (public.can_edit_expense(expense_id));
-
 drop policy expense_splits_insert on public.expense_splits;
-create policy expense_splits_insert on public.expense_splits for insert to authenticated
-  with check (public.can_allocate(expense_id, member_id) and public.can_edit_expense(expense_id));
 drop policy expense_splits_update on public.expense_splits;
-create policy expense_splits_update on public.expense_splits for update to authenticated
-  using (public.can_edit_expense(expense_id))
-  with check (public.can_allocate(expense_id, member_id) and public.can_edit_expense(expense_id));
 drop policy expense_splits_delete on public.expense_splits;
-create policy expense_splits_delete on public.expense_splits for delete to authenticated
-  using (public.can_edit_expense(expense_id));
+
+-- Deleting or restoring an expense changes its members' balances, so like store_allocations it
+-- locks them and refuses when one has left. Binds clients (the RPC and a direct deleted_at update).
+create function public.guard_expense_members() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  perform from public.space_members m
+   where m.id in (select x.member_id from public.expense_payers x where x.expense_id = new.id
+                  union select x.member_id from public.expense_splits x where x.expense_id = new.id)
+   order by m.id for share;
+  if exists (select from public.space_members m
+              where m.left_at is not null
+                and m.id in (select x.member_id from public.expense_payers x where x.expense_id = new.id
+                             union select x.member_id from public.expense_splits x where x.expense_id = new.id)) then
+    raise exception 'expense % involves a member who has left', new.id using errcode = '22023', hint = 'member_departed';
+  end if;
+  return new;
+end $$;
+
+create trigger expenses_departed_members
+  before update of deleted_at on public.expenses
+  for each row when (old.deleted_at is distinct from new.deleted_at and current_user = 'authenticated')
+  execute function public.guard_expense_members();
 
 -- History: an edit or delete logs the expense's payers and splits in `before`, so the activity row
 -- holds the full prior state. update_expense changes the row before its allocations, so this sees
@@ -360,13 +394,15 @@ begin
   if v_id is null or v_key is null then
     raise exception 'update_expense: expense_id and idempotency_key are required' using errcode = '22023';
   end if;
-  select * into e from public.expenses where id = v_id;
+  -- Row lock: concurrent edits of one expense run one after the other, so each logs a consistent
+  -- before image. FOR UPDATE also applies the update policy, so non-editors find nothing.
+  select * into e from public.expenses where id = v_id for update;
   if me is null or not found or not public.can_edit_expense(v_id) then
     raise exception 'update_expense: only the creator or a space owner may edit expense %', v_id
       using errcode = '42501';
   end if;
 
-  if not public.claim_idempotency_key('update_expense', v_key, encode(sha256(convert_to(
+  if not private.claim_idempotency_key('update_expense', v_key, encode(sha256(convert_to(
        (public.normalise_expense(p, e.space_id, 'update_expense') || jsonb_build_object('expense_id', v_id))::text,
        'UTF8')), 'hex')) then
     return v_id;
@@ -380,9 +416,7 @@ begin
          amount_minor = (p ->> 'amount_minor')::bigint, spent_on = coalesce((p ->> 'spent_on')::date, e.spent_on),
          is_settlement = coalesce((p ->> 'is_settlement')::boolean, false)
    where id = v_id;
-  delete from public.expense_payers where expense_id = v_id;
-  delete from public.expense_splits where expense_id = v_id;
-  perform public.store_allocations(v_id, p, e.space_id, 'update_expense');
+  perform private.store_allocations(v_id, p, 'update_expense');
   return v_id;
 end $$;
 
@@ -401,7 +435,7 @@ begin
     raise exception 'delete_expense: only the creator or a space owner may delete expense %', p_expense_id
       using errcode = '42501';
   end if;
-  if not public.claim_idempotency_key('delete_expense', p_idempotency_key, encode(sha256(convert_to(
+  if not private.claim_idempotency_key('delete_expense', p_idempotency_key, encode(sha256(convert_to(
        jsonb_build_object('expense_id', p_expense_id)::text, 'UTF8')), 'hex')) then
     return;
   end if;
@@ -436,7 +470,7 @@ begin
   end if;
 
   -- Member order does not change the result, so members are sorted by phone.
-  if not public.claim_idempotency_key('add_space_members', p_idempotency_key, encode(sha256(convert_to(
+  if not private.claim_idempotency_key('add_space_members', p_idempotency_key, encode(sha256(convert_to(
        jsonb_build_object(
          'space_id', p_space_id,
          'members', (select jsonb_agg(jsonb_build_object('phone', e ->> 'phone', 'name', nullif(btrim(e ->> 'name'), ''))
@@ -445,24 +479,44 @@ begin
     return;
   end if;
 
-  -- Includes departed members: re-adding one is not supported yet (unique space_id, phone).
+  if exists (select from public.space_members m join jsonb_array_elements(p_members) e on m.phone = e ->> 'phone'
+              where m.space_id = p_space_id and m.left_at is null) then
+    raise exception 'add_space_members: a phone is already a member of space %', p_space_id
+      using errcode = '22023', hint = 'already_member';
+  end if;
+  -- Re-adding a departed member is not supported yet (unique space_id, phone).
   if exists (select from public.space_members m join jsonb_array_elements(p_members) e on m.phone = e ->> 'phone'
               where m.space_id = p_space_id) then
-    raise exception 'add_space_members: a phone is already a member of space %', p_space_id using errcode = '22023';
+    raise exception 'add_space_members: a phone belongs to a former member of space %', p_space_id
+      using errcode = '22023', hint = 'former_member';
   end if;
   insert into public.space_members (space_id, phone, name, role)
   select p_space_id, (e ->> 'phone')::public.e164, nullif(btrim(e ->> 'name'), ''), 'member'
     from jsonb_array_elements(p_members) e;
 end $$;
 
--- A member may leave, and an owner may remove anyone, only at a zero balance. Enforced on the table
--- so a direct update of left_at is held to it too. Like RLS it binds clients (authenticated), not
--- server code: rejecting a claim ("this isn't me") departs whatever the balance.
+-- A member may leave, and an owner may remove anyone, only at a zero balance, and never the last
+-- active owner (the space would have nobody to administer it). Enforced on the table so a direct
+-- update of left_at is held to it too. Like RLS it binds clients (authenticated), not server code:
+-- rejecting a claim ("this isn't me") departs whatever the balance.
+-- Concurrency: the UPDATE already holds this member's row, which store_allocations and
+-- guard_expense_members lock FOR SHARE, so a concurrent allocation change either committed before
+-- (and the balance below, read with a fresh snapshot, includes it) or waits and then sees left_at.
+-- Departures in one space are serialised on the space row, so two owners cannot both leave.
 create function public.guard_member_leave() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare
-  bal bigint := (select b.balance_minor from public.space_member_balances b where b.member_id = new.id);
+  bal bigint;
 begin
+  perform from public.spaces s where s.id = new.space_id for no key update;
+  if new.role = 'owner' and not exists (
+    select from public.space_members m
+     where m.space_id = new.space_id and m.id <> new.id and m.role = 'owner'
+       and m.left_at is null and m.accepted_at is not null) then
+    raise exception 'member % is the last owner of space % and cannot leave', new.id, new.space_id
+      using errcode = '22023', hint = 'last_owner';
+  end if;
+  bal := (select b.balance_minor from public.space_member_balances b where b.member_id = new.id);
   if bal <> 0 then
     raise exception 'member % has a balance of % and cannot leave until it is settled', new.id, bal
       using errcode = '22023', hint = 'balance_not_zero';
@@ -489,7 +543,7 @@ begin
   if p_space_id is null or p_idempotency_key is null then
     raise exception 'leave_space: space id and idempotency key are required' using errcode = '22023';
   end if;
-  if not public.claim_idempotency_key('leave_space', p_idempotency_key, encode(sha256(convert_to(
+  if not private.claim_idempotency_key('leave_space', p_idempotency_key, encode(sha256(convert_to(
        jsonb_build_object('space_id', p_space_id, 'member_id', p_member_id)::text, 'UTF8')), 'hex')) then
     return;
   end if;
@@ -541,17 +595,18 @@ begin
   end if;
 end $$;
 
-revoke execute on function public.guard_member_leave() from public, anon, authenticated;
+revoke execute on function public.guard_member_leave(), public.guard_expense_members()
+  from public, anon, authenticated;
 revoke execute on function
-  public.claim_idempotency_key(text, uuid, text), public.normalise_expense(jsonb, uuid, text),
-  public.resolve_allocations(jsonb, uuid, text), public.store_allocations(uuid, jsonb, uuid, text),
+  private.claim_idempotency_key(text, uuid, text), private.store_allocations(uuid, jsonb, text),
+  public.normalise_expense(jsonb, uuid, text), public.resolve_allocations(jsonb, uuid, text),
   public.can_edit_expense(uuid),
   public.update_expense(jsonb), public.delete_expense(uuid, uuid), public.add_space_members(uuid, jsonb, uuid),
   public.leave_space(uuid, uuid, uuid), public.update_profile(text, text)
   from public, anon;
 grant execute on function
-  public.claim_idempotency_key(text, uuid, text), public.normalise_expense(jsonb, uuid, text),
-  public.resolve_allocations(jsonb, uuid, text), public.store_allocations(uuid, jsonb, uuid, text),
+  private.claim_idempotency_key(text, uuid, text), private.store_allocations(uuid, jsonb, text),
+  public.normalise_expense(jsonb, uuid, text), public.resolve_allocations(jsonb, uuid, text),
   public.can_edit_expense(uuid),
   public.update_expense(jsonb), public.delete_expense(uuid, uuid), public.add_space_members(uuid, jsonb, uuid),
   public.leave_space(uuid, uuid, uuid), public.update_profile(text, text)

@@ -177,17 +177,17 @@ select pg_temp.tagged(results_eq('select id from public.expenses',
   $$values ('00000000-0000-0000-0000-000000008301'::uuid)$$,
   'expenses: A sees S1 expenses, not those of soft-deleted S2 [+expenses_select] [-expenses_select]'));
 select pg_temp.tagged(lives_ok(
-  $q$do $$ begin
-    insert into public.expenses (id, space_id, description, amount_minor)
-    values ('00000000-0000-0000-0000-000000008303', '00000000-0000-0000-0000-000000008101', 'Milk', 2000);
-    insert into public.expense_payers (expense_id, member_id, amount_minor)
-    values ('00000000-0000-0000-0000-000000008303', '00000000-0000-0000-0000-000000008201', 2000);
-    insert into public.expense_splits (expense_id, member_id, split_type, amount_minor) values
-      ('00000000-0000-0000-0000-000000008303', '00000000-0000-0000-0000-000000008201', 'equal', 1000),
-      ('00000000-0000-0000-0000-000000008303', '00000000-0000-0000-0000-000000008202', 'equal', 1000);
-  end $$$q$,
-  'expenses: member A adds an expense with payers and splits [+expenses_insert] [+expense_payers_insert] [+expense_splits_insert]'
-));
+  $$insert into public.expenses (id, space_id, description, amount_minor)
+    values ('00000000-0000-0000-0000-000000008303', '00000000-0000-0000-0000-000000008101', 'Milk', 2000)$$,
+  'expenses: member A adds an expense [+expenses_insert]'));
+-- Its payers and splits, as postgres: clients write them only through the RPCs (#59).
+reset role;
+insert into public.expense_payers (expense_id, member_id, amount_minor)
+values ('00000000-0000-0000-0000-000000008303', '00000000-0000-0000-0000-000000008201', 2000);
+insert into public.expense_splits (expense_id, member_id, split_type, amount_minor) values
+  ('00000000-0000-0000-0000-000000008303', '00000000-0000-0000-0000-000000008201', 'equal', 1000),
+  ('00000000-0000-0000-0000-000000008303', '00000000-0000-0000-0000-000000008202', 'equal', 1000);
+set local role authenticated;
 select pg_temp.tagged(is((select created_by from public.expenses where id = '00000000-0000-0000-0000-000000008303'),
   '00000000-0000-0000-0000-000000008001'::uuid, 'expenses: created_by is the caller'));
 select pg_temp.tagged(throws_ok(
@@ -199,28 +199,28 @@ select pg_temp.tagged(throws_ok($$delete from public.expenses where id = '000000
 
 select pg_temp.tagged(is((select count(*)::int from public.expense_payers), 2, 'expense_payers: A sees payers of S1 expenses only [+expense_payers_select] [-expense_payers_select]'));
 select pg_temp.tagged(is((select count(*)::int from public.expense_splits), 4, 'expense_splits: A sees splits of S1 expenses only [+expense_splits_select] [-expense_splits_select]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.expense_splits set amount_minor = amount_minor
-                              where expense_id = '00000000-0000-0000-0000-000000008303'$$),
-  2, 'expense_splits: A edits splits of an S1 expense [+expense_splits_update]'));
+select pg_temp.tagged(throws_ok($$update public.expense_splits set amount_minor = amount_minor
+                              where expense_id = '00000000-0000-0000-0000-000000008303'$$,
+  '42501', null, 'expense_splits: direct update refused (RPCs only): A edits splits of an S1 expense'));
 
 select pg_temp.tagged(is(pg_temp.affected($$update public.expenses set description = 'Groceries and milk'
                               where id = '00000000-0000-0000-0000-000000008301'$$),
   1, 'expenses: member A edits an S1 expense [+expenses_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.expense_payers set amount_minor = amount_minor
-                              where expense_id = '00000000-0000-0000-0000-000000008303'$$),
-  1, 'expense_payers: member A edits a payer of an S1 expense [+expense_payers_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$delete from public.expense_payers where expense_id = '00000000-0000-0000-0000-000000008303'$$),
-  1, 'expense_payers: member A removes a payer of an S1 expense [+expense_payers_delete]'));
-select pg_temp.tagged(lives_ok($$insert into public.expense_payers (expense_id, member_id, amount_minor)
+select pg_temp.tagged(throws_ok($$update public.expense_payers set amount_minor = amount_minor
+                              where expense_id = '00000000-0000-0000-0000-000000008303'$$,
+  '42501', null, 'expense_payers: direct update refused (RPCs only): member A edits a payer of an S1 expense'));
+select pg_temp.tagged(throws_ok($$delete from public.expense_payers where expense_id = '00000000-0000-0000-0000-000000008303'$$,
+  '42501', null, 'expense_payers: direct delete refused (RPCs only): member A removes a payer of an S1 expense'));
+select pg_temp.tagged(throws_ok($$insert into public.expense_payers (expense_id, member_id, amount_minor)
                   values ('00000000-0000-0000-0000-000000008303', '00000000-0000-0000-0000-000000008202', 2000)$$,
-  'expense_payers: A replaces the payer, keeping the expense balanced [+expense_payers_insert]'));
-select pg_temp.tagged(is(pg_temp.affected($$delete from public.expense_splits
+  '42501', null, 'expense_payers: direct insert refused (RPCs only): A replaces the payer, keeping the expense balanced'));
+select pg_temp.tagged(throws_ok($$delete from public.expense_splits
                               where expense_id = '00000000-0000-0000-0000-000000008303'
-                                and member_id = '00000000-0000-0000-0000-000000008202'$$),
-  1, 'expense_splits: member A removes a split of an S1 expense [+expense_splits_delete]'));
-select pg_temp.tagged(lives_ok($$update public.expense_splits set amount_minor = 2000
+                                and member_id = '00000000-0000-0000-0000-000000008202'$$,
+  '42501', null, 'expense_splits: direct delete refused (RPCs only): member A removes a split of an S1 expense'));
+select pg_temp.tagged(throws_ok($$update public.expense_splits set amount_minor = 2000
                   where expense_id = '00000000-0000-0000-0000-000000008303'$$,
-  'expense_splits: A moves the removed share, keeping the expense balanced [+expense_splits_update]'));
+  '42501', null, 'expense_splits: direct update refused (RPCs only): A moves the removed share, keeping the expense balanced'));
 
 select pg_temp.tagged(is((select count(*)::int from public.recurring_expenses), 1, 'recurring_expenses: A sees S1 recurring [+recurring_expenses_select]'));
 select pg_temp.tagged(lives_ok(
@@ -275,28 +275,29 @@ select pg_temp.tagged(throws_ok(
   $$insert into public.space_members (space_id, phone, role) values ('00000000-0000-0000-0000-000000008101', '+919000000008', 'owner')$$,
   '42501', null, 'space_members: member B cannot add an owner [-space_members_insert]'));
 select pg_temp.tagged(lives_ok(
-  $q$do $$ begin
-    insert into public.expenses (id, space_id, description, amount_minor)
-    values ('00000000-0000-0000-0000-000000008304', '00000000-0000-0000-0000-000000008101', 'Gas', 1000);
-    insert into public.expense_payers (expense_id, member_id, amount_minor)
-    values ('00000000-0000-0000-0000-000000008304', '00000000-0000-0000-0000-000000008202', 1000);
-    insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
-    values ('00000000-0000-0000-0000-000000008304', '00000000-0000-0000-0000-000000008202', 'exact', 1000);
-  end $$$q$,
-  'expenses: phone-only member B adds an expense'
-));
+  $$insert into public.expenses (id, space_id, description, amount_minor)
+    values ('00000000-0000-0000-0000-000000008304', '00000000-0000-0000-0000-000000008101', 'Gas', 1000)$$,
+  'expenses: phone-only member B adds an expense'));
+-- Its payers and splits, as postgres: clients write them only through the RPCs (#59).
+reset role;
+insert into public.expense_payers (expense_id, member_id, amount_minor)
+values ('00000000-0000-0000-0000-000000008304', '00000000-0000-0000-0000-000000008202', 1000);
+insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
+values ('00000000-0000-0000-0000-000000008304', '00000000-0000-0000-0000-000000008202', 'exact', 1000);
+set local role authenticated;
 select pg_temp.tagged(lives_ok('set constraints all immediate', 'expenses added under RLS pass the commit-time balance check'));
 set constraints all deferred;
 
--- A settles B's +500, so B may leave (#59: only at a zero balance).
-do $$ begin
-  insert into public.expenses (id, space_id, description, amount_minor, is_settlement)
-  values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008101', 'Settle', 500, true);
-  insert into public.expense_payers (expense_id, member_id, amount_minor)
-  values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008201', 500);
-  insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
-  values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008202', 'exact', 500);
-end $$;
+-- B settles its -2500 with A, so B may leave (#59: only at a zero balance). As postgres: clients
+-- write payers and splits only through the RPCs.
+reset role;
+insert into public.expenses (id, space_id, description, amount_minor, is_settlement)
+values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008101', 'Settle', 2500, true);
+insert into public.expense_payers (expense_id, member_id, amount_minor)
+values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008202', 2500);
+insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
+values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008201', 'exact', 2500);
+set local role authenticated;
 
 select pg_temp.tagged(throws_ok(
   $q$do $$ begin
@@ -338,9 +339,9 @@ select pg_temp.tagged(throws_ok(
 select pg_temp.tagged(throws_ok(
   $$insert into public.expense_payers (expense_id, member_id, amount_minor)
     values ('00000000-0000-0000-0000-000000008301', '00000000-0000-0000-0000-000000008201', 1)$$,
-  '42501', null, 'expense_payers: non-member C cannot insert [-expense_payers_insert]'));
-select pg_temp.tagged(is(pg_temp.affected($$delete from public.expense_splits where expense_id = '00000000-0000-0000-0000-000000008301'$$),
-  0, 'expense_splits: non-member C cannot delete [-expense_splits_delete]'));
+  '42501', null, 'expense_payers: non-member C cannot insert'));
+select pg_temp.tagged(throws_ok($$delete from public.expense_splits where expense_id = '00000000-0000-0000-0000-000000008301'$$,
+  '42501', null, 'expense_splits: direct delete refused (RPCs only): non-member C cannot delete'));
 select pg_temp.tagged(throws_ok(
   $$insert into public.recurring_expenses (space_id, description, amount_minor, template, recurrence, next_run_on)
     values ('00000000-0000-0000-0000-000000008101', 'x', 1, '{}', 'monthly', current_date)$$,
@@ -387,14 +388,14 @@ select pg_temp.tagged(throws_ok(
 select pg_temp.tagged(is(pg_temp.affected($$update public.expenses set description = 'cross-space edit'
                               where id = '00000000-0000-0000-0000-000000008301'$$),
   0, 'expenses: member of another space C cannot edit an S1 expense [-expenses_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.expense_payers set amount_minor = amount_minor
-                              where expense_id = '00000000-0000-0000-0000-000000008301'$$),
-  0, 'expense_payers: member of another space C cannot edit S1 payers [-expense_payers_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$delete from public.expense_payers where expense_id = '00000000-0000-0000-0000-000000008301'$$),
-  0, 'expense_payers: member of another space C cannot delete S1 payers [-expense_payers_delete]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.expense_splits set amount_minor = amount_minor
-                              where expense_id = '00000000-0000-0000-0000-000000008301'$$),
-  0, 'expense_splits: member of another space C cannot edit S1 splits [-expense_splits_update]'));
+select pg_temp.tagged(throws_ok($$update public.expense_payers set amount_minor = amount_minor
+                              where expense_id = '00000000-0000-0000-0000-000000008301'$$,
+  '42501', null, 'expense_payers: direct update refused (RPCs only): member of another space C cannot edit S1 payers'));
+select pg_temp.tagged(throws_ok($$delete from public.expense_payers where expense_id = '00000000-0000-0000-0000-000000008301'$$,
+  '42501', null, 'expense_payers: direct delete refused (RPCs only): member of another space C cannot delete S1 payers'));
+select pg_temp.tagged(throws_ok($$update public.expense_splits set amount_minor = amount_minor
+                              where expense_id = '00000000-0000-0000-0000-000000008301'$$,
+  '42501', null, 'expense_splits: direct update refused (RPCs only): member of another space C cannot edit S1 splits'));
 select pg_temp.tagged(is(pg_temp.affected($$update public.recurring_expenses set description = 'cross-space edit'
                               where id = '00000000-0000-0000-0000-000000008401'$$),
   0, 'recurring_expenses: member of another space C cannot edit S1 recurring [-recurring_expenses_update]'));
@@ -412,7 +413,7 @@ set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000008001",
 select pg_temp.tagged(throws_ok(
   $$insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
     values ('00000000-0000-0000-0000-000000008303', '00000000-0000-0000-0000-000000008207', 'equal', 0)$$,
-  '42501', null, 'expense_splits: cannot name a member of another space [-expense_splits_insert]'));
+  '42501', null, 'expense_splits: cannot name a member of another space'));
 
 -- D: departed member of S1.
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000008004", "role": "authenticated"}';
