@@ -559,28 +559,33 @@ Further hints:
 | `22023` | `settlement_kind` | Turning spending into a settle-up or back |
 | `22023` | `settlement_final` | Editing, deleting or restoring a confirmed or disputed settle-up |
 | `22023` | `not_pending` | Confirming or disputing a settle-up that is already answered or deleted |
+| `22023` | `settlement_changed` | Confirming an amount or payer the settle-up no longer has (it was edited since it was shown) |
 | `42501` | `not_payee` | Confirming or disputing as anyone but the payee |
 
-### `confirm_settlement(p_expense_id uuid, p_idempotency_key uuid)`
-The payee confirms a pending settle-up; it counts from now on. Final. Returns nothing. The key is
-claimed in `private.idempotency_keys` first, so a replay succeeds after the settle-up is no longer
-pending; the fingerprint is the expense id.
+### `confirm_settlement(p_expense_id uuid, p_amount_minor bigint, p_payer_member_id uuid, p_idempotency_key uuid)`
+The payee confirms a pending settle-up; it counts from now on. Final. Returns nothing. The payee
+sends the amount and payer they were shown: a pending settle-up can still be edited, and an edit that
+lands first is refused as `settlement_changed` rather than confirmed unseen. The key is claimed in
+`private.idempotency_keys` first, so a replay succeeds after the settle-up is no longer pending; the
+fingerprint is the expense id, amount and payer.
 
 - `42501`: not an accepted member of the space, not a settle-up, or `not_payee`.
-- `22023`: `not_pending`, or `departed_member`.
+- `22023`: a missing argument, `not_pending`, `settlement_changed`, or `departed_member`.
 - Concurrency: a confirmation and a dispute of the same settle-up (two devices) lock the expense row
   one after the other; the second is `not_pending`. An edit or delete waits the same way.
 - Security definer, so the shared step (`private.answer_settlement`) stays server-only; every check
   is made against the caller's verified id, as RLS would.
 
 ```
-POST /rest/v1/rpc/confirm_settlement  {"p_expense_id": "0b9d…", "p_idempotency_key": "c2d4…"}
+POST /rest/v1/rpc/confirm_settlement
+{"p_expense_id": "0b9d…", "p_amount_minor": 50000, "p_payer_member_id": "<Rahul>", "p_idempotency_key": "c2d4…"}
 ```
 
 ### `dispute_settlement(p_expense_id uuid, p_reason text, p_idempotency_key uuid)`
 The payee disputes a pending settle-up with a reason (trimmed, 1–500 characters, else `22023`).
 Final: it stays visible with `dispute_reason` and never counts; the payer records a corrected one.
-Same errors and concurrency as `confirm_settlement`, without `departed_member`. The fingerprint is the
+Same errors and concurrency as `confirm_settlement`, without `departed_member` and
+`settlement_changed` (a dispute changes no balance). The fingerprint is the
 expense id and the trimmed reason.
 
 ```

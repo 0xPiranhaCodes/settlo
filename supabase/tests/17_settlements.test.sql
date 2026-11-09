@@ -9,7 +9,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(76);
+select plan(78);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000007801', '919780000001', now()),
@@ -53,8 +53,11 @@ create function pg_temp.settle(key text, payer text, payee text, amount int) ret
     'payers', jsonb_build_array(jsonb_build_object('member_id', payer, 'amount_minor', amount)),
     'splits', jsonb_build_array(jsonb_build_object('member_id', payee, 'amount_minor', amount))))
 $$;
-create function pg_temp.confirm(expense uuid, key text) returns text language sql as $$
-  select format('select public.confirm_settlement(%L, %L)', expense, key)
+-- Confirms the settle-up as it stands (the amount and payer the payee is shown).
+create function pg_temp.confirm(expense uuid, key text) returns text language sql security definer as $$
+  select format('select public.confirm_settlement(%L, %L, %L, %L)', expense,
+                (select amount_minor from public.expenses where id = expense),
+                (select member_id from public.expense_payers where expense_id = expense), key)
 $$;
 create function pg_temp.dispute(expense uuid, reason text, key text) returns text language sql as $$
   select format('select public.dispute_settlement(%L, %L, %L)', expense, reason, key)
@@ -86,8 +89,8 @@ select is(
            or not has_function_privilege('authenticated', p.oid, 'execute'))),
   null,
   'settlement RPCs have a fixed search_path and are executable by authenticated only');
-select ok(not has_function_privilege('authenticated', 'private.answer_settlement(text, uuid, boolean, text)', 'execute')
-          and not has_function_privilege('anon', 'private.answer_settlement(text, uuid, boolean, text)', 'execute')
+select ok(not has_function_privilege('authenticated', 'private.answer_settlement(text, uuid, boolean, text, bigint, uuid)', 'execute')
+          and not has_function_privilege('anon', 'private.answer_settlement(text, uuid, boolean, text, bigint, uuid)', 'execute')
           and not has_function_privilege('authenticated', 'public.guard_settlement()', 'execute'),
   'private.answer_settlement and the settlement guard are not executable by clients');
 select ok(not has_table_privilege('anon', 'public.pending_settlements', 'select')
@@ -266,6 +269,13 @@ select lives_ok(format('select public.update_expense(%L)', jsonb_build_object(
     'splits', jsonb_build_array(jsonb_build_object('member_id', '00000000-0000-0000-0000-000000007821', 'amount_minor', 500)))),
   'update_expense: B, the payer, may still edit a pending settle-up');
 select is(pg_temp.status('00000000-0000-0000-0000-000000007a04'), 'pending', 'S4: the payer''s edit leaves it pending');
+select pg_temp.login('00000000-0000-0000-0000-000000007801');
+select is(pg_temp.hint_of(format('select public.confirm_settlement(%L, 400, %L, %L)', pg_temp.id('00000000-0000-0000-0000-000000007a04'),
+    '00000000-0000-0000-0000-000000007822', '00000000-0000-0000-0000-000000007b19')),
+  'settlement_changed', 'confirm_settlement: A cannot confirm an amount S4 no longer has');
+select is(pg_temp.hint_of(format('select public.confirm_settlement(%L, 500, %L, %L)', pg_temp.id('00000000-0000-0000-0000-000000007a04'),
+    '00000000-0000-0000-0000-000000007823', '00000000-0000-0000-0000-000000007b20')),
+  'settlement_changed', 'confirm_settlement: nor a payer it no longer has');
 select pg_temp.login('00000000-0000-0000-0000-000000007801');
 select lives_ok(format('select public.update_expense(%L)', jsonb_build_object(
     'expense_id', pg_temp.id('00000000-0000-0000-0000-000000007a04'), 'idempotency_key', '00000000-0000-0000-0000-000000007b12',

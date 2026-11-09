@@ -339,6 +339,8 @@ void main() {
   test('the payee confirms or disputes through the settlement RPCs', () async {
     await repository().confirmSettlement(
       'e4',
+      amount: const Paise(50000),
+      payerMemberId: 'm2',
       idempotencyKey: 'c2d40000-0000-4000-8000-000000000005',
     );
     await repository().disputeSettlement(
@@ -348,7 +350,7 @@ void main() {
     );
 
     expect(requests, [
-      'POST rpc/confirm_settlement  ${jsonEncode({'p_expense_id': 'e4', 'p_idempotency_key': 'c2d40000-0000-4000-8000-000000000005'})}',
+      'POST rpc/confirm_settlement  ${jsonEncode({'p_expense_id': 'e4', 'p_amount_minor': 50000, 'p_payer_member_id': 'm2', 'p_idempotency_key': 'c2d40000-0000-4000-8000-000000000005'})}',
       'POST rpc/dispute_settlement  ${jsonEncode({'p_expense_id': 'e4', 'p_reason': 'Not received', 'p_idempotency_key': 'e5f60000-0000-4000-8000-000000000006'})}',
     ]);
   });

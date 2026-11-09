@@ -181,7 +181,10 @@ end $$;
 
 -- Confirm or dispute: shared by the two RPCs below, its only callers (no client may execute it: it
 -- does not check the reason or claim the key). Only the payee, only while pending and live.
-create function private.answer_settlement(p_caller text, p_expense_id uuid, p_confirm boolean, p_reason text)
+-- A confirmation names the amount and payer the payee saw: an edit that lands first is refused as
+-- settlement_changed rather than confirmed unseen.
+create function private.answer_settlement(p_caller text, p_expense_id uuid, p_confirm boolean, p_reason text,
+                                          p_amount_minor bigint default null, p_payer uuid default null)
 returns void
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -208,6 +211,11 @@ begin
       using errcode = '22023', hint = 'not_pending';
   end if;
 
+  if p_confirm and (e.amount_minor is distinct from p_amount_minor or v_payer is distinct from p_payer) then
+    raise exception '%: settle-up % changed since it was shown; reload it', p_caller, p_expense_id
+      using errcode = '22023', hint = 'settlement_changed';
+  end if;
+
   if p_confirm then
     -- Confirming changes both balances: like store_allocations, never a departed member's.
     perform from public.space_members m where m.id in (v_payer, v_payee) order by m.id for share;
@@ -222,22 +230,26 @@ begin
   end if;
 end $$;
 
--- The payee confirms a pending settle-up; it counts from now on. Final. The key is checked first,
--- so a replay returns after the settle-up is no longer pending.
-create function public.confirm_settlement(p_expense_id uuid, p_idempotency_key uuid) returns void
+-- The payee confirms a pending settle-up of p_amount_minor from p_payer_member_id, as shown to them;
+-- it counts from now on. Final. The key is checked first, so a replay returns after the settle-up is
+-- no longer pending.
+create function public.confirm_settlement(p_expense_id uuid, p_amount_minor bigint, p_payer_member_id uuid,
+                                          p_idempotency_key uuid) returns void
 language plpgsql security definer set search_path = '' as $$
 begin
   if public.verified_uid() is null then
     raise exception 'confirm_settlement: caller has no verified phone' using errcode = '42501';
   end if;
-  if p_expense_id is null or p_idempotency_key is null then
-    raise exception 'confirm_settlement: expense id and idempotency key are required' using errcode = '22023';
+  if p_expense_id is null or p_amount_minor is null or p_payer_member_id is null or p_idempotency_key is null then
+    raise exception 'confirm_settlement: expense id, amount, payer and idempotency key are required'
+      using errcode = '22023';
   end if;
   if not private.claim_idempotency_key('confirm_settlement', p_idempotency_key, encode(sha256(convert_to(
-       jsonb_build_object('expense_id', p_expense_id)::text, 'UTF8')), 'hex')) then
+       jsonb_build_object('expense_id', p_expense_id, 'amount_minor', p_amount_minor,
+                          'payer_member_id', p_payer_member_id)::text, 'UTF8')), 'hex')) then
     return;
   end if;
-  perform private.answer_settlement('confirm_settlement', p_expense_id, true, null);
+  perform private.answer_settlement('confirm_settlement', p_expense_id, true, null, p_amount_minor, p_payer_member_id);
 end $$;
 
 -- The payee disputes a pending settle-up with a reason. Final; it stays visible and never counts.
@@ -261,11 +273,11 @@ begin
 end $$;
 
 revoke execute on function
-  public.guard_settlement(), private.answer_settlement(text, uuid, boolean, text)
+  public.guard_settlement(), private.answer_settlement(text, uuid, boolean, text, bigint, uuid)
   from public, anon, authenticated;
 revoke execute on function
-  public.confirm_settlement(uuid, uuid), public.dispute_settlement(uuid, text, uuid)
+  public.confirm_settlement(uuid, bigint, uuid, uuid), public.dispute_settlement(uuid, text, uuid)
   from public, anon;
 grant execute on function
-  public.confirm_settlement(uuid, uuid), public.dispute_settlement(uuid, text, uuid)
+  public.confirm_settlement(uuid, bigint, uuid, uuid), public.dispute_settlement(uuid, text, uuid)
   to authenticated;

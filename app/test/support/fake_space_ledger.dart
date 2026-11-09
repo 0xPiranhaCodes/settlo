@@ -256,9 +256,11 @@ class FakeSpaceLedgerRepository implements SpaceLedgerRepository {
   @override
   Future<void> confirmSettlement(
     String expenseId, {
+    required Paise amount,
+    required String payerMemberId,
     required String idempotencyKey,
   }) => _answer(
-    'confirm $idempotencyKey $expenseId',
+    'confirm $idempotencyKey $expenseId ${amount.value} $payerMemberId',
     idempotencyKey,
     expenseId,
     SettlementStatus.confirmed,

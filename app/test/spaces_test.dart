@@ -796,7 +796,7 @@ void main() {
       expect(find.text('Yes, I received ₹300'), findsNothing);
       final [first, retry] = ledger.calls;
       expect(first, retry, reason: 'a retry reuses the key');
-      expect(first, matches(RegExp(r'^confirm \S{36} e11$')));
+      expect(first, matches(RegExp(r'^confirm \S{36} e11 30000 m2$')));
       expect(find.text('settle-up'), findsOne, reason: 'confirmed and final');
 
       await tester.tap(find.text('Rahul paid you back'));

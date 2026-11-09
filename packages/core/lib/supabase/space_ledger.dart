@@ -152,10 +152,14 @@ abstract interface class SpaceLedgerRepository {
     required String idempotencyKey,
   });
 
-  /// The payee confirms pending settle-up [expenseId]; it counts from
-  /// then on. A retry must pass the same [idempotencyKey].
+  /// The payee confirms pending settle-up [expenseId] of [amount] from
+  /// [payerMemberId], as shown to them; it counts from then on. If it was
+  /// edited since, the server refuses (`settlement_changed`). A retry must
+  /// pass the same [idempotencyKey].
   Future<void> confirmSettlement(
     String expenseId, {
+    required Paise amount,
+    required String payerMemberId,
     required String idempotencyKey,
   });
 
@@ -178,6 +182,13 @@ String _joined(_Row split) =>
 String _date(DateTime d) =>
     '${d.year}-${d.month.toString().padLeft(2, '0')}-'
     '${d.day.toString().padLeft(2, '0')}';
+
+/// A settle-up was edited after the payee was shown it, so it was not
+/// confirmed (`settlement_changed`); reload and show it again.
+final class SettlementChanged implements Exception {
+  /// A refusal.
+  const new();
+}
 
 /// [SpaceLedgerRepository] over PostgREST: `expenses` with their payers
 /// and splits, the monthly views, and the `update_expense`,
@@ -332,9 +343,13 @@ final class SupabaseSpaceLedgerRepository implements SpaceLedgerRepository {
   @override
   Future<void> confirmSettlement(
     String expenseId, {
+    required Paise amount,
+    required String payerMemberId,
     required String idempotencyKey,
   }) => _call('confirm_settlement', {
     'p_expense_id': expenseId,
+    'p_amount_minor': amount.value,
+    'p_payer_member_id': payerMemberId,
     'p_idempotency_key': idempotencyKey,
   });
 
@@ -354,6 +369,7 @@ final class SupabaseSpaceLedgerRepository implements SpaceLedgerRepository {
       await _db.rpc<Object?>(fn, params: params);
     } on PostgrestException catch (e) {
       if (e.code == 'PT409') throw const IdempotencyConflict();
+      if (e.hint == 'settlement_changed') throw const SettlementChanged();
       rethrow;
     }
   }

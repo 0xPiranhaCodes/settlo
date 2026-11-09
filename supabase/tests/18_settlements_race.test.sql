@@ -61,7 +61,8 @@ begin
   return dblink_error_message(conn);
 end $$;
 create function pg_temp.confirm(expense text, key text) returns text language sql as $$
-  select format($q$select public.confirm_settlement('%s', '%s')::text$q$, expense, key)
+  select format($q$select public.confirm_settlement('%s', %s, '00000000-0000-0000-0000-000000007922', '%s')::text$q$,
+                expense, (select amount_minor from public.expenses where id = expense::uuid), key)
 $$;
 create function pg_temp.dispute(expense text, key text) returns text language sql as $$
   select format($q$select public.dispute_settlement('%s', 'Not received', '%s')::text$q$, expense, key)

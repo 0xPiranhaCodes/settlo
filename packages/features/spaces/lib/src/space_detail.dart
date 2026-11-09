@@ -59,15 +59,20 @@ class SpaceLedgerController extends AsyncNotifier<SpaceLedger> {
             .deleteExpense(expenseId, idempotencyKey: idempotencyKey),
       );
 
-  /// Confirms pending settle-up [expenseId] as its payee; a retry must
-  /// pass the same [idempotencyKey].
+  /// Confirms pending settle-up [expense] as shown, as its payee; a retry
+  /// must pass the same [idempotencyKey].
   Future<void> confirmSettlement(
-    String expenseId, {
+    SpaceExpense expense, {
     required String idempotencyKey,
   }) => _changed(
     ref
         .read(spaceLedgerRepositoryProvider)
-        .confirmSettlement(expenseId, idempotencyKey: idempotencyKey),
+        .confirmSettlement(
+          expense.id,
+          amount: expense.amount,
+          payerMemberId: expense.payers.single.memberId,
+          idempotencyKey: idempotencyKey,
+        ),
   );
 
   /// Disputes pending settle-up [expenseId] as its payee with [reason]; a
@@ -1270,6 +1275,10 @@ class _ConfirmSettlementSheetState
       if (mounted) Navigator.of(context).pop();
     } on IdempotencyConflict {
       _error = 'You already answered this. Close this to see it.';
+    } on SettlementChanged {
+      ref.read(ledgerRevisionProvider.notifier).bump();
+      _error =
+          'This settle-up was just changed. Close this and check it again.';
     } on Exception {
       _error =
           "We couldn't save that. Check your connection and try again. "
@@ -1280,10 +1289,8 @@ class _ConfirmSettlementSheetState
   }
 
   Future<void> _confirm() => _run(
-    (ledger) => ledger.confirmSettlement(
-      widget.expense.id,
-      idempotencyKey: _confirmKey,
-    ),
+    (ledger) =>
+        ledger.confirmSettlement(widget.expense, idempotencyKey: _confirmKey),
   );
 
   Future<void> _dispute() async {

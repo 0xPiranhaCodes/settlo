@@ -306,7 +306,7 @@ select isnt(public.add_expense('{"space_id": "00000000-0000-0000-0000-0000000059
   null, 'fixture: E settles 500 with A');
 select pg_temp.login('00000000-0000-0000-0000-000000005901');
 select lives_ok($$select public.confirm_settlement((select id from public.expenses where idempotency_key = '00000000-0000-0000-0000-000000005933'),
-    '00000000-0000-0000-0000-000000005934')$$, 'fixture: A confirms it (#78)');
+    500, '00000000-0000-0000-0000-000000005925', '00000000-0000-0000-0000-000000005934')$$, 'fixture: A confirms it (#78)');
 select pg_temp.login('00000000-0000-0000-0000-000000005905');
 select lives_ok($$select public.leave_space('00000000-0000-0000-0000-000000005910', '00000000-0000-0000-0000-000000005971')$$,
   'leave_space: E leaves at a zero balance');
