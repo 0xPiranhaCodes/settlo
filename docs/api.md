@@ -381,3 +381,126 @@ writes the same values.
 ```
 POST /rest/v1/rpc/update_profile  {"p_name": "Asha K", "p_upi_id": "asha.k@okaxis"}
 ```
+
+## Loans (#87)
+
+Same rules as the RPCs above: `authenticated` only, verified callers, the same error codes, and
+payload-bound idempotency. `create_loan` and `record_repayment` use the key as the new row's id (as
+`create_space`), so the client can queue repayments against a loan it created offline; the
+fingerprint is kept on that row and never purged. `confirm_repayment` and `dispute_repayment` keep
+theirs in `private.idempotency_keys` (30-day window, #70).
+
+Two-sided confirmation: a repayment is recorded **pending** by one party and only the **other** party
+confirms or disputes it, once. Both outcomes are final. Only confirmed repayments count
+(`loan_summaries.repaid_minor`); a disputed one stays visible with its reason and never counts. The
+`loan_repayments` guard trigger (#7) holds direct table writes to the same rules. v1 is interest free:
+a repayment is all principal.
+
+Closing: when confirmed repayments reach the principal, the confirmation closes the loan
+(`closed_at`). Nothing can be recorded on a closed loan, and no confirmation may take the confirmed
+total past the principal.
+
+Activity (`activity.loan_id`): `created` (after: the loan), `recorded` (after: the repayment),
+`confirmed` / `disputed` (before and after: the repayment), `closed` (before and after: the loan; a
+confirmation that repays the loan logs `confirmed` then `closed`).
+
+Who may call what:
+
+| | Lender | Borrower | Pending claimant | Outsider / unverified / anon |
+| --- | --- | --- | --- | --- |
+| `create_loan` | any verified user, as either side | | | `42501` |
+| `record_repayment` | yes | yes | `42501` | `42501` |
+| `confirm_repayment`, `dispute_repayment` | only what the borrower recorded | only what the lender recorded | `42501` | `42501` |
+
+A pending claimant is a number the loan was recorded against that has verified but not yet accepted
+the claim (`accept_claim('loan', id)`, #9): it can read the loan but write nothing.
+
+Further hints:
+
+| Code | Hint | When |
+| --- | --- | --- |
+| `22023` | `interest_not_supported` | `create_loan` with an `interest_type` other than `none` |
+| `22023` | `overpayment` | A repayment over what is outstanding (principal minus confirmed), or a confirmation that would pass the principal |
+| `22023` | `loan_closed` | `record_repayment` on a closed loan |
+| `22023` | `not_pending` | Confirming or disputing a repayment already confirmed or disputed |
+| `42501` | `own_record` | Confirming or disputing a repayment your own side recorded |
+
+Settle-ups (#78) reuse this model: pending until the other side answers, `own_record` and
+`not_pending` with the same meaning, and confirm/dispute as one conditional update so a race has
+one winner.
+
+### `create_loan(p jsonb)`
+Creates a loan between the caller and `counterparty_phone` and returns its id (the key). The
+counterparty may have no account: their side is a pending claim until that number verifies and
+accepts (#9). Nothing about the counterparty is revealed to the caller before then.
+
+| Field | Type | |
+| --- | --- | --- |
+| `idempotency_key` | uuid | Required; becomes the loan id |
+| `direction` | text | Required: `lent` (caller is the lender) or `borrowed` |
+| `counterparty_phone` | E.164 | Required; not the caller's own number |
+| `principal_minor` | bigint | Required, > 0 |
+| `installment_minor`, `due_day` | bigint, 1–28 | Both for a `monthly` loan (instalment ≤ principal), neither for `flexible` |
+| `start_on` | date | Default: today in India |
+| `interest_type` | text | Optional; only `none` in v1 |
+
+The fingerprint is every field above except the key, with `start_on` as sent. A replay with another
+payload, or a key that is another user's loan id, is `PT409`.
+
+```
+POST /rest/v1/rpc/create_loan
+{"p": {"idempotency_key": "3e7a…", "direction": "lent", "counterparty_phone": "+919800000002",
+       "principal_minor": 1000000, "installment_minor": 100000, "due_day": 5, "start_on": "2026-11-10"}}
+
+200 "3e7a…"
+```
+
+### `record_repayment(p jsonb)`
+Either accepted party records a repayment; it is pending until the other party answers. Returns the
+repayment id (the key).
+
+| Field | Type | |
+| --- | --- | --- |
+| `loan_id` | uuid | Required |
+| `idempotency_key` | uuid | Required; becomes the repayment id |
+| `amount_minor` | bigint | Required, > 0, at most the outstanding principal (`overpayment`) |
+| `paid_on` | date | Default: today in India |
+| `method` | `upi`, `cash`, `bank`, `other` | Optional |
+| `reference` | text | Optional, trimmed (e.g. a UPI transaction id) |
+
+Pending repayments do not reduce what is outstanding, so two pending repayments may together exceed
+it; whichever is confirmed second is then refused (`overpayment`) and can be disputed. A replay
+returns the id even after the loan has closed.
+
+```
+POST /rest/v1/rpc/record_repayment
+{"p": {"loan_id": "3e7a…", "idempotency_key": "7b1c…", "amount_minor": 100000, "method": "upi",
+       "paid_on": "2026-12-05", "reference": "UPI 4321…"}}
+
+200 "7b1c…"
+```
+
+### `confirm_repayment(p_repayment_id uuid, p_idempotency_key uuid)`
+The other party confirms a pending repayment. Final. Closes the loan if it is now fully repaid.
+Returns nothing. The key is checked first, so a replay succeeds after the repayment is no longer
+pending; the fingerprint is the repayment id.
+
+- `42501`: not an accepted party, or `own_record`.
+- `22023`: `not_pending`, or `overpayment`.
+- Concurrency: a confirmation and a dispute of the same repayment (two devices) run one after the
+  other on the repayment row; the second is `not_pending`.
+
+```
+POST /rest/v1/rpc/confirm_repayment  {"p_repayment_id": "7b1c…", "p_idempotency_key": "c2d4…"}
+```
+
+### `dispute_repayment(p_repayment_id uuid, p_reason text, p_idempotency_key uuid)`
+The other party disputes a pending repayment with a reason (trimmed, 1–500 characters, else
+`22023`). Final: the repayment stays visible with `dispute_reason` and never counts; the payer
+records a corrected one instead. Same errors and concurrency as `confirm_repayment`. The fingerprint
+is the repayment id and the trimmed reason.
+
+```
+POST /rest/v1/rpc/dispute_repayment
+{"p_repayment_id": "7b1c…", "p_reason": "Not received yet", "p_idempotency_key": "e5f6…"}
+```
