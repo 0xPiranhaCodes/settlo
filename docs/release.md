@@ -20,7 +20,7 @@ The checked evidence above is bound to issue [#65](https://github.com/0xPiranhaC
 - [x] A read-only server assertion proves the final `loan_summaries` row is ₹50,000 repaid, ₹50,000 outstanding, two confirmed, one disputed, none pending and on track; Activity contains all seven loan events.
 - [x] The iPhone 16 / iOS 18.2 [loan-flow recording](https://github.com/0xPiranhaCodes/settlo/blob/evidence/92-loan-flow/loan-flow-ios-18.2.mp4?raw=true) covers the passing flow.
 - [x] The existing flatmate gate passes with both settle-ups confirmed by their payees after recording, with a fresh iPhone 16 / iOS 18.2 [regression recording](https://github.com/0xPiranhaCodes/settlo/blob/evidence/92-loan-flow/flatmate-flow-ios-18.2.mp4?raw=true).
-- [ ] Required hosted CI checks are green for the loan-flow pull request.
+- [x] Required hosted CI checks are green for [loan-flow pull request #102](https://github.com/0xPiranhaCodes/settlo/pull/102/checks).
 
 The evidence above is bound to issue [#92](https://github.com/0xPiranhaCodes/settlo/issues/92). The gate is not merge-ready until the final hosted checks are green and the merge rule below is satisfied.
 
