@@ -8,6 +8,14 @@
 -- each table needs. No client DELETE except allocations and friends: history is soft-deleted.
 -- Activity stays trigger-written; clients can only read it.
 
+-- The expense integrity triggers ran as the caller. Under RLS that fails open: a member could add an
+-- unbalanced expense, then leave (or soft-delete the space) in the same transaction, and the
+-- commit-time check would no longer see the expense and pass. They must see every row.
+alter function public.check_expense_balance() security definer;
+alter function public.freeze_deleted_expense() security definer;
+revoke execute on function public.check_expense_balance(), public.freeze_deleted_expense()
+  from public, anon, authenticated;
+
 -- The caller's user id, or null unless their phone is verified.
 create function public.verified_uid() returns uuid
 language sql stable security definer set search_path = '' as $$
@@ -90,7 +98,10 @@ language sql stable security definer set search_path = '' as $$
 $$;
 
 -- Self, anyone who is or was a member of a live space the caller is an active member of
--- (departed members still appear in shared history), and loan counterparties.
+-- (departed members still appear in shared history), and loan counterparties. Others count only
+-- through a linked user_id, never a bare phone: anyone can record a space or loan against any number,
+-- and that alone must not reveal the number's name or UPI id. A user_id is set only by its owner
+-- (self-link below) or by sign-up linking (#9), which must link only claims the user accepts.
 create function public.can_see_profile(p_profile_id uuid, p_phone text) returns boolean
 language sql stable security definer set search_path = '' as $$
   select p_profile_id = public.verified_uid()
@@ -99,13 +110,11 @@ language sql stable security definer set search_path = '' as $$
         join public.space_members me on me.space_id = them.space_id
         join public.spaces s on s.id = them.space_id
        where s.deleted_at is null and me.left_at is null and public.is_me(me.user_id, me.phone)
-         and (them.user_id = p_profile_id or (them.user_id is null and them.phone = p_phone)))
+         and them.user_id = p_profile_id)
     or exists (
       select from public.loans l
-       where (public.is_me(l.lender_id, l.lender_phone)
-              and (l.borrower_id = p_profile_id or (l.borrower_id is null and l.borrower_phone = p_phone)))
-          or (public.is_me(l.borrower_id, l.borrower_phone)
-              and (l.lender_id = p_profile_id or (l.lender_id is null and l.lender_phone = p_phone))))
+       where (public.is_me(l.lender_id, l.lender_phone) and l.borrower_id = p_profile_id)
+          or (public.is_me(l.borrower_id, l.borrower_phone) and l.lender_id = p_profile_id))
 $$;
 
 revoke execute on function
@@ -136,8 +145,8 @@ grant select (id, phone, name, upi_id), insert (id, phone, name, upi_id), update
 -- friend_id is linked server-side (#9).
 grant select, insert (user_id, friend_phone), delete on public.friends to authenticated;
 grant select, insert (id, name, kind), update (name, kind, deleted_at) on public.spaces to authenticated;
--- user_id is linked server-side (#9); members leave or are removed by left_at.
-grant select, insert (id, space_id, phone, role), update (left_at) on public.space_members to authenticated;
+-- Members leave or are removed by left_at. user_id is insertable only to link oneself (policy).
+grant select, insert (id, space_id, phone, user_id, role), update (left_at) on public.space_members to authenticated;
 grant select,
   insert (id, space_id, description, category, amount_minor, spent_on, is_settlement, idempotency_key),
   update (description, category, amount_minor, spent_on, is_settlement, deleted_at)
@@ -193,8 +202,8 @@ create policy spaces_update on public.spaces for update to authenticated
 create policy space_members_select on public.space_members for select to authenticated
   using (public.is_space_member(space_id) or public.can_bootstrap_space(space_id));
 create policy space_members_insert on public.space_members for insert to authenticated
-  with check ((public.is_space_member(space_id) and role = 'member')
-              or public.can_bootstrap_space(space_id));
+  with check (((public.is_space_member(space_id) and role = 'member') or public.can_bootstrap_space(space_id))
+              and (user_id is null or (user_id = public.verified_uid() and phone = public.auth_phone())));
 create policy space_members_update on public.space_members for update to authenticated
   using (public.is_space_member(space_id)
          and (public.is_me(user_id, phone) or public.is_space_owner(space_id)))
@@ -245,7 +254,9 @@ create policy loans_select on public.loans for select to authenticated
   using (public.is_me(lender_id, lender_phone) or public.is_me(borrower_id, borrower_phone));
 create policy loans_insert on public.loans for insert to authenticated
   with check (created_by = public.verified_uid()
-              and (public.is_me(lender_id, lender_phone) or public.is_me(borrower_id, borrower_phone)));
+              and (public.is_me(lender_id, lender_phone) or public.is_me(borrower_id, borrower_phone))
+              and (lender_id is null or lender_id = public.verified_uid())
+              and (borrower_id is null or borrower_id = public.verified_uid()));
 create policy loans_update on public.loans for update to authenticated
   using (public.is_me(lender_id, lender_phone)) with check (public.is_me(lender_id, lender_phone));
 

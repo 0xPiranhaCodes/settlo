@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(87);
+select plan(91);
 
 -- Rows a statement touched, run as the current role so RLS filtering is visible.
 create function pg_temp.affected(q text) returns int language plpgsql as $$
@@ -134,9 +134,8 @@ select is((select count(*)::int from public.space_members where space_id = '0000
 
 select results_eq(
   'select id from public.profiles order by id',
-  $$values ('00000000-0000-0000-0000-000000008001'::uuid), ('00000000-0000-0000-0000-000000008002'::uuid),
-           ('00000000-0000-0000-0000-000000008004'::uuid)$$,
-  'profiles: A sees self, phone-only co-member B and departed co-member D, not outsider C'
+  $$values ('00000000-0000-0000-0000-000000008001'::uuid), ('00000000-0000-0000-0000-000000008004'::uuid)$$,
+  'profiles: A sees self and linked (departed) co-member D; not phone-only B until linked, not outsider C'
 );
 select throws_ok('select * from public.profiles', '42501', null, 'profiles: created_at is not exposed');
 select is(pg_temp.affected($$update public.profiles set name = 'A K' where id = '00000000-0000-0000-0000-000000008001'$$),
@@ -240,6 +239,16 @@ select lives_ok(
 select lives_ok('set constraints all immediate', 'expenses added under RLS pass the commit-time balance check');
 set constraints all deferred;
 
+select throws_ok(
+  $q$do $$ begin
+    insert into public.expenses (space_id, description, amount_minor)
+    values ('00000000-0000-0000-0000-000000008101', 'Unbalanced then leave', 777);
+    update public.space_members set left_at = now() where id = '00000000-0000-0000-0000-000000008202';
+    set constraints all immediate;
+  end $$$q$,
+  '23514', null, 'expenses: leaving in the same transaction does not hide an unbalanced expense from the check');
+set constraints all deferred;
+
 -- C: verified outsider.
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000008003", "role": "authenticated"}';
 
@@ -255,9 +264,8 @@ select is((select count(*)::int from public.activity), 0, 'activity: non-member 
 select results_eq('select id from public.loans', $$values ('00000000-0000-0000-0000-000000008502'::uuid)$$,
   'loans: third party C cannot read L1');
 select is((select count(*)::int from public.loan_repayments), 0, 'loan_repayments: third party C sees none');
-select results_eq('select id from public.profiles order by id',
-  $$values ('00000000-0000-0000-0000-000000008002'::uuid), ('00000000-0000-0000-0000-000000008003'::uuid)$$,
-  'profiles: C sees self and loan counterparty B only');
+select results_eq('select id from public.profiles', $$values ('00000000-0000-0000-0000-000000008003'::uuid)$$,
+  'profiles: C sees only self; a loan recorded against B''s number does not reveal B');
 select results_eq('select friend_phone::text from public.friends', $$values ('+919000000001'::text)$$,
   'friends: C sees only own list');
 
@@ -306,6 +314,16 @@ select lives_ok(
   'space_members: the creator bootstraps the first members, including an owner');
 select results_eq('select id from public.spaces', $$values ('00000000-0000-0000-0000-000000008103'::uuid)$$,
   'spaces: C sees the new space as its owner');
+select results_eq('select id from public.profiles', $$values ('00000000-0000-0000-0000-000000008003'::uuid)$$,
+  'profiles: adding A''s number to a space does not reveal A''s profile');
+select throws_ok(
+  $$insert into public.space_members (space_id, phone, user_id)
+    values ('00000000-0000-0000-0000-000000008103', '+919000000001', '00000000-0000-0000-0000-000000008001')$$,
+  '42501', null, 'space_members: C cannot link another user''s id');
+select throws_ok(
+  $$insert into public.loans (lender_phone, borrower_phone, borrower_id, principal_minor, installment_minor, due_day)
+    values ('+919000000003', '+919000000001', '00000000-0000-0000-0000-000000008001', 1000, 100, 1)$$,
+  '42501', null, 'loans: C cannot link the counterparty''s id');
 
 -- A cannot allocate an S1 expense to a member of C's space (the balance trigger cannot see it).
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000008001", "role": "authenticated"}';
