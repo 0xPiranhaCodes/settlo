@@ -288,11 +288,9 @@ max_frequency = "5s"
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
 # No SMS provider is declared: prod sends OTPs through the MSG91 Send-SMS hook (#13), served by
-# supabase/functions/send-sms. Off until MSG91 + DLT are ready; see supabase/README.md to enable.
-[auth.hook.send_sms]
-enabled = false
-uri = "env(SUPABASE_AUTH_HOOK_SEND_SMS_URI)"
-secrets = "env(SUPABASE_AUTH_HOOK_SEND_SMS_SECRETS)"
+# supabase/functions/send-sms. The hook is enabled in the Dashboard, never here: `config push`
+# would send unresolved env(...) literals and an `enabled = false` would switch it off. See
+# supabase/README.md.
 
 # Multi-factor-authentication is available to Supabase Pro plan.
 [auth.mfa]
@@ -391,7 +389,8 @@ deno_version = 2
 # secret_key = "env(SECRET_VALUE)"
 
 # GoTrue calls the Send-SMS hook with a Standard Webhooks signature, not a user JWT; the function
-# verifies that signature itself.
+# verifies that signature itself. Read by `functions deploy`/`serve` only; `config push` does not
+# send [functions.*].
 [functions.send-sms]
 verify_jwt = false
 

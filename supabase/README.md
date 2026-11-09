@@ -45,12 +45,16 @@ it enables phone login. Run the raw CLI on `config.toml` alone and phone login i
 - `config.toml` is the file `supabase config push` sends to a linked project, so it must stay
   safe to push as-is: no `[auth.sms.test_otp]`, no SMS provider block. Keep dev-only values in
   `config.local-dev.toml`.
-- Production OTPs go out through the MSG91 Send-SMS auth hook (#13), not a built-in provider:
-  `[auth.hook.send_sms]` in `config.toml`, disabled by default, with `env(...)` references for the
-  URI and secret. See [Send-SMS hook](#send-sms-hook-msg91) below to enable it.
+- Production OTPs go out through the MSG91 Send-SMS auth hook (#13), not a built-in provider.
+  The hook is configured in the Dashboard only; `config.toml` must never declare
+  `[auth.hook.send_sms]`. `config push` sends unresolved `env(...)` values as literals, and a
+  declared `enabled = false` would turn off the Dashboard hook. See
+  [Send-SMS hook](#send-sms-hook-msg91) below.
 - To push config safely, run the **raw** CLI from the repo root (never the wrapper, which refuses):
   `supabase link --project-ref <ref>`, then `supabase config diff`, check that the diff has no
-  `test_otp` or `twilio`, then `supabase config push`.
+  `test_otp`, `twilio` or `hook`, then `supabase config push`.
+- `[functions.send-sms] verify_jwt = false` is safe in `config.toml`: `config push` only updates
+  api, db, auth and storage, and `functions deploy` is what reads `[functions.*]`.
 
 ## Send-SMS hook (MSG91)
 
@@ -73,24 +77,25 @@ Function secrets (Edge Function env):
 Tests mock `fetch`, so they need no MSG91 account: `cd supabase/functions && deno test` (CI runs it in
 the Supabase job).
 
-Local dev never uses the hook: it stays disabled, and `config.local-dev.toml` keeps the test OTP
-numbers. To try the function locally, `scripts/supabase-local.sh start` serves it at
+Local dev never uses the hook: no config declares it, and `config.local-dev.toml` keeps the test
+OTP numbers. To try the function locally, `scripts/supabase-local.sh start` serves it at
 `/functions/v1/send-sms`, but no request reaches MSG91 without the env above.
 
 ### Enabling on the hosted project
 
 Needs the owner's MSG91 account, an approved DLT template and sender id, and the template created in
-MSG91 against that DLT template id.
+MSG91 against that DLT template id. Also listed in `docs/release.md`.
 
 1. Deploy the function from the repo root with the raw CLI: `supabase link --project-ref <ref>`, then
-   `supabase functions deploy send-sms` (`config.toml` already sets `verify_jwt = false` for it).
-2. Dashboard → Authentication → Hooks → Send SMS → HTTPS, URI
-   `https://<ref>.supabase.co/functions/v1/send-sms`; generate a secret and copy it.
-3. `supabase secrets set SEND_SMS_HOOK_SECRET='v1,whsec_...' MSG91_AUTH_KEY=... MSG91_TEMPLATE_ID=... MSG91_SENDER_ID=...`
-4. Send an OTP to a real number and check the function logs for `sent OTP to ********NNNN`.
-5. To manage it from `config.toml` instead, set `enabled = true` under `[auth.hook.send_sms]` and
-   export `SUPABASE_AUTH_HOOK_SEND_SMS_URI` and `SUPABASE_AUTH_HOOK_SEND_SMS_SECRETS` before
-   `supabase config diff` / `config push` (same checks as above).
+   `supabase functions deploy send-sms` (`config.toml` sets `verify_jwt = false` for it).
+2. Dashboard → Authentication → Hooks → Send SMS → HTTPS: URI
+   `https://<ref>.supabase.co/functions/v1/send-sms`, then generate a secret and copy it. Leave the
+   hook disabled until step 3 is done.
+3. Set the function secrets:
+   `supabase secrets set SEND_SMS_HOOK_SECRET='v1,whsec_...' MSG91_AUTH_KEY=... MSG91_TEMPLATE_ID=... MSG91_SENDER_ID=...`
+4. Enable the hook in the Dashboard and save.
+5. Send an OTP to a real number and check the function logs for `sent OTP to ********NNNN`.
 
-To rotate the secret, regenerate it in the dashboard and update `SEND_SMS_HOOK_SECRET` right away;
-OTPs fail with 401 in between.
+To rotate the secret, regenerate it in the Dashboard and update `SEND_SMS_HOOK_SECRET` right away;
+OTPs fail with 401 in between. To turn the hook off, disable it in the Dashboard; Auth then has no
+SMS provider and phone sign-in fails until it is re-enabled.
