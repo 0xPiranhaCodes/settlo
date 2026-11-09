@@ -4,13 +4,14 @@ Each path has one owning role (see `docs/roles.md`). Change only paths your role
 
 | Path | Owner |
 | --- | --- |
-| `pubspec.yaml`, `pubspec.lock`, `analysis_options.yaml`, other root config | Principal Architect |
+| `/` (any path not matched by a more specific row: `pubspec.yaml`, `pubspec.lock`, `analysis_options.yaml`, `.gitignore`, `.env.example`) | Principal Architect |
+| `app/` (app-level config: `app/pubspec.yaml`, `app/.metadata`, `app/.gitignore`) | Principal Architect |
 | `.github/workflows/` | Principal Architect |
 | `docs/adr/` | Principal Architect |
 | `scripts/codegen.sh` | Principal Architect |
 | `supabase/` | Principal Backend |
 | `docs/api.md` | Principal Backend |
-| `app/lib/` | Principal Flutter |
+| `app/lib/` (including `app/lib/main.dart`) | Principal Flutter |
 | `packages/core/` | Principal Flutter |
 | `packages/local/` | Principal Flutter |
 | `packages/features/*/` | Principal Flutter |
