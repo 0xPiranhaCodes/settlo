@@ -45,6 +45,7 @@ final _routes = <RouteBase>[
   ...expensesRoutes,
   ...settleRoutes,
   ...loansRoutes,
+  ...spacesRoutes,
   StatefulShellRoute.indexedStack(
     builder: (_, _, shell) => SettloShell(
       currentIndex: shell.currentIndex,

@@ -105,6 +105,72 @@ schedule column (`installments_*`, `expected_minor`, `next_due_on`, `ends_on`, `
 GET /rest/v1/loan_summaries?loan_id=eq.<id>
 ```
 
+### `activity_feed(p_before_at timestamptz, p_before_id bigint, p_limit int)`
+An RPC, listed with the views it reads beside. The Activity tab (#91): one row per `activity` row,
+newest first, with what the app needs to say it in one line. It shows only spaces the caller is an
+accepted, active member of and loans they are an accepted party to. A departed member, an outsider,
+a pending claimant and an unverified user see no rows; anon cannot call it. Pending claimants can
+still review the claim itself through the tables.
+
+It starts from the caller's own spaces and loans, not from `activity` at large: each contributes
+at most one page through `activity (space_id | loan_id, created_at, id)`, so the cost follows the
+caller's memberships, not other tenants' traffic. Security definer with a fixed search path; it
+makes the membership checks itself and names a person only where `profiles` RLS would.
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `id`, `created_at`, `action` | bigint, timestamptz, text | The `activity` row |
+| `kind` | text | `expense`, `settlement`, `loan`, `repayment`, or `member` (a `rejected` claim) |
+| `space_id`, `space_name` | uuid, text | The space; null for loan rows |
+| `expense_id`, `loan_id`, `repayment_id` | uuid | What the row is about |
+| `by_me` | boolean | The caller did it |
+| `actor_name` | text | Who did it: their space label, profile name or number; on loan rows the other party, null when it was you |
+| `counterparty` | text | Loan rows: the other party's name or number |
+| `description` | text | The expense's description after the change; for `rejected`, the number that declined |
+| `amount_minor` | bigint | The amount after the change (a loan's principal for loan rows) |
+| `before_description`, `before_amount_minor` | text, bigint | `edited` rows only: the values before |
+| `status` | text | Settle-ups and repayments as they stand now: `pending`, `confirmed`, `disputed`, or `deleted` |
+| `my_side` | text | Settle-ups and repayments: `in` (to the caller), `out` (from the caller), else null |
+
+Rows are ordered by `(created_at, id)` descending. `created_at` is when the change happened (its
+transaction's start), so a transaction that began earlier but committed later still sorts by its
+time, not its id. Page by that pair: pass the `created_at` and `id` of the last row shown, and the
+next page starts strictly below it.
+
+The paging contract:
+- **Strict and stable:** for rows committed before the first page loaded, every row comes back
+  exactly once, in order, however many pages are read.
+- **Late commits wait for refresh:** a transaction that commits after the client has paged past its
+  `created_at` sorts behind the cursor, so later pages do not include it. It appears when the
+  client reloads from the top (Activity's pull-to-refresh, which drops the cursor). Rows newer than
+  the first page likewise appear only on refresh.
+`p_limit` defaults to 30 and is held to 1–100; both cursor arguments null means the first page.
+
+```
+POST /rest/v1/rpc/activity_feed  {"p_limit": 30}
+POST /rest/v1/rpc/activity_feed  {"p_limit": 30, "p_before_at": "2026-11-09T08:30:00.123456+00:00", "p_before_id": 4211}
+```
+
+### `needs_you`
+What waits for the caller's answer, under the same rules as `activity_feed`: settle-ups they are
+the payee of (`pending_settlements` with `awaiting_me`) and pending repayments the other side of
+their loan recorded. Activity's 'Needs you' filter and top card.
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `kind`, `id` | text, uuid | `settlement` (an `expenses` id) or `repayment` (a `loan_repayments` id) |
+| `space_id`, `space_name` | uuid, text | Settle-ups only |
+| `loan_id` | uuid | Repayments only |
+| `counterparty` | text | Who paid: their name or number |
+| `amount_minor`, `paid_on`, `created_at` | bigint, date, timestamptz | What, when paid, when recorded |
+
+Answer through `confirm_settlement` / `dispute_settlement` or `confirm_repayment` /
+`dispute_repayment`.
+
+```
+GET /rest/v1/needs_you?order=created_at.desc
+```
+
 ## Functions
 
 ### `loan_summaries_as_of(p_as_of date)`

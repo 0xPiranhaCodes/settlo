@@ -1,6 +1,7 @@
 /// The spaces feature.
 library;
 
+export 'src/confirm_settlement_screen.dart';
 export 'src/create_space_sheet.dart';
 export 'src/routes.dart';
 export 'src/screens.dart';
