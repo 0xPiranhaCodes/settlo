@@ -62,6 +62,8 @@ final _tables = <String, List<Map<String, Object?>>>{
       'amount_minor': 50000,
       'spent_on': '2026-11-07',
       'is_settlement': true,
+      'settlement_status': 'disputed',
+      'dispute_reason': 'Not received',
       'created_by': _me,
       'deleted_at': null,
       'expense_payers': [
@@ -190,6 +192,10 @@ void main() {
     expect(
       [for (final e in ledger.expenses) e.isSettlement],
       [false, true, false],
+    );
+    expect(
+      [for (final e in ledger.expenses) (e.settlementStatus, e.disputeReason)],
+      [(null, null), (SettlementStatus.disputed, 'Not received'), (null, null)],
     );
 
     final groceries = ledger.expenses.first;
@@ -328,5 +334,22 @@ void main() {
       repository().deleteExpense('e1', idempotencyKey: _usedKey),
       throwsA(isA<IdempotencyConflict>()),
     );
+  });
+
+  test('the payee confirms or disputes through the settlement RPCs', () async {
+    await repository().confirmSettlement(
+      'e4',
+      idempotencyKey: 'c2d40000-0000-4000-8000-000000000005',
+    );
+    await repository().disputeSettlement(
+      'e4',
+      'Not received',
+      idempotencyKey: 'e5f60000-0000-4000-8000-000000000006',
+    );
+
+    expect(requests, [
+      'POST rpc/confirm_settlement  ${jsonEncode({'p_expense_id': 'e4', 'p_idempotency_key': 'c2d40000-0000-4000-8000-000000000005'})}',
+      'POST rpc/dispute_settlement  ${jsonEncode({'p_expense_id': 'e4', 'p_reason': 'Not received', 'p_idempotency_key': 'e5f60000-0000-4000-8000-000000000006'})}',
+    ]);
   });
 }

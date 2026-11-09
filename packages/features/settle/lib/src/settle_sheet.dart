@@ -8,7 +8,8 @@ import 'package:settlo_settle/src/upi.dart';
 /// (SettlePay, n44) the amount is coral and the primary action opens a
 /// UPI app; when you are paid (Settle, n22) it is a request. Either way a
 /// settle-up is recorded only after you confirm the money moved, with one
-/// idempotency key for every retry.
+/// idempotency key for every retry. When you paid, it counts once the
+/// payee confirms it (#78); when you were paid, it counts at once.
 class SettleSheet extends ConsumerStatefulWidget {
   /// Settling [payment] in [space].
   const new({
@@ -215,8 +216,8 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
         children: [
           note(
             _youPay
-                ? "Settlo doesn't move money. After you pay, confirm it here "
-                      'and both ledgers update.'
+                ? "Settlo doesn't move money. After you pay, ${_other.name} "
+                      'confirms and both ledgers update.'
                 : "Settlo doesn't move money. Nothing is recorded until you "
                       'confirm the payment arrived.',
           ),

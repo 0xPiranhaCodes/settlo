@@ -138,16 +138,37 @@ void main() {
           'eighteen rupees and thirty-three paise less than their share',
     );
 
+    // #78: a settle-up the payer records waits for the payee, so each
+    // payee confirms before Bela pays the next debt.
     await _payAndConfirm(tester, amount: '₹11.68', payee: 'charu@upi');
+    await tester.tap(find.text('Expenses'));
+    await _waitFor(
+      tester,
+      find.text('settle-up · waiting for Charu to confirm'),
+    );
+    await _signOut(tester);
+    await _signIn(tester, phone: '9000000003');
+    await _openSpace(tester);
+    await _confirmSettleUp(tester, amount: '₹11.68');
+    await _signOut(tester);
+
+    await _signIn(tester, phone: '9000000002');
+    await _openSpace(tester);
+    await _openBalances(tester);
     await _payAndConfirm(tester, amount: '₹6.65', payee: 'asha@upi');
     expect(launchedUpiUris, hasLength(2));
     expect(
       [for (final uri in launchedUpiUris) uri.queryParameters['pa']],
       ['charu@upi', 'asha@upi'],
     );
+    await _signOut(tester);
+    await _signIn(tester, phone: '9000000001');
+    await _openSpace(tester);
+    await _confirmSettleUp(tester, amount: '₹6.65');
+    await _openBalances(tester);
 
-    // PR #84 refreshes the originating space summary immediately. Balances
-    // owns the settlement copy; ALL SETTLED belongs only to the Expenses hero.
+    // Balances owns the settlement copy; ALL SETTLED belongs only to the
+    // Expenses hero.
     await _waitFor(tester, find.text('Everyone is settled up.'));
     expect(find.text('Everyone is settled up.'), findsOneWidget);
     expect(find.text('ALL SETTLED'), findsNothing);
@@ -314,6 +335,28 @@ Future<void> _payAndConfirm(
   await _waitFor(tester, find.text('Yes, I paid'));
   await tester.tap(find.text('Yes, I paid'));
   await _waitFor(tester, find.text('Balances'));
+}
+
+Future<void> _openBalances(WidgetTester tester) async {
+  await _scrollTo(tester, find.text('Balances'));
+  await tester.tap(find.text('Balances'));
+  await _waitFor(tester, find.text('Settle up'));
+}
+
+/// As the payee, on the Expenses tab: confirms the pending settle-up of
+/// [amount].
+Future<void> _confirmSettleUp(
+  WidgetTester tester, {
+  required String amount,
+}) async {
+  final row = find.text('settle-up · confirm you received it');
+  await _waitFor(tester, row);
+  await _scrollTo(tester, row);
+  await tester.tap(row);
+  await _waitFor(tester, find.text('Yes, I received $amount'));
+  await tester.tap(find.text('Yes, I received $amount'));
+  await _waitForGone(tester, find.text('Yes, I received $amount'));
+  await _waitForGone(tester, row);
 }
 
 Future<void> _enterLabeled(

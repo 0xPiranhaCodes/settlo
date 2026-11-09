@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(78);
+select plan(79);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000005901', '919590000001', now()),
@@ -304,6 +304,10 @@ select isnt(public.add_expense('{"space_id": "00000000-0000-0000-0000-0000000059
   "payers": [{"member_id": "00000000-0000-0000-0000-000000005925", "amount_minor": 500}],
   "splits": [{"member_id": "00000000-0000-0000-0000-000000005921", "amount_minor": 500}]}'),
   null, 'fixture: E settles 500 with A');
+select pg_temp.login('00000000-0000-0000-0000-000000005901');
+select lives_ok($$select public.confirm_settlement((select id from public.expenses where idempotency_key = '00000000-0000-0000-0000-000000005933'),
+    '00000000-0000-0000-0000-000000005934')$$, 'fixture: A confirms it (#78)');
+select pg_temp.login('00000000-0000-0000-0000-000000005905');
 select lives_ok($$select public.leave_space('00000000-0000-0000-0000-000000005910', '00000000-0000-0000-0000-000000005971')$$,
   'leave_space: E leaves at a zero balance');
 select ok(not public.is_space_member('00000000-0000-0000-0000-000000005910'), 'leave_space: E is no longer a member');

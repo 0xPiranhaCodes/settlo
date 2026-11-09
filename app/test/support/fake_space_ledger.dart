@@ -9,7 +9,7 @@ SpaceExpense _expense(
   List<String> between = const ['m1', 'm2', 'm3'],
   String? category,
   bool byYou = false,
-  bool settlement = false,
+  SettlementStatus? settlement,
   String splitType = 'equal',
 }) {
   final amount = Paise.rupees(rupees);
@@ -21,7 +21,8 @@ SpaceExpense _expense(
     amount: amount,
     spentOn: DateTime(2026, 11, day),
     splitType: splitType,
-    isSettlement: settlement,
+    isSettlement: settlement != null,
+    settlementStatus: settlement,
     createdByYou: byYou,
     payers: [(memberId: paidBy, amount: amount)],
     splits: [
@@ -114,8 +115,9 @@ final flatLedger = SpaceLedger(
   ],
 );
 
-/// [flatLedger] with Rahul paying you back ₹500 today: a settle-up, so
-/// it is listed but is not spending.
+/// [flatLedger] with settle-ups today, listed but not spending: you
+/// paid Priya back ₹500, waiting for Priya to confirm, and Rahul says he
+/// paid you ₹300, waiting for you.
 final flatLedgerWithSettleUp = SpaceLedger(
   today: flatLedger.today,
   fairness: flatLedger.fairness,
@@ -123,12 +125,23 @@ final flatLedgerWithSettleUp = SpaceLedger(
   expenses: [
     _expense(
       'e10',
-      'Rahul paid you back',
+      'You paid Priya back',
       500,
+      9,
+      paidBy: 'm1',
+      between: ['m3'],
+      byYou: true,
+      settlement: SettlementStatus.pending,
+      splitType: 'exact',
+    ),
+    _expense(
+      'e11',
+      'Rahul paid you back',
+      300,
       9,
       paidBy: 'm2',
       between: ['m1'],
-      settlement: true,
+      settlement: SettlementStatus.pending,
       splitType: 'exact',
     ),
     ...flatLedger.expenses,
@@ -166,8 +179,9 @@ class FakeSpaceLedgerRepository implements SpaceLedgerRepository {
   /// When set, the next call throws it.
   Exception? failure;
 
-  /// Every write, as `update <key> <id> <description> <paise>` or
-  /// `delete <key> <id>`.
+  /// Every write, as `update <key> <id> <description> <paise>`,
+  /// `delete <key> <id>`, `confirm <key> <id>` or
+  /// `dispute <key> <id> <reason>`.
   final calls = <String>[];
 
   final _seen = <String>{};
@@ -219,6 +233,7 @@ class FakeSpaceLedgerRepository implements SpaceLedgerRepository {
         amount: update.amount,
         spentOn: update.spentOn,
         isSettlement: update.isSettlement,
+        settlementStatus: e.settlementStatus,
         splitType: update.splitType,
         createdByYou: e.createdByYou,
         payers: update.payers,
@@ -236,5 +251,58 @@ class FakeSpaceLedgerRepository implements SpaceLedgerRepository {
     _throwOnce();
     if (!_seen.add(idempotencyKey)) return;
     _replace(expenseId, (_) => null);
+  }
+
+  @override
+  Future<void> confirmSettlement(
+    String expenseId, {
+    required String idempotencyKey,
+  }) => _answer(
+    'confirm $idempotencyKey $expenseId',
+    idempotencyKey,
+    expenseId,
+    SettlementStatus.confirmed,
+  );
+
+  @override
+  Future<void> disputeSettlement(
+    String expenseId,
+    String reason, {
+    required String idempotencyKey,
+  }) => _answer(
+    'dispute $idempotencyKey $expenseId $reason',
+    idempotencyKey,
+    expenseId,
+    SettlementStatus.disputed,
+    reason,
+  );
+
+  Future<void> _answer(
+    String call,
+    String key,
+    String id,
+    SettlementStatus status, [
+    String? reason,
+  ]) async {
+    calls.add(call);
+    _throwOnce();
+    if (!_seen.add(key)) return;
+    _replace(
+      id,
+      (e) => SpaceExpense(
+        id: e.id,
+        description: e.description,
+        category: e.category,
+        amount: e.amount,
+        spentOn: e.spentOn,
+        isSettlement: true,
+        settlementStatus: status,
+        disputeReason: reason,
+        splitType: e.splitType,
+        createdByYou: e.createdByYou,
+        payers: e.payers,
+        splits: e.splits,
+      ),
+    );
   }
 }

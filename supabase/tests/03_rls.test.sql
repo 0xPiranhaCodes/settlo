@@ -291,8 +291,8 @@ set constraints all deferred;
 -- B settles its -2500 with A, so B may leave (#59: only at a zero balance). As postgres: clients
 -- write payers and splits only through the RPCs.
 reset role;
-insert into public.expenses (id, space_id, description, amount_minor, is_settlement)
-values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008101', 'Settle', 2500, true);
+insert into public.expenses (id, space_id, description, amount_minor, is_settlement, confirmed_at)
+values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008101', 'Settle', 2500, true, now());
 insert into public.expense_payers (expense_id, member_id, amount_minor)
 values ('00000000-0000-0000-0000-000000008305', '00000000-0000-0000-0000-000000008202', 2500);
 insert into public.expense_splits (expense_id, member_id, split_type, amount_minor)
