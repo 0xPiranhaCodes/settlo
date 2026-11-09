@@ -1,0 +1,2 @@
+/// The activity feature.
+library;

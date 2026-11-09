@@ -1,0 +1,2 @@
+/// The auth feature.
+library;

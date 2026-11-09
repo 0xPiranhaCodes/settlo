@@ -1,0 +1,8 @@
+name: settlo_local
+description: Drift local database and pending-mutations sync queue.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
