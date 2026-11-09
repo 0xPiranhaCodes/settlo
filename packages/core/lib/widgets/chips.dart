@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
+import 'package:settlo_core/widgets/pressable.dart';
 
 /// Height of a chip or segmented control as drawn; the tap target around
 /// it is [SettloSpacing.minTouchTarget].
@@ -31,40 +32,37 @@ class SChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return Semantics(
-      button: true,
+    return SPressable(
+      onTap: () => onSelected(!selected),
       selected: selected,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => onSelected(!selected),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            minHeight: SettloSpacing.minTouchTarget,
-            minWidth: SettloSpacing.minTouchTarget,
-          ),
-          child: Center(
-            widthFactor: 1,
-            heightFactor: 1,
-            child: Container(
-              height: _visualHeight,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: ShapeDecoration(
-                color: selected ? c.textPrimary : null,
-                shape: StadiumBorder(
-                  side: selected
-                      ? BorderSide.none
-                      : BorderSide(color: c.buttonBorder),
-                ),
+      ringRadius: BorderRadius.circular(SettloRadius.pill),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: SettloSpacing.minTouchTarget,
+          minWidth: SettloSpacing.minTouchTarget,
+        ),
+        child: Center(
+          widthFactor: 1,
+          heightFactor: 1,
+          child: Container(
+            height: _visualHeight,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: ShapeDecoration(
+              color: selected ? c.textPrimary : null,
+              shape: StadiumBorder(
+                side: selected
+                    ? BorderSide.none
+                    : BorderSide(color: c.buttonBorder),
               ),
-              child: Center(
-                widthFactor: 1,
-                child: Text(
-                  label,
-                  style: SettloTypography.figtree(
-                    13,
-                    weight: selected ? FontWeight.w500 : FontWeight.w400,
-                    color: selected ? c.background : c.textPrimary,
-                  ),
+            ),
+            child: Center(
+              widthFactor: 1,
+              child: Text(
+                label,
+                style: SettloTypography.figtree(
+                  13,
+                  weight: selected ? FontWeight.w500 : FontWeight.w400,
+                  color: selected ? c.background : c.textPrimary,
                 ),
               ),
             ),
@@ -148,32 +146,29 @@ class _Segment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return Semantics(
-      button: true,
+    return SPressable(
+      onTap: onTap,
       selected: selected,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: SizedBox(
-          height: SettloSpacing.minTouchTarget,
-          child: Center(
-            widthFactor: 1,
-            child: Container(
-              height: _visualHeight - 4,
-              constraints: const BoxConstraints(minWidth: 40),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: selected ? c.surfaceHighest : null,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                label,
-                style: SettloTypography.figtree(
-                  13,
-                  weight: selected ? FontWeight.w500 : FontWeight.w400,
-                  color: selected ? c.textPrimary : c.textSecondary,
-                ),
+      ringRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        height: SettloSpacing.minTouchTarget,
+        child: Center(
+          widthFactor: 1,
+          child: Container(
+            height: _visualHeight - 4,
+            constraints: const BoxConstraints(minWidth: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ? c.surfaceHighest : null,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              label,
+              style: SettloTypography.figtree(
+                13,
+                weight: selected ? FontWeight.w500 : FontWeight.w400,
+                color: selected ? c.textPrimary : c.textSecondary,
               ),
             ),
           ),

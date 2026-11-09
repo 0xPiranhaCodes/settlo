@@ -3,6 +3,7 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
+import 'package:settlo_core/widgets/pressable.dart';
 
 /// One destination in an [SGlassTabBar].
 typedef SGlassTab = ({Widget icon, String label});
@@ -98,37 +99,33 @@ class _Tab extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final color = selected ? c.textPrimary : c.textMuted;
-    return Semantics(
-      button: true,
+    return SPressable(
+      onTap: onTap,
       selected: selected,
       label: tab.label,
-      excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          height: 52,
-          decoration: BoxDecoration(
-            color: selected ? c.surfaceHighest : null,
-            borderRadius: BorderRadius.circular(26),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconTheme.merge(
-                data: IconThemeData(color: color, size: 22),
-                child: tab.icon,
-              ),
-              const SizedBox(height: 3),
-              Text(
-                tab.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: color, height: 1.1),
-              ),
-            ],
-          ),
+      ringRadius: BorderRadius.circular(26),
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: selected ? c.surfaceHighest : null,
+          borderRadius: BorderRadius.circular(26),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconTheme.merge(
+              data: IconThemeData(color: color, size: 22),
+              child: tab.icon,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              tab.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: color, height: 1.1),
+            ),
+          ],
         ),
       ),
     );

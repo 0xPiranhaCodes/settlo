@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
+import 'package:settlo_core/widgets/pressable.dart';
 
 /// Font size of the amount at the top of an amount-entry sheet.
 const double _amountSize = 52;
@@ -82,20 +83,18 @@ class SAmountSheet extends StatelessWidget {
                         children: [
                           Transform.translate(
                             offset: const Offset(-12, 0),
-                            child: Semantics(
-                              button: true,
+                            child: SPressable(
+                              onTap: onClose,
                               label: 'Close',
-                              excludeSemantics: true,
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: onClose,
-                                child: SizedBox.square(
-                                  dimension: SettloSpacing.minTouchTarget,
-                                  child: Center(
-                                    child: CustomPaint(
-                                      size: const Size.square(22),
-                                      painter: _CrossPainter(c.textPrimary),
-                                    ),
+                              ringRadius: BorderRadius.circular(
+                                SettloSpacing.minTouchTarget / 2,
+                              ),
+                              child: SizedBox.square(
+                                dimension: SettloSpacing.minTouchTarget,
+                                child: Center(
+                                  child: CustomPaint(
+                                    size: const Size.square(22),
+                                    painter: _CrossPainter(c.textPrimary),
                                   ),
                                 ),
                               ),
