@@ -1,0 +1,12 @@
+FROM ghcr.io/cirruslabs/flutter@sha256:0a9de3b70b5b7b921a346eb2793e363dc22280849a4fd690d9dde99ce1c2b1b8
+
+ARG FLUTTER_VERSION=3.47.9
+ARG FLUTTER_REVISION=c197ca5199e9ee5661e865596c9c07294dfab51c
+ENV FLUTTER_VERSION=${FLUTTER_VERSION}
+
+RUN git -C /sdks/flutter fetch --depth 1 origin \
+      "refs/tags/${FLUTTER_VERSION}:refs/tags/${FLUTTER_VERSION}" \
+    && git -C /sdks/flutter checkout --detach "refs/tags/${FLUTTER_VERSION}" \
+    && flutter precache --linux \
+    && test "$(git -C /sdks/flutter rev-parse HEAD)" = "${FLUTTER_REVISION}" \
+    && flutter --version | grep -F "Flutter ${FLUTTER_VERSION}"

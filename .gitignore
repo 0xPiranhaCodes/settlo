@@ -3,6 +3,7 @@
 !.env.example
 .DS_Store
 build/
+coverage/
 .dart_tool/
 supabase/.temp/
 

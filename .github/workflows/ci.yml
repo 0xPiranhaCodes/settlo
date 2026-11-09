@@ -1,11 +1,13 @@
 name: CI
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      update_goldens:
+        description: Regenerate app and core goldens instead of running CI
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -20,7 +22,7 @@ env:
 jobs:
   analyze-test:
     name: Analyze & test
-    if: github.event_name != 'workflow_dispatch'
+    if: inputs.update_goldens != true
     # Pin golden rasterization to one runner image; update intentionally.
     runs-on: ubuntu-24.04
     steps:
@@ -177,7 +179,7 @@ jobs:
 
   android:
     name: Android debug build
-    if: github.event_name != 'workflow_dispatch'
+    if: inputs.update_goldens != true
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -196,7 +198,7 @@ jobs:
 
   ios:
     name: iOS debug build
-    if: github.event_name != 'workflow_dispatch'
+    if: inputs.update_goldens != true
     runs-on: macos-latest
     steps:
       - name: Check out repository
@@ -215,7 +217,7 @@ jobs:
 
   supabase:
     name: Supabase
-    if: github.event_name != 'workflow_dispatch'
+    if: inputs.update_goldens != true
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -246,7 +248,7 @@ jobs:
 
   regenerate-goldens:
     name: Regenerate app and core goldens
-    if: github.event_name == 'workflow_dispatch'
+    if: inputs.update_goldens == true
     runs-on: ubuntu-24.04
     permissions:
       contents: write
