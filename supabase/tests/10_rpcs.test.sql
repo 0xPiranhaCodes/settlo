@@ -1,11 +1,14 @@
 -- RPCs (#10): create_space, add_expense, lookup_phones.
 -- Callers: A creates the space, B is a member by phone, C is an outsider, D has an unverified phone.
 -- X is a number with no account. The last block races two sessions over dblink.
+-- Includes a test for every probe in the PR #37 review: changed-payload replays (sequential and
+-- concurrent), percent/shares allocations that sum but disagree with packages/core, and the
+-- lookup_phones daily quota.
 begin;
 create extension if not exists pgtap with schema extensions;
 create extension if not exists dblink with schema extensions;
 
-select plan(43);
+select plan(66);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-00000000a001', '919100000001', now()),
@@ -31,6 +34,19 @@ select is(
            or not has_function_privilege('authenticated', p.oid, 'execute'))),
   null,
   'RPCs have a fixed search_path and are executable by authenticated only');
+-- The SQLSTATE hint an RPC raises, for the codes clients branch on.
+create function pg_temp.hint_of(q text) returns text language plpgsql as $$
+declare
+  h text;
+begin
+  execute q;
+  return null;
+exception when others then
+  get stacked diagnostics h = pg_exception_hint;
+  return h;
+end $$;
+grant execute on function pg_temp.hint_of(text) to public;
+
 select ok(
   not exists (select from pg_proc p, aclexplode(p.proacl) a
                where p.pronamespace = 'public'::regnamespace
@@ -61,9 +77,17 @@ select results_eq(
            ('+919800000009', null, 'member', 'Xavier')$$,
   'create_space: caller is the owner, members are added by phone, the caller''s own entry is skipped');
 select is(
-  public.create_space('Flat 7C again', 'flat', '[{"phone": "+919100000003"}]', '00000000-0000-0000-0000-00000000a100'),
+  public.create_space(' Flat 7C', 'flat',
+    '[{"phone": "+919800000009", "name": "Xavier"}, {"phone": "+919100000002", "name": "Bilal"}]',
+    '00000000-0000-0000-0000-00000000a100'),
   '00000000-0000-0000-0000-00000000a100'::uuid,
-  'create_space: a replayed key returns the same space');
+  'create_space: the same payload replayed (members reordered, self omitted) returns the same space');
+select throws_ok(
+  $$select public.create_space('Flat 7C again', 'flat', '[{"phone": "+919100000003"}]', '00000000-0000-0000-0000-00000000a100')$$,
+  'PT409', null, 'create_space: the same key with a different payload is an idempotency conflict');
+select is(
+  pg_temp.hint_of($$select public.create_space('Flat 7C', 'trip', '[]', '00000000-0000-0000-0000-00000000a100')$$),
+  'idempotency_conflict', 'create_space: the conflict carries hint idempotency_conflict');
 select is((select count(*)::int from public.space_members where space_id = '00000000-0000-0000-0000-00000000a100'),
   3, 'create_space: a replay writes nothing');
 select is((select name from public.spaces where id = '00000000-0000-0000-0000-00000000a100'),
@@ -106,11 +130,22 @@ select results_eq(
   $$values ('+919100000001', 3333::bigint, 'equal'), ('+919100000002', 3334, 'equal'), ('+919800000009', 3333, 'equal')$$,
   'add_expense: equal split is recomputed on the server, remainder to the payer (client amounts ignored)');
 select is(
-  public.add_expense(pg_temp.expense('00000000-0000-0000-0000-00000000a201', 99999,
-    format('[{"member_id": "%s", "amount_minor": 99999}]', pg_temp.mid('+919100000001')),
-    format('[{"member_id": "%s"}]', pg_temp.mid('+919100000001')))::jsonb)::text,
+  public.add_expense(pg_temp.expense('00000000-0000-0000-0000-00000000a201', 10000,
+    format('[{"member_id": "%s", "amount_minor": 10000}]', pg_temp.mid('+919100000002')),
+    format('[{"member_id": "%s"}, {"member_id": "%s", "amount_minor": 3334}, {"member_id": "%s"}]',
+           pg_temp.mid('+919100000001'), pg_temp.mid('+919100000002'), pg_temp.mid('+919800000009')))::jsonb)::text,
   (select id::text from public.expenses where idempotency_key = '00000000-0000-0000-0000-00000000a201'),
-  'add_expense: a replayed idempotency key returns the same expense id');
+  'add_expense: a replay of the same payload returns the same expense id (client equal amounts do not count)');
+select throws_ok(pg_temp.call(pg_temp.expense('00000000-0000-0000-0000-00000000a201', 999,
+    format('[{"member_id": "%s", "amount_minor": 999}]', pg_temp.mid('+919100000001')),
+    format('[{"member_id": "%s"}]', pg_temp.mid('+919100000001')))),
+  'PT409', null, 'add_expense: the same key with a different amount, payer and split is an idempotency conflict');
+select is(pg_temp.hint_of(pg_temp.call(replace(pg_temp.expense('00000000-0000-0000-0000-00000000a201', 10000,
+    format('[{"member_id": "%s", "amount_minor": 10000}]', pg_temp.mid('+919100000002')),
+    format('[{"member_id": "%s"}, {"member_id": "%s"}, {"member_id": "%s"}]',
+           pg_temp.mid('+919100000001'), pg_temp.mid('+919100000002'), pg_temp.mid('+919800000009'))),
+    'Groceries', 'Vegetables'))),
+  'idempotency_conflict', 'add_expense: a changed description alone is a conflict, with hint idempotency_conflict');
 select results_eq(
   $$select count(distinct e.id)::int, count(distinct p.member_id)::int, count(distinct s.member_id)::int, min(e.amount_minor)
       from public.expenses e join public.expense_payers p on p.expense_id = e.id join public.expense_splits s on s.expense_id = e.id
@@ -133,12 +168,55 @@ select results_eq(
            where s.expense_id = %L order by m.phone$$,
     public.add_expense(pg_temp.expense('00000000-0000-0000-0000-00000000a203', 1000,
       format('[{"member_id": "%s", "amount_minor": 1000}]', pg_temp.mid('+919100000001')),
-      format('[{"member_id": "%s", "amount_minor": 334, "percent_bp": 3334}, {"member_id": "%s", "amount_minor": 666, "percent_bp": 6666}]',
+      format('[{"member_id": "%s", "amount_minor": 333, "percent_bp": 3334}, {"member_id": "%s", "amount_minor": 667, "percent_bp": 6666}]',
              pg_temp.mid('+919100000001'), pg_temp.mid('+919100000002')), 'percent')::jsonb)),
-  $$values (334::bigint, 3334), (666, 6666)$$,
-  'add_expense: percent splits are stored when they sum');
+  $$values (333::bigint, 3334), (667, 6666)$$,
+  'add_expense: percent splits matching splitPercent (largest remainder) are stored');
+select results_eq(
+  format($$select s.amount_minor, s.shares from public.expense_splits s join pg_temp.m m on m.id = s.member_id
+           where s.expense_id = %L order by m.phone$$,
+    public.add_expense(pg_temp.expense('00000000-0000-0000-0000-00000000a213', 1000,
+      format('[{"member_id": "%s", "amount_minor": 1000}]', pg_temp.mid('+919100000001')),
+      format('[{"member_id": "%s", "amount_minor": 667, "shares": 2}, {"member_id": "%s", "amount_minor": 333, "shares": 1}]',
+             pg_temp.mid('+919100000001'), pg_temp.mid('+919100000002')), 'shares')::jsonb)),
+  $$values (667::bigint, 2), (333, 1)$$,
+  'add_expense: shares splits matching splitShares are stored');
+select results_eq(
+  format($$select s.amount_minor from public.expense_splits s join pg_temp.m m on m.id = s.member_id
+           where s.expense_id = %L order by m.phone$$,
+    public.add_expense(pg_temp.expense('00000000-0000-0000-0000-00000000a214', 101,
+      format('[{"member_id": "%s", "amount_minor": 101}]', pg_temp.mid('+919100000002')),
+      format('[{"member_id": "%s", "amount_minor": 50, "percent_bp": 5000}, {"member_id": "%s", "amount_minor": 51, "percent_bp": 5000}]',
+             pg_temp.mid('+919100000001'), pg_temp.mid('+919100000002')), 'percent')::jsonb)),
+  $$values (50::bigint), (51)$$,
+  'add_expense: a tied leftover paisa goes to the payer first, even when listed second');
 
--- Rejections. a1 = A, b2 = B, x9 = X.
+-- Rejections.
+select throws_ok(pg_temp.call(pg_temp.expense('00000000-0000-0000-0000-00000000a215', 1000,
+    format('[{"member_id": "%s", "amount_minor": 1000}]', pg_temp.mid('+919100000001')),
+    format('[{"member_id": "%s", "amount_minor": 500, "percent_bp": 9000}, {"member_id": "%s", "amount_minor": 500, "percent_bp": 1000}]',
+           pg_temp.mid('+919100000001'), pg_temp.mid('+919100000002')), 'percent')),
+  '22023', null, 'add_expense: 50/50 amounts with 9000/1000 bp (sums fine, allocation wrong) are rejected');
+select throws_ok(pg_temp.call(pg_temp.expense('00000000-0000-0000-0000-00000000a216', 1000,
+    format('[{"member_id": "%s", "amount_minor": 1000}]', pg_temp.mid('+919100000001')),
+    format('[{"member_id": "%s", "amount_minor": 500, "shares": 9}, {"member_id": "%s", "amount_minor": 500, "shares": 1}]',
+           pg_temp.mid('+919100000001'), pg_temp.mid('+919100000002')), 'shares')),
+  '22023', null, 'add_expense: 50/50 amounts with 9:1 shares are rejected');
+select throws_ok(pg_temp.call(pg_temp.expense('00000000-0000-0000-0000-00000000a217', 1000,
+    format('[{"member_id": "%s", "amount_minor": 1000}]', pg_temp.mid('+919100000001')),
+    format('[{"member_id": "%s", "amount_minor": 334, "percent_bp": 3334}, {"member_id": "%s", "amount_minor": 666, "percent_bp": 6666}]',
+           pg_temp.mid('+919100000001'), pg_temp.mid('+919100000002')), 'percent')),
+  '22023', null, 'add_expense: a leftover paisa given to the wrong member is rejected');
+select throws_ok(pg_temp.call(pg_temp.expense('00000000-0000-0000-0000-00000000a218', 101,
+    format('[{"member_id": "%s", "amount_minor": 101}]', pg_temp.mid('+919100000002')),
+    format('[{"member_id": "%s", "amount_minor": 51, "percent_bp": 5000}, {"member_id": "%s", "amount_minor": 50, "percent_bp": 5000}]',
+           pg_temp.mid('+919100000001'), pg_temp.mid('+919100000002')), 'percent')),
+  '22023', null, 'add_expense: a tie broken by list order instead of payer-first is rejected');
+select throws_ok(pg_temp.call(pg_temp.expense('00000000-0000-0000-0000-00000000a219', 1000,
+    format('[{"member_id": "%s", "amount_minor": 1000}]', pg_temp.mid('+919100000001')),
+    format('[{"member_id": "%s", "amount_minor": 500, "shares": 0}, {"member_id": "%s", "amount_minor": 500, "shares": 1}]',
+           pg_temp.mid('+919100000001'), pg_temp.mid('+919100000002')), 'shares')),
+  '22023', null, 'add_expense: a zero share is rejected');
 select throws_ok(pg_temp.call(pg_temp.expense('00000000-0000-0000-0000-00000000a204', 1000,
     format('[{"member_id": "%s", "amount_minor": 1000}]', pg_temp.mid('+919100000001')),
     format('[{"member_id": "%s", "amount_minor": 500}, {"member_id": "%s", "amount_minor": 400}]',
@@ -178,14 +256,14 @@ select throws_ok(pg_temp.call(pg_temp.expense('00000000-0000-0000-0000-00000000a
     format('[{"member_id": "%s"}, {"member_id": "%s"}]', pg_temp.mid('+919100000001'), pg_temp.mid('+919800000009')))),
   '22023', null, 'add_expense: a departed member in the splits is rejected');
 select is((select count(*)::int from public.expenses where space_id = '00000000-0000-0000-0000-00000000a100'),
-  3, 'add_expense: rejected calls wrote nothing');
+  5, 'add_expense: rejected calls wrote nothing');
 
 -- B (member by phone) replaying A's key is refused; C (outsider) is refused outright.
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000a002", "role": "authenticated"}';
 select throws_ok(pg_temp.call(pg_temp.expense('00000000-0000-0000-0000-00000000a201', 10000,
     format('[{"member_id": "%s", "amount_minor": 10000}]', pg_temp.mid('+919100000002')),
     format('[{"member_id": "%s"}]', pg_temp.mid('+919100000002')))),
-  '23505', null, 'add_expense: another member cannot claim someone else''s idempotency key');
+  'PT409', null, 'add_expense: another member cannot claim someone else''s idempotency key');
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000a003", "role": "authenticated"}';
 select throws_ok(pg_temp.call(pg_temp.expense('00000000-0000-0000-0000-00000000a211', 1000,
     format('[{"member_id": "%s", "amount_minor": 1000}]', pg_temp.mid('+919100000001')),
@@ -228,7 +306,41 @@ select throws_ok($$select * from public.lookup_phones(array_fill(encode(sha256('
   '54000', null, 'lookup_phones: batches over 500 are rejected');
 select throws_ok($$select * from public.lookup_phones(array['+919100000001'])$$,
   '22023', null, 'lookup_phones: a raw number is rejected');
+
+-- Quota: every hash sent is charged, matched or not; over the quota fails with PT429, uncharged.
+-- Lowered to 5 for the test (as postgres); C has not looked anything up yet.
 reset role;
+update private.settings set value = '5' where key = 'lookup_phones_daily_hashes';
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000a003", "role": "authenticated"}';
+select is((select count(*)::int from public.lookup_phones(array[
+    encode(sha256('+919100000001'::bytea), 'hex'), encode(sha256('+919800000001'::bytea), 'hex'),
+    encode(sha256('+919800000002'::bytea), 'hex')])),
+  1, 'lookup_phones quota: 3 of 5 hashes used, unknown hashes included');
+select throws_ok($$select * from public.lookup_phones(array_fill(encode(sha256('y'::bytea), 'hex'), array[3]))$$,
+  'PT429', null, 'lookup_phones quota: a call that would pass the daily quota is rejected');
+select is(
+  pg_temp.hint_of($$select * from public.lookup_phones(array_fill(encode(sha256('y'::bytea), 'hex'), array[3]))$$),
+  'lookup_quota_exceeded', 'lookup_phones quota: the rejection carries hint lookup_quota_exceeded');
+select is((select count(*)::int from public.lookup_phones(array_fill(encode(sha256('y'::bytea), 'hex'), array[2]))),
+  0, 'lookup_phones quota: rejected calls were not charged, so the last 2 still fit');
+select throws_ok($$select * from public.lookup_phones(array[encode(sha256('z'::bytea), 'hex')])$$,
+  'PT429', null, 'lookup_phones quota: once used up, even one hash is rejected');
+select throws_ok($$select * from private.lookup_quota$$, '42501', null,
+  'lookup_phones quota: clients cannot read the quota table');
+select throws_ok($$delete from private.lookup_quota$$, '42501', null,
+  'lookup_phones quota: clients cannot reset their usage');
+select throws_ok($$update private.settings set value = '1000000'$$, '42501', null,
+  'lookup_phones quota: clients cannot raise the limit');
+set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000a002", "role": "authenticated"}';
+select is((select count(*)::int from public.lookup_phones(array[encode(sha256('+919100000001'::bytea), 'hex')])),
+  1, 'lookup_phones quota: each user has their own budget');
+reset role;
+select results_eq(
+  $$select user_id, hashes from private.lookup_quota order by user_id$$,
+  $$values ('00000000-0000-0000-0000-00000000a001'::uuid, 4), ('00000000-0000-0000-0000-00000000a002'::uuid, 1),
+           ('00000000-0000-0000-0000-00000000a003'::uuid, 5)$$,
+  'lookup_phones quota: usage is recorded per user per day');
 
 -- Concurrency: two sessions send the same key; the second blocks on the first, then returns its id.
 -- Fixtures are committed through a third session, and removed at the end. dblink requires
@@ -248,36 +360,64 @@ select dblink_exec('setup', $$
   commit;
 $$);
 
-create function pg_temp.race_session(name text) returns text language sql as $$
-  select dblink_connect(name, pg_temp.conninfo());
-  select dblink_exec(name, $q$begin; set local role authenticated;
+create function pg_temp.begin_as_race_user(conn text) returns text language sql as $$
+  select dblink_exec(conn, $q$begin; set local role authenticated;
     set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000c001", "role": "authenticated"}'$q$);
 $$;
-create function pg_temp.race_call() returns text language sql as $$
-  select $q$select public.add_expense('{"space_id": "00000000-0000-0000-0000-00000000c100",
-    "idempotency_key": "00000000-0000-0000-0000-00000000c301", "description": "Race", "amount_minor": 100,
+create function pg_temp.race_call(key text, description text) returns text language sql as $$
+  select format($q$select public.add_expense('{"space_id": "00000000-0000-0000-0000-00000000c100",
+    "idempotency_key": "%s", "description": "%s", "amount_minor": 100,
     "payers": [{"member_id": "00000000-0000-0000-0000-00000000c201", "amount_minor": 100}],
-    "splits": [{"member_id": "00000000-0000-0000-0000-00000000c201"}]}')::text$q$
+    "splits": [{"member_id": "00000000-0000-0000-0000-00000000c201"}]}')::text$q$, key, description)
 $$;
-select pg_temp.race_session('s1');
-select pg_temp.race_session('s2');
+-- Whether backend pid is waiting on a lock, polled for up to 10 s (pg_locks is read live).
+create function pg_temp.blocked(pid int) returns boolean language plpgsql as $$
+begin
+  for i in 1..200 loop
+    if exists (select from pg_locks l where l.pid = blocked.pid and not l.granted) then
+      return true;
+    end if;
+    perform pg_sleep(0.05);
+  end loop;
+  return false;
+end $$;
+
+select dblink_connect('s1', pg_temp.conninfo());
+select dblink_connect('s2', pg_temp.conninfo());
+create temp table s2 as select pid from dblink('s2', 'select pg_backend_pid()') t(pid int);
+
+-- Same payload: both calls return the one expense.
 create temp table race (first text, second text);
-insert into race (first) select id from dblink('s1', pg_temp.race_call()) t(id text);
-select dblink_send_query('s2', pg_temp.race_call());
-select pg_sleep(0.3);
-select is(dblink_is_busy('s2'), 1, 'race: the second call waits on the first, uncommitted, insert');
+select pg_temp.begin_as_race_user('s1');
+select pg_temp.begin_as_race_user('s2');
+insert into race (first) select id from dblink('s1', pg_temp.race_call('00000000-0000-0000-0000-00000000c301', 'Race')) t(id text);
+select dblink_send_query('s2', pg_temp.race_call('00000000-0000-0000-0000-00000000c301', 'Race'));
+select ok(pg_temp.blocked((select pid from s2)), 'race: the second call waits on the first, uncommitted, insert');
 select dblink_exec('s1', 'commit');
 update race set second = (select id from dblink_get_result('s2') t(id text));
 select * from dblink_get_result('s2') t(id text); -- drains the end-of-results marker
 select dblink_exec('s2', 'commit');
 select ok((select first is not null and first = second from race),
-  'race: concurrent calls with the same key return the same expense id');
+  'race: concurrent calls with the same key and payload return the same expense id');
+
+-- Different payload: the second call waits, then gets the idempotency conflict.
+select pg_temp.begin_as_race_user('s1');
+select pg_temp.begin_as_race_user('s2');
+select * from dblink('s1', pg_temp.race_call('00000000-0000-0000-0000-00000000c302', 'Race')) t(id text);
+select dblink_send_query('s2', pg_temp.race_call('00000000-0000-0000-0000-00000000c302', 'Race, changed'));
+select ok(pg_temp.blocked((select pid from s2)), 'race: a changed-payload call also waits on the first insert');
+select dblink_exec('s1', 'commit');
+select * from dblink_get_result('s2', false) t(id text);
+select * from dblink_get_result('s2', false) t(id text);
+select matches(dblink_error_message('s2'), 'already used with a different payload',
+  'race: concurrent calls with the same key and a different payload get the idempotency conflict');
+select dblink_exec('s2', 'rollback');
+
 select results_eq(
-  $$select (select count(*)::int from public.expenses where idempotency_key = '00000000-0000-0000-0000-00000000c301'),
-           (select count(*)::int from public.expense_payers p join public.expenses e on e.id = p.expense_id
-             where e.idempotency_key = '00000000-0000-0000-0000-00000000c301')$$,
-  $$values (1, 1)$$,
-  'race: exactly one expense and one payer row were written');
+  $$select e.idempotency_key::text, e.description, (select count(*)::int from public.expense_payers p where p.expense_id = e.id)
+      from public.expenses e where e.space_id = '00000000-0000-0000-0000-00000000c100' order by 1$$,
+  $$values ('00000000-0000-0000-0000-00000000c301', 'Race', 1), ('00000000-0000-0000-0000-00000000c302', 'Race', 1)$$,
+  'race: exactly one expense and one payer row per key; the changed payload wrote nothing');
 
 select dblink_exec('setup', $$
   begin;

@@ -110,12 +110,20 @@ Postgres `code`:
 | --- | --- |
 | `22023` | Invalid payload (missing field, sums do not match, member not active in the space) |
 | `22P02`, `23514` | A value of the wrong type, e.g. a non-uuid id or a phone that is not E.164 |
-| `42501` | Not allowed: unverified caller, not an active member, soft-deleted space, someone else's key |
-| `23505` | The idempotency key was already used by another member for a different expense |
+| `42501` | Not allowed: unverified caller, not an active member, soft-deleted space, another user's space id |
+| `PT409` | HTTP 409, hint `idempotency_conflict`: the key was already used with a different payload (or by another member) |
+| `PT429` | HTTP 429, hint `lookup_quota_exceeded`: `lookup_phones` daily quota used up |
 | `54000` | `lookup_phones` batch over 500 hashes |
 
-Per ADR 0004, a rejection (any of the codes above) means the queued mutation is dropped and its
-optimistic change rolled back; a network error means retry with the same key.
+Per ADR 0004, a rejection means the queued mutation is dropped and its optimistic change rolled
+back; a network error means retry with the same key. `PT409` is a conflict, not a plain rejection:
+the server holds a different mutation under that key, so the queue surfaces it to the user for
+reconciliation instead of treating the replay as done.
+
+Idempotency is payload-bound: the server stores a SHA-256 fingerprint of the normalised request with
+the key. Same key and same payload returns the original id and writes nothing; same key and a
+different payload is `PT409`. This holds for concurrent calls too: the second waits for the first to
+commit, then compares.
 
 ### `create_space(p_name, p_kind, p_members, p_idempotency_key)`
 Creates the space, the caller as its `owner`, and one `member` row per entry in `p_members`, in a
@@ -126,7 +134,7 @@ single transaction. Security invoker: RLS on `spaces` and `space_members` applie
 | `p_name` | text | Required, non-blank |
 | `p_kind` | `space_kind` | `flat`, `trip`, `friend` or `other` |
 | `p_members` | jsonb | `[{"phone": "+91…", "name": "…"}]`, default `[]`. Phones must be E.164 and distinct. The caller's own phone is skipped. `name` is the creator's label for that member, stored on `space_members.name`. |
-| `p_idempotency_key` | uuid | Optional. Becomes the space id, so the client knows it offline and can queue expenses against it. A replay by the creator returns the same id and writes nothing (name, kind and members are not changed). Someone else's key fails with `42501`. |
+| `p_idempotency_key` | uuid | Optional. Becomes the space id, so the client knows it offline and can queue expenses against it. A replay by the creator with the same payload (name trimmed, kind, members in any order) returns the same id and writes nothing; a different payload is `PT409`. Someone else's space id fails with `42501`. |
 
 ```
 POST /rest/v1/rpc/create_space
@@ -161,15 +169,18 @@ Splits:
 - `equal`: the server recomputes the amounts and ignores any sent: each split member gets
   `amount / n` and the remainder goes to the first split member (in array order) who is also a
   payer, else the first split member. This matches `splitEqual` in `packages/core` (ADR 0003).
-- `exact`, `percent`, `shares`: the client computes the amounts (`splitExact`, `splitPercent`,
-  `splitShares`); they must be non-negative and sum to `amount_minor`, or the call fails with
-  `22023`. `percent` needs `percent_bp` on every split, summing to 10000; `shares` needs a positive
-  `shares` on every split.
+- `exact`: the client's amounts must be non-negative and sum to `amount_minor` (`splitExact`).
+- `percent`, `shares`: `percent` needs `percent_bp` on every split, summing to 10000; `shares` needs
+  a positive `shares` on every split. The server recomputes the allocation with the same rule as
+  `splitPercent` / `splitShares` and rejects (`22023`) any client amount that differs: each member
+  gets `floor(amount × w / total)`, and the leftover paise go one each to the largest discarded
+  fractions, ties to the payer (as above) first, then split order. So amounts that sum correctly but
+  contradict the weights (50/50 with 9000/1000 bp) are rejected.
 
-Idempotency: if the space already has an expense with this `idempotency_key` created by the
-caller, its id is returned and nothing is written, even if the payload differs. Two concurrent calls
-with the same key both return the one expense id: the unique `(space_id, idempotency_key)` index
-makes the second wait for the first to commit.
+Idempotency (see above): the fingerprint covers every stored field plus payers (any order) and
+splits (in order, since order decides the remainder). Client amounts on `equal` splits are ignored
+by the server and so are not part of it. `spent_on` counts as sent, so omitting it on the first call
+and on replays matches even across midnight.
 
 ```
 POST /rest/v1/rpc/add_expense
@@ -209,11 +220,15 @@ caller cannot otherwise read) with a fixed `search_path`.
 
 - At most 500 hashes per call (`54000` otherwise); the client batches. Every entry must be 64 hex
   characters (`22023`), so a raw number is rejected. Uppercase hex is accepted; results are lowercase.
-- Rate limiting: a hash only hides a number from casual view. Indian mobile numbers are a small
-  space, so anyone can hash every number and enumerate who is registered (and their display name)
-  by calling this repeatedly. Postgres cannot throttle that by itself; before launch this endpoint
-  needs a per-user limit at the API gateway or an Edge Function in front of it (for example a few
-  thousand hashes per user per day). Not implemented in #10.
+- Quota: a hash only hides a number from casual view (Indian mobile numbers are a small space to
+  enumerate), so every hash sent, matched or not, is charged to a per-user daily budget before the
+  lookup: 1000 hashes per verified user per day (Asia/Kolkata). A call that would go over fails with
+  `PT429` (HTTP 429, hint `lookup_quota_exceeded`) and is not charged; the client should stop and try
+  the remaining contacts the next day. The budget lives in `private.lookup_quota`, outside the
+  PostgREST schemas with no client privileges, so it cannot be read, reset or bypassed. Change the
+  limit with `update private.settings set value = '<n>' where key = 'lookup_phones_daily_hashes'`.
+  There is no burst limit beyond the 500-per-call cap.
+- A profile matches only while its phone is still the user's verified auth phone.
 
 ```
 POST /rest/v1/rpc/lookup_phones
