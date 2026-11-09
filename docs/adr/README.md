@@ -9,5 +9,6 @@ One file per decision: Context, Decision, Consequences, Status. Superseding an A
 | [0003](0003-money.md) | Money as integer paise; split and simplification rules | Accepted |
 | [0004](0004-offline-sync.md) | Offline: drift mirror and `pending_mutations` queue | Accepted |
 | [0005](0005-dependency-policy.md) | Dependency policy | Accepted |
+| [0006](0006-fonts.md) | Fonts: google_fonts with bundled Figtree and IBM Plex Serif | Accepted |
 
 Owner-level process calls that are not architecture live in `docs/decisions/`.

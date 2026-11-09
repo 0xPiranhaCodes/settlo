@@ -7,6 +7,17 @@ environment:
   sdk: ^3.13.0
   flutter: ">=3.47.0"
 
+dependencies:
+  flutter:
+    sdk: flutter
+  google_fonts: ^9.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+flutter:
+  # Figtree and IBM Plex Serif, bundled so google_fonts never fetches them at
+  # runtime and tests render real glyphs offline (ADR 0006).
+  assets:
+    - assets/fonts/
