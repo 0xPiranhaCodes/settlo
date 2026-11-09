@@ -375,11 +375,7 @@ class _SettingRow extends StatelessWidget {
                 ),
               ),
               if (data.onTap != null)
-                ProfileIcon(
-                  ProfileGlyph.chevron,
-                  color: colors.textMuted,
-                  size: 20,
-                ),
+                ProfileIcon(ProfileGlyph.chevron, color: colors.textMuted),
             ],
           ),
         ),
@@ -413,7 +409,6 @@ class _IconTile extends StatelessWidget {
       child: ProfileIcon(
         icon,
         color: action ? colors.action : colors.textPrimary,
-        size: 20,
       ),
     );
   }

@@ -2,22 +2,46 @@ import 'package:flutter/widgets.dart';
 
 /// Line glyphs used by the Profile artboard, on its 24-unit SVG grid.
 enum ProfileGlyph {
+  /// Back arrow.
   back,
+
+  /// UPI card wallet.
   wallet,
+
+  /// Reminder bell.
   bell,
+
+  /// Contact silhouette.
   person,
+
+  /// App-lock shield.
   shield,
+
+  /// Export arrow.
   download,
+
+  /// Mobile phone.
   phone,
+
+  /// Appearance sun.
   appearance,
+
+  /// Profile edit pencil.
   edit,
+
+  /// Sign-out door and arrow.
   logout,
+
+  /// Forward disclosure arrow.
   chevron,
+
+  /// Selected-option tick.
   check,
 }
 
 /// A canvas-stable profile icon that does not depend on MaterialIcons.
 class ProfileIcon extends StatelessWidget {
+  /// Draws [glyph] at [size] in [color].
   const new(
     this.glyph, {
     required this.color,
@@ -26,9 +50,16 @@ class ProfileIcon extends StatelessWidget {
     super.key,
   });
 
+  /// Shape to draw.
   final ProfileGlyph glyph;
+
+  /// Stroke colour.
   final Color color;
+
+  /// Square dimensions.
   final double size;
+
+  /// Stroke width on the 24-unit grid.
   final double stroke;
 
   @override
