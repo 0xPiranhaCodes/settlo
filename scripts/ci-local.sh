@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Mirrors the repository's CI gates while hosted GitHub Actions is disabled.
+# Optional developer preflight; hosted GitHub Actions remain the merge gate.
 set -euo pipefail
 
 # Orca may inject an empty Git config overlay; discard it when its keys are

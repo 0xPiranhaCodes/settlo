@@ -1,20 +1,22 @@
 # Settlo app
 
-## Local CI
+## Continuous integration
 
-Hosted GitHub Actions are manual-only while the private repository has no
-Actions budget. Run the complete release gates from the repository root:
+Hosted GitHub Actions are the merge gate. Every pull request runs analysis,
+tests and coverage, Linux golden comparisons, Supabase checks, and the Android
+debug build. The iOS job builds only when a pull request changes iOS-relevant
+paths; it always builds after merge on `main`.
+
+Authors can optionally run the local preflight from the repository root:
 
 ```sh
 scripts/ci-local.sh
 ```
 
-The script analyzes the workspace, runs every test with the coverage floors,
-compares app and core goldens in a pinned Linux/amd64 Flutter container, tests
-the local Supabase stack, and builds the Android and iOS debug apps. Android is
-reported as skipped only when the local SDK or command-line tools are missing.
-The pull request reviewer must paste the passing summary and commit SHA into
-their approval. See [the decision](../docs/decisions/2026-11-09-local-ci.md).
+The script is a developer convenience, not merge evidence or a substitute for
+hosted CI. Inspect and trust the checked-out branch before running it because it
+executes project-controlled build and package logic on the host. See the
+[current Actions decision](../docs/decisions/2026-11-09-actions-budget.md).
 
 ## Supabase settings
 
