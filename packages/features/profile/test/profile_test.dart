@@ -52,12 +52,16 @@ final class _ThemeRepository implements ThemeModeRepository {
   new(this.saved);
 
   ThemeMode saved;
+  Object? saveError;
 
   @override
   Future<ThemeMode> load() async => saved;
 
   @override
-  Future<void> save(ThemeMode mode) async => saved = mode;
+  Future<void> save(ThemeMode mode) async {
+    if (saveError case final error?) _throw(error);
+    saved = mode;
+  }
 }
 
 final class _SessionNotifier extends SessionNotifier {
@@ -71,10 +75,12 @@ final class _SessionNotifier extends SessionNotifier {
 
 void main() {
   group('server-matching validation', () {
-    test('requires a trimmed name no longer than 100 characters', () {
+    test('counts Unicode characters rather than UTF-16 code units', () {
       expect(validateProfileName(null), nameValidationMessage);
       expect(validateProfileName('  '), nameValidationMessage);
       expect(validateProfileName('a' * 101), nameValidationMessage);
+      expect(validateProfileName('😀' * 100), isNull);
+      expect(validateProfileName('😀' * 101), nameValidationMessage);
       expect(validateProfileName(' Asha K '), isNull);
     });
 
@@ -123,12 +129,12 @@ void main() {
       read: () async => stored,
       write: (value) async => stored = value,
     );
-    expect(await repository.load(), ThemeMode.system);
+    expect(await repository.load(), ThemeMode.dark);
     await repository.save(ThemeMode.dark);
     expect(stored, 'dark');
     expect(await repository.load(), ThemeMode.dark);
     stored = 'sepia';
-    expect(await repository.load(), ThemeMode.system);
+    expect(await repository.load(), ThemeMode.dark);
   });
 
   test(
@@ -139,7 +145,7 @@ void main() {
       ProviderContainer container() => ProviderContainer();
 
       final first = container();
-      expect(await first.read(themeModeProvider.future), ThemeMode.system);
+      expect(await first.read(themeModeProvider.future), ThemeMode.dark);
       await first.read(themeModeProvider.notifier).setMode(ThemeMode.light);
       first.dispose();
 
@@ -256,6 +262,14 @@ void main() {
     );
     expect(tester.getSize(change).width, greaterThanOrEqualTo(44));
     expect(tester.getSize(change).height, greaterThanOrEqualTo(44));
+    expect(
+      tester
+          .widget<TextButton>(change)
+          .style
+          ?.foregroundColor
+          ?.resolve(const <WidgetState>{}),
+      SettloColors.dark.action,
+    );
 
     await tester.tap(find.text('Change'));
     await tester.pumpAndSettle();
@@ -287,6 +301,14 @@ void main() {
     expect(find.text('Use system setting'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Dark'), findsOneWidget);
     expect(find.text('Light'), findsOneWidget);
+    final selectedCheck = find.descendant(
+      of: find.widgetWithText(ListTile, 'Dark'),
+      matching: find.byType(ProfileIcon),
+    );
+    expect(
+      tester.widget<ProfileIcon>(selectedCheck).color,
+      SettloColors.dark.textPrimary,
+    );
     await tester.tap(find.text('Light'));
     await tester.pumpAndSettle();
     expect(theme.saved, ThemeMode.light);
@@ -350,5 +372,40 @@ void main() {
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
     expect(find.text("We couldn't sign you out. Try again."), findsOneWidget);
+  });
+
+  testWidgets('appearance save failures use safe copy and keep the sheet', (
+    tester,
+  ) async {
+    final profile = _ProfileRepository();
+    final theme = _ThemeRepository(ThemeMode.dark)
+      ..saveError = StateError('private');
+    await tester.pumpWidget(
+      ProviderScope(
+        key: UniqueKey(),
+        overrides: [
+          profileRepositoryProvider.overrideWithValue(profile),
+          themeModeRepositoryProvider.overrideWithValue(theme),
+        ],
+        child: MaterialApp(
+          theme: SettloTheme.dark(),
+          home: const ProfileScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Appearance'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Light'));
+    await tester.pump();
+    await tester.pump();
+    expect(
+      find.text("We couldn't change your appearance. Try again."),
+      findsOneWidget,
+    );
+    expect(find.text('Appearance'), findsNWidgets(2));
+    expect(theme.saved, ThemeMode.dark);
   });
 }

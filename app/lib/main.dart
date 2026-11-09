@@ -23,7 +23,7 @@ class SettloApp extends ConsumerWidget {
     debugShowCheckedModeBanner: false,
     theme: SettloTheme.light(),
     darkTheme: SettloTheme.dark(),
-    themeMode: ref.watch(themeModeProvider).value ?? ThemeMode.system,
+    themeMode: ref.watch(themeModeProvider).value ?? ThemeMode.dark,
     routerConfig: ref.watch(routerProvider),
   );
 }

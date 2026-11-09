@@ -113,7 +113,7 @@ final _vpa = RegExp(r'^[A-Za-z0-9._-]{1,255}@[A-Za-z]{2,64}$');
 /// Validates a name exactly as `update_profile` does.
 String? validateProfileName(String? value) {
   final name = value?.trim() ?? '';
-  return name.isEmpty || name.length > 100 ? nameValidationMessage : null;
+  return name.isEmpty || name.runes.length > 100 ? nameValidationMessage : null;
 }
 
 /// Validates a VPA exactly as `public.is_vpa`; blank clears the saved VPA.

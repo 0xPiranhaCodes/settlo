@@ -202,6 +202,7 @@ class _UpiCard extends StatelessWidget {
           TextButton(
             onPressed: () => _showEditProfile(context, data),
             style: TextButton.styleFrom(
+              foregroundColor: colors.action,
               minimumSize: const Size(64, 44),
               padding: const EdgeInsets.symmetric(horizontal: 8),
             ),
@@ -246,7 +247,7 @@ class _AccountCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mode = ref.watch(themeModeProvider).value ?? ThemeMode.system;
+    final mode = ref.watch(themeModeProvider).value ?? ThemeMode.dark;
     return _SettingsCard(
       rows: [
         const _SettingRowData(
@@ -578,11 +579,22 @@ class _AppearanceSheet extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               title: Text(_themeLabel(mode)),
               trailing: mode == selected
-                  ? ProfileIcon(ProfileGlyph.check, color: colors.action)
+                  ? ProfileIcon(ProfileGlyph.check, color: colors.textPrimary)
                   : null,
               onTap: () async {
-                await ref.read(themeModeProvider.notifier).setMode(mode);
-                if (context.mounted) Navigator.of(context).pop();
+                try {
+                  await ref.read(themeModeProvider.notifier).setMode(mode);
+                  if (context.mounted) Navigator.of(context).pop();
+                } on Object {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        "We couldn't change your appearance. Try again.",
+                      ),
+                    ),
+                  );
+                }
               },
             ),
         ],

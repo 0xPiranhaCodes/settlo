@@ -6,14 +6,14 @@ const _themeModeKey = 'settlo.theme_mode';
 
 /// Device storage for the user's theme choice.
 abstract interface class ThemeModeRepository {
-  /// Reads the saved choice; defaults to following the system.
+  /// Reads the saved choice; defaults to dark.
   Future<ThemeMode> load();
 
   /// Persists [mode].
   Future<void> save(ThemeMode mode);
 }
 
-/// Theme settings stored in platform preferences (ADR 0008).
+/// Theme settings stored in platform preferences (ADR 0010).
 final class SharedPreferencesThemeModeRepository
     implements ThemeModeRepository {
   /// Uses the uncached preferences API so reads reflect durable storage.
@@ -29,7 +29,7 @@ final class SharedPreferencesThemeModeRepository
   Future<ThemeMode> load() async {
     final saved = await read();
     return ThemeMode.values.where((mode) => mode.name == saved).firstOrNull ??
-        ThemeMode.system;
+        ThemeMode.dark;
   }
 
   @override

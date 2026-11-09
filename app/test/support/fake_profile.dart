@@ -31,7 +31,7 @@ final class FakeProfileRepository implements ProfileRepository {
 /// In-memory appearance preference for app tests.
 final class FakeThemeModeRepository implements ThemeModeRepository {
   /// Starts with [mode].
-  new([this.mode = ThemeMode.system]);
+  new([this.mode = ThemeMode.dark]);
 
   /// Current setting.
   ThemeMode mode;

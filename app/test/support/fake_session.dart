@@ -6,8 +6,8 @@ import 'package:settlo_profile/settlo_profile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'fake_home.dart';
-import 'fake_space_ledger.dart';
 import 'fake_profile.dart';
+import 'fake_space_ledger.dart';
 import 'fake_spaces.dart';
 
 /// A signed-in session for a test user; no network or storage involved.
@@ -46,7 +46,8 @@ class FakeSessionNotifier extends SessionNotifier {
 /// SpacesList spaces with their ledgers.
 Widget fakeSessionApp(
   Session? session, {
-  ThemeMode themeMode = ThemeMode.system,
+  ThemeMode themeMode = ThemeMode.dark,
+  ThemeModeRepository? themeModeRepository,
 }) => ProviderScope(
   overrides: [
     sessionProvider.overrideWith(() => FakeSessionNotifier(session)),
@@ -59,7 +60,7 @@ Widget fakeSessionApp(
     ),
     profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
     themeModeRepositoryProvider.overrideWithValue(
-      FakeThemeModeRepository(themeMode),
+      themeModeRepository ?? FakeThemeModeRepository(themeMode),
     ),
   ],
   child: const SettloApp(),

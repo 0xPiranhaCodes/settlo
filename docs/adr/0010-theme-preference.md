@@ -1,4 +1,4 @@
-# 0008 Persist the theme preference with `shared_preferences`
+# 0010 Persist the theme preference with `shared_preferences`
 
 ## Status
 Accepted (9 Nov 2026)
@@ -12,6 +12,7 @@ Add `shared_preferences ^2.5.6` directly to `settlo_profile` and store the enum 
 The feature's tests depend directly on `shared_preferences_platform_interface ^2.4.2` for its official in-memory async implementation. This exercises the same uncached adapter without a device plugin; the package is already part of the `shared_preferences` plugin family in the lockfile.
 
 ## Consequences
-- The setting follows the system when absent or unrecognised and supports explicit dark and light modes.
+- A missing, unrecognised, or still-loading preference renders dark, preserving Settlo's dark-first launch and avoiding a light frame over the dark native splash.
+- System and light remain explicit choices; a saved system choice follows the platform brightness after it loads.
 - Profile owns the preference UI and storage; `app` only watches the exported provider when composing `MaterialApp`.
 - This adds no new resolved package to the lockfile because Supabase already brought the plugin family into the app, but it makes the direct dependency and its platform persistence intentional.
