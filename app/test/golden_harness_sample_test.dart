@@ -44,7 +44,7 @@ class _SamplePainter extends CustomPainter {
         ? const Color(0xFF0A0B0D)
         : const Color(0xFFF4F1EA);
     final surface = isDark ? const Color(0xFF1E2126) : const Color(0xFFFFFFFF);
-    final action = isDark ? const Color(0xFFD8B36B) : const Color(0xFF1B1B18);
+    final action = isDark ? const Color(0xFFD8B36A) : const Color(0xFF1B1B18);
 
     canvas
       ..drawRect(Offset.zero & size, Paint()..color = background)
