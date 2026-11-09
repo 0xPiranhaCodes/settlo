@@ -211,7 +211,7 @@ class _Receipt extends StatelessWidget {
                                   '${spokenInr(loan.principal)}',
                             ),
                             _Row('Instalment', switch ((
-                              loan.installmentsPaid,
+                              loan.installmentsAfter(repayment),
                               loan.installmentsTotal,
                             )) {
                               (final paid?, final total?) => '$paid of $total',

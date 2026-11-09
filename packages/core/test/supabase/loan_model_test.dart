@@ -15,6 +15,9 @@ LoanRepayment _repayment(
 Loan _loan({
   Paise principal = const Paise.rupees(100000),
   Paise repaid = const Paise.rupees(50000),
+  Paise? installment,
+  int? installmentsPaid,
+  int? installmentsTotal,
   List<LoanRepayment> repayments = const [],
 }) => Loan(
   id: 'loan',
@@ -23,6 +26,9 @@ Loan _loan({
   principal: principal,
   repaid: repaid,
   startOn: DateTime(2026),
+  installment: installment,
+  installmentsPaid: installmentsPaid,
+  installmentsTotal: installmentsTotal,
   repayments: repayments,
 );
 
@@ -91,6 +97,58 @@ void main() {
         _loan(repayments: [repayment]).outstandingAfter(repayment),
         Paise.zero,
       );
+    });
+  });
+
+  group('instalment after repayment', () {
+    Loan scheduled(LoanRepayment repayment) => _loan(
+      principal: const Paise.rupees(1000000),
+      repaid: const Paise.rupees(325000),
+      installment: const Paise.rupees(25000),
+      installmentsPaid: 13,
+      installmentsTotal: 40,
+      repayments: [repayment],
+    );
+
+    test(
+      'pending receipt projects complete instalments after confirmation',
+      () {
+        final repayment = _repayment(RepaymentStatus.pending);
+
+        expect(scheduled(repayment).installmentsAfter(repayment), 14);
+      },
+    );
+
+    test('pending projection floors partial amounts and caps at total', () {
+      final partial = _repayment(
+        RepaymentStatus.pending,
+        amount: const Paise.rupees(24999),
+      );
+      final overSchedule = _repayment(
+        RepaymentStatus.pending,
+        amount: const Paise.rupees(700000),
+      );
+
+      expect(scheduled(partial).installmentsAfter(partial), 13);
+      expect(scheduled(overSchedule).installmentsAfter(overSchedule), 40);
+    });
+
+    test('confirmed receipt keeps the current count', () {
+      final repayment = _repayment(RepaymentStatus.confirmed);
+
+      expect(scheduled(repayment).installmentsAfter(repayment), 13);
+    });
+
+    test('disputed receipt keeps the current count', () {
+      final repayment = _repayment(RepaymentStatus.disputed);
+
+      expect(scheduled(repayment).installmentsAfter(repayment), 13);
+    });
+
+    test('flexible loan has no instalment count', () {
+      final repayment = _repayment(RepaymentStatus.pending);
+
+      expect(_loan(repayments: [repayment]).installmentsAfter(repayment), null);
     });
   });
 }

@@ -159,12 +159,31 @@ final class Loan {
   /// repayment is added for this projection. Disputed repayments never count,
   /// and an invalid overpayment is shown as zero rather than negative money.
   Paise outstandingAfter(LoanRepayment repayment) {
-    final confirmedAfter = repayment.status == RepaymentStatus.pending
-        ? repaid + repayment.amount
-        : repaid;
-    final remaining = principal - confirmedAfter;
+    final remaining = principal - _confirmedAfter(repayment);
     return remaining.value < 0 ? Paise.zero : remaining;
   }
+
+  /// Which scheduled instalment [repayment] represents.
+  ///
+  /// A pending repayment projects the count after confirmation from the
+  /// confirmed principal, rounded down to complete instalments and capped at
+  /// the schedule total. Decided receipts keep the server's current count.
+  /// Flexible loans have no instalment count.
+  int? installmentsAfter(LoanRepayment repayment) {
+    final amount = installment;
+    final total = installmentsTotal;
+    if (amount == null || total == null) return null;
+    if (repayment.status != RepaymentStatus.pending || amount.value <= 0) {
+      return installmentsPaid;
+    }
+    final projected = _confirmedAfter(repayment).value ~/ amount.value;
+    return projected > total ? total : projected;
+  }
+
+  Paise _confirmedAfter(LoanRepayment repayment) =>
+      repayment.status == RepaymentStatus.pending
+      ? repaid + repayment.amount
+      : repaid;
 
   /// The share repaid, 0 to 1, from confirmed repayments only.
   double get progress =>
