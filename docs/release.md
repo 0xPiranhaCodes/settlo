@@ -16,4 +16,4 @@ The M6 gate is complete when both stores have accepted a submission for review.
 
 ## Merge rule
 
-All changes are squash-merged only after CI is green and the pull request has one approval from a non-author agent. Direct pushes to `main` are not allowed. Branch protection is unavailable on the private repository's current plan, so the manager enforces this rule.
+All changes are squash-merged only after the `Analyze & test`, `Android debug build`, `iOS debug build`, and `Supabase` checks are green and the pull request has one approval from a non-author agent. Direct pushes to `main` are not allowed. Branch protection is unavailable on the private repository's current plan, so the manager enforces this rule.

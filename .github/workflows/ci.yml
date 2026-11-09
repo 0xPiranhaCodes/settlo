@@ -1,0 +1,202 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: 3.47.9
+
+jobs:
+  analyze-test:
+    name: Analyze & test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Analyze workspace
+        run: flutter analyze
+
+      - name: Test workspace members with coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p coverage
+          : > coverage/lcov.info
+
+          members=()
+          while IFS= read -r member; do
+            members+=("$member")
+          done < <(
+            dart pub workspace list --json | python3 -c '
+          import json
+          import os
+          import sys
+
+          for package in json.load(sys.stdin)["packages"]:
+              path = package["path"]
+              if os.path.isdir(os.path.join(path, "test")):
+                  print(path)
+          '
+          )
+
+          if (( ${#members[@]} == 0 )); then
+            echo "No workspace members with a test/ directory were found." >&2
+            exit 1
+          fi
+
+          coverage_files=()
+          for member in "${members[@]}"; do
+            relative_member="${member#"$GITHUB_WORKSPACE"/}"
+            echo "Testing $relative_member"
+            (
+              cd "$member"
+              flutter test --coverage
+            )
+            coverage_files+=("$member/coverage/lcov.info")
+          done
+
+          python3 - "$GITHUB_WORKSPACE" "${coverage_files[@]}" <<'PY'
+          import collections
+          import os
+          import sys
+
+          root = sys.argv[1]
+          merged = collections.defaultdict(lambda: collections.defaultdict(int))
+
+          for trace_path in sys.argv[2:]:
+              member = os.path.dirname(os.path.dirname(trace_path))
+              source = None
+              with open(trace_path, encoding="utf-8") as trace:
+                  for raw_line in trace:
+                      line = raw_line.rstrip("\n")
+                      if line.startswith("SF:"):
+                          source_path = line[3:]
+                          if not os.path.isabs(source_path):
+                              source_path = os.path.join(member, source_path)
+                          source = os.path.relpath(source_path, root)
+                      elif line.startswith("DA:") and source is not None:
+                          line_number, hits = line[3:].split(",", 1)
+                          merged[source][int(line_number)] += int(hits)
+
+          with open(os.path.join(root, "coverage", "lcov.info"), "w", encoding="utf-8") as output:
+              for source, lines in sorted(merged.items()):
+                  output.write(f"SF:{source}\n")
+                  for line_number, hits in sorted(lines.items()):
+                      output.write(f"DA:{line_number},{hits}\n")
+                  output.write(f"LF:{len(lines)}\n")
+                  output.write(f"LH:{sum(hits > 0 for hits in lines.values())}\n")
+                  output.write("end_of_record\n")
+          PY
+
+      - name: Enforce main coverage baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          baseline_file=.github/coverage-baseline.txt
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]] && \
+             git cat-file -e "origin/${{ github.base_ref }}:$baseline_file" 2>/dev/null; then
+            baseline="$(git show "origin/${{ github.base_ref }}:$baseline_file")"
+          else
+            baseline="$(<"$baseline_file")"
+          fi
+
+          read -r lines_found lines_hit < <(
+            awk -F: '
+              /^LF:/ { found += $2 }
+              /^LH:/ { hit += $2 }
+              END { print found + 0, hit + 0 }
+            ' coverage/lcov.info
+          )
+
+          if (( lines_found == 0 )); then
+            echo "Merged coverage contains no instrumented lines." >&2
+            exit 1
+          fi
+
+          coverage="$(awk -v hit="$lines_hit" -v found="$lines_found" \
+            'BEGIN { printf "%.2f", (hit * 100) / found }')"
+          echo "Total line coverage: $coverage% ($lines_hit/$lines_found)"
+          echo "Main baseline: $baseline%"
+
+          awk -v coverage="$coverage" -v baseline="$baseline" \
+            'BEGIN { exit !(coverage + 0 < baseline + 0) }' && {
+              echo "Coverage dropped below the main baseline." >&2
+              exit 1
+            }
+
+  android:
+    name: Android debug build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Build debug APK
+        working-directory: app
+        run: flutter build apk --debug
+
+  ios:
+    name: iOS debug build
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Build debug iOS app
+        working-directory: app
+        run: flutter build ios --no-codesign --debug
+
+  supabase:
+    name: Supabase
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+        with:
+          version: 3.0.0
+
+      - name: Start local Supabase
+        run: scripts/supabase-local.sh start
+
+      - name: Reset local database
+        run: scripts/supabase-local.sh db reset
+
+      - name: Run database tests
+        run: scripts/supabase-local.sh test db
