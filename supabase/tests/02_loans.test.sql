@@ -42,9 +42,10 @@ select throws_ok(
   '42501', null, 'a third party cannot create a loan between two others');
 
 -- ₹1,000.00 interest-free, ₹100.00 monthly on the 5th; borrower has not linked yet (phone only).
-insert into public.loans (id, lender_phone, borrower_phone, lender_id, principal_minor, installment_minor, due_day, created_by)
+insert into public.loans (id, lender_phone, borrower_phone, lender_id, principal_minor, installment_minor, due_day, start_on,
+                          created_by)
 values ('00000000-0000-0000-0000-00000000f001', '+919000000001', '+919000000002',
-        '00000000-0000-0000-0000-00000000e001', 100000, 10000, 5, '00000000-0000-0000-0000-00000000e001');
+        '00000000-0000-0000-0000-00000000e001', 100000, 10000, 5, '2026-10-01', '00000000-0000-0000-0000-00000000e001');
 
 select throws_ok(
   $$update public.loans set borrower_phone = '+919000000003' where id = '00000000-0000-0000-0000-00000000f001'$$,

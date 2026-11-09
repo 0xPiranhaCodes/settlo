@@ -442,6 +442,8 @@ Further hints:
 | `22023` | `interest_not_supported` | `create_loan` with an `interest_type` other than `none` |
 | `22023` | `overpayment` | A repayment over what is outstanding (principal minus confirmed), or a confirmation that would pass the principal |
 | `22023` | `loan_closed` | `record_repayment` on a closed loan |
+| `22023` | `paid_on_before_start`, `paid_on_future` | A repayment dated before its loan's `start_on` or after today in India |
+| `22023` | `reference_invalid` | A repayment reference over 64 characters (after trimming) or with control characters |
 | `22023` | `not_pending` | Confirming or disputing a repayment already confirmed or disputed |
 | `42501` | `own_record` | Confirming or disputing a repayment your own side recorded |
 
@@ -480,9 +482,9 @@ repayment id (the key).
 | `loan_id` | uuid | Required |
 | `idempotency_key` | uuid | Required; becomes the repayment id |
 | `amount_minor` | bigint | Required, > 0, at most the outstanding principal (`overpayment`) |
-| `paid_on` | date | Default: today in India |
+| `paid_on` | date | Default: today in India; from the loan's `start_on` to today in India (`paid_on_before_start`, `paid_on_future`) |
 | `method` | `upi`, `cash`, `bank`, `other` | Optional |
-| `reference` | text | Optional, trimmed (e.g. a UPI transaction id) |
+| `reference` | text | Optional, trimmed, at most 64 printable characters (`reference_invalid`; e.g. a UPI transaction id) |
 
 Pending repayments do not reduce what is outstanding, so two pending repayments may together exceed
 it; whichever is confirmed second is then refused (`overpayment`) and can be disputed. A replay
