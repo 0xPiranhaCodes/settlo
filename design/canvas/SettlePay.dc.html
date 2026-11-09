@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pay Kabir via UPI</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&amp;family=IBM+Plex+Serif:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Figtree',system-ui,sans-serif;color:#F3F2EE;-webkit-font-smoothing:antialiased}
+a{color:#F3F2EE;text-decoration:none}a:hover{color:#D8B36A}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0A0B0D; position: relative; justify-content: flex-end; overflow: hidden; display: flex; flex-direction: column; font-variant-numeric: tabular-nums">
+<form style="background: #15171A; border-radius: 28px 28px 0 0; border-top: 1px solid rgba(255,255,255,0.10); height: 760px; box-sizing: border-box; display: flex; flex-direction: column; padding: 0 20px" onsubmit="return false">
+  <div style="width: 36px; height: 4px; border-radius: 2px; background: #262A30; margin: 10px auto 0 auto"></div>
+  <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px">
+    <a href="Space.dc.html" aria-label="Close" style="width: 44px; height: 44px; margin-left: -12px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3F2EE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+    <div style="font-size: 15px; font-weight: 500">Settle up · Goa trip</div><div style="width: 32px"></div>
+  </div>
+  <div style="display: flex; align-items: center; justify-content: center; gap: 16px; padding-top: 26px">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><div style="width: 60px; height: 60px; border-radius: 50%; background: #D8B36A; color: #0A0B0D; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 500; flex-shrink: 0">S</div><div style="font-size: 13px">You</div></div>
+    <a href="Settle.dc.html" aria-label="Swap direction" style="width: 44px; height: 44px; border: 1px solid rgba(255,255,255,0.07); border-radius: 22px; background: #1E2126; display: flex; align-items: center; justify-content: center; margin-bottom: 24px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3F2EE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m0 0l-4-4m4 4l-4 4"></path></svg></a>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><div style="width: 60px; height: 60px; border-radius: 50%; background: #262A30; color: #F3F2EE; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 500; flex-shrink: 0">K</div><div style="font-size: 13px">Kabir</div></div>
+  </div>
+  <div style="text-align: center; padding-top: 18px">
+    <div style="font-size: 13px; color: #9B9D9A">You pay Kabir</div>
+    <label for="amt" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Amount</label>
+    <div style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 2px">
+      <span style="font-family: 'Figtree', sans-serif; font-size: 28px; font-weight: 500; color: #9B9D9A; margin-top: 6px">₹</span>
+      <input id="amt" inputmode="decimal" value="3,650" style="width: 150px; border: 0; background: transparent; padding: 0; font: 500 52px 'IBM Plex Serif', Georgia, serif; letter-spacing: -1.5px; color: #F0715C; outline: none">
+    </div>
+    <div style="font-size: 12px; color: #9B9D9A">clears your balance in Goa trip · <a href="SettlePay.dc.html" style="color: #D8B36A">pay part</a></div>
+  </div>
+  <div style="padding-top: 24px">
+    <div style="font-size: 12px; color: #9B9D9A; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 10px">Pay with</div>
+    <div style="display: flex; gap: 8px"><button type="button" style="flex: 1; height: 72px; border: 1px solid #D8B36A; border-radius: 16px; background: #1E2126; color: #F3F2EE; font: 500 12px 'Figtree', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px"><span style="width: 30px; height: 30px; border-radius: 10px; background: #262A30; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500">G</span>GPay</button><button type="button" style="flex: 1; height: 72px; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; background: #1E2126; color: #F3F2EE; font: 400 12px 'Figtree', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px"><span style="width: 30px; height: 30px; border-radius: 10px; background: #262A30; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500">P</span>PhonePe</button><button type="button" style="flex: 1; height: 72px; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; background: #1E2126; color: #F3F2EE; font: 400 12px 'Figtree', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px"><span style="width: 30px; height: 30px; border-radius: 10px; background: #262A30; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500">P</span>Paytm</button><button type="button" style="flex: 1; height: 72px; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; background: #1E2126; color: #F3F2EE; font: 400 12px 'Figtree', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px"><span style="width: 30px; height: 30px; border-radius: 10px; background: #262A30; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500">O</span>Other UPI</button></div>
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 13px; color: #9B9D9A"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9B9D9A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v10H4z"></path><path d="M4 11h16"></path></svg>Opens with ₹3,650 to kabir@oksbi prefilled. You approve it there.</div>
+  </div>
+  <div style="flex: 1"></div>
+  <div style="font-size: 12px; color: #8A8D88; text-align: center; line-height: 1.5; margin-bottom: 12px">Settlo doesn't move money. After you pay, Kabir confirms and both ledgers update.</div>
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px">
+    <div style="display: flex"><button type="submit" style="height: 54px; border: 0; border-radius: 16px; background: #D8B36A; color: #0A0B0D; font: 500 15px 'Figtree', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 0 16px">Pay ₹3,650 via GPay <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0B0D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m0 0l-5-5m5 5l-5 5"></path></svg></button></div>
+    <div style="display: flex"><a href="Space.dc.html" style="height: 48px; border: 1px solid rgba(255,255,255,0.10); border-radius: 16px; background: #1E2126; color: #F3F2EE; font: 500 15px 'Figtree', sans-serif; display: flex; align-items: center; justify-content: center; flex: 1; padding: 0 16px">I already paid in cash</a></div>
+  </div>
+</form></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

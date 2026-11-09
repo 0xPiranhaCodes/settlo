@@ -1,0 +1,455 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-11-09T05:50:00Z"
+ },
+ "title": "Settlo — mobile app UI",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Welcome.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Welcome"
+  },
+  "Phone.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Phone number"
+  },
+  "Onboarding.dc.html": {
+   "x": 940,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "OTP"
+  },
+  "Main.dc.html": {
+   "x": 1410,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Home"
+  },
+  "SpacesList.dc.html": {
+   "x": 0,
+   "y": 1700,
+   "w": 390,
+   "h": 844,
+   "title": "Spaces list"
+  },
+  "SpaceExpenses.dc.html": {
+   "x": 470,
+   "y": 1700,
+   "w": 390,
+   "h": 844,
+   "title": "Space · expenses"
+  },
+  "Space.dc.html": {
+   "x": 940,
+   "y": 1700,
+   "w": 390,
+   "h": 844,
+   "title": "Space · balances"
+  },
+  "AddExpense.dc.html": {
+   "x": 1410,
+   "y": 1700,
+   "w": 390,
+   "h": 844,
+   "title": "Add expense"
+  },
+  "Loan.dc.html": {
+   "x": 0,
+   "y": 3400,
+   "w": 390,
+   "h": 844,
+   "title": "Loan detail"
+  },
+  "NewLoan.dc.html": {
+   "x": 470,
+   "y": 3400,
+   "w": 390,
+   "h": 844,
+   "title": "New loan"
+  },
+  "Settle.dc.html": {
+   "x": 940,
+   "y": 3400,
+   "w": 390,
+   "h": 844,
+   "title": "Settle up"
+  },
+  "ConfirmRepayment.dc.html": {
+   "x": 1410,
+   "y": 3400,
+   "w": 390,
+   "h": 844,
+   "title": "Confirm repayment"
+  },
+  "Activity.dc.html": {
+   "x": 0,
+   "y": 5100,
+   "w": 390,
+   "h": 844,
+   "title": "Activity"
+  },
+  "Profile.dc.html": {
+   "x": 470,
+   "y": 5100,
+   "w": 390,
+   "h": 844,
+   "title": "Profile"
+  },
+  "LiveActivity.dc.html": {
+   "x": 940,
+   "y": 5100,
+   "w": 390,
+   "h": 844,
+   "title": "Live Activity and Android"
+  },
+  "HomeLight.dc.html": {
+   "x": 1410,
+   "y": 5100,
+   "w": 390,
+   "h": 844,
+   "title": "Home · light"
+  },
+  "Splash.dc.html": {
+   "x": -470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Splash"
+  },
+  "HomeEmpty.dc.html": {
+   "x": 0,
+   "y": 6800,
+   "w": 390,
+   "h": 844,
+   "title": "Home · empty"
+  },
+  "HomeFound.dc.html": {
+   "x": 470,
+   "y": 6800,
+   "w": 390,
+   "h": 844,
+   "title": "Home · ledger found"
+  },
+  "SpaceEmpty.dc.html": {
+   "x": 940,
+   "y": 6800,
+   "w": 390,
+   "h": 844,
+   "title": "Space · waiting for members"
+  },
+  "Join.dc.html": {
+   "x": 1410,
+   "y": 6800,
+   "w": 390,
+   "h": 844,
+   "title": "Invitee · join from WhatsApp link"
+  },
+  "SettlePay.dc.html": {
+   "x": 1880,
+   "y": 6800,
+   "w": 390,
+   "h": 844,
+   "title": "Settle up · you pay"
+  }
+ },
+ "order": [
+  "Splash.dc.html",
+  "Welcome.dc.html",
+  "Phone.dc.html",
+  "Onboarding.dc.html",
+  "Main.dc.html",
+  "SpacesList.dc.html",
+  "SpaceExpenses.dc.html",
+  "Space.dc.html",
+  "AddExpense.dc.html",
+  "Loan.dc.html",
+  "NewLoan.dc.html",
+  "Settle.dc.html",
+  "ConfirmRepayment.dc.html",
+  "Activity.dc.html",
+  "Profile.dc.html",
+  "LiveActivity.dc.html",
+  "HomeLight.dc.html",
+  "HomeEmpty.dc.html",
+  "HomeFound.dc.html",
+  "SpaceEmpty.dc.html",
+  "Join.dc.html",
+  "SettlePay.dc.html"
+ ],
+ "notes": {
+  "t0": {
+   "x": -470,
+   "y": -300,
+   "text": "Settlo — Onboarding and home",
+   "kind": "title1",
+   "maxW": 1800,
+   "w": 240
+  },
+  "n00": {
+   "x": 0,
+   "y": 890,
+   "w": 390,
+   "text": "Why: the first screen shows what the ledger will look like, not an illustration. Review fix: the rows are now labelled 'example' so a first-time user doesn't think the app already knows them. One action only: continue with phone.",
+   "size": "s"
+  },
+  "n01": {
+   "x": 470,
+   "y": 890,
+   "w": 390,
+   "text": "Why: the number is the account, so this step gets a full screen and a 26px input instead of a form field. The copy explains the payoff of verifying, not the mechanics. +91 is preselected because the audience is Indian; the picker stays reachable for NRIs.",
+   "size": "s"
+  },
+  "n02": {
+   "x": 940,
+   "y": 890,
+   "w": 390,
+   "text": "Why: six boxes with the active one in gold (focus is an action), auto-filled from SMS. Review fix: the screen no longer reveals what is attached to the number — that would leak data to an unverified person. The reveal moved to the first home screen after verification.",
+   "size": "s"
+  },
+  "n03": {
+   "x": 1410,
+   "y": 890,
+   "w": 390,
+   "text": "Why: one hero card with the net position, then owed, owe and monthly spend as three quiet stats. Positive is mint, negative coral, everything else neutral. Two actions sit under the card because add-expense and settle-up are 90% of sessions. Glass tab bar floats so content scrolls beneath it.",
+   "size": "s"
+  },
+  "t1": {
+   "x": 0,
+   "y": 1400,
+   "text": "Settlo — Spaces",
+   "kind": "title1",
+   "maxW": 1800,
+   "w": 240
+  },
+  "n10": {
+   "x": 0,
+   "y": 2590,
+   "w": 390,
+   "text": "Why: each card is a mini balance sheet. The stacked bar under Flat 402 shows who paid what share this month at a glance: the 'everyone pays for everything' promise, visible before opening the space. Pending invites are surfaced because unregistered friends are the main cause of stale balances.",
+   "size": "s"
+  },
+  "n11": {
+   "x": 470,
+   "y": 2590,
+   "w": 390,
+   "text": "Why: a sparkline of daily spend gives the month a shape; flatmates argue about 'this month felt expensive' and a line settles it. Rows group by day with the payer's avatar leading so you can scan who has been fronting money without reading.",
+   "size": "s"
+  },
+  "n12": {
+   "x": 940,
+   "y": 2590,
+   "w": 390,
+   "text": "Why: bars show amount paid against a white tick at the fair share. The tick, not the bar colour, carries meaning: hue-independent, works for colour-blind users. Review fix: the tick was gold; gold now means 'tap me' only. Below it, debts are already simplified to the minimum payments with a one-tap remind.",
+   "size": "s"
+  },
+  "n13": {
+   "x": 1410,
+   "y": 2590,
+   "w": 390,
+   "text": "Why: a sheet, not a page, so context stays visible behind it. Amount first in the serif at 52px because it is the only thing that must be right. Defaults are preselected (you paid, equal split, today), so the common case is three taps. Rounding rule stated in one line to pre-empt the paisa argument.",
+   "size": "s"
+  },
+  "t2": {
+   "x": 0,
+   "y": 3100,
+   "text": "Settlo — Loans and settling",
+   "kind": "title1",
+   "maxW": 1800,
+   "w": 240
+  },
+  "n20": {
+   "x": 0,
+   "y": 4290,
+   "w": 390,
+   "text": "Why: a ring for progress because a loan has a clear end; a bar would read as a budget. Three stat tiles answer the three questions a lender actually has: how much each time, when next, are we on track. Pending repayments show confirm and dispute inline, under the row, where the decision is made.",
+   "size": "s"
+  },
+  "n21": {
+   "x": 470,
+   "y": 4290,
+   "w": 390,
+   "text": "Why: direction first (lent or borrowed), then principal in words under the number so ₹10,00,000 is never misread as one lakh. Interest is off by default with a visible path to add it later. The footer states the consequence (Arjun gets a link, ends Jul 2029) before the user commits.",
+   "size": "s"
+  },
+  "n22": {
+   "x": 940,
+   "y": 4290,
+   "w": 390,
+   "text": "Why: Settlo never moves money, so this side is framed as a request. Review fix: the swap button now leads to a separate owe-side screen (row 5) where the primary action is paying via UPI, because the person in debt is the one who most often opens this sheet.",
+   "size": "s"
+  },
+  "n23": {
+   "x": 1410,
+   "y": 4290,
+   "w": 390,
+   "text": "Why: the counterparty's claim is shown as a receipt with reference number and the outstanding after confirmation, so the lender can check their bank first. Confirming is final, so the primary button repeats the amount. 'Didn't receive' is equally available: disputes are a feature, not an edge case.",
+   "size": "s"
+  },
+  "t3": {
+   "x": -30,
+   "y": 4793,
+   "text": "Settlo — System surfaces and extras",
+   "kind": "title1",
+   "maxW": 1800,
+   "w": 240
+  },
+  "n30": {
+   "x": 0,
+   "y": 5990,
+   "w": 390,
+   "text": "Why: 'Needs you' is a filter and the top card, because the feed exists to drive confirmations, not nostalgia. Edits are logged with before and after values; transparency about changes is what makes a shared ledger trustworthy. Amounts in the user's favour are mint.",
+   "size": "s"
+  },
+  "n31": {
+   "x": 470,
+   "y": 5990,
+   "w": 390,
+   "text": "Why: the UPI ID is promoted to its own card because every settle-up depends on it. Everything else is grouped and quiet. Deleting the account explains its consequence inline, since leaving a space or loan affects other people.",
+   "size": "s"
+  },
+  "n32": {
+   "x": 940,
+   "y": 5990,
+   "w": 390,
+   "text": "Why: the Dynamic Island shows only the two states worth a glance: a pending settle-up and a trip in progress. Confirm lives in the expanded island. Android gets identical state as an ongoing notification. Review note: on mid-range Android the glass tab bar falls back to a flat 92% surface — defined, not accidental.",
+   "size": "s"
+  },
+  "n33": {
+   "x": 1410,
+   "y": 5990,
+   "w": 390,
+   "text": "Why: light mode is secondary but first-class. Same layout, same hierarchy; ink replaces gold as the primary action so the light theme stays calm rather than gilded. Mint and coral darken to keep 4.5:1 contrast on paper.",
+   "size": "s"
+  },
+  "ov1": {
+   "x": 1880,
+   "y": 0,
+   "w": 420,
+   "size": "s",
+   "fill": "blue",
+   "text": "Case study — the problem\n\nTwo jobs, one ledger. Three flatmates need to see that everyone pays for everything, not just who owes whom. Two friends need a ₹10 lakh loan tracked monthly without a spreadsheet or an awkward chat. Both are trust problems before they are maths problems: the UI must make every number checkable and every change visible to both sides."
+  },
+  "ov2": {
+   "x": 1880,
+   "y": 430,
+   "w": 420,
+   "size": "s",
+   "fill": "blue",
+   "text": "Principles\n\n1. One hero number per screen; everything else is quiet.\n2. Colour means money direction only: mint owed to you, coral you owe. Gold means exactly one thing: a primary action you can tap. Progress, ticks and pending states are neutral.\n3. Two-sided confirmation on anything that moves a balance; edits can be questioned.\n4. Glass is chrome, never content.\n5. Defaults do the work: three taps for the common expense.\n6. Nothing about a phone number is revealed before that number is verified."
+  },
+  "ov3": {
+   "x": 1880,
+   "y": 870,
+   "w": 420,
+   "size": "s",
+   "fill": "blue",
+   "text": "Palette and type\n\nNear-black #0A0B0D with layered surfaces #15171A / #1E2126 and hairline edges at 7% white; a 1px specular highlight on every card gives depth without gradients. Accent: brushed gold #D8B36A, used only for primary actions. Text: Figtree (variable, 400–700; body 400, labels and buttons 500). Numbers ≥20px: IBM Plex Serif 500, tabular; list amounts in Figtree tabular; ₹ set in Figtree at 56% of the number."
+  },
+  "nsplash": {
+   "x": -470,
+   "y": 890,
+   "w": 390,
+   "size": "s",
+   "text": "Why: the splash is the mark alone on black, held for under a second. No illustration, no gradient, no slogan beyond four words. The hairline progress bar is real (ledger sync), not decorative, and the 'opening your ledger' line sets the frame: this is a record, not a wallet. The mark stays gold only here and on the icon."
+  },
+  "t4": {
+   "x": 0,
+   "y": 6500,
+   "w": 240,
+   "text": "Settlo — Review fixes: empty states, join flow, owe-side settle",
+   "kind": "title1",
+   "maxW": 2300
+  },
+  "n40": {
+   "x": 0,
+   "y": 7690,
+   "w": 390,
+   "size": "s",
+   "text": "Why: the first ten minutes decide churn. Two large tiles name the two jobs the app does, in the user's language, with a 'Start' affordance. The net position shows ₹0 in muted type rather than hiding — the hero stays in the same place so the layout doesn't jump when data arrives. Contact matching is explained before it is requested."
+  },
+  "n41": {
+   "x": 470,
+   "y": 7690,
+   "w": 390,
+   "size": "s",
+   "text": "Why: this is where the OTP reveal moved to. Everything recorded against the number is listed as claims to review, not facts — 'he says you lent him' — because the new user hasn't confirmed anything. Balances stay blank until they do. A one-line note explains why they are only seeing this now."
+  },
+  "n42": {
+   "x": 940,
+   "y": 7690,
+   "w": 390,
+   "size": "s",
+   "text": "Why: a space with one member is the normal state for its first day. The admin can add expenses immediately; the card says the others will see them on joining, so nobody waits. Pending members show the masked number and a resend. Two set-up tasks (rent, UPI ID) are offered once, here, not as nags later."
+  },
+  "n43": {
+   "x": 1410,
+   "y": 7690,
+   "w": 390,
+   "size": "s",
+   "text": "Why: the growth loop. The invitee sees who added them, to what, and that it was recorded against their number — but no amounts until verified. 'This isn't me' is a first-class exit because wrong numbers happen. The footer states the three trust facts: a record, not a lender, no money held, balances visible only to members."
+  },
+  "n44": {
+   "x": 1880,
+   "y": 7690,
+   "w": 390,
+   "size": "s",
+   "text": "Why: the owe-side was missing. The amount is in coral because it leaves you; the UPI app chooser is the primary decision; the button repeats the amount and the app. Cash is one tap away. The copy says what happens after you pay — Kabir confirms — so nobody expects Settlo to move money."
+  },
+  "ov4": {
+   "x": 1880,
+   "y": 1310,
+   "w": 420,
+   "size": "s",
+   "fill": "green",
+   "text": "Review log · 9 Nov\n\nFixed: gold used for four meanings → actions only. OTP screen revealed ledger contents pre-verification → moved to Home · ledger found. No owe-side settle flow → SettlePay. No empty states → Home · empty, Space · waiting. No invitee flow → Join. Muted text #6A6D68 failed contrast → #8A8D88. Welcome sample rows → labelled 'example'. Edits had no dispute → 'Question this' in Activity. New loan → 'record, not a lender' line.\n\nOpen: 360px Android pass; light-first test with users over 35; legal read on interest-bearing loans."
+  }
+ },
+ "designSystems": [],
+ "noteOrder": [
+  "t0",
+  "n00",
+  "n01",
+  "n02",
+  "n03",
+  "t1",
+  "n10",
+  "n11",
+  "n12",
+  "n13",
+  "t2",
+  "n20",
+  "n21",
+  "n22",
+  "n23",
+  "t3",
+  "n30",
+  "n31",
+  "n32",
+  "n33",
+  "t4",
+  "ov1",
+  "ov2",
+  "ov3",
+  "nsplash",
+  "n40",
+  "n41",
+  "n42",
+  "n43",
+  "n44",
+  "ov4"
+ ],
+ "attachments": {}
+}
