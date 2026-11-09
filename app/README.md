@@ -51,3 +51,23 @@ flutter build web --dart-define-from-file=.env.example.json
 
 Sign in with the test numbers in `supabase/config.local-dev.toml`; no SMS is
 sent locally.
+
+## Integration test
+
+`integration_test/` signs in end to end against this worktree's local stack
+with the test number +91 90000 00001 and code 123456 (fixed in
+`supabase/config.local-dev.toml`, so no SMS is sent). It needs a running
+stack, `.env.json` filled in as above, and an iOS simulator or Android
+emulator:
+
+```sh
+scripts/supabase-local.sh start            # from the repo root
+cd app
+flutter devices                            # pick a simulator or emulator id
+flutter test integration_test --dart-define-from-file=.env.json -d <device-id>
+```
+
+On the Android emulator, use `10.0.2.2` instead of `127.0.0.1` in
+`.env.json`. CI does not run this yet (no device; ADR
+[0008](../docs/adr/0008-integration-test.md)); `flutter test` without a path
+runs `test/` only.

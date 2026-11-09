@@ -113,7 +113,6 @@ void main() {
     final signedOut = <String, Type>{
       SettloRoutes.welcome: WelcomeScreen,
       SettloRoutes.phone: PhoneScreen,
-      SettloRoutes.otp: OtpScreen,
       SettloRoutes.join('t1'): JoinScreen,
     };
     final signedIn = <String, Type>{
@@ -141,6 +140,14 @@ void main() {
         });
       }
     }
+
+    // OTP's own layout at 360 is in auth_layout_test.dart, with a code sent.
+    testWidgets('OTP without a sent code goes back to Phone', (tester) async {
+      await boot(tester, signedIn: false);
+      await _go(tester, SettloRoutes.otp);
+      expect(_router(tester).state.uri.path, SettloRoutes.phone);
+      expect(find.byType(PhoneScreen), findsOneWidget);
+    });
 
     testWidgets('Splash is reachable only on the way in', (tester) async {
       await boot(tester, signedIn: false);

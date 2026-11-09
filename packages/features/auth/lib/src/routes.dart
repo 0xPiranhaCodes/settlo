@@ -1,5 +1,8 @@
 import 'package:go_router/go_router.dart';
+import 'package:settlo_auth/src/otp_screen.dart';
+import 'package:settlo_auth/src/phone_screen.dart';
 import 'package:settlo_auth/src/screens.dart';
+import 'package:settlo_auth/src/welcome_screen.dart';
 import 'package:settlo_core/settlo_core.dart';
 
 /// Splash, the sign-in steps and the invite link, all full screen.

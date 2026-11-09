@@ -11,7 +11,9 @@ Future<void> main() async {
   runApp(const ProviderScope(child: SettloApp()));
 }
 
-/// Root widget: the router with the auth guard, in the system theme.
+/// Root widget: the router with the auth guard. Dark whatever the system
+/// says (Settlo is dark-first); light stays complete for a later Profile
+/// setting.
 class SettloApp extends ConsumerWidget {
   /// Creates the root widget.
   const new({super.key});
@@ -22,6 +24,7 @@ class SettloApp extends ConsumerWidget {
     debugShowCheckedModeBanner: false,
     theme: SettloTheme.light(),
     darkTheme: SettloTheme.dark(),
+    themeMode: ThemeMode.dark,
     routerConfig: ref.watch(routerProvider),
   );
 }

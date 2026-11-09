@@ -1,0 +1,296 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:settlo_auth/src/phone_number.dart';
+import 'package:settlo_auth/src/sign_in_controller.dart';
+import 'package:settlo_auth/src/widgets.dart';
+import 'package:settlo_core/settlo_core.dart';
+
+/// Phone: the number is the account, so it gets a full screen and a 26px
+/// input. +91 is preselected and the picker stays reachable (canvas note
+/// n01). The country shows as text (`IN +91`), not a flag emoji, pending
+/// the owner's decision.
+class PhoneScreen extends ConsumerStatefulWidget {
+  /// The Phone screen; [autofocus] raises the keyboard on arrival.
+  const new({this.autofocus = true, super.key});
+
+  /// Whether the number field takes focus when the screen opens.
+  final bool autofocus;
+
+  @override
+  ConsumerState<PhoneScreen> createState() => _PhoneScreenState();
+}
+
+class _PhoneScreenState extends ConsumerState<PhoneScreen> {
+  late final TextEditingController _number;
+
+  @override
+  void initState() {
+    super.initState();
+    final state = ref.read(signInProvider);
+    _number = TextEditingController(text: state.country.group(state.national));
+  }
+
+  @override
+  void dispose() {
+    _number.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final sent = await ref.read(signInProvider.notifier).sendCode();
+    if (sent && mounted) context.go(SettloRoutes.otp);
+  }
+
+  Future<void> _pickCountry() async {
+    final current = ref.read(signInProvider).country;
+    final picked = await showModalBottomSheet<Country>(
+      context: context,
+      backgroundColor: SettloColors.of(context).surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(SettloRadius.cardHero),
+        ),
+      ),
+      builder: (_) => _CountrySheet(selected: current),
+    );
+    if (picked == null || !mounted) return;
+    ref.read(signInProvider.notifier).selectCountry(picked);
+    _number.text = picked.group(picked.nationalDigits(_number.text));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final state = ref.watch(signInProvider);
+    final error = state.error;
+    return AuthPage(
+      top: const StepHeader(step: 1, of: 2),
+      content: [
+        const SizedBox(height: 36),
+        const StepTitle(
+          title: "What's your number?",
+          subtitle: Text(
+            "Friends find you by it, and anything they've already recorded "
+            'with you appears the moment you verify.',
+          ),
+        ),
+        const SizedBox(height: 36),
+        Text(
+          'MOBILE NUMBER',
+          style: SettloTypography.figtree(
+            12,
+            letterSpacing: 0.3,
+            color: c.textSecondary,
+          ),
+        ),
+        const SizedBox(height: SettloSpacing.x1),
+        SCard(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          child: Row(
+            children: [
+              _CountryChip(country: state.country, onTap: _pickCountry),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  key: const ValueKey('phone-number'),
+                  controller: _number,
+                  autofocus: widget.autofocus,
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.send,
+                  autofillHints: const [AutofillHints.telephoneNumberNational],
+                  inputFormatters: [NationalNumberFormatter(state.country)],
+                  onChanged: ref.read(signInProvider.notifier).updateNumber,
+                  onSubmitted: (_) => _send(),
+                  style: SettloTypography.figtree(
+                    26,
+                    weight: FontWeight.w500,
+                    letterSpacing: 0.5,
+                    color: c.textPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    // Bare: the card is the field.
+                    isCollapsed: true,
+                    filled: false,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    hintText: state.country == Country.india
+                        ? '98765 43210'
+                        : 'Number',
+                    hintStyle: SettloTypography.figtree(
+                      26,
+                      weight: FontWeight.w500,
+                      letterSpacing: 0.5,
+                      color: c.textMuted,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: SettloSpacing.x2),
+        if (error != null)
+          AuthErrorText(error.message(state.country))
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AuthIcon(AuthGlyph.message, color: c.textSecondary, size: 16),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "We'll text a 6-digit code. Standard SMS rates may apply.",
+                  style: SettloTypography.figtree(13, color: c.textSecondary),
+                ),
+              ),
+            ],
+          ),
+        const Spacer(),
+        const SizedBox(height: SettloSpacing.x3),
+      ],
+      bottom: AuthButton(
+        label: 'Send code',
+        arrow: true,
+        onPressed: state.busy ? null : _send,
+      ),
+    );
+  }
+}
+
+/// The country code as text, `IN +91`, opening the picker on tap.
+class _CountryChip extends StatelessWidget {
+  const new({required this.country, required this.onTap});
+
+  final Country country;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    return Semantics(
+      button: true,
+      label: 'Country code ${country.name} +${country.dialCode}. Change',
+      excludeSemantics: true,
+      child: InkWell(
+        key: const ValueKey('country-chip'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(SettloRadius.iconTile),
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: SettloSpacing.minTouchTarget,
+          ),
+          padding: const EdgeInsets.only(right: 12),
+          decoration: BoxDecoration(
+            border: Border(right: BorderSide(color: c.hairline)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                country.iso,
+                style: SettloTypography.figtree(20, color: c.textSecondary),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '+${country.dialCode}',
+                style: SettloTypography.figtree(
+                  20,
+                  weight: FontWeight.w500,
+                  color: c.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CountrySheet extends StatelessWidget {
+  const new({required this.selected});
+
+  final Country selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final media = MediaQuery.of(context);
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: media.size.height * 0.7),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+            child: Text(
+              'Country code',
+              style: SettloTypography.figtree(
+                17,
+                weight: FontWeight.w500,
+                color: c.textPrimary,
+              ),
+            ),
+          ),
+          Flexible(
+            child: ListView(
+              shrinkWrap: true,
+              padding: EdgeInsets.only(bottom: media.padding.bottom + 16),
+              children: [
+                for (final country in Country.all)
+                  Semantics(
+                    selected: country == selected,
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).pop(country),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: 52),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 76,
+                                child: Text(
+                                  country.label,
+                                  style: SettloTypography.figtree(
+                                    15,
+                                    weight: FontWeight.w500,
+                                    color: c.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  country.name,
+                                  style: SettloTypography.figtree(
+                                    15,
+                                    color: c.textSecondary,
+                                  ),
+                                ),
+                              ),
+                              if (country == selected)
+                                Text(
+                                  'Selected',
+                                  style: SettloTypography.figtree(
+                                    13,
+                                    color: c.textSecondary,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
