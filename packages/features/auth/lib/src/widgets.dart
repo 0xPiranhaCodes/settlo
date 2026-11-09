@@ -165,33 +165,38 @@ class AuthPage extends StatelessWidget {
     final media = MediaQuery.of(context);
     final topPad = math.max(media.padding.top, 44) + topInset;
     final bottomPad = math.max(bottomInset, media.padding.bottom + 8);
+    // Styles here set letter spacing only where the canvas does; anything
+    // left unset is 0, not the theme's ambient label spacing.
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Padding(
-              padding: EdgeInsets.only(top: topPad, bottom: bottomPad),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ?top,
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: SettloSpacing.x3,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [...content, ?bottom],
+      body: DefaultTextStyle.merge(
+        style: const TextStyle(letterSpacing: 0),
+        child: CustomScrollView(
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: EdgeInsets.only(top: topPad, bottom: bottomPad),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ?top,
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SettloSpacing.x3,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [...content, ?bottom],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

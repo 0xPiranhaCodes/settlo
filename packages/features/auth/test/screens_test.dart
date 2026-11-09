@@ -230,6 +230,46 @@ void main() {
       expect(find.text('Resend in 0:30'), findsOneWidget);
     });
 
+    testWidgets('screen readers hear one named code field', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await _toOtp(tester, auth);
+      final node = tester.getSemantics(
+        find.bySemanticsLabel('Verification code, 6 digits'),
+      );
+      expect(node.flagsCollection.isTextField, isTrue);
+      expect(find.bySemanticsLabel(RegExp('^Digit')), findsNothing);
+      semantics.dispose();
+    });
+
+    testWidgets('change and resend have 44pt targets and labels', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await _toOtp(tester, auth);
+      await tester.pump(const Duration(seconds: resendCooldown));
+      for (final label in ['change', 'Resend code']) {
+        final target = find.byKey(ValueKey('action-$label'));
+        final size = tester.getSize(target);
+        expect(size.width, greaterThanOrEqualTo(44), reason: label);
+        expect(size.height, greaterThanOrEqualTo(44), reason: label);
+        // A tap at the target's edge, outside the glyphs, still lands.
+        final rect = tester.getRect(target);
+        expect(
+          tester
+              .hitTestOnBinding(rect.topLeft + const Offset(1, 1))
+              .path
+              .any((entry) => entry.target == tester.renderObject(target)),
+          isTrue,
+          reason: label,
+        );
+      }
+      expect(find.bySemanticsLabel('Change number'), findsOneWidget);
+      expect(find.bySemanticsLabel('Resend code'), findsOneWidget);
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
+    });
+
     testWidgets('change goes back to the number', (tester) async {
       final router = await _toOtp(tester, auth);
       await tester.tap(find.text('change'));

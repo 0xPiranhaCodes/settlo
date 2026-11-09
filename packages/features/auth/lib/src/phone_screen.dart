@@ -53,7 +53,11 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
           top: Radius.circular(SettloRadius.cardHero),
         ),
       ),
-      builder: (_) => _CountrySheet(selected: current),
+      // As in AuthPage: no ambient letter spacing.
+      builder: (_) => DefaultTextStyle.merge(
+        style: const TextStyle(letterSpacing: 0),
+        child: _CountrySheet(selected: current),
+      ),
     );
     if (picked == null || !mounted) return;
     ref.read(signInProvider.notifier).selectCountry(picked);

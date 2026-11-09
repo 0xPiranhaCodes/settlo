@@ -130,7 +130,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             ],
           ),
         ),
-        // 36 on the canvas, less the 11px of target under the change link.
+        // 36 on the canvas, less the target space under the change link.
         const SizedBox(height: 25),
         _CodeBoxes(
           controller: _code,
@@ -257,37 +257,42 @@ class _CodeBoxes extends StatelessWidget {
             ),
           ),
           Positioned.fill(
-            child: TextField(
-              key: const ValueKey('otp-code'),
-              controller: controller,
-              focusNode: focusNode,
-              autofocus: autofocus,
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.done,
-              autofillHints: const [AutofillHints.oneTimeCode],
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(otpLength),
-              ],
-              onChanged: (value) {
-                if (value.length == otpLength) onCompleted();
-              },
-              onSubmitted: (_) => onCompleted(),
-              // The boxes draw the code; the field only takes input.
-              showCursor: false,
-              expands: true,
-              maxLines: null,
-              style: const TextStyle(color: Colors.transparent),
-              cursorColor: Colors.transparent,
-              decoration: const InputDecoration(
-                isCollapsed: true,
-                filled: false,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
+            // The boxes are hidden from screen readers; this names the one
+            // field they draw.
+            child: Semantics(
+              label: 'Verification code, $otpLength digits',
+              child: TextField(
+                key: const ValueKey('otp-code'),
+                controller: controller,
+                focusNode: focusNode,
+                autofocus: autofocus,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.oneTimeCode],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(otpLength),
+                ],
+                onChanged: (value) {
+                  if (value.length == otpLength) onCompleted();
+                },
+                onSubmitted: (_) => onCompleted(),
+                // The boxes draw the code; the field only takes input.
+                showCursor: false,
+                expands: true,
+                maxLines: null,
+                style: const TextStyle(color: Colors.transparent),
+                cursorColor: Colors.transparent,
+                decoration: const InputDecoration(
+                  isCollapsed: true,
+                  filled: false,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+                enableSuggestions: false,
+                autocorrect: false,
               ),
-              enableSuggestions: false,
-              autocorrect: false,
             ),
           ),
         ],
@@ -319,16 +324,24 @@ class _TextAction extends StatelessWidget {
       label: semanticLabel ?? label,
       excludeSemantics: true,
       child: GestureDetector(
+        key: ValueKey('action-$label'),
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Padding(
-          // A 44pt tall target around the text.
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          child: Text(
-            label,
-            style: SettloTypography.figtree(
-              size,
-              color: onTap == null ? c.textMuted : c.action,
+        // At least 44pt each way; the text stays centred on its line.
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: SettloSpacing.minTouchTarget,
+            minHeight: SettloSpacing.minTouchTarget,
+          ),
+          child: Center(
+            widthFactor: 1,
+            heightFactor: 1,
+            child: Text(
+              label,
+              style: SettloTypography.figtree(
+                size,
+                color: onTap == null ? c.textMuted : c.action,
+              ),
             ),
           ),
         ),

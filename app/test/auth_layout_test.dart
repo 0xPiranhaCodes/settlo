@@ -74,6 +74,24 @@ void main() {
     });
   }
 
+  testWidgets('the Welcome subtitle wraps as the canvas does at 390', (
+    tester,
+  ) async {
+    await pumpSettloGolden(
+      tester,
+      device: SettloGoldenDevices.canvas390,
+      theme: SettloTheme.dark(),
+      child: const WelcomeScreen(),
+    );
+    final subtitle = find.textContaining('Flatmates, trips');
+    // Two 16px lines at line height 1.5; the canvas breaks after "your".
+    expect(tester.getSize(subtitle).height, 48);
+    expect(
+      tester.getRect(find.textContaining('Money between')).top,
+      closeTo(300, 6),
+    );
+  });
+
   testWidgets('the primary action stays on screen at 360x800', (tester) async {
     for (final (_, screen, error) in screens) {
       await pump(tester, screen, error: error);
