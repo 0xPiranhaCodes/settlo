@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(116);
+select plan(118);
 
 -- Rows a statement touched, run as the current role so RLS filtering is visible.
 create function pg_temp.affected(q text) returns int language plpgsql as $$
@@ -264,6 +264,9 @@ select pg_temp.tagged(results_eq('select id from public.spaces', $$values ('0000
   'spaces: phone-only member B sees S1'));
 select pg_temp.tagged(is(pg_temp.affected($$update public.spaces set name = 'Mine' where id = '00000000-0000-0000-0000-000000008101'$$),
   0, 'spaces: non-owner B cannot rename S1 [-spaces_update]'));
+-- B accepts the S1 claim (#9): a pending claimant is read-only.
+select pg_temp.tagged(lives_ok($$select public.accept_claim('space_member', '00000000-0000-0000-0000-000000008202')$$,
+  'space_members: B accepts the S1 membership recorded against its number'));
 select pg_temp.tagged(lives_ok(
   $$insert into public.space_members (space_id, phone) values ('00000000-0000-0000-0000-000000008101', '+919000000007')$$,
   'space_members: member B adds a member [+space_members_insert]'
@@ -439,6 +442,9 @@ set local role authenticated;
 select pg_temp.tagged(lives_ok(
   $$insert into public.profiles (id, phone, name) values ('00000000-0000-0000-0000-000000008005', '+919000000005', 'E')$$,
   'profiles: E creates own profile with the verified phone [+profiles_insert]'));
+-- E accepts the L1 claim (#9): a pending claimant is read-only.
+select pg_temp.tagged(lives_ok($$select public.accept_claim('loan', '00000000-0000-0000-0000-000000008501')$$,
+  'loans: E accepts the borrower side of L1 recorded against its number'));
 
 select pg_temp.tagged(results_eq('select id from public.loans', $$values ('00000000-0000-0000-0000-000000008501'::uuid)$$,
   'loans: phone-only borrower E reads L1 after verifying that phone'));
