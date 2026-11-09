@@ -9,7 +9,7 @@ This document is the release gate owned by Principal QA. Check each item against
 - [x] The owing member launches both UPI payments through the simulator's mocked platform channel, explicitly confirms each payment in Settlo, and a server read proves all three balances are zero.
 - [x] The iPhone 16 / iOS 18.2 [screen recording](https://github.com/0xPiranhaCodes/settlo/blob/evidence/65-flatmate-gate/flatmate-flow-ios-18.2.mp4?raw=true) covers the passing flow.
 - [x] Product defects found by the gate are tracked separately: [#81](https://github.com/0xPiranhaCodes/settlo/issues/81) and [#82](https://github.com/0xPiranhaCodes/settlo/issues/82). The gate contains no product-code fix.
-- [ ] Required hosted CI checks are green for the gate pull request.
+- [x] Required hosted CI checks are green for the gate pull request ([run 42673995925](https://github.com/0xPiranhaCodes/settlo/actions/runs/42673995925)).
 
 The checked evidence above is bound to issue [#65](https://github.com/0xPiranhaCodes/settlo/issues/65). The gate is not merge-ready until the final hosted checks are green and the merge rule below is satisfied.
 
