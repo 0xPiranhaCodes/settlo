@@ -12,7 +12,11 @@ if [[ -n "${GIT_CONFIG_COUNT:-}" && -z "${GIT_CONFIG_KEY_0:-}" ]]; then
 fi
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-flutter_version=3.47.9
+flutter_version="$(sed -nE 's/.*"flutter"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$root/.fvmrc")"
+if [[ -z "$flutter_version" ]]; then
+  echo "ci-local: .fvmrc does not contain an exact Flutter version." >&2
+  exit 2
+fi
 golden_image="settlo/flutter-goldens:${flutter_version}-amd64"
 update_goldens=false
 
@@ -33,6 +37,8 @@ for command in docker flutter git python3; do
     exit 2
   fi
 done
+
+coverage_baseline="$(git show origin/main:.github/coverage-baseline.txt)"
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/settlo-ci.XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
@@ -63,7 +69,6 @@ run_logged() {
 build_golden_image() {
   docker build \
     --platform linux/amd64 \
-    --build-arg "FLUTTER_VERSION=$flutter_version" \
     --file scripts/Dockerfile.flutter-goldens \
     --tag "$golden_image" \
     .
@@ -73,6 +78,7 @@ in_linux() {
   docker run --rm \
     --platform linux/amd64 \
     --env CI=true \
+    --env "COVERAGE_BASELINE=$coverage_baseline" \
     --env HOME=/tmp/settlo-home \
     --volume "$root:/workspace" \
     --workdir /workspace \
@@ -171,7 +177,7 @@ if (( lines_found == 0 )); then
   exit 1
 fi
 coverage="$(awk -v hit="$lines_hit" -v found="$lines_found" '\''BEGIN { printf "%.2f", (hit * 100) / found }'\'')"
-baseline="$(<.github/coverage-baseline.txt)"
+baseline="$COVERAGE_BASELINE"
 echo "Total line coverage: $coverage% ($lines_hit/$lines_found)"
 echo "Main baseline: $baseline%"
 if awk -v coverage="$coverage" -v baseline="$baseline" '\''BEGIN { exit !(coverage + 0 < baseline + 0) }'\''; then
@@ -227,6 +233,10 @@ run_supabase() (
     echo "ci-local: Deno is not installed." >&2
     exit 1
   fi
+  # Reset a disposable stack so the developer's normal local database and
+  # running services are never modified by this preflight.
+  export SUPABASE_LOCAL_DIR="$tmp/supabase-local"
+  export SUPABASE_LOCAL_IDENTITY="$tmp/supabase-stack"
   trap 'scripts/supabase-local.sh stop >/dev/null 2>&1 || true' EXIT
   scripts/supabase-local.sh start &&
     scripts/supabase-local.sh db reset &&
@@ -290,7 +300,7 @@ fi
 if run_logged android run_android; then
   android_status=PASS
 else
-  if grep -Eqi 'Unable to locate Android SDK|Android sdkmanager not found|cmdline-tools component is missing|Android license status unknown|licenses? not accepted' "$tmp/android.log"; then
+  if grep -Eqi 'Unable to locate Android SDK|No Android SDK found|Android sdkmanager not found|cmdline-tools component is missing' "$tmp/android.log"; then
     android_status='SKIP (Android SDK/cmdline-tools unavailable)'
   else
     android_status=FAIL

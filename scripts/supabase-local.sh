@@ -4,7 +4,8 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-gen="$root/.supabase-local"
+gen="${SUPABASE_LOCAL_DIR:-$root/.supabase-local}"
+identity="${SUPABASE_LOCAL_IDENTITY:-$root}"
 
 # The generated config carries test OTPs; refuse anything that writes to a hosted project.
 case "${1:-}" in
@@ -28,10 +29,11 @@ for entry in "$root"/supabase/*; do
   esac
 done
 
-# Each worktree gets its own project_id (Docker containers and volumes) and a 10-port block, both
-# derived from a stable hash of the repo root, so parallel worktrees never share a stack.
+# Each identity gets its own project_id (Docker containers and volumes) and a 10-port block, both
+# derived from a stable hash. The default identity is the repo root; callers can supply a disposable
+# identity and generated-config directory for isolated runs.
 # Slot 0 would be 54400-54409; the base config's 54320-54329 block is never used.
-hash="$(printf '%s' "$root" | cksum | cut -d' ' -f1)"
+hash="$(printf '%s' "$identity" | cksum | cut -d' ' -f1)"
 slot="${SUPABASE_LOCAL_SLOT:-$((hash % 500))}"
 base=$((54400 + slot * 10))
 project_id="settlo-$(printf '%08x' "$hash")"

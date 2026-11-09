@@ -20,9 +20,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  FLUTTER_VERSION: 3.47.9
-
 jobs:
   analyze-test:
     name: Analyze & test
@@ -39,7 +36,7 @@ jobs:
         uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
         with:
           channel: stable
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Get dependencies
@@ -193,17 +190,19 @@ jobs:
         uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
         with:
           channel: stable
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Build debug APK
         working-directory: app
         run: flutter build apk --debug
 
-  ios:
-    name: iOS debug build
+  ios-paths:
+    name: Determine iOS build requirement
     if: inputs.update_goldens != true
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.ios-changes.outputs.should_build }}
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -221,37 +220,36 @@ jobs:
         run: |
           set -euo pipefail
           should_build=false
-          reason="This event does not require an iOS build."
 
           if [[ "$EVENT_NAME" == "push" && "$REF_NAME" == "refs/heads/main" ]]; then
             should_build=true
-            reason="Pushes to main always build iOS."
           elif [[ "$EVENT_NAME" == "pull_request" ]] && \
-               ! git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
+               ! git diff --quiet "$BASE_SHA...$HEAD_SHA" -- \
                  app/ios app/pubspec.yaml pubspec.lock packages/platform; then
             should_build=true
-            reason="The pull request changes an iOS-relevant path."
           fi
 
           echo "should_build=$should_build" >> "$GITHUB_OUTPUT"
-          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+
+  ios:
+    name: iOS debug build
+    needs: ios-paths
+    if: needs.ios-paths.outputs.should_build == 'true'
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Flutter
-        if: steps.ios-changes.outputs.should_build == 'true'
         uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
         with:
           channel: stable
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Build debug iOS app
-        if: steps.ios-changes.outputs.should_build == 'true'
         working-directory: app
         run: flutter build ios --no-codesign --debug
-
-      - name: Report skipped iOS build
-        if: steps.ios-changes.outputs.should_build != 'true'
-        run: echo "${{ steps.ios-changes.outputs.reason }}"
 
   supabase:
     name: Supabase
@@ -298,7 +296,7 @@ jobs:
         uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
         with:
           channel: stable
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Get dependencies
