@@ -15,12 +15,13 @@ import os
 from pathlib import Path
 import re
 import secrets
+import signal
 import socket
 import struct
-import subprocess
 import tempfile
 import time
 from typing import Any
+from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
 
@@ -32,15 +33,17 @@ SUPPORT_SCRIPT = re.compile(
 
 class CdpSocket:
     def __init__(self, websocket_url: str) -> None:
-        # Chrome exposes CDP on loopback without TLS; this socket never leaves
-        # the local machine.
-        match = re.fullmatch(  # nosemgrep: javascript.lang.security.detect-insecure-websocket
-            r"ws://([^/:]+):(\d+)(/.*)", websocket_url
-        )
-        if match is None:
+        endpoint = urlsplit(websocket_url)
+        if (
+            endpoint.scheme != "ws"
+            or endpoint.hostname not in {"127.0.0.1", "localhost"}
+            or endpoint.port is None
+        ):
             raise RuntimeError(f"Unsupported DevTools URL: {websocket_url}")
-        host, port, path = match.groups()
-        self._socket = socket.create_connection((host, int(port)), timeout=20)
+        host = endpoint.hostname
+        port = endpoint.port
+        path = endpoint.path
+        self._socket = socket.create_connection((host, port), timeout=20)
         key = base64.b64encode(secrets.token_bytes(16)).decode("ascii")
         request = (
             f"GET {path} HTTP/1.1\r\n"
@@ -167,6 +170,60 @@ def create_target(port: int) -> str:
     return target["webSocketDebuggerUrl"]
 
 
+def launch_chrome(executable: str, profile: Path) -> int:
+    command = [
+        executable,
+        "--headless=new",
+        "--disable-background-networking",
+        "--disable-default-apps",
+        "--disable-extensions",
+        "--disable-features=Translate",
+        "--disable-gpu",
+        "--hide-scrollbars",
+        "--no-first-run",
+        "--remote-debugging-port=0",
+        f"--user-data-dir={profile}",
+        "about:blank",
+    ]
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    try:
+        return os.posix_spawn(
+            executable,
+            command,
+            os.environ,
+            file_actions=[
+                (os.POSIX_SPAWN_DUP2, devnull, 1),
+                (os.POSIX_SPAWN_DUP2, devnull, 2),
+            ],
+        )
+    finally:
+        os.close(devnull)
+
+
+def stop_process(process_id: int) -> None:
+    try:
+        os.kill(process_id, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        try:
+            waited, _ = os.waitpid(process_id, os.WNOHANG)
+        except ChildProcessError:
+            return
+        if waited == process_id:
+            return
+        time.sleep(0.05)
+    try:
+        os.kill(process_id, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    try:
+        os.waitpid(process_id, 0)
+    except ChildProcessError:
+        pass
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--chrome", required=True)
@@ -187,28 +244,7 @@ def main() -> None:
         html.write_text(stripped, encoding="utf-8")
         profile = temp / "chrome-profile"
         profile.mkdir()
-        # The executable is explicitly selected by the local caller, arguments
-        # are passed as a list, and no shell is involved.
-        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit
-        # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-tainted-env-args
-        process = subprocess.Popen(
-            [
-                args.chrome,
-                "--headless=new",
-                "--disable-background-networking",
-                "--disable-default-apps",
-                "--disable-extensions",
-                "--disable-features=Translate",
-                "--disable-gpu",
-                "--hide-scrollbars",
-                "--no-first-run",
-                "--remote-debugging-port=0",
-                f"--user-data-dir={profile}",
-                "about:blank",
-            ],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-        )
+        process_id = launch_chrome(args.chrome, profile)
         cdp: CdpSocket | None = None
         try:
             port = wait_for_devtools(profile)
@@ -260,12 +296,7 @@ def main() -> None:
         finally:
             if cdp is not None:
                 cdp.close()
-            process.terminate()
-            try:
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait()
+            stop_process(process_id)
 
 
 if __name__ == "__main__":
