@@ -200,8 +200,9 @@ final class PendingAnswer {
 /// it. Answering goes through the spaces and loans flows.
 abstract interface class ActivityRepository {
   /// Up to [limit] feed entries, newest first by time then id, after
-  /// entry [before] when given: keyset on that pair, so activity added
-  /// between pages never repeats or skips a row already shown.
+  /// entry [before] when given (keyset on that pair). Pages are strict and
+  /// stable for rows committed before the first page; a change committed
+  /// after you paged past its time shows only once you reload from the top.
   Future<List<ActivityEntry>> feed({required int limit, ActivityEntry? before});
 
   /// What waits for your answer, newest first.

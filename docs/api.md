@@ -135,8 +135,15 @@ makes the membership checks itself and names a person only where `profiles` RLS 
 Rows are ordered by `(created_at, id)` descending. `created_at` is when the change happened (its
 transaction's start), so a transaction that began earlier but committed later still sorts by its
 time, not its id. Page by that pair: pass the `created_at` and `id` of the last row shown, and the
-next page starts strictly below it. Rows inserted between page loads are newer than the cursor
-or sort into their own place, so no row of the pages already shown is repeated or skipped.
+next page starts strictly below it.
+
+The paging contract:
+- **Strict and stable:** for rows committed before the first page loaded, every row comes back
+  exactly once, in order, however many pages are read.
+- **Late commits wait for refresh:** a transaction that commits after the client has paged past its
+  `created_at` sorts behind the cursor, so later pages do not include it. It appears when the
+  client reloads from the top (Activity's pull-to-refresh, which drops the cursor). Rows newer than
+  the first page likewise appear only on refresh.
 `p_limit` defaults to 30 and is held to 1–100; both cursor arguments null means the first page.
 
 ```

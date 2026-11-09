@@ -3,8 +3,11 @@
 -- other tenant's newer rows before finding the caller's (PR #101 review: 9 s for a first page).
 -- Each of the caller's spaces and loans contributes at most one page through the (key, created_at,
 -- id) indexes below, and the newest of those make the page. Rows are ordered by (created_at, id),
--- newest first, and the next page starts strictly below the last row seen, so an insert between
--- page loads never shifts, repeats or drops a row of the pages already read.
+-- newest first, and the next page starts strictly below the last row seen. Contract: for rows
+-- committed before the first page loaded, pages are strict and stable (no row repeats or is
+-- skipped). created_at is the transaction's start, so a transaction that commits after the client
+-- has paged past its created_at lands behind the cursor and is not in later pages; it appears on
+-- pull-to-refresh, which reloads from the top (tests/21_activity_feed_race.test.sql).
 --
 -- Who sees what is unchanged from the review: only spaces the caller is an accepted, active member
 -- of and loans they are an accepted party to. A departed member, an outsider, a pending claimant,

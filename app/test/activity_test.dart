@@ -246,4 +246,55 @@ void main() {
     ]);
     expect(find.text('Priya added Chai 1'), findsOneWidget);
   });
+
+  testWidgets('pull to refresh drops the cursor and reloads from the top', (
+    tester,
+  ) async {
+    final entries = [
+      for (var id = 40; id > 0; id--)
+        ActivityEntry(
+          id: id,
+          at: DateTime(2026, 11, 9, 8),
+          kind: ActivityKind.expense,
+          action: ActivityAction.created,
+          byYou: false,
+          actor: 'Priya',
+          spaceName: 'Flat 402',
+          description: 'Chai $id',
+          amount: Paise.rupees(id),
+        ),
+    ];
+    final activity = FakeActivityRepository(entries: entries, pending: []);
+    await _pump(tester, activity);
+    await tester.scrollUntilVisible(find.text('Priya added Chai 1'), 400);
+    await tester.pumpAndSettle();
+    // A late commit (docs/api.md) lands among rows already paged past.
+    entries.insert(
+      0,
+      ActivityEntry(
+        id: 41,
+        at: DateTime(2026, 11, 9, 9),
+        kind: ActivityKind.expense,
+        action: ActivityAction.created,
+        byYou: false,
+        actor: 'Rahul',
+        spaceName: 'Flat 402',
+        description: 'Late chai',
+        amount: const Paise.rupees(41),
+      ),
+    );
+    activity.calls.clear();
+
+    tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position
+        .jumpTo(0);
+    await tester.pump();
+    await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+    await tester.pumpAndSettle();
+
+    expect(activity.calls.where((c) => c.startsWith('feed')), ['feed 30 null']);
+    expect(activity.calls, contains('needsYou'));
+    expect(find.text('Rahul added Late chai'), findsOneWidget);
+  });
 }
