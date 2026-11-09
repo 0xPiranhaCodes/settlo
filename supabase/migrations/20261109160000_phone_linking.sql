@@ -153,6 +153,23 @@ create constraint trigger link_verified_phone
   for each row when (new.phone_confirmed_at is not null)
   execute function public.link_verified_phone();
 
+-- A tombstoned profile is terminal: even if its auth identity later confirms a phone again (an old
+-- session can still run GoTrue's phone change), it is never the verified holder of anything.
+create or replace function public.verified_uid() returns uuid
+language sql stable security definer set search_path = '' as $$
+  select u.id from auth.users u
+   where u.id = auth.uid() and u.phone_confirmed_at is not null and coalesce(u.phone, '') <> ''
+     and not exists (select from public.profiles p where p.id = u.id and p.deleted_at is not null)
+$$;
+
+create or replace function public.auth_phone() returns text
+language sql stable security definer set search_path = '' as $$
+  select case when u.phone like '+%' then u.phone else '+' || u.phone end
+    from auth.users u
+   where u.id = auth.uid() and u.phone_confirmed_at is not null and coalesce(u.phone, '') <> ''
+     and not exists (select from public.profiles p where p.id = u.id and p.deleted_at is not null)
+$$;
+
 -- Read predicates (is_space_member, is_loan_party) keep matching pending claimants so they can
 -- review; every write predicate below requires the caller's own row or side to be accepted.
 create function public.is_accepted_member(p_space_id uuid) returns boolean

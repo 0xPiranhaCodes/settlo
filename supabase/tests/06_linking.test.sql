@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(102);
+select plan(104);
 
 -- Linking is deferred to commit; fire it at each statement so this transaction can observe it.
 set constraints auth.link_verified_phone immediate;
@@ -451,6 +451,19 @@ select is((select user_id from public.space_members where id = '00000000-0000-00
   null, 'account deletion releases pending claims');
 select throws_ok($$update public.profiles set phone = null where id = '00000000-0000-0000-0000-00000000f001'$$,
   '23514', null, 'only a deleted profile may have no phone');
+
+-- Deletion is terminal: N's old session confirms another number, and still reads nothing.
+update auth.users set phone = '919000000016', phone_confirmed_at = clock_timestamp()
+ where id = '00000000-0000-0000-0000-00000000f002';
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000f002", "role": "authenticated"}';
+select is((select count(*)::int from public.spaces) + (select count(*)::int from public.loans)
+          + (select count(*)::int from public.profiles), 0,
+  'a deleted account that confirms a phone again reads none of its old history');
+reset role;
+select is((select phone from public.profiles where id = '00000000-0000-0000-0000-00000000f002'),
+  null, 'the tombstone is not revived by a later confirmation');
+update auth.users set phone = null, phone_confirmed_at = null where id = '00000000-0000-0000-0000-00000000f002';
 
 -- N2 gets the recycled number and verifies it.
 select lives_ok(
