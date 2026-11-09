@@ -132,6 +132,70 @@ void main() {
         expect(await _goldPixels(tester, find.byKey(checkbox)), expected);
       });
 
+      testWidgets('no Settlo component but the primary button is gold', (
+        tester,
+      ) async {
+        const tabs = [
+          (icon: SizedBox.square(dimension: 22), label: 'Home'),
+          (icon: SizedBox.square(dimension: 22), label: 'Activity'),
+        ];
+        const primary = Key('primary');
+        await _pump(
+          tester,
+          theme(),
+          Column(
+            children: [
+              const SCard(child: Text('Flat 402')),
+              SSecondaryButton(label: 'Settle up', onPressed: () {}),
+              Row(
+                children: [
+                  SChip(label: 'All', selected: true, onSelected: (_) {}),
+                  SChip(label: 'Loans', selected: false, onSelected: (_) {}),
+                  const SAvatar('Arjun'),
+                ],
+              ),
+              SSegmentedControl<int>(
+                segments: const [
+                  (value: 0, label: 'Equally'),
+                  (value: 1, label: '%'),
+                ],
+                selected: 0,
+                onChanged: (_) {},
+              ),
+              SGlassTabBar(tabs: tabs, currentIndex: 0, onTap: (_) {}),
+              SGlassTabBar(
+                tabs: tabs,
+                currentIndex: 1,
+                lowEndBlur: true,
+                onTap: (_) {},
+              ),
+              SizedBox(
+                height: 300,
+                child: SAmountSheet(
+                  title: 'New expense',
+                  amount: const Text('1,800'),
+                  onClose: () {},
+                  body: const Text('Paid by'),
+                ),
+              ),
+            ],
+          ),
+        );
+        expect(await _goldPixels(tester, find.byKey(_probe)), 0);
+
+        // The same frame with a primary button: the probe sees its gold.
+        await _pump(
+          tester,
+          theme(),
+          RepaintBoundary(
+            key: primary,
+            child: SPrimaryButton(label: 'Save expense', onPressed: () {}),
+          ),
+        );
+        final expected = name == 'dark' ? greaterThan(50) : equals(0);
+        expect(await _goldPixels(tester, find.byKey(primary)), expected);
+      });
+
       testWidgets('an unchecked checkbox is neutral', (tester) async {
         await _pump(tester, theme(), Checkbox(value: false, onChanged: (_) {}));
         expect(await _goldPixels(tester, find.byKey(_probe)), 0);
