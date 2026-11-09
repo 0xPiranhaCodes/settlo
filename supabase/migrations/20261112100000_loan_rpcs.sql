@@ -1,18 +1,21 @@
 -- Loan RPCs (#87): create_loan, record_repayment, confirm_repayment, dispute_repayment.
--- Same contract as add_expense (#10, ADR 0004) and #59: security invoker so RLS stays the gate, a
--- fixed empty search_path, verified callers only, payload-bound idempotency, codes 22023 / 42501 /
--- PT409 with hints. The two-sided confirmation itself stays in the #7 triggers (guard_loan_repayment),
--- so a direct table write is held to the same rules; the RPCs add validation, idempotency, clean
--- error codes, closing and loan activity on top.
+-- Same contract as add_expense (#10, ADR 0004) and #59: a fixed empty search_path, verified callers
+-- only, payload-bound idempotency, codes 22023 / 42501 / PT409 with hints. create_loan and
+-- record_repayment are security invoker so RLS stays the gate. The two-sided confirmation stays in
+-- the #7 guard trigger, which now also refuses recording an overpayment, so a direct insert is held
+-- to the same rules. closed_at is server-only: a loan closes when its confirmed repayments reach
+-- the principal, never by a client write.
 --
--- Confirmation model (reused by settle-ups, #78): a record is pending until the other side confirms
--- or disputes it, once and for good. Callers of the recorder's side get 42501 hint own_record; a
--- record already confirmed or disputed gets 22023 hint not_pending. Confirm and dispute are one
--- conditional UPDATE (`where confirmed_at is null and disputed_at is null`), so of two concurrent
--- calls the second waits on the row lock, matches nothing and is refused as not_pending.
+-- A repayment is pending until the other side confirms or disputes it, once and for good. Callers
+-- of the recorder's side get 42501 hint own_record; a repayment already answered gets 22023 hint
+-- not_pending. Confirm and dispute are one conditional UPDATE (`where confirmed_at is null and
+-- disputed_at is null`), so of two concurrent calls the second waits on the row lock, matches
+-- nothing and is refused as not_pending.
 
 -- create_loan and record_repayment use the key as the new row's id (as create_space), so the client
--- can queue repayments against a loan it created offline. The fingerprint is stored on the row.
+-- can queue repayments against a loan it created offline. Their keys are also claimed in
+-- private.idempotency_keys, so a key is unique per user across every RPC there (ADR 0004); the
+-- fingerprint on the row answers replays after the 30-day purge (#70).
 alter table public.loans add column idempotency_hash text;
 alter table public.loan_repayments add column idempotency_hash text;
 grant insert (idempotency_hash) on public.loans, public.loan_repayments to authenticated;
@@ -23,7 +26,7 @@ alter table public.activity
     check (action in ('created', 'edited', 'deleted', 'restored', 'recorded', 'confirmed', 'disputed', 'rejected',
                       'closed'));
 
--- Loan activity: 'created' with the new loan, 'closed' (or 'edited' if reopened) with before/after.
+-- Loan activity: 'created' with the new loan, 'closed' with before/after.
 -- Repayments already log 'recorded' / 'confirmed' / 'disputed' (#7).
 create function public.log_loan_activity() returns trigger
 language plpgsql security definer set search_path = '' as $$
@@ -32,7 +35,7 @@ begin
   values (
     new.id,
     case when tg_op = 'INSERT' then new.created_by else auth.uid() end,
-    case when tg_op = 'INSERT' then 'created' when new.closed_at is not null then 'closed' else 'edited' end,
+    case when tg_op = 'INSERT' then 'created' else 'closed' end,
     case when tg_op = 'UPDATE' then to_jsonb(old) end,
     to_jsonb(new)
   );
@@ -44,8 +47,99 @@ create trigger loans_activity
   for each row execute function public.log_loan_activity();
 create trigger loans_closed_activity
   after update of closed_at on public.loans
-  for each row when (old.closed_at is distinct from new.closed_at)
+  for each row when (old.closed_at is null and new.closed_at is not null)
   execute function public.log_loan_activity();
+
+-- Closing is derived (close_repaid_loan below); lenders could set closed_at directly since #8.
+revoke update (closed_at) on public.loans from authenticated;
+drop policy loans_update on public.loans;
+
+-- guard_loan_repayment (#7, #9) plus the record-time overpayment rule, under the loan lock: one
+-- repayment may not exceed what is outstanding (principal minus confirmed). Pending ones do not
+-- count, as one may yet be disputed, so several pending ones may together exceed it; confirming
+-- re-checks against the principal.
+create or replace function public.guard_loan_repayment() returns trigger
+language plpgsql security definer set search_path = '' as $$
+declare
+  l public.loans;
+  actor uuid;
+  actor_side text;
+  confirmed bigint;
+begin
+  -- Lock the loan so concurrent confirmations are checked against each other.
+  select * into l from public.loans where id = new.loan_id for update;
+
+  if tg_op = 'INSERT' then
+    if auth.uid() is not null and new.recorded_by is distinct from auth.uid() then
+      raise exception 'recorded_by must be the current user' using errcode = 'insufficient_privilege';
+    end if;
+    if public.loan_side(l.id, new.recorded_by) is null then
+      raise exception 'repayment must be recorded by a party to loan %', l.id using errcode = 'insufficient_privilege';
+    end if;
+    if l.closed_at is not null then
+      raise exception 'loan % is closed', l.id using errcode = 'object_not_in_prerequisite_state';
+    end if;
+    if l.interest_type = 'none' and new.interest_minor <> 0 then
+      raise exception 'loan % is interest free', l.id using errcode = 'check_violation';
+    end if;
+    if new.confirmed_by is not null or new.disputed_by is not null then
+      raise exception 'a repayment is recorded pending' using errcode = 'check_violation';
+    end if;
+    select coalesce(sum(principal_minor), 0) into confirmed
+      from public.loan_repayments where loan_id = l.id and confirmed_at is not null;
+    if new.principal_minor > l.principal_minor - confirmed then
+      raise exception 'repayment of % is more than the % outstanding on loan %', new.principal_minor,
+        l.principal_minor - confirmed, l.id using errcode = '22023', hint = 'overpayment';
+    end if;
+    new.confirmed_at := null;
+    new.disputed_at := null;
+    return new;
+  end if;
+
+  if old.confirmed_at is not null or old.disputed_at is not null then
+    raise exception 'repayment % is %; confirmation and dispute are final', old.id, old.status
+      using errcode = 'object_not_in_prerequisite_state';
+  end if;
+  -- status is excluded: a stored generated column is still null in a BEFORE trigger.
+  if to_jsonb(new) - array['confirmed_by', 'confirmed_at', 'disputed_by', 'disputed_at', 'dispute_reason', 'status']
+     <> to_jsonb(old) - array['confirmed_by', 'confirmed_at', 'disputed_by', 'disputed_at', 'dispute_reason', 'status'] then
+    raise exception 'repayment % can only be confirmed or disputed', old.id
+      using errcode = 'object_not_in_prerequisite_state';
+  end if;
+
+  if new.confirmed_by is not null and new.disputed_by is null then
+    actor := new.confirmed_by;
+    new.confirmed_at := now();
+    new.disputed_at := null;
+    new.dispute_reason := null;
+  elsif new.disputed_by is not null and new.confirmed_by is null then
+    actor := new.disputed_by;
+    new.disputed_at := now();
+    new.confirmed_at := null;
+  else
+    raise exception 'repayment % must be either confirmed or disputed', old.id
+      using errcode = 'object_not_in_prerequisite_state';
+  end if;
+
+  if auth.uid() is not null and actor is distinct from auth.uid() then
+    raise exception 'confirmed_by/disputed_by must be the current user' using errcode = 'insufficient_privilege';
+  end if;
+  actor_side := public.loan_side(l.id, actor);
+  if actor_side is null or actor_side = public.loan_side(l.id, new.recorded_by) then
+    raise exception 'repayment % must be confirmed or disputed by the other party', old.id
+      using errcode = 'insufficient_privilege';
+  end if;
+
+  if new.confirmed_by is not null then
+    select coalesce(sum(principal_minor), 0) into confirmed
+      from public.loan_repayments where loan_id = l.id and confirmed_at is not null;
+    if confirmed + new.principal_minor > l.principal_minor then
+      raise exception 'confirming repayment % would repay % of a % principal', old.id,
+        confirmed + new.principal_minor, l.principal_minor using errcode = 'check_violation';
+    end if;
+  end if;
+  return new;
+end $$;
 
 -- A loan closes when its confirmed repayments reach the principal. The guard (#7) already refuses a
 -- confirmation past it, under a lock on the loan, so equality is the only way to get here.
@@ -128,7 +222,11 @@ begin
     'installment_minor', v_installment,
     'due_day', v_due_day,
     'start_on', (p ->> 'start_on')::date)::text, 'UTF8')), 'hex');
+  if not private.claim_idempotency_key('create_loan', v_key, fingerprint) then
+    return v_key;
+  end if;
 
+  -- The claim is new; a row with this id is a replay after the purge, or a conflict.
   select id, created_by, idempotency_hash into v_existing from public.loans where id = v_key;
   if not found then
     insert into public.loans (id, lender_phone, borrower_phone, principal_minor, schedule_type, installment_minor,
@@ -195,19 +293,16 @@ begin
     'reference', nullif(btrim(p ->> 'reference'), ''))::text, 'UTF8')), 'hex');
 
   -- A replay returns before the state checks: the loan may have closed since.
+  if not private.claim_idempotency_key('record_repayment', v_key, fingerprint) then
+    return v_key;
+  end if;
   select id, recorded_by, idempotency_hash into v_existing from public.loan_repayments where id = v_key;
   if not found then
     select * into l from public.loans where id = v_loan;
     if l.closed_at is not null then
       raise exception 'record_repayment: loan % is closed', v_loan using errcode = '22023', hint = 'loan_closed';
     end if;
-    -- Pending repayments do not count: one may yet be disputed. Confirming re-checks (guard, #7).
-    if v_amount > l.principal_minor - (select coalesce(sum(r.principal_minor), 0) from public.loan_repayments r
-                                        where r.loan_id = v_loan and r.confirmed_at is not null) then
-      raise exception 'record_repayment: % is more than is outstanding on loan %', v_amount, v_loan
-        using errcode = '22023', hint = 'overpayment';
-    end if;
-
+    -- More than is outstanding: the guard raises 22023 hint overpayment.
     insert into public.loan_repayments (id, loan_id, amount_minor, principal_minor, paid_on, method, reference,
                                         idempotency_hash)
     values (v_key, v_loan, v_amount, v_amount,
@@ -226,9 +321,9 @@ begin
   return v_key;
 end $$;
 
--- Confirm or dispute: shared by the two RPCs below. Only the party opposite the recorder, and only
--- while the repayment is pending. Security definer because loan_side is server-only; it checks the
--- caller itself, and the guard trigger (#7) re-checks all of it on the UPDATE.
+-- Confirm or dispute: shared by the two RPCs below, which are its only callers (no client may execute
+-- it: it does not check the reason or claim the key). Only the party opposite the recorder, and
+-- only while the repayment is pending; the guard trigger (#7) re-checks all of it on the UPDATE.
 create function private.settle_repayment(p_caller text, p_repayment_id uuid, p_confirm boolean, p_reason text)
 returns void
 language plpgsql security definer set search_path = '' as $$
@@ -266,8 +361,10 @@ end $$;
 
 -- The other party confirms a pending repayment. Final; closes the loan once it is fully repaid.
 -- The key is checked first, so a replay returns after the repayment is no longer pending.
+-- confirm and dispute are security definer so settle_repayment can stay server-only; every check
+-- is on the caller's verified_uid, as under RLS.
 create function public.confirm_repayment(p_repayment_id uuid, p_idempotency_key uuid) returns void
-language plpgsql security invoker set search_path = '' as $$
+language plpgsql security definer set search_path = '' as $$
 begin
   if public.verified_uid() is null then
     raise exception 'confirm_repayment: caller has no verified phone' using errcode = '42501';
@@ -284,7 +381,7 @@ end $$;
 
 -- The other party disputes a pending repayment with a reason. Final; it stays visible and never counts.
 create function public.dispute_repayment(p_repayment_id uuid, p_reason text, p_idempotency_key uuid) returns void
-language plpgsql security invoker set search_path = '' as $$
+language plpgsql security definer set search_path = '' as $$
 begin
   if public.verified_uid() is null then
     raise exception 'dispute_repayment: caller has no verified phone' using errcode = '42501';
@@ -302,12 +399,14 @@ begin
   perform private.settle_repayment('dispute_repayment', p_repayment_id, false, btrim(p_reason));
 end $$;
 
-revoke execute on function public.log_loan_activity(), public.close_repaid_loan() from public, anon, authenticated;
 revoke execute on function
-  public.create_loan(jsonb), public.record_repayment(jsonb), private.settle_repayment(text, uuid, boolean, text),
+  public.log_loan_activity(), public.close_repaid_loan(), private.settle_repayment(text, uuid, boolean, text)
+  from public, anon, authenticated;
+revoke execute on function
+  public.create_loan(jsonb), public.record_repayment(jsonb),
   public.confirm_repayment(uuid, uuid), public.dispute_repayment(uuid, text, uuid)
   from public, anon;
 grant execute on function
-  public.create_loan(jsonb), public.record_repayment(jsonb), private.settle_repayment(text, uuid, boolean, text),
+  public.create_loan(jsonb), public.record_repayment(jsonb),
   public.confirm_repayment(uuid, uuid), public.dispute_repayment(uuid, text, uuid)
   to authenticated;

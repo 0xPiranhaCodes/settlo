@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(83);
+select plan(90);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000008701', '919870000001', now()),
@@ -69,7 +69,7 @@ grant execute on all functions in schema pg_temp to public;
 select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p
     where p.pronamespace in ('public'::regnamespace, 'private'::regnamespace)
-      and p.proname in ('create_loan', 'record_repayment', 'confirm_repayment', 'dispute_repayment', 'settle_repayment')
+      and p.proname in ('create_loan', 'record_repayment', 'confirm_repayment', 'dispute_repayment')
       and (not coalesce(p.proconfig @> array['search_path=""'], false)
            or has_function_privilege('anon', p.oid, 'execute')
            or not has_function_privilege('authenticated', p.oid, 'execute'))),
@@ -78,6 +78,9 @@ select is(
 select ok(not has_function_privilege('authenticated', 'public.log_loan_activity()', 'execute')
           and not has_function_privilege('authenticated', 'public.close_repaid_loan()', 'execute'),
   'the loan triggers are not executable by clients');
+select ok(not has_function_privilege('authenticated', 'private.settle_repayment(text, uuid, boolean, text)', 'execute')
+          and not has_function_privilege('anon', 'private.settle_repayment(text, uuid, boolean, text)', 'execute'),
+  'private.settle_repayment is not executable by clients');
 
 set local role anon;
 select throws_ok(pg_temp.loan_k(), '42501', null, 'anon cannot call create_loan');
@@ -263,6 +266,21 @@ select throws_ok(pg_temp.dispute('00000000-0000-0000-0000-000000008b02', 'Short'
 select is(pg_temp.hint_of(pg_temp.confirm('00000000-0000-0000-0000-000000008b02', '00000000-0000-0000-0000-000000008c14')),
   'not_pending', 'confirm_repayment: a disputed repayment is final');
 
+-- Review probes (#94): none of these reach past the RPC contract.
+select is(pg_temp.hint_of($$insert into public.loan_repayments (id, loan_id, amount_minor, principal_minor)
+    values ('00000000-0000-0000-0000-000000008b09', '00000000-0000-0000-0000-000000008a01', 20001, 20001)$$),
+  'overpayment', 'probe 1: a direct insert of more than is outstanding is refused too');
+select throws_ok($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-000000008a01'$$,
+  '42501', null, 'probe 2: lender L cannot close K at a balance');
+select throws_ok(pg_temp.record('00000000-0000-0000-0000-000000008a01', 100), 'PT409', null,
+  'probe 3: L''s create_loan key cannot be reused for record_repayment');
+select throws_ok(format('select public.create_loan(%L)', jsonb_build_object(
+    'idempotency_key', '00000000-0000-0000-0000-000000008b01', 'direction', 'lent',
+    'counterparty_phone', '+919870000004', 'principal_minor', 100)),
+  'PT409', null, 'probe 3: nor L''s record_repayment key for create_loan');
+select throws_ok($$select private.settle_repayment('direct_probe', '00000000-0000-0000-0000-000000008b02', false, null)$$,
+  '42501', null, 'probe 4: the confirm/dispute helper cannot be called directly');
+
 -- Closing. R3 by B and R4 by L are both pending; each fits what is outstanding, together they do not.
 select pg_temp.login('00000000-0000-0000-0000-000000008702');
 select is(pg_temp.hint_of(pg_temp.record('00000000-0000-0000-0000-000000008b03', 20001)), 'overpayment',
@@ -299,6 +317,9 @@ select lives_ok(pg_temp.record('00000000-0000-0000-0000-000000008b03', 20000),
   'record_repayment: a replay of R3 still succeeds after K closed');
 select is(pg_temp.summary(), 'repaid=30000 outstanding=0 confirmed=2 pending=0/0 disputed=2 closed=true',
   'loan_summaries: the final state');
+select pg_temp.login('00000000-0000-0000-0000-000000008701');
+select throws_ok($$update public.loans set closed_at = null where id = '00000000-0000-0000-0000-000000008a01'$$,
+  '42501', null, 'probe 2: lender L cannot reopen K');
 select is((select count(*)::int from public.activity where loan_id = '00000000-0000-0000-0000-000000008a01'), 10,
   'activity: one row per change on K (created, 4 recorded, 2 confirmed, 2 disputed, closed)');
 

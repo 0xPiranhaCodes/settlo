@@ -385,20 +385,23 @@ POST /rest/v1/rpc/update_profile  {"p_name": "Asha K", "p_upi_id": "asha.k@okaxi
 ## Loans (#87)
 
 Same rules as the RPCs above: `authenticated` only, verified callers, the same error codes, and
-payload-bound idempotency. `create_loan` and `record_repayment` use the key as the new row's id (as
-`create_space`), so the client can queue repayments against a loan it created offline; the
-fingerprint is kept on that row and never purged. `confirm_repayment` and `dispute_repayment` keep
-theirs in `private.idempotency_keys` (30-day window, #70).
+payload-bound idempotency. Every loan RPC claims its key in `private.idempotency_keys`, so a key is
+unique per user across all of them and the #59 RPCs: a key reused for another RPC is `PT409`.
+`create_loan` and `record_repayment` also use the key as the new row's id (as `create_space`), so the
+client can queue repayments against a loan it created offline, and keep the fingerprint on that row,
+which answers a replay after the 30-day purge (#70).
 
 Two-sided confirmation: a repayment is recorded **pending** by one party and only the **other** party
 confirms or disputes it, once. Both outcomes are final. Only confirmed repayments count
 (`loan_summaries.repaid_minor`); a disputed one stays visible with its reason and never counts. The
-`loan_repayments` guard trigger (#7) holds direct table writes to the same rules. v1 is interest free:
-a repayment is all principal.
+`loan_repayments` guard trigger (#7) holds direct table writes to the same rules, including the
+`overpayment` check on record. v1 is interest free: a repayment is all principal.
 
 Closing: when confirmed repayments reach the principal, the confirmation closes the loan
-(`closed_at`). Nothing can be recorded on a closed loan, and no confirmation may take the confirmed
-total past the principal.
+(`closed_at`). That is the only way a loan closes: clients cannot write `closed_at` (no column
+privilege, no update policy on `loans`), so a lender can neither close a loan early nor reopen one.
+Nothing can be recorded on a closed loan, and no confirmation may take the confirmed total past the
+principal.
 
 Activity (`activity.loan_id`): `created` (after: the loan), `recorded` (after: the repayment),
 `confirmed` / `disputed` (before and after: the repayment), `closed` (before and after: the loan; a
@@ -424,10 +427,6 @@ Further hints:
 | `22023` | `loan_closed` | `record_repayment` on a closed loan |
 | `22023` | `not_pending` | Confirming or disputing a repayment already confirmed or disputed |
 | `42501` | `own_record` | Confirming or disputing a repayment your own side recorded |
-
-Settle-ups (#78) reuse this model: pending until the other side answers, `own_record` and
-`not_pending` with the same meaning, and confirm/dispute as one conditional update so a race has
-one winner.
 
 ### `create_loan(p jsonb)`
 Creates a loan between the caller and `counterparty_phone` and returns its id (the key). The
@@ -489,6 +488,8 @@ pending; the fingerprint is the repayment id.
 - `22023`: `not_pending`, or `overpayment`.
 - Concurrency: a confirmation and a dispute of the same repayment (two devices) run one after the
   other on the repayment row; the second is `not_pending`.
+- Security definer, so the shared confirm/dispute step (`private.settle_repayment`) stays
+  server-only; every check is made against the caller's verified id, as RLS would.
 
 ```
 POST /rest/v1/rpc/confirm_repayment  {"p_repayment_id": "7b1c…", "p_idempotency_key": "c2d4…"}

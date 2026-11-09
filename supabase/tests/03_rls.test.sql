@@ -466,8 +466,8 @@ select pg_temp.tagged(results_eq('select id from public.spaces', $$values ('0000
 select pg_temp.tagged(is(pg_temp.affected($$update public.loan_repayments set confirmed_by = '00000000-0000-0000-0000-000000008005'
                               where id = '00000000-0000-0000-0000-000000008601'$$),
   1, 'loan_repayments: borrower E confirms the lender''s repayment [+loan_repayments_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-000000008501'$$),
-  0, 'loans: borrower E cannot close L1 [-loans_update]'));
+select throws_ok($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-000000008501'$$,
+  '42501', null, 'loans: borrower E cannot close L1');
 
 -- B leaves S1, then loses access.
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000008002", "role": "authenticated"}';
@@ -475,10 +475,10 @@ select pg_temp.tagged(is(pg_temp.affected($$update public.space_members set left
   1, 'space_members: B leaves S1 [+space_members_update]'));
 select pg_temp.tagged(is((select count(*)::int from public.expenses), 0, 'expenses: B no longer reads S1 after leaving'));
 
--- A closes L1 as lender.
+-- Nor can lender A: closing is derived from confirmed repayments (#87).
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000008001", "role": "authenticated"}';
-select pg_temp.tagged(is(pg_temp.affected($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-000000008501'$$),
-  1, 'loans: lender A closes L1 [+loans_update]'));
+select throws_ok($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-000000008501'$$,
+  '42501', null, 'loans: lender A cannot close L1 directly');
 reset role;
 
 select pg_temp.tagged(is(
