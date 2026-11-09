@@ -1,5 +1,23 @@
 # Settlo app
 
+## Continuous integration
+
+Hosted GitHub Actions are the merge gate. Every pull request runs analysis,
+tests and coverage, Linux golden comparisons, Supabase checks, and the Android
+debug build. The iOS job builds only when a pull request changes iOS-relevant
+paths; it always builds after merge on `main`.
+
+Authors can optionally run the local preflight from the repository root:
+
+```sh
+scripts/ci-local.sh
+```
+
+The script is a developer convenience, not merge evidence or a substitute for
+hosted CI. Inspect and trust the checked-out branch before running it because it
+executes project-controlled build and package logic on the host. See the
+[current Actions decision](../docs/decisions/2026-11-09-actions-budget.md).
+
 ## Supabase settings
 
 The app reads `SUPABASE_URL` and `SUPABASE_ANON_KEY` at compile time

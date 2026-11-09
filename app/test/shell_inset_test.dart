@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_core/settlo_core.dart';
 
-import 'support/golden.dart';
+import 'package:settlo_test_support/golden.dart';
 
 const _bottomAction = Key('bottom-action');
 const _lastRow = Key('last-row');

@@ -6,6 +6,12 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      update_goldens:
+        description: Regenerate app and core goldens instead of running CI
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -20,7 +26,7 @@ env:
 jobs:
   analyze-test:
     name: Analyze & test
-    if: github.event_name != 'workflow_dispatch'
+    if: inputs.update_goldens != true
     # Pin golden rasterization to one runner image; update intentionally.
     runs-on: ubuntu-24.04
     steps:
@@ -177,7 +183,7 @@ jobs:
 
   android:
     name: Android debug build
-    if: github.event_name != 'workflow_dispatch'
+    if: inputs.update_goldens != true
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -196,13 +202,42 @@ jobs:
 
   ios:
     name: iOS debug build
-    if: github.event_name != 'workflow_dispatch'
+    if: inputs.update_goldens != true
     runs-on: macos-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Determine whether iOS build is required
+        id: ios-changes
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REF_NAME: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          should_build=false
+          reason="This event does not require an iOS build."
+
+          if [[ "$EVENT_NAME" == "push" && "$REF_NAME" == "refs/heads/main" ]]; then
+            should_build=true
+            reason="Pushes to main always build iOS."
+          elif [[ "$EVENT_NAME" == "pull_request" ]] && \
+               ! git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
+                 app/ios app/pubspec.yaml pubspec.lock packages/platform; then
+            should_build=true
+            reason="The pull request changes an iOS-relevant path."
+          fi
+
+          echo "should_build=$should_build" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
 
       - name: Set up Flutter
+        if: steps.ios-changes.outputs.should_build == 'true'
         uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
         with:
           channel: stable
@@ -210,12 +245,17 @@ jobs:
           cache: true
 
       - name: Build debug iOS app
+        if: steps.ios-changes.outputs.should_build == 'true'
         working-directory: app
         run: flutter build ios --no-codesign --debug
 
+      - name: Report skipped iOS build
+        if: steps.ios-changes.outputs.should_build != 'true'
+        run: echo "${{ steps.ios-changes.outputs.reason }}"
+
   supabase:
     name: Supabase
-    if: github.event_name != 'workflow_dispatch'
+    if: inputs.update_goldens != true
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -245,8 +285,8 @@ jobs:
         run: deno test
 
   regenerate-goldens:
-    name: Regenerate app goldens
-    if: github.event_name == 'workflow_dispatch'
+    name: Regenerate app and core goldens
+    if: inputs.update_goldens == true
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -264,20 +304,31 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Regenerate app goldens
-        working-directory: app
-        run: flutter test --update-goldens
+      - name: Regenerate app and core goldens
+        shell: bash
+        run: |
+          set -euo pipefail
+          (
+            cd app
+            flutter test --update-goldens
+          )
+          (
+            cd packages/core
+            flutter test --update-goldens
+          )
 
-      - name: Commit app goldens
+      - name: Commit app and core goldens
         shell: bash
         run: |
           set -euo pipefail
           git add app/test/goldens/*.png
+          git add packages/core/test/theme/goldens/*.png
+          git add packages/core/test/widgets/goldens/*.png
           if git diff --cached --quiet; then
-            echo "App goldens are already current."
+            echo "App and core goldens are already current."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "test: regenerate app goldens on ubuntu-24.04"
+          git commit -m "test: regenerate goldens on ubuntu-24.04"
           git push origin "HEAD:${GITHUB_REF_NAME}"

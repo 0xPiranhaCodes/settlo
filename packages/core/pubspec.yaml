@@ -16,6 +16,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  settlo_test_support:
+    path: ../test_support
 
 flutter:
   # Figtree and IBM Plex Serif, bundled so text never depends on the network

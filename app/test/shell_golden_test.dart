@@ -5,7 +5,7 @@ import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_loans/settlo_loans.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
 
-import 'support/golden.dart';
+import 'package:settlo_test_support/golden.dart';
 
 void main() {
   // Home is covered by home_golden_test.dart, with its data faked.
