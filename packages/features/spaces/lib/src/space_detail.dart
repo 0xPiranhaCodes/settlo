@@ -842,7 +842,8 @@ class FairShareBar extends StatelessWidget {
 }
 
 /// Balances simplified to the fewest payments (ADR 0003), with a way to
-/// ask for or make each one that involves you.
+/// ask for or make each one that involves you, then the settle-ups you
+/// paid that wait for their payee (#78), which are not offered again.
 class _SettleCard extends StatelessWidget {
   const new(this.space);
 
@@ -852,6 +853,7 @@ class _SettleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final payments = space.payments;
+    final waiting = space.pendingFromYou;
     return SCard(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
       child: Column(
@@ -872,7 +874,7 @@ class _SettleCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          if (payments.isEmpty)
+          if (payments.isEmpty && waiting.isEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
@@ -881,7 +883,18 @@ class _SettleCard extends StatelessWidget {
               ),
             ),
           for (final (i, p) in payments.indexed)
-            _PaymentRow(space, p, divider: i < payments.length - 1),
+            _PaymentRow(
+              space,
+              p,
+              divider: i < payments.length - 1 || waiting.isNotEmpty,
+            ),
+          for (final (i, p) in waiting.indexed)
+            _PaymentRow(
+              space,
+              p,
+              divider: i < waiting.length - 1,
+              waiting: true,
+            ),
         ],
       ),
     );
@@ -889,17 +902,30 @@ class _SettleCard extends StatelessWidget {
 }
 
 class _PaymentRow extends StatelessWidget {
-  const new(this.space, this.payment, {required this.divider});
+  const new(
+    this.space,
+    this.payment, {
+    required this.divider,
+    this.waiting = false,
+  });
 
   final SpaceSummary space;
   final Payment<SpaceMember> payment;
   final bool divider;
+
+  /// You paid it and the payee has not confirmed: grey, with no action.
+  final bool waiting;
 
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final p = payment;
     final (other, label, action) = switch (p) {
+      (:final to, from: _, amount: _) when waiting => (
+        to,
+        'Waiting for ${to.name} to confirm',
+        null,
+      ),
       (to: SpaceMember(isYou: true), :final from, amount: _) => (
         from,
         '${from.name} pays you',
@@ -942,7 +968,10 @@ class _PaymentRow extends StatelessWidget {
                       style: SettloTypography.figtree(14, color: c.textPrimary),
                     ),
                   ),
-                  MoneyText(p.amount),
+                  MoneyText(
+                    p.amount,
+                    tone: waiting ? MoneyTone.settled : MoneyTone.neutral,
+                  ),
                 ],
               ),
             ),

@@ -74,6 +74,13 @@ Future<_Harness> _pump(
   return (router: router, spaces: repo, expenses: expenses, links: links);
 }
 
+/// Reloads the balances, as the app does when the payee answers.
+Future<void> _reload(WidgetTester tester) async {
+  ProviderScope.containerOf(tester.element(find.byType(Navigator).last))
+      .invalidate(settleSpacesProvider);
+  await tester.pumpAndSettle();
+}
+
 Future<void> _tap(WidgetTester tester, String text) async {
   await tester.tap(find.text(text));
   await tester.pumpAndSettle();
@@ -83,7 +90,7 @@ Future<void> _tap(WidgetTester tester, String text) async {
 const upiChooserChannel = MethodChannel('app.settlo/upi');
 
 void main() {
-  testWidgets('settle up: both payments, then everyone is at zero', (
+  testWidgets('settle up: both payments, then zero once Kabir confirms', (
     tester,
   ) async {
     final h = await _pump(tester);
@@ -127,9 +134,11 @@ void main() {
       [('m5', const Paise.rupees(3650))],
     );
 
-    // Back on the list, which reloaded: only Priya's payment is left.
+    // Back on the list, which reloaded: only Priya's payment is left to
+    // make; yours to Kabir waits for him (#78) and is not offered again.
     expect(find.text('1 PAYMENT'), findsOne);
     expect(find.text('You pay Kabir'), findsNothing);
+    expect(find.text('Waiting for Kabir to confirm'), findsOne);
 
     // Request side, paid in cash.
     await _tap(tester, 'Priya pays you');
@@ -143,12 +152,67 @@ void main() {
       'm3': const Paise.rupees(2100),
     });
 
+    // Recorded by the payee, Priya's counts at once; yours waits.
+    expect(find.text('Waiting for Kabir to confirm'), findsOne);
+    expect(find.text("You're all settled up."), findsNothing);
+    h.expenses.answer('s2', 'm5', confirmed: true);
+    await _reload(tester);
     expect(find.text("You're all settled up."), findsOne);
     expect([
       for (final s in h.spaces.spaces)
         for (final m in s.members) m.balance,
     ], everyElement(Paise.zero));
     expect(h.links.opened, hasLength(2));
+  });
+
+  testWidgets('paid: the row waits for the payee; disputed: Pay returns', (
+    tester,
+  ) async {
+    final h = await _pump(tester);
+    await _tap(tester, 'You pay Kabir');
+    await _tap(tester, 'I already paid in cash');
+    await _tap(tester, 'Yes, I paid');
+
+    expect(find.text('You pay Kabir'), findsNothing);
+    expect(find.text('Waiting for Kabir to confirm'), findsOne);
+    expect(
+      h.spaces.spaces.last.you.balance,
+      const Paise.rupees(-3650),
+      reason: 'balances count only confirmed settle-ups',
+    );
+
+    // Opening SettlePay for Kabir again offers nothing to pay.
+    unawaited(h.router.push(SettloRoutes.settlePayTo('s2', 'm5')));
+    await tester.pumpAndSettle();
+    // The list stays beneath; the new sheet shows the same waiting row.
+    expect(find.text('Waiting for Kabir to confirm'), findsNWidgets(2));
+    expect(find.textContaining('via UPI'), findsNothing);
+    expect(find.text('I already paid in cash'), findsNothing);
+    h.router.pop();
+    await tester.pumpAndSettle();
+
+    // Kabir says it never arrived: the debt is back.
+    h.expenses.answer('s2', 'm5', confirmed: false);
+    await _reload(tester);
+    expect(find.text('Waiting for Kabir to confirm'), findsNothing);
+    expect(find.text('You pay Kabir'), findsOne);
+    expect(h.expenses.calls, hasLength(1));
+  });
+
+  testWidgets('a double tap on Yes, I paid records once', (tester) async {
+    final h = await _pump(
+      tester,
+      location: SettloRoutes.settlePayTo('s2', 'm5'),
+    );
+    await _tap(tester, 'I already paid in cash');
+    // No pump between the taps, and the first save still in flight: the
+    // button is not rebuilt disabled yet.
+    h.expenses.gate = Completer();
+    await tester.tap(find.text('Yes, I paid'));
+    await tester.tap(find.text('Yes, I paid'));
+    h.expenses.gate!.complete();
+    await tester.pumpAndSettle();
+    expect(h.expenses.calls, hasLength(1));
   });
 
   testWidgets('someone who left is never offered as payer or payee', (

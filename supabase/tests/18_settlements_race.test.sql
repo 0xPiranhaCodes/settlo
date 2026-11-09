@@ -1,12 +1,14 @@
 -- Confirm vs dispute of a settle-up under concurrency (#78): two sessions over dblink, as in
 -- 16_loan_rpcs_race. A's two devices answer B's pending settle-up at once: whichever commits first
 -- wins, and the other waits on the expense row, then is refused as not_pending. Balances count only
--- the confirmed one. Space S: A and B; R1 and R2 are B paying A 1000 and 2000, both pending.
+-- the confirmed one. Then B's two devices record paying A at once: the second waits on the pair's
+-- lock and is refused as settlement_pending. Space S: A and B; R1 and R2 are B paying A 1000 and
+-- 2000, both pending.
 begin;
 create extension if not exists pgtap with schema extensions;
 create extension if not exists dblink with schema extensions;
 
-select plan(10);
+select plan(14);
 
 create function pg_temp.conninfo() returns text language sql as $$
   select format('host=%s dbname=postgres user=postgres password=postgres', host(inet_server_addr()))
@@ -112,15 +114,38 @@ select is((select count(*)::int from public.activity
             where expense_id in ('00000000-0000-0000-0000-000000007931', '00000000-0000-0000-0000-000000007932')
               and action in ('confirmed', 'disputed')), 2, 'each settle-up logs exactly one answer');
 
+-- Record vs record: no settle-up from B to A is pending now (R1 confirmed, R2 disputed).
+create function pg_temp.record(key text) returns text language sql as $$
+  select format($q$select public.add_expense('%s')::text$q$, jsonb_build_object(
+    'space_id', '00000000-0000-0000-0000-000000007910', 'idempotency_key', key, 'description', 'Settle up',
+    'amount_minor', 1000, 'split_type', 'exact', 'is_settlement', true,
+    'payers', jsonb_build_array(jsonb_build_object('member_id', '00000000-0000-0000-0000-000000007922', 'amount_minor', 1000)),
+    'splits', jsonb_build_array(jsonb_build_object('member_id', '00000000-0000-0000-0000-000000007921', 'amount_minor', 1000))))
+$$;
+select pg_temp.begin_as('s1', '00000000-0000-0000-0000-000000007902');
+select pg_temp.begin_as('s2', '00000000-0000-0000-0000-000000007902');
+select * from dblink('s1', pg_temp.record('00000000-0000-0000-0000-000000007951')) t(r text);
+select dblink_send_query('s2', pg_temp.record('00000000-0000-0000-0000-000000007952'));
+select ok(pg_temp.blocked((select pid from s2)), 'record twice: the second record waits for the first');
+select dblink_exec('s1', 'commit');
+select matches(pg_temp.outcome('s2'), 'already waiting for the payee', 'record twice: then it is refused');
+select dblink_exec('s2', 'rollback');
+select is((select count(*)::int from public.expenses where space_id = '00000000-0000-0000-0000-000000007910'
+            and settlement_status = 'pending'), 1, 'record twice: exactly one settle-up is pending');
+select is(pg_temp.balance(), -1000::bigint, 'record twice: balances do not count the pending one');
+
 select dblink_exec('setup', $$
   begin;
   delete from public.activity where space_id = '00000000-0000-0000-0000-000000007910';
-  delete from public.expense_payers where expense_id::text like '00000000-0000-0000-0000-00000000793_';
-  delete from public.expense_splits where expense_id::text like '00000000-0000-0000-0000-00000000793_';
+  delete from public.expense_payers where expense_id in
+    (select id from public.expenses where space_id = '00000000-0000-0000-0000-000000007910');
+  delete from public.expense_splits where expense_id in
+    (select id from public.expenses where space_id = '00000000-0000-0000-0000-000000007910');
   delete from public.expenses where space_id = '00000000-0000-0000-0000-000000007910';
   delete from public.space_members where space_id = '00000000-0000-0000-0000-000000007910';
   delete from public.spaces where id = '00000000-0000-0000-0000-000000007910';
-  delete from private.idempotency_keys where user_id = '00000000-0000-0000-0000-000000007901';
+  delete from private.idempotency_keys where user_id in
+    ('00000000-0000-0000-0000-000000007901', '00000000-0000-0000-0000-000000007902');
   delete from public.profiles where id::text like '00000000-0000-0000-0000-00000000790_';
   delete from auth.users where id::text like '00000000-0000-0000-0000-00000000790_';
   commit;

@@ -94,7 +94,10 @@ List<SpaceSummary> settleSpacesWithDeparted() => [
 ];
 
 /// Records expenses as [FakeExpensesRepository] does, and moves the
-/// balances in [spaces] as the server would: payers up, splits down.
+/// balances in [spaces] as the server would: payers up, splits down. A
+/// settle-up you pay waits for the payee instead (#78): it joins
+/// `pendingFromYou` until [answer], and a second one to the same payee
+/// is refused as the server does.
 class SettlingExpensesRepository extends FakeExpensesRepository {
   /// Settles into [spaces].
   new(this.spaces);
@@ -107,33 +110,88 @@ class SettlingExpensesRepository extends FakeExpensesRepository {
     NewExpense expense, {
     required String idempotencyKey,
   }) async {
+    final s = spaces.spaces.firstWhere((s) => s.id == expense.spaceId);
+    final you = s.you;
+    final payee = expense.splits.single.memberId;
+    final pending = expense.isSettlement && expense.payers.containsKey(you.id);
+    if (pending && s.pendingFromYou.any((p) => p.to.id == payee)) {
+      calls.add((key: idempotencyKey, expense: expense));
+      throw const SettlementPending();
+    }
     final id = await super.add(expense, idempotencyKey: idempotencyKey);
+    if (pending) {
+      _replace(
+        s,
+        pending: [
+          ...s.pendingFromYou,
+          (
+            from: you,
+            to: s.members.firstWhere((m) => m.id == payee),
+            amount: expense.amount,
+          ),
+        ],
+      );
+    } else {
+      _replace(
+        s,
+        moved: (member) =>
+            (expense.payers[member] ?? Paise.zero) -
+            expense.splits
+                .where((x) => x.memberId == member)
+                .fold(Paise.zero, (sum, x) => sum + x.amount),
+      );
+    }
+    return id;
+  }
+
+  /// The payee of your pending settle-up in [spaceId] confirms it, which
+  /// moves the balances, or disputes it, which drops it.
+  void answer(String spaceId, String payeeId, {required bool confirmed}) {
+    final s = spaces.spaces.firstWhere((s) => s.id == spaceId);
+    final p = s.pendingFromYou.firstWhere((p) => p.to.id == payeeId);
+    _replace(
+      s,
+      pending: [
+        for (final q in s.pendingFromYou)
+          if (q != p) q,
+      ],
+      moved: (member) => !confirmed
+          ? Paise.zero
+          : member == p.from.id
+          ? p.amount
+          : member == p.to.id
+          ? Paise.zero - p.amount
+          : Paise.zero,
+    );
+  }
+
+  void _replace(
+    SpaceSummary s, {
+    List<Payment<SpaceMember>>? pending,
+    Paise Function(String member)? moved,
+  }) {
+    SpaceMember move(SpaceMember m) => SpaceMember(
+      id: m.id,
+      name: m.name,
+      phone: m.phone,
+      isYou: m.isYou,
+      balance: m.balance + (moved?.call(m.id) ?? Paise.zero),
+      upiId: m.upiId,
+    );
+    final members = [for (final m in s.members) move(m)];
+    SpaceMember now(SpaceMember m) => members.firstWhere((x) => x.id == m.id);
     final list = spaces.spaces;
-    final i = list.indexWhere((s) => s.id == expense.spaceId);
-    final s = list[i];
-    Paise moved(String member) =>
-        (expense.payers[member] ?? Paise.zero) -
-        expense.splits
-            .where((x) => x.memberId == member)
-            .fold(Paise.zero, (sum, x) => sum + x.amount);
-    list[i] = SpaceSummary(
+    list[list.indexOf(s)] = SpaceSummary(
       id: s.id,
       name: s.name,
       kind: s.kind,
       hasExpenses: s.hasExpenses,
       departed: s.departed,
-      members: [
-        for (final m in s.members)
-          SpaceMember(
-            id: m.id,
-            name: m.name,
-            phone: m.phone,
-            isYou: m.isYou,
-            balance: m.balance + moved(m.id),
-            upiId: m.upiId,
-          ),
+      members: members,
+      pendingFromYou: [
+        for (final p in pending ?? s.pendingFromYou)
+          (from: now(p.from), to: now(p.to), amount: p.amount),
       ],
     );
-    return id;
   }
 }

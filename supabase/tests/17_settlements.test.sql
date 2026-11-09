@@ -9,7 +9,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(78);
+select plan(82);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000007801', '919780000001', now()),
@@ -257,6 +257,9 @@ select pg_temp.login('00000000-0000-0000-0000-000000007803');
 select is(pg_temp.hint_of(format('select public.delete_expense(%L, %L)', pg_temp.id('00000000-0000-0000-0000-000000007a03'),
     '00000000-0000-0000-0000-000000007b10')),
   'settlement_final', 'delete_expense: a disputed settle-up stays visible');
+select lives_ok(pg_temp.settle('00000000-0000-0000-0000-000000007a13', '00000000-0000-0000-0000-000000007823',
+    '00000000-0000-0000-0000-000000007822', 1000), 'S3b: once S3 is disputed, C may record paying B again');
+select is(pg_temp.balances(), 'Asha=0 Bilal=0 Chitra=0', 'S3b pending: balances unchanged');
 
 -- S4: B records paying A 500; A, the payee and an owner, corrects it to 600, which confirms it.
 select pg_temp.login('00000000-0000-0000-0000-000000007802');
@@ -269,6 +272,14 @@ select lives_ok(format('select public.update_expense(%L)', jsonb_build_object(
     'splits', jsonb_build_array(jsonb_build_object('member_id', '00000000-0000-0000-0000-000000007821', 'amount_minor', 500)))),
   'update_expense: B, the payer, may still edit a pending settle-up');
 select is(pg_temp.status('00000000-0000-0000-0000-000000007a04'), 'pending', 'S4: the payer''s edit leaves it pending');
+select is(pg_temp.hint_of(pg_temp.settle('00000000-0000-0000-0000-000000007a14', '00000000-0000-0000-0000-000000007822',
+    '00000000-0000-0000-0000-000000007821', 500)),
+  'settlement_pending', 'add_expense: B cannot record paying A again while S4 is pending');
+select pg_temp.login('00000000-0000-0000-0000-000000007803');
+select is(pg_temp.hint_of(pg_temp.settle('00000000-0000-0000-0000-000000007a14', '00000000-0000-0000-0000-000000007822',
+    '00000000-0000-0000-0000-000000007821', 200)),
+  'settlement_pending', 'add_expense: nor can C record it for them');
+select pg_temp.login('00000000-0000-0000-0000-000000007802');
 select pg_temp.login('00000000-0000-0000-0000-000000007801');
 select is(pg_temp.hint_of(format('select public.confirm_settlement(%L, 400, %L, %L)', pg_temp.id('00000000-0000-0000-0000-000000007a04'),
     '00000000-0000-0000-0000-000000007822', '00000000-0000-0000-0000-000000007b19')),

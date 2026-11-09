@@ -128,7 +128,8 @@ begin
 end $$;
 
 -- store_allocations from #70, plus: a settlement has exactly one payer and one other payee
--- (settlement_shape), and when the caller writing it is that payee it is confirmed at once.
+-- (settlement_shape), at most one is pending per payer and payee (settlement_pending), and when the
+-- caller writing it is that payee it is confirmed at once.
 create or replace function private.store_allocations(p_expense_id uuid, p jsonb, p_caller text) returns void
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -144,6 +145,21 @@ begin
           or p -> 'payers' -> 0 ->> 'member_id' = p -> 'splits' -> 0 ->> 'member_id') then
     raise exception '%: a settle-up is one payer paying one other member', p_caller
       using errcode = '22023', hint = 'settlement_shape';
+  end if;
+  -- One pending settle-up per payer and payee: a second would be the same payment recorded twice.
+  -- The lock serialises concurrent records of a pair; the check then sees the other's commit.
+  if (select e.is_settlement from public.expenses e where e.id = p_expense_id) then
+    perform pg_advisory_xact_lock(hashtextextended(
+      'settlement:' || (p -> 'payers' -> 0 ->> 'member_id') || ':' || (p -> 'splits' -> 0 ->> 'member_id'), 0));
+    if exists (select from public.expenses x
+                 join public.expense_payers xp on xp.expense_id = x.id
+                 join public.expense_splits xs on xs.expense_id = x.id
+                where x.id <> p_expense_id and x.settlement_status = 'pending' and x.deleted_at is null
+                  and xp.member_id = (p -> 'payers' -> 0 ->> 'member_id')::uuid
+                  and xs.member_id = (p -> 'splits' -> 0 ->> 'member_id')::uuid) then
+      raise exception '%: a settle-up between these members is already waiting for the payee', p_caller
+        using errcode = '22023', hint = 'settlement_pending';
+    end if;
   end if;
   perform from public.space_members m
    where m.id in (select x.member_id from public.expense_payers x where x.expense_id = p_expense_id

@@ -1,4 +1,3 @@
-
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -41,22 +40,27 @@ typedef _Owed = ({SpaceSummary space, Payment<SpaceMember> payment});
 /// The payments that involve you, in [spaceId] or every space, split by
 /// whether the other person is still in the space. `add_expense` takes
 /// only active members, so a payment with someone who left can be shown
-/// but never recorded.
-({List<_Owed> active, List<_Owed> departed}) _yours(
+/// but never recorded. `waiting` are the ones you paid that wait for the
+/// payee (#78); they are not offered again.
+({List<_Owed> active, List<_Owed> departed, List<_Owed> waiting}) _yours(
   List<SpaceSummary> spaces,
   String? spaceId,
 ) {
   final active = <_Owed>[];
   final departed = <_Owed>[];
+  final waiting = <_Owed>[];
   for (final s in spaces) {
     if (spaceId != null && s.id != spaceId) continue;
+    for (final p in s.pendingFromYou) {
+      waiting.add((space: s, payment: p));
+    }
     for (final p in s.payments) {
       if (!p.from.isYou && !p.to.isYou) continue;
       final inSpace = s.members.contains(p.from) && s.members.contains(p.to);
       (inSpace ? active : departed).add((space: s, payment: p));
     }
   }
-  return (active: active, departed: departed);
+  return (active: active, departed: departed, waiting: waiting);
 }
 
 /// Why a payment with someone who left cannot be settled here.
@@ -127,6 +131,11 @@ class _SettleRoute extends ConsumerWidget {
     final owed = yours?.active;
     final match = owed?.where(isThem).firstOrNull;
     final left = [...?yours?.departed.where(isThem)];
+    final waiting = [
+      ...?yours?.waiting.where(
+        (o) => memberId == null || (youPay && o.payment.to.id == memberId),
+      ),
+    ];
     return Padding(
       padding: EdgeInsets.only(
         top: math.max(54, media.padding.top),
@@ -159,9 +168,11 @@ class _SettleRoute extends ConsumerWidget {
             onClose: close,
             message: switch (yours!.departed) {
               final d when memberId == null && d.isNotEmpty => _leftMessage(d),
+              _ when waiting.isNotEmpty => null,
               _ when memberId == null => "You're all settled up.",
               _ => "You're settled up with them.",
             },
+            children: [for (final o in waiting) _WaitingRow(o)],
           ),
           (final owed?, null) => _Frame(
             onClose: close,
@@ -169,7 +180,10 @@ class _SettleRoute extends ConsumerWidget {
             message: yours!.departed.isEmpty
                 ? null
                 : _leftMessage(yours.departed),
-            children: [for (final o in owed) _PaymentRow(o)],
+            children: [
+              for (final o in owed) _PaymentRow(o),
+              for (final o in waiting) _WaitingRow(o),
+            ],
           ),
         },
       ),
@@ -324,6 +338,58 @@ class _PaymentRow extends StatelessWidget {
               payment.amount,
               tone: youPay ? MoneyTone.youOwe : MoneyTone.owedToYou,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// `Waiting for Kabir to confirm · Goa trip  ₹3,650`: a settle-up you
+/// paid that the payee has not confirmed (#78). Nothing to tap.
+class _WaitingRow extends StatelessWidget {
+  const new(this.owed);
+
+  final _Owed owed;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final (:space, :payment) = owed;
+    return MergeSemantics(
+      child: Container(
+        constraints: const BoxConstraints(
+          minHeight: SettloSpacing.minTouchTarget,
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: c.hairline)),
+        ),
+        child: Row(
+          children: [
+            SAvatar(payment.to.name, size: 32),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Waiting for ${payment.to.name} to confirm',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SettloTypography.figtree(15, color: c.textPrimary),
+                  ),
+                  Text(
+                    space.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SettloTypography.figtree(13, color: c.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            MoneyText(payment.amount, tone: MoneyTone.settled),
           ],
         ),
       ),

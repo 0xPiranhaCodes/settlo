@@ -63,6 +63,13 @@ final class ExpenseRejected implements Exception {
   const new();
 }
 
+/// A settle-up between the same payer and payee is already waiting for
+/// the payee (`settlement_pending`, #78), so another was not recorded.
+final class SettlementPending implements Exception {
+  /// A refusal.
+  const new();
+}
+
 /// [ExpensesRepository] over the `add_expense` RPC (docs/api.md).
 final class SupabaseExpensesRepository implements ExpensesRepository {
   /// Writes through [_db].
@@ -113,6 +120,8 @@ final class SupabaseExpensesRepository implements ExpensesRepository {
       switch (error.code) {
         case 'PT409':
           throw const IdempotencyConflict();
+        case '22023' when error.hint == 'settlement_pending':
+          throw const SettlementPending();
         case '22023':
           throw const ExpenseRejected();
       }

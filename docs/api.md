@@ -540,6 +540,15 @@ rules: an expense never changes between spending and a settle-up (`22023` hint `
 a confirmed or disputed settle-up cannot be edited, deleted or restored (`22023` hint
 `settlement_final`). A pending one may still be edited or deleted by its creator or a space owner.
 
+One pending settle-up per payer and payee: recording another from the same payer to the same payee
+while one is pending is `22023` hint `settlement_pending`, whoever records it; it is the same payment
+recorded twice. Concurrent records of a pair are serialised (a transaction-scoped advisory lock), so
+of two at once the second is refused. Once the payee answers, a new one may be recorded; a disputed
+one's debt is owed again.
+
+Clients net the caller's own pending settle-ups (`pending_settlements` where the caller is the payer)
+out of the payments they offer, and show each as waiting for the payee; balances stay confirmed-only.
+
 Confirming changes both members' balances, so like an edit it is refused when the payer has left
 (`22023` hint `departed_member`); a member may leave while a settle-up is pending, as it does not
 count.
@@ -556,6 +565,7 @@ Further hints:
 | Code | Hint | When |
 | --- | --- | --- |
 | `22023` | `settlement_shape` | A settle-up without exactly one payer and one other payee |
+| `22023` | `settlement_pending` | Recording (or editing into) a settle-up from a payer to a payee while another between them is pending |
 | `22023` | `settlement_kind` | Turning spending into a settle-up or back |
 | `22023` | `settlement_final` | Editing, deleting or restoring a confirmed or disputed settle-up |
 | `22023` | `not_pending` | Confirming or disputing a settle-up that is already answered or deleted |

@@ -62,7 +62,7 @@ Future<void> _settle(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('confirmed settle-ups refresh the open Space › Balances', (
+  testWidgets('settle-ups wait for the payee on the open Space › Balances', (
     tester,
   ) async {
     await loadSettloFonts();
@@ -71,6 +71,7 @@ void main() {
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final spaces = _SlowSpaces([_flat]);
+    final expenses = SettlingExpensesRepository(spaces);
     // As in the app: settle sheets on the root navigator, the space in a
     // shell branch beneath them.
     final router = GoRouter(
@@ -98,9 +99,7 @@ void main() {
           spaceLedgerRepositoryProvider.overrideWithValue(
             FakeSpaceLedgerRepository(),
           ),
-          expensesRepositoryProvider.overrideWithValue(
-            SettlingExpensesRepository(spaces),
-          ),
+          expensesRepositoryProvider.overrideWithValue(expenses),
           openUpiProvider.overrideWithValue((_) async => true),
         ],
         child: MaterialApp.router(
@@ -112,7 +111,10 @@ void main() {
     await _settle(tester);
     expect(find.text('2 PAYMENTS'), findsOne);
 
-    for (final (amount, left) in [('₹11.68', '1 PAYMENT'), ('₹6.65', null)]) {
+    for (final (amount, payee, left) in [
+      ('₹11.68', 'Charu', '1 PAYMENT'),
+      ('₹6.65', 'Asha', null),
+    ]) {
       await tester.tap(find.widgetWithText(TextButton, 'Pay').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Pay $amount via UPI'));
@@ -120,11 +122,43 @@ void main() {
       await tester.tap(find.text('Yes, I paid'));
       await _settle(tester);
 
-      // Back on the space, with no pull to refresh.
+      // Back on the space, with no pull to refresh: the payment waits for
+      // its payee (#78) and is not offered again.
       expect(find.text('Yes, I paid'), findsNothing);
+      expect(find.text('Waiting for $payee to confirm'), findsOne);
       if (left != null) expect(find.text(left), findsOne);
     }
+    expect(find.widgetWithText(TextButton, 'Pay'), findsNothing);
+    expect(
+      find.text('Everyone is settled up.'),
+      findsNothing,
+      reason: 'nothing is confirmed yet',
+    );
 
+    // Charu confirms; Asha says hers never arrived, so it is offered again.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Navigator).last),
+    );
+    expenses
+      ..answer(_flat.id, 'c', confirmed: true)
+      ..answer(_flat.id, 'a', confirmed: false);
+    container.read(ledgerRevisionProvider.notifier).bump();
+    await _settle(tester);
+    expect(find.text('Waiting for Charu to confirm'), findsNothing);
+    expect(find.text('Waiting for Asha to confirm'), findsNothing);
+    expect(find.text('You pay Asha'), findsOne);
+    expect(find.widgetWithText(TextButton, 'Pay'), findsOne);
+
+    // Paid again and confirmed: everyone is settled.
+    await tester.tap(find.widgetWithText(TextButton, 'Pay'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pay ₹6.65 via UPI'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Yes, I paid'));
+    await _settle(tester);
+    expenses.answer(_flat.id, 'a', confirmed: true);
+    container.read(ledgerRevisionProvider.notifier).bump();
+    await _settle(tester);
     expect(find.text('Everyone is settled up.'), findsOne);
     expect(find.widgetWithText(TextButton, 'Pay'), findsNothing);
 
