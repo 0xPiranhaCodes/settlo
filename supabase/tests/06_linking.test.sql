@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(100);
+select plan(102);
 
 -- Linking is deferred to commit; fire it at each statement so this transaction can observe it.
 set constraints auth.link_verified_phone immediate;
@@ -217,6 +217,13 @@ select pg_temp.tagged(throws_ok(
 select pg_temp.tagged(is(pg_temp.affected($$update public.expenses set description = 'x' where id = '00000000-0000-0000-0000-00000000f301'$$),
   0, 'pending N cannot edit an expense [-expenses_update]'));
 select pg_temp.tagged(throws_ok(
+  format('select public.add_expense(%L::jsonb)', jsonb_build_object(
+    'space_id', '00000000-0000-0000-0000-00000000f101', 'idempotency_key', '00000000-0000-0000-0000-00000000f397',
+    'description', 'Via RPC', 'amount_minor', 1000, 'split_type', 'equal',
+    'payers', jsonb_build_array(jsonb_build_object('member_id', '00000000-0000-0000-0000-00000000f202', 'amount_minor', 1000)),
+    'splits', jsonb_build_array(jsonb_build_object('member_id', '00000000-0000-0000-0000-00000000f202')))),
+  '42501', null, 'pending N cannot add an expense through add_expense (security invoker) [-expenses_insert]'));
+select pg_temp.tagged(throws_ok(
   $$insert into public.expense_payers (expense_id, member_id, amount_minor)
     values ('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000f202', 1000)$$,
   '42501', null, 'pending N cannot add a payer [-expense_payers_insert]'));
@@ -274,6 +281,13 @@ select pg_temp.tagged(lives_ok(
     values ('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000f202', 'exact', 600);
   end $$$q$,
   'accepted N adds an expense with payers and splits [+expenses_insert] [+expense_payers_insert] [+expense_splits_insert]'));
+select pg_temp.tagged(lives_ok(
+  format('select public.add_expense(%L::jsonb)', jsonb_build_object(
+    'space_id', '00000000-0000-0000-0000-00000000f101', 'idempotency_key', '00000000-0000-0000-0000-00000000f397',
+    'description', 'Via RPC', 'amount_minor', 1000, 'split_type', 'equal',
+    'payers', jsonb_build_array(jsonb_build_object('member_id', '00000000-0000-0000-0000-00000000f202', 'amount_minor', 1000)),
+    'splits', jsonb_build_array(jsonb_build_object('member_id', '00000000-0000-0000-0000-00000000f202')))),
+  'accepted N adds an expense through add_expense [+expenses_insert]'));
 select pg_temp.tagged(is(pg_temp.affected($$update public.expenses set description = 'Rent (Nov)' where id = '00000000-0000-0000-0000-00000000f301'$$),
   1, 'accepted N edits an expense [+expenses_update]'));
 select pg_temp.tagged(is(pg_temp.affected($$update public.expense_payers set amount_minor = amount_minor
