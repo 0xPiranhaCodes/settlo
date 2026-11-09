@@ -50,6 +50,19 @@ String spokenInr(Paise amount, {bool signed = false}) {
   return signed && v > 0 ? 'plus $words' : words;
 }
 
+/// [input] typed as rupees, such as `1,800` or `420.5`, in paise; null
+/// when it is not a non-negative amount with at most two decimals.
+/// Commas are ignored wherever they are.
+Paise? parseInr(String input) {
+  final m = _typed.firstMatch(input.replaceAll(',', '').trim());
+  if (m == null) return null;
+  final rupees = int.parse(m[1]!);
+  final paise = int.parse((m[2] ?? '').padRight(2, '0'));
+  return Paise(rupees * 100 + paise);
+}
+
+final _typed = RegExp(r'^(\d{1,12})(?:\.(\d{0,2}))?$');
+
 final _pairs = RegExp(r'\B(?=(\d{2})+$)');
 
 const _ones = [

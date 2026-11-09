@@ -156,7 +156,9 @@ class _Segment extends StatelessWidget {
           widthFactor: 1,
           child: Container(
             height: _visualHeight - 4,
-            constraints: const BoxConstraints(minWidth: 40),
+            constraints: const BoxConstraints(
+              minWidth: SettloSpacing.minTouchTarget,
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 12),
             alignment: Alignment.center,
             decoration: BoxDecoration(

@@ -9,11 +9,14 @@ spacesProvider = AsyncNotifierProvider<SpacesController, List<SpaceSummary>>(
 
 /// Loads the spaces and creates new ones. A created space reloads the
 /// list, so it appears as the server recorded it, and bumps
-/// [ledgerRevisionProvider] so Home reloads too.
+/// [ledgerRevisionProvider] so Home reloads too; a bump from another
+/// feature, such as a new expense, reloads the spaces.
 class SpacesController extends AsyncNotifier<List<SpaceSummary>> {
   @override
-  Future<List<SpaceSummary>> build() =>
-      ref.watch(spacesRepositoryProvider).load();
+  Future<List<SpaceSummary>> build() {
+    ref.watch(ledgerRevisionProvider);
+    return ref.watch(spacesRepositoryProvider).load();
+  }
 
   /// Creates a space and returns its id. Throws if the server refuses; a
   /// retry must pass the same [idempotencyKey].

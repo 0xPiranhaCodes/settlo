@@ -433,8 +433,8 @@ void main() {
     });
 
     for (final (label, location) in [
-      ('Add first expense', SettloRoutes.addExpense),
-      ('Add rent as a monthly expense', SettloRoutes.addExpense),
+      ('Add first expense', SettloRoutes.addExpenseIn('s9')),
+      ('Add rent as a monthly expense', SettloRoutes.addExpenseIn('s9')),
       ('Add your UPI ID so settle-ups are one tap', SettloRoutes.profile),
     ]) {
       testWidgets('$label goes to $location', (tester) async {
