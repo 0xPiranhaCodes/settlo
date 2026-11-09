@@ -117,30 +117,35 @@ class SpaceDetailView extends ConsumerWidget {
               if (tab == SpaceTab.expenses) ...[
                 _Hero(space, loaded),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SPrimaryButton(
-                        label: 'Add expense',
-                        icon: SpacesIcon(
-                          SpacesGlyph.plus,
-                          color: c.onAction,
-                          size: 18,
-                          stroke: 1.9,
+                // The canvas pads these 16, not Material's 24, so both
+                // labels fit side by side at 360.
+                Theme(
+                  data: _compactButtons(Theme.of(context)),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SPrimaryButton(
+                          label: 'Add expense',
+                          icon: SpacesIcon(
+                            SpacesGlyph.plus,
+                            color: c.onAction,
+                            size: 18,
+                            stroke: 1.9,
+                          ),
+                          // shortcut: a stub route until Add expense (#62)
+                          // lands; it does not know the space yet.
+                          onPressed: () => context.go(SettloRoutes.addExpense),
                         ),
-                        // shortcut: a stub route until Add expense (#62)
-                        // lands; it does not know the space yet.
-                        onPressed: () => context.go(SettloRoutes.addExpense),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: SSecondaryButton(
-                        label: 'Settle up',
-                        onPressed: () => context.go(SettloRoutes.settle),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: SSecondaryButton(
+                          label: 'Settle up',
+                          onPressed: () => context.go(SettloRoutes.settle),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 18),
               ],
@@ -170,6 +175,18 @@ class SpaceDetailView extends ConsumerWidget {
       ),
     );
   }
+}
+
+ThemeData _compactButtons(ThemeData theme) {
+  const padding = WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16));
+  return theme.copyWith(
+    filledButtonTheme: FilledButtonThemeData(
+      style: theme.filledButtonTheme.style?.copyWith(padding: padding),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: theme.outlinedButtonTheme.style?.copyWith(padding: padding),
+    ),
+  );
 }
 
 /// Your balance, the month's total and a sparkline of its daily spend

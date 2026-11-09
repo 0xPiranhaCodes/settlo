@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -756,6 +757,15 @@ void main() {
           await tester.ensureVisible(find.text('Create space'));
           await tester.pumpAndSettle();
         } else {
+          if (find.text('Add expense').evaluate().isNotEmpty) {
+            expect(
+              tester
+                  .renderObject<RenderParagraph>(find.text('Add expense'))
+                  .didExceedMaxLines,
+              isFalse,
+              reason: 'the label is not cut short',
+            );
+          }
           await _scrollToEnd(tester);
         }
       });
