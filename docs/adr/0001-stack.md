@@ -19,7 +19,7 @@ These are settled and are not reopened by any agent:
 - INR only in v1.
 - Loans are interest-free in v1 (schema reserves interest types).
 
-App stack, from the context pack: Riverpod with codegen, go_router, freezed + json_serializable, drift, google_fonts, firebase_messaging, url_launcher, share_plus, flutter_contacts, live_activities, home_widget, flutter_native_splash, very_good_analysis lints.
+App stack, from the context pack: Riverpod with codegen, go_router, freezed + json_serializable, drift, google_fonts (dropped by [0006](0006-fonts.md)), firebase_messaging, url_launcher, share_plus, flutter_contacts, live_activities, home_widget, flutter_native_splash, very_good_analysis lints.
 
 Monorepo: a Dart pub workspace (root `pubspec.yaml` with `workspace:`, each member `resolution: workspace`), not Melos. Codegen runs through `scripts/codegen.sh` (`dart run build_runner build --workspace`).
 

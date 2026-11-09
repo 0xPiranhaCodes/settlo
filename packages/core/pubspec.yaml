@@ -10,14 +10,26 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  google_fonts: ^9.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
 flutter:
-  # Figtree and IBM Plex Serif, bundled so google_fonts never fetches them at
-  # runtime and tests render real glyphs offline (ADR 0006).
+  # Figtree and IBM Plex Serif, bundled so text never depends on the network
+  # (ADR 0006). Use them through SettloTypography, which sets
+  # `package: 'settlo_core'`.
+  fonts:
+    - family: Figtree
+      fonts:
+        - asset: assets/fonts/Figtree-Regular.ttf
+        - asset: assets/fonts/Figtree-Medium.ttf
+          weight: 500
+    - family: IBM Plex Serif
+      fonts:
+        - asset: assets/fonts/IBMPlexSerif-Medium.ttf
+          weight: 500
+  # Licence texts for the fonts above.
   assets:
-    - assets/fonts/
+    - assets/fonts/Figtree-OFL.txt
+    - assets/fonts/IBMPlexSerif-OFL.txt

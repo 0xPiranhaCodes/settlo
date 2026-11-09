@@ -43,6 +43,10 @@ class MoneyText extends StatelessWidget {
       return Text(text, style: style, maxLines: 1, softWrap: false);
     }
     final rupee = text.indexOf('₹');
+    assert(rupee >= 0, 'formatInr always includes ₹');
+    // The raise and gap are in ems of the number as rendered, so they
+    // follow the system text scale.
+    final em = MediaQuery.textScalerOf(context).scale(size);
     final symbol = SettloTypography.figtree(
       size * 0.56,
       weight: FontWeight.w500,
@@ -60,9 +64,9 @@ class MoneyText extends StatelessWidget {
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
               child: Transform.translate(
-                offset: Offset(0, -0.26 * size),
+                offset: Offset(0, -0.26 * em),
                 child: Padding(
-                  padding: EdgeInsets.only(right: 0.06 * size),
+                  padding: EdgeInsets.only(right: 0.06 * em),
                   child: Text('₹', style: symbol),
                 ),
               ),

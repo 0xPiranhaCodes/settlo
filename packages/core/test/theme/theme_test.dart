@@ -55,7 +55,7 @@ void main() {
         text.labelLarge!,
         text.labelSmall!,
       ]) {
-        expect(style.fontFamily, startsWith('Figtree'));
+        expect(style.fontFamily, 'packages/settlo_core/Figtree');
         expect(
           style.fontFeatures,
           contains(const FontFeature.tabularFigures()),
@@ -112,10 +112,16 @@ void main() {
 
   group('SettloTypography.amount', () {
     test('serif from 20px, Figtree below', () {
-      expect(SettloTypography.amount(17).fontFamily, startsWith('Figtree'));
-      expect(SettloTypography.amount(19.9).fontFamily, startsWith('Figtree'));
+      expect(
+        SettloTypography.amount(17).fontFamily,
+        'packages/settlo_core/Figtree',
+      );
+      expect(
+        SettloTypography.amount(19.9).fontFamily,
+        'packages/settlo_core/Figtree',
+      );
       final serif = SettloTypography.amount(20);
-      expect(serif.fontFamily, startsWith('IBMPlexSerif'));
+      expect(serif.fontFamily, 'packages/settlo_core/IBM Plex Serif');
       expect(serif.fontWeight, FontWeight.w500);
       expect(serif.fontFeatures, contains(const FontFeature.tabularFigures()));
       expect(SettloTypography.amount(28).letterSpacing, -0.8);
@@ -145,7 +151,7 @@ void main() {
       );
       final text = tester.widget<Text>(find.byType(Text));
       expect(text.data, '−₹3,650');
-      expect(text.style!.fontFamily, startsWith('Figtree'));
+      expect(text.style!.fontFamily, 'packages/settlo_core/Figtree');
       expect(text.style!.color, const Color(0xFFB6342B));
     });
 
@@ -158,12 +164,30 @@ void main() {
       );
       expect(find.bySemanticsLabel('+₹6,74,200'), findsOneWidget);
       final rupee = tester.widget<Text>(find.text('₹'));
-      expect(rupee.style!.fontFamily, startsWith('Figtree'));
+      expect(rupee.style!.fontFamily, 'packages/settlo_core/Figtree');
       expect(rupee.style!.fontSize, closeTo(46 * 0.56, 0.001));
+      final raise = tester.widget<Transform>(
+        find.ancestor(of: find.text('₹'), matching: find.byType(Transform)),
+      );
+      expect(raise.transform.getTranslation().y, closeTo(-0.26 * 46, 0.001));
       final rich = tester.widget<RichText>(find.byType(RichText).first);
       final span = rich.text as TextSpan;
       expect(span.toPlainText(), startsWith('+'));
       expect(span.toPlainText(), endsWith('6,74,200'));
+    });
+
+    testWidgets('the ₹ raise follows the system text scale', (tester) async {
+      await pump(
+        tester,
+        const MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: MoneyText(Paise.rupees(420), size: 46),
+        ),
+      );
+      final raise = tester.widget<Transform>(
+        find.ancestor(of: find.text('₹'), matching: find.byType(Transform)),
+      );
+      expect(raise.transform.getTranslation().y, closeTo(-0.26 * 92, 0.001));
     });
   });
 }

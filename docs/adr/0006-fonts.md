@@ -1,25 +1,27 @@
-# 0006 Fonts: google_fonts with bundled Figtree and IBM Plex Serif
+# 0006 Fonts: bundled Figtree and IBM Plex Serif, no google_fonts
 
 ## Status
-Accepted (9 Nov 2026)
+Accepted (9 Nov 2026). Amended the same day after the PR #35 review: google_fonts was dropped.
 
 ## Context
 The type system is Figtree (400 and 500) for text and IBM Plex Serif 500 for amounts at 20px and above, with tabular figures (context pack › Brand and design). [0001](0001-stack.md) names `google_fonts`, and [0005](0005-dependency-policy.md) requires a dependency to arrive with the first code that imports it, which is the design system (#26).
 
-By default `google_fonts` downloads font files over HTTP on first use. That breaks three things we need: the app must render amounts correctly offline ([0004](0004-offline-sync.md)), golden tests must render real glyphs without network access, and first paint should not flash a fallback font.
+By default `google_fonts` downloads font files over HTTP on first use. That breaks three things we need: the app must render amounts correctly offline ([0004](0004-offline-sync.md)), golden tests must render real glyphs without network access, and first paint should not flash a fallback font. The first version of this ADR bundled the files and kept google_fonts. Review of PR #35 found two problems with that. It pulled about 20 transitive packages into the lockfile, including `http`, `path_provider` with its native platform plugins, `jni`, `objective_c` and `ffi`. And any weight we had not bundled (for example a later `w600`) would still be fetched silently from fonts.gstatic.com in production.
 
 ## Decision
-- Add `google_fonts` (^9.0.0) to `packages/core`, the only package that sets type.
-- Bundle the static files we use as assets of `packages/core`: `Figtree-Regular.ttf`, `Figtree-Medium.ttf` and `IBMPlexSerif-Medium.ttf` (about 280 KB in total), with their SIL OFL 1.1 licence texts, under `packages/core/assets/fonts/`. The filenames match google_fonts' naming, so it loads them from the asset bundle and never fetches.
-- Tests set `GoogleFonts.config.allowRuntimeFetching = false`, so a missing asset fails the test instead of reaching the network.
-- Figtree comes from its upstream repository (static TTFs; Google Fonts ships only the variable file); IBM Plex Serif from google/fonts.
+- **No font dependency.** `google_fonts` is not used, and this supersedes 0001's mention of it.
+- **Bundled files.** The static files we use live in `packages/core/assets/fonts/`, each with its SIL OFL 1.1 licence text: `Figtree-Regular.ttf`, `Figtree-Medium.ttf` and `IBMPlexSerif-Medium.ttf`, about 280 KB in total. Figtree comes from its upstream repository, because Google Fonts ships only the variable file. IBM Plex Serif comes from google/fonts.
+- **Declaration.** The files are declared as pubspec `fonts:` in `packages/core/pubspec.yaml`, under the families `Figtree` (400 and 500) and `IBM Plex Serif` (500). Flutter bundles a dependency package's fonts into the app automatically.
+- **Use.** Styles use plain `TextStyle(fontFamily: …, package: 'settlo_core')`, built only in `lib/theme/typography.dart` (`SettloTypography`). Feature code takes styles from the theme and never names a family.
+- **Tests.** Tests load the fonts from the bundle's `FontManifest.json` with `FontLoader`, so goldens render real glyphs offline.
 
 ## Alternatives considered
-- **Fonts declared in `pubspec.yaml` without google_fonts.** No dependency and equally offline. Rejected only because 0001 already chose `google_fonts`, and it gives typed `GoogleFonts.figtree()` styles and an easy path to a further weight later. If google_fonts ever becomes a burden, switching is local to `lib/theme/typography.dart`.
-- **google_fonts with runtime fetching.** Smallest app, but no offline first run, non-deterministic tests, and a request to Google on first launch.
-- **The Figtree variable font.** One file for 400–700, but google_fonts matches assets by static weight name, and Flutter's variable-axis support adds complexity for two weights.
+- **google_fonts with bundled files and `allowRuntimeFetching = false`.** This was the first version of this ADR. It adds about 20 transitive packages (several of them native) for no capability we use, and it relies on a runtime flag to stay offline.
+- **google_fonts with runtime fetching.** This gives the smallest app. But it has no offline first run, makes tests non-deterministic, and sends a request to Google on first launch.
+- **The Figtree variable font.** One file would cover 400–700. But two static weights are simpler, and Flutter's variable-axis support adds complexity we don't need.
 
 ## Consequences
-- About 280 KB of fonts in the app bundle; another weight means another file and a short note here.
-- The OFL licences ship with the assets; the app shell registers them with `LicenseRegistry` when the licences page exists.
-- The 56%-size ₹ uses Figtree, which includes U+20B9; Plex Serif digits are tabular by default (it has no `tnum` feature), Figtree's via `tnum`.
+- **No new dependency.** The lockfile is unchanged by fonts, and nothing can fetch fonts at runtime: a weight that is not bundled falls back to the nearest bundled weight instead of reaching the network.
+- **App size.** About 280 KB of fonts goes into the app bundle. Adding a weight means adding a file, a pubspec entry and a short note here.
+- **Licences.** The OFL licences ship as assets. The app shell registers them with `LicenseRegistry` when the licences page exists.
+- **Glyphs and figures.** Figtree includes U+20B9, which the 56%-size ₹ relies on. Plex Serif digits are tabular by default (the font has no `tnum` feature); Figtree's are tabular through `tnum`.

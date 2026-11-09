@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+const _package = 'settlo_core';
 const _tabular = [FontFeature.tabularFigures()];
 
 /// Type scale from the canvas. Figtree for all text (body 400, labels and
@@ -10,13 +10,21 @@ abstract final class SettloTypography {
   /// Amounts at this size and above are set in the serif.
   static const double serifFrom = 20;
 
+  /// Bundled text family; pair with `package: 'settlo_core'`.
+  static const String figtreeFamily = 'Figtree';
+
+  /// Bundled amount family; pair with `package: 'settlo_core'`.
+  static const String serifFamily = 'IBM Plex Serif';
+
   /// Figtree at [size] and [weight] (400 or 500), tabular figures.
   static TextStyle figtree(
     double size, {
     FontWeight weight = FontWeight.w400,
     double? letterSpacing,
     Color? color,
-  }) => GoogleFonts.figtree(
+  }) => TextStyle(
+    fontFamily: figtreeFamily,
+    package: _package,
     fontSize: size,
     fontWeight: weight,
     letterSpacing: letterSpacing,
@@ -30,7 +38,9 @@ abstract final class SettloTypography {
     if (size < serifFrom) {
       return figtree(size, weight: FontWeight.w500, color: color);
     }
-    return GoogleFonts.ibmPlexSerif(
+    return TextStyle(
+      fontFamily: serifFamily,
+      package: _package,
       fontSize: size,
       fontWeight: FontWeight.w500,
       letterSpacing: size >= 32 ? -1 : -0.8,

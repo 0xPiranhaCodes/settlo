@@ -79,6 +79,55 @@ abstract final class SettloTheme {
           textStyle: text.labelLarge,
         ),
       ),
+      // Gold means a tappable primary action. Everything Material would
+      // otherwise tint with `primary` is set neutral here; the exceptions
+      // from the canvas are checkboxes (AddExpense, Settle) and the focused
+      // OTP box, which opts into `action` where it is built.
+      checkboxTheme: CheckboxThemeData(
+        fillColor: _selected(c.action, Colors.transparent),
+        checkColor: WidgetStatePropertyAll(c.onAction),
+        side: BorderSide(color: c.textSecondary, width: 1.5),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: _selected(c.textPrimary, c.textSecondary),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: _selected(c.background, c.textSecondary),
+        trackColor: _selected(c.textPrimary, c.surfaceHighest),
+        trackOutlineColor: _selected(c.textPrimary, c.buttonBorder),
+      ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: c.textPrimary,
+        inactiveTrackColor: c.surfaceHighest,
+        thumbColor: c.textPrimary,
+        overlayColor: c.hairline,
+        valueIndicatorColor: c.surfaceHighest,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: c.textPrimary,
+        linearTrackColor: c.surfaceHighest,
+        circularTrackColor: c.surfaceHighest,
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: c.textPrimary,
+        selectionColor: c.textSecondary.withValues(alpha: 0.4),
+        selectionHandleColor: c.textPrimary,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: c.textPrimary,
+          textStyle: text.labelLarge,
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: c.surfaceRaised,
+        hintStyle: text.bodyLarge?.copyWith(color: c.textMuted),
+        floatingLabelStyle: TextStyle(color: c.textSecondary),
+        enabledBorder: _inputBorder(c.hairline),
+        focusedBorder: _inputBorder(c.textPrimary),
+        border: _inputBorder(c.hairline),
+      ),
       chipTheme: ChipThemeData(
         backgroundColor: c.surfaceHighest,
         labelStyle: text.bodyMedium,
@@ -87,4 +136,14 @@ abstract final class SettloTheme {
       ),
     );
   }
+
+  static WidgetStateProperty<Color> _selected(Color on, Color off) =>
+      WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected) ? on : off,
+      );
+
+  static OutlineInputBorder _inputBorder(Color color) => OutlineInputBorder(
+    borderRadius: const BorderRadius.all(Radius.circular(SettloRadius.button)),
+    borderSide: BorderSide(color: color),
+  );
 }
