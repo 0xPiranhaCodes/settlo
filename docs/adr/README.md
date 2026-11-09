@@ -13,5 +13,6 @@ One file per decision: Context, Decision, Consequences, Status. Superseding an A
 | [0007](0007-supabase-flutter.md) | Supabase client: supabase_flutter | Proposed |
 | [0008](0008-integration-test.md) | Integration tests: the SDK's integration_test | Proposed |
 | [0009](0009-native-splash-and-icons.md) | Native splash and app icon: flutter_native_splash and flutter_launcher_icons | Proposed |
+| [0010](0010-theme-preference.md) | Persist the device-local theme preference with shared_preferences | Accepted |
 
 Owner-level process calls that are not architecture live in `docs/decisions/`.
