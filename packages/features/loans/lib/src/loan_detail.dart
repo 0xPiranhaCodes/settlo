@@ -118,6 +118,7 @@ class LoanDetailScreen extends ConsumerWidget {
                             r,
                             key: ValueKey(r.id),
                             counterparty: loan.counterparty,
+                            youLent: loan.youLent,
                             divider: i < loan.repayments.length - 1,
                           ),
                       ],
@@ -316,6 +317,7 @@ class RepaymentRow extends ConsumerStatefulWidget {
   const new(
     this.repayment, {
     required this.counterparty,
+    required this.youLent,
     this.divider = true,
     super.key,
   });
@@ -325,6 +327,9 @@ class RepaymentRow extends ConsumerStatefulWidget {
 
   /// The other party's name.
   final String counterparty;
+
+  /// Whether the viewer lent the money.
+  final bool youLent;
 
   /// Whether a hairline follows the row.
   final bool divider;
@@ -440,12 +445,16 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
                 spacing: SettloSpacing.x1,
                 children: [
                   _Pill(
-                    label: _decision.busy ? 'Confirming…' : 'Confirm received',
+                    label: _decision.busy
+                        ? 'Confirming…'
+                        : widget.youLent
+                        ? 'Confirm received'
+                        : 'Confirm paid',
                     primary: true,
                     onTap: _decision.busy ? null : _decision.confirm,
                   ),
                   _Pill(
-                    label: "Didn't get it",
+                    label: widget.youLent ? "Didn't get it" : "Didn't pay it",
                     onTap: _decision.busy
                         ? null
                         : () => showSettloSheet<void>(
@@ -453,6 +462,7 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
                             builder: (context) => DisputeSheet(
                               repayment: r,
                               counterparty: who,
+                              youLent: widget.youLent,
                               decision: _decision,
                               onClose: () => Navigator.of(context).pop(),
                             ),
@@ -567,6 +577,7 @@ class DisputeSheet extends ConsumerStatefulWidget {
   const new({
     required this.repayment,
     required this.counterparty,
+    required this.youLent,
     required this.decision,
     required this.onClose,
     super.key,
@@ -577,6 +588,9 @@ class DisputeSheet extends ConsumerStatefulWidget {
 
   /// Who recorded it.
   final String counterparty;
+
+  /// Whether the viewer lent the money.
+  final bool youLent;
 
   /// The shared decision state for this repayment.
   final RepaymentDecisionController decision;
@@ -631,13 +645,18 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Semantics(
-              label:
-                  "Didn't get ${spokenInr(r.amount)} from "
-                  '${widget.counterparty}?',
+              label: widget.youLent
+                  ? "Didn't get ${spokenInr(r.amount)} from "
+                        '${widget.counterparty}?'
+                  : "Didn't pay ${spokenInr(r.amount)} to "
+                        '${widget.counterparty}?',
               excludeSemantics: true,
               child: Text(
-                "Didn't get ${formatInr(r.amount)} from "
-                '${widget.counterparty}?',
+                widget.youLent
+                    ? "Didn't get ${formatInr(r.amount)} from "
+                          '${widget.counterparty}?'
+                    : "Didn't pay ${formatInr(r.amount)} to "
+                          '${widget.counterparty}?',
                 style: SettloTypography.figtree(
                   17,
                   weight: FontWeight.w500,
@@ -664,8 +683,10 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
                   setState(() {});
                 },
                 style: SettloTypography.figtree(15, color: c.textPrimary),
-                decoration: const InputDecoration(
-                  hintText: 'Not received yet',
+                decoration: InputDecoration(
+                  hintText: widget.youLent
+                      ? 'Not received yet'
+                      : 'Not paid yet',
                   counterText: '',
                 ),
               ),
@@ -679,7 +700,11 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
             ],
             const SizedBox(height: 16),
             SPrimaryButton(
-              label: widget.decision.busy ? 'Sending…' : 'Mark as not received',
+              label: widget.decision.busy
+                  ? 'Sending…'
+                  : widget.youLent
+                  ? 'Mark as not received'
+                  : 'Mark as not paid',
               onPressed: widget.decision.busy || reason.isEmpty ? null : _send,
             ),
             const SizedBox(height: 10),

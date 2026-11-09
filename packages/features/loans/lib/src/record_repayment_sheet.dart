@@ -97,7 +97,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _paidOn ?? today,
-      firstDate: DateTime(today.year - 1, today.month, today.day),
+      firstDate: DateUtils.dateOnly(widget.loan.startOn),
       lastDate: today,
     );
     if (picked == null) return;
@@ -201,7 +201,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
           const SizedBox(height: 6),
           TextField(
             controller: _reference,
-            maxLength: 120,
+            maxLength: 64,
             textCapitalization: TextCapitalization.characters,
             onChanged: (_) => setState(() => _error = null),
             style: SettloTypography.figtree(15, color: c.textPrimary),

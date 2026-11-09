@@ -129,7 +129,10 @@ class _Receipt extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final canAct = repayment.awaitsYou;
-    final after = loan.outstanding - repayment.amount;
+    final after = loan.outstandingAfter(repayment);
+    final overpayment =
+        repayment.status == RepaymentStatus.pending &&
+        repayment.amount.value > loan.outstanding.value;
     final method = repayment.method?.label ?? 'Repayment';
     final reference = repayment.reference?.trim();
     final referenceText = reference == null || reference.isEmpty
@@ -138,10 +141,19 @@ class _Receipt extends StatelessWidget {
     final amount = formatInr(repayment.amount);
     final paidOn = dayMonth(repayment.paidOn);
     final recordedBy = repayment.recordedByYou ? 'You' : loan.counterparty;
+    final summary = repayment.recordedByYou
+        ? 'You recorded this payment'
+        : loan.youLent
+        ? '${loan.counterparty} says they paid you'
+        : '${loan.counterparty} says you paid $amount';
     final guidance = canAct
-        ? 'Check your bank or UPI app for $amount from ${loan.counterparty} '
-              'on $paidOn before confirming. Confirming is final and updates '
-              'both ledgers.'
+        ? loan.youLent
+              ? 'Check your bank or UPI app for $amount from '
+                    '${loan.counterparty} on $paidOn before confirming. '
+                    'Confirming is final and updates both ledgers.'
+              : 'Check your bank or UPI app for $amount paid to '
+                    '${loan.counterparty} on $paidOn before confirming. '
+                    'Confirming is final and updates both ledgers.'
         : repayment.recordedByYou
         ? '${loan.counterparty} must confirm this. Only the person who did '
               'not record it can act.'
@@ -161,9 +173,7 @@ class _Receipt extends StatelessWidget {
                       SAvatar(loan.counterparty, size: 72),
                       const SizedBox(height: 14),
                       Text(
-                        repayment.recordedByYou
-                            ? 'You recorded this payment'
-                            : '${loan.counterparty} says he paid you',
+                        summary,
                         style: SettloTypography.figtree(
                           15,
                           color: c.textSecondary,
@@ -244,6 +254,18 @@ class _Receipt extends StatelessWidget {
                           ],
                         ),
                       ),
+                      if (overpayment) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          'This is more than is left on the loan. Confirming '
+                          'will be refused.',
+                          textAlign: TextAlign.center,
+                          style: SettloTypography.figtree(
+                            13,
+                            color: c.textPrimary,
+                          ),
+                        ),
+                      ],
                       if (decision.error case final error?) ...[
                         const SizedBox(height: 10),
                         Text(
@@ -266,21 +288,27 @@ class _Receipt extends StatelessWidget {
                   child: SPrimaryButton(
                     label: decision.busy
                         ? 'Confirming…'
-                        : 'Confirm $amount received',
+                        : loan.youLent
+                        ? 'Confirm $amount received'
+                        : 'Confirm $amount paid',
                     icon: LoanGlyph(
                       LoanGlyph.check,
                       color: c.onAction,
                       size: 18,
                       stroke: 1.9,
                     ),
-                    onPressed: decision.busy ? null : decision.confirm,
+                    onPressed: decision.busy || overpayment
+                        ? null
+                        : decision.confirm,
                   ),
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
                   child: SSecondaryButton(
-                    label: "Didn't receive this",
+                    label: loan.youLent
+                        ? "Didn't receive this"
+                        : "Didn't pay this",
                     onPressed: decision.busy
                         ? null
                         : () => showSettloSheet<void>(
@@ -288,6 +316,7 @@ class _Receipt extends StatelessWidget {
                             builder: (context) => DisputeSheet(
                               repayment: repayment,
                               counterparty: loan.counterparty,
+                              youLent: loan.youLent,
                               decision: decision,
                               onClose: () => Navigator.of(context).pop(),
                             ),

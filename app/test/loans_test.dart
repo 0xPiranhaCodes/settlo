@@ -200,6 +200,14 @@ void main() {
       expect(find.text('PAID ON'), findsOne);
       expect(find.text('Today'), findsOne);
       expect(find.text('REFERENCE · OPTIONAL'), findsOne);
+      expect(
+        tester
+            .widget<TextField>(
+              find.widgetWithText(TextField, 'UPI or bank reference'),
+            )
+            .maxLength,
+        64,
+      );
       await tester.enterText(
         find.bySemanticsLabel('Amount in rupees'),
         '10000',
@@ -228,6 +236,20 @@ void main() {
         'confirm_repayment',
       ]);
       expect(loans.data.loans.first.repayments.first.reference, 'UPI 1234');
+    });
+
+    testWidgets('paid-on picker is bounded by loan start and today', (
+      tester,
+    ) async {
+      await _pump(tester, location: SettloRoutes.loan('l1'));
+      await _tap(tester, find.text('Record repayment'));
+      await _tap(tester, find.text('Today'));
+
+      final calendar = tester.widget<CalendarDatePicker>(
+        find.byType(CalendarDatePicker),
+      );
+      expect(calendar.firstDate, DateTime(2026, 3, 5));
+      expect(calendar.lastDate, DateUtils.dateOnly(DateTime.now()));
     });
 
     testWidgets('a retried confirmation reuses its key and shows plain copy', (
@@ -619,7 +641,7 @@ void main() {
 
       await _tap(tester, find.text('awaiting you'));
       expect(router.state.uri.toString(), SettloRoutes.confirmRepayment('r3'));
-      expect(find.text('Arjun says he paid you'), findsOne);
+      expect(find.text('Arjun says they paid you'), findsOne);
       expect(find.textContaining('on 5 Oct · UPI'), findsOne);
       expect(find.text('Outstanding after'), findsOne);
       expect(find.text('₹6,50,000'), findsOne);
@@ -631,6 +653,48 @@ void main() {
       expect(find.text("Didn't receive this"), findsOne);
       expect(find.textContaining('Confirming is final'), findsOne);
       semantics.dispose();
+    });
+
+    testWidgets('borrower copy names the lender and describes money paid', (
+      tester,
+    ) async {
+      final repayment = LoanRepayment(
+        id: 'borrower-review',
+        amount: const Paise.rupees(5000),
+        paidOn: DateTime(2026, 10, 5),
+        method: RepaymentMethod.bank,
+        status: RepaymentStatus.pending,
+        recordedByYou: false,
+      );
+      final loan = Loan(
+        id: 'borrowed',
+        counterparty: 'Meera',
+        youLent: false,
+        principal: const Paise.rupees(40000),
+        repaid: const Paise.rupees(15000),
+        startOn: DateTime(2026, 9),
+        repayments: [repayment],
+      );
+      await _pump(
+        tester,
+        location: SettloRoutes.confirmRepayment(repayment.id),
+        loans: FakeLoansRepository(
+          LoansData(today: DateTime(2026, 11, 9), loans: [loan]),
+        ),
+      );
+
+      expect(find.text('Meera says you paid ₹5,000'), findsOne);
+      expect(find.textContaining('₹5,000 paid to Meera'), findsOne);
+      expect(
+        find.widgetWithText(FilledButton, 'Confirm ₹5,000 paid'),
+        findsOne,
+      );
+      expect(find.text("Didn't pay this"), findsOne);
+      expect(find.textContaining(' says he '), findsNothing);
+
+      await _tap(tester, find.text("Didn't pay this"));
+      expect(find.text("Didn't pay ₹5,000 to Meera?"), findsOne);
+      expect(find.widgetWithText(FilledButton, 'Mark as not paid'), findsOne);
     });
 
     testWidgets('primary no-pump double tap sends once', (tester) async {
@@ -653,6 +717,46 @@ void main() {
       expect(
         find.text('This repayment has already been answered and is read-only.'),
         findsOne,
+      );
+      expect(find.text('₹6,50,000'), findsOne);
+    });
+
+    testWidgets('overpayment warns, clamps to zero and cannot confirm', (
+      tester,
+    ) async {
+      final repayment = LoanRepayment(
+        id: 'too-much',
+        amount: const Paise.rupees(25000),
+        paidOn: DateTime(2026, 10, 5),
+        status: RepaymentStatus.pending,
+        recordedByYou: false,
+      );
+      final loan = Loan(
+        id: 'nearly-closed',
+        counterparty: 'Arjun',
+        youLent: true,
+        principal: const Paise.rupees(100000),
+        repaid: const Paise.rupees(90000),
+        startOn: DateTime(2026),
+        repayments: [repayment],
+      );
+      await _pump(
+        tester,
+        location: SettloRoutes.confirmRepayment(repayment.id),
+        loans: FakeLoansRepository(
+          LoansData(today: DateTime(2026, 11, 9), loans: [loan]),
+        ),
+      );
+
+      expect(find.text('₹0'), findsOne);
+      expect(find.textContaining('Confirming will be refused'), findsOne);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Confirm ₹25,000 received'),
+            )
+            .onPressed,
+        isNull,
       );
     });
 

@@ -153,6 +153,19 @@ final class Loan {
   /// What is still owed: [principal] minus [repaid].
   Paise get outstanding => principal - repaid;
 
+  /// What would remain after [repayment].
+  ///
+  /// [repaid] already includes every confirmed repayment, so only a pending
+  /// repayment is added for this projection. Disputed repayments never count,
+  /// and an invalid overpayment is shown as zero rather than negative money.
+  Paise outstandingAfter(LoanRepayment repayment) {
+    final confirmedAfter = repayment.status == RepaymentStatus.pending
+        ? repaid + repayment.amount
+        : repaid;
+    final remaining = principal - confirmedAfter;
+    return remaining.value < 0 ? Paise.zero : remaining;
+  }
+
   /// The share repaid, 0 to 1, from confirmed repayments only.
   double get progress =>
       principal.value == 0 ? 0 : (repaid.value / principal.value).clamp(0, 1);
