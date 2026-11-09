@@ -7,22 +7,28 @@ int _sum(Map<String, Paise> m) => m.values.fold<int>(0, (s, p) => s + p.value);
 
 void main() {
   group('splitEqual', () {
-    test('remainder goes payer first, then member order', () {
-      expect(splitEqual(const Paise(10000), ['a', 'b', 'c'], payer: 'b'), {
-        'a': const Paise(3333),
-        'b': const Paise(3334),
-        'c': const Paise(3333),
+    test('whole remainder goes to the payer', () {
+      expect(splitEqual(const Paise(1000), ['a', 'b', 'c'], payer: 'a'), {
+        'a': const Paise(334),
+        'b': const Paise(333),
+        'c': const Paise(333),
+      });
+      // amount % n > 1: both leftover paise stay with the payer.
+      expect(splitEqual(const Paise(1001), ['a', 'b', 'c'], payer: 'a'), {
+        'a': const Paise(335),
+        'b': const Paise(333),
+        'c': const Paise(333),
       });
       expect(splitEqual(const Paise(10001), ['a', 'b', 'c'], payer: 'c'), {
-        'a': const Paise(3334),
+        'a': const Paise(3333),
         'b': const Paise(3333),
-        'c': const Paise(3334),
+        'c': const Paise(3335),
       });
     });
 
-    test('payer outside the split gets nothing', () {
-      expect(splitEqual(const Paise(10), ['a', 'b', 'c'], payer: 'z'), {
-        'a': const Paise(4),
+    test('payer outside the split: first member takes the remainder', () {
+      expect(splitEqual(const Paise(11), ['a', 'b', 'c'], payer: 'z'), {
+        'a': const Paise(5),
         'b': const Paise(3),
         'c': const Paise(3),
       });
@@ -127,6 +133,38 @@ void main() {
     });
   });
 
+  group('negative amounts are rejected', () {
+    test('every split API', () {
+      expect(
+        () => splitEqual(const Paise(-10), ['a', 'b', 'c'], payer: 'b'),
+        throwsArgumentError,
+      );
+      expect(
+        () => splitExact(const Paise(-10), {
+          'a': const Paise(-6),
+          'b': const Paise(-4),
+        }),
+        throwsArgumentError,
+      );
+      expect(
+        () =>
+            splitPercent(const Paise(-101), {'a': 5000, 'b': 5000}, payer: 'a'),
+        throwsArgumentError,
+      );
+      expect(
+        () => splitShares(const Paise(-10), {'a': 2, 'b': 1}, payer: 'z'),
+        throwsArgumentError,
+      );
+    });
+
+    test('negative weights', () {
+      expect(
+        () => splitPercent(const Paise(10), {'a': 10001, 'b': -1}, payer: 'a'),
+        throwsArgumentError,
+      );
+    });
+  });
+
   test('property: every split sums to the amount', () {
     final rng = Random(12);
     for (var i = 0; i < 2000; i++) {
@@ -137,8 +175,10 @@ void main() {
 
       final equal = splitEqual(amount, members, payer: payer);
       expect(_sum(equal), amount.value);
-      final values = equal.values.map((p) => p.value);
-      expect(values.reduce(max) - values.reduce(min), lessThanOrEqualTo(1));
+      for (final MapEntry(:key, :value) in equal.entries) {
+        if (key != payer) expect(value.value, amount.value ~/ n);
+      }
+      expect(equal[payer]!.value, amount.value ~/ n + amount.value % n);
 
       final shares = {for (final m in members) m: rng.nextInt(5) + 1};
       expect(_sum(splitShares(amount, shares, payer: payer)), amount.value);
