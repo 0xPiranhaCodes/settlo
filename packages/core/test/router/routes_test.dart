@@ -7,6 +7,7 @@ void main() {
     expect(SettloRoutes.space('s'), '/spaces/s');
     expect(SettloRoutes.spaceBalances('s'), '/spaces/s/balances');
     expect(SettloRoutes.confirmRepayment('r'), '/loans/repayments/r');
+    expect(SettloRoutes.confirmSettlement('s', 'e'), '/spaces/s/settle-ups/e');
     expect(SettloRoutes.addExpenseIn('s 1'), '/expenses/new?space=s+1');
     expect(SettloRoutes.settleWith('s'), '/settle?space=s');
     expect(
@@ -20,6 +21,10 @@ void main() {
       (
         SettloRoutes.spaceBalancesPattern,
         SettloRoutes.spaceBalances(':spaceId'),
+      ),
+      (
+        SettloRoutes.confirmSettlementPattern,
+        SettloRoutes.confirmSettlement(':spaceId', ':expenseId'),
       ),
       (
         SettloRoutes.confirmRepaymentPattern,

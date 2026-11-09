@@ -6,6 +6,7 @@ import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'fake_activity.dart';
 import 'fake_home.dart';
 import 'fake_loans.dart';
 import 'fake_profile.dart';
@@ -71,6 +72,7 @@ Widget fakeSessionApp(
       loans ?? FakeLoansRepository(loansList()),
     ),
     profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
+    activityRepositoryProvider.overrideWithValue(FakeActivityRepository()),
     themeModeRepositoryProvider.overrideWithValue(
       themeModeRepository ?? FakeThemeModeRepository(themeMode),
     ),

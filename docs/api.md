@@ -105,6 +105,54 @@ schedule column (`installments_*`, `expected_minor`, `next_due_on`, `ends_on`, `
 GET /rest/v1/loan_summaries?loan_id=eq.<id>
 ```
 
+### `activity_feed`
+The Activity tab (#91): one row per `activity` row, with what the app needs to say it in one line.
+It shows only spaces the caller is an accepted, active member of and loans they are an accepted
+party to. A departed member, an outsider and a pending claimant see no rows (pending claimants can
+still review the claim itself through the tables).
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `id`, `created_at`, `action` | bigint, timestamptz, text | The `activity` row |
+| `kind` | text | `expense`, `settlement`, `loan`, `repayment`, or `member` (a `rejected` claim) |
+| `space_id`, `space_name` | uuid, text | The space; null for loan rows |
+| `expense_id`, `loan_id`, `repayment_id` | uuid | What the row is about |
+| `by_me` | boolean | The caller did it |
+| `actor_name` | text | Who did it: their space label, profile name or number; on loan rows the other party, null when it was you |
+| `counterparty` | text | Loan rows: the other party's name or number |
+| `description` | text | The expense's description after the change; for `rejected`, the number that declined |
+| `amount_minor` | bigint | The amount after the change (a loan's principal for loan rows) |
+| `before_description`, `before_amount_minor` | text, bigint | `edited` rows only: the values before |
+| `status` | text | Settle-ups and repayments as they stand now: `pending`, `confirmed`, `disputed`, or `deleted` |
+| `my_side` | text | Settle-ups and repayments: `in` (to the caller), `out` (from the caller), else null |
+
+Page by keyset on `id`, newest first; the next page starts below the last id seen:
+
+```
+GET /rest/v1/activity_feed?order=id.desc&limit=30
+GET /rest/v1/activity_feed?order=id.desc&limit=30&id=lt.<last id>
+```
+
+### `needs_you`
+What waits for the caller's answer, under the same rules as `activity_feed`: settle-ups they are
+the payee of (`pending_settlements` with `awaiting_me`) and pending repayments the other side of
+their loan recorded. Activity's 'Needs you' filter and top card.
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `kind`, `id` | text, uuid | `settlement` (an `expenses` id) or `repayment` (a `loan_repayments` id) |
+| `space_id`, `space_name` | uuid, text | Settle-ups only |
+| `loan_id` | uuid | Repayments only |
+| `counterparty` | text | Who paid: their name or number |
+| `amount_minor`, `paid_on`, `created_at` | bigint, date, timestamptz | What, when paid, when recorded |
+
+Answer through `confirm_settlement` / `dispute_settlement` or `confirm_repayment` /
+`dispute_repayment`.
+
+```
+GET /rest/v1/needs_you?order=created_at.desc
+```
+
 ## Functions
 
 ### `loan_summaries_as_of(p_as_of date)`
