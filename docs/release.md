@@ -54,9 +54,9 @@ run the PR branch. Equivalently:
 ```sh
 gh workflow run CI --ref <branch>
 gh run watch <run-id>
-gh run download <run-id> -n settlo-app-goldens -D /tmp/settlo-app-goldens
 ```
 
-Replace `app/test/goldens/` with the downloaded PNGs, run the normal app tests,
-and commit the result. Do not update text goldens on macOS: glyph rasterization
-differs from the pinned Linux runner.
+The job commits changed PNGs directly to the selected branch as
+`github-actions[bot]`; review that commit and run the normal app tests. Do not
+update text goldens on macOS: glyph rasterization differs from the pinned Linux
+runner.
