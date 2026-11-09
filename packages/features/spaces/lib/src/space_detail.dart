@@ -140,7 +140,8 @@ class SpaceDetailView extends ConsumerWidget {
                       Expanded(
                         child: SSecondaryButton(
                           label: 'Settle up',
-                          onPressed: () => context.go(SettloRoutes.settle),
+                          onPressed: () =>
+                              context.push(SettloRoutes.settleWith(space.id)),
                         ),
                       ),
                     ],
@@ -775,12 +776,7 @@ class _SettleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final everyone = [space.you, ...space.others, ...space.departed];
-    final nets = {for (final m in everyone) m: m.balance};
-    // Balances always sum to zero; never let a bad read crash the screen.
-    final payments = nets.values.fold(0, (s, b) => s + b.value) == 0
-        ? simplifyDebts(nets)
-        : const <Payment<SpaceMember>>[];
+    final payments = space.payments;
     return SCard(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
       child: Column(
@@ -810,7 +806,7 @@ class _SettleCard extends StatelessWidget {
               ),
             ),
           for (final (i, p) in payments.indexed)
-            _PaymentRow(p, divider: i < payments.length - 1),
+            _PaymentRow(space, p, divider: i < payments.length - 1),
         ],
       ),
     );
@@ -818,8 +814,9 @@ class _SettleCard extends StatelessWidget {
 }
 
 class _PaymentRow extends StatelessWidget {
-  const new(this.payment, {required this.divider});
+  const new(this.space, this.payment, {required this.divider});
 
+  final SpaceSummary space;
   final Payment<SpaceMember> payment;
   final bool divider;
 
@@ -831,12 +828,12 @@ class _PaymentRow extends StatelessWidget {
       (to: SpaceMember(isYou: true), :final from, amount: _) => (
         from,
         '${from.name} pays you',
-        ('Remind', SettloRoutes.settle),
+        ('Remind', SettloRoutes.settleWith(space.id, memberId: from.id)),
       ),
       (from: SpaceMember(isYou: true), :final to, amount: _) => (
         to,
         'You pay ${to.name}',
-        ('Pay', SettloRoutes.settlePay),
+        ('Pay', SettloRoutes.settlePayTo(space.id, to.id)),
       ),
       (:final from, :final to, amount: _) => (
         from,
@@ -878,7 +875,7 @@ class _PaymentRow extends StatelessWidget {
           if (action case (final text, final route)) ...[
             const SizedBox(width: 12),
             TextButton(
-              onPressed: () => context.go(route),
+              onPressed: () => context.push(route),
               style: TextButton.styleFrom(
                 // Drawn 34 high as on the canvas; padded to a full tap
                 // target.

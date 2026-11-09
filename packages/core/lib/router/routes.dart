@@ -47,10 +47,11 @@ abstract final class SettloRoutes {
   /// Add expense.
   static const addExpense = '/expenses/new';
 
-  /// Settle up, the side that is owed.
+  /// Settle up: the simplified payments that involve you, and with
+  /// `?space=&member=` the side that is owed ([settleWith]).
   static const settle = '/settle';
 
-  /// Settle up, the side that pays.
+  /// Settle up, the side that pays ([settlePayTo]).
   static const settlePay = '/settle/pay';
 
   /// Paths a signed-out user may open.
@@ -66,6 +67,19 @@ abstract final class SettloRoutes {
   /// asks which one when you have more than one.
   static String addExpenseIn(String spaceId) =>
       '$addExpense?space=${Uri.encodeQueryComponent(spaceId)}';
+
+  /// Settle up: your payments in [spaceId] only, or with [memberId] the
+  /// request to them (they pay you).
+  static String settleWith(String spaceId, {String? memberId}) => Uri(
+    path: settle,
+    queryParameters: {'space': spaceId, 'member': ?memberId},
+  ).toString();
+
+  /// Paying [memberId] what you owe them in [spaceId].
+  static String settlePayTo(String spaceId, String memberId) => Uri(
+    path: settlePay,
+    queryParameters: {'space': spaceId, 'member': memberId},
+  ).toString();
 
   /// A space's balances.
   static String spaceBalances(String spaceId) => '/spaces/$spaceId/balances';

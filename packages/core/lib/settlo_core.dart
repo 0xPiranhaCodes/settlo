@@ -24,5 +24,6 @@ export 'widgets/chips.dart';
 export 'widgets/glass_tab_bar.dart';
 export 'widgets/money_text.dart';
 export 'widgets/placeholder_screen.dart';
+export 'widgets/pressable.dart';
 export 'widgets/s_card.dart';
 export 'widgets/tab_icons.dart';

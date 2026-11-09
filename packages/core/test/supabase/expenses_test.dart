@@ -15,6 +15,7 @@ const NewExpense _groceries = (
   amount: Paise(10000),
   spentOn: null,
   splitType: SplitType.equal,
+  isSettlement: false,
   payers: {'bilal': Paise(10000)},
   splits: [
     (memberId: 'asha', amount: Paise(3333), percentBp: null, shares: null),
@@ -105,6 +106,35 @@ void main() {
     });
   });
 
+  test('marks a settlement and leaves spending unmarked', () async {
+    await repository().add(_groceries, idempotencyKey: _key);
+    await repository().add((
+      spaceId: 's1',
+      description: 'Settle up',
+      category: null,
+      amount: const Paise(365000),
+      spentOn: null,
+      splitType: SplitType.exact,
+      isSettlement: true,
+      payers: const {'sana': Paise(365000)},
+      splits: const [
+        (
+          memberId: 'kabir',
+          amount: Paise(365000),
+          percentBp: null,
+          shares: null,
+        ),
+      ],
+    ), idempotencyKey: '1b9d7c1e-2f3a-4b5c-8d6e-7f8a9b0c1d2e');
+
+    final [spending, settlement] = [
+      for (final b in bodies) (jsonDecode(b) as Map)['p'] as Map,
+    ];
+    expect(spending.containsKey('is_settlement'), isFalse);
+    expect(settlement['is_settlement'], isTrue);
+    expect(settlement['split_type'], 'exact');
+  });
+
   test('sends percent_bp, shares and spent_on when set', () async {
     await repository().add((
       spaceId: 's1',
@@ -113,6 +143,7 @@ void main() {
       amount: const Paise(101),
       spentOn: DateTime(2026, 11, 3),
       splitType: SplitType.percent,
+      isSettlement: false,
       payers: const {'asha': Paise(101)},
       splits: const [
         (memberId: 'asha', amount: Paise(51), percentBp: 5000, shares: 2),
@@ -163,6 +194,7 @@ void main() {
         amount: _groceries.amount,
         spentOn: null,
         splitType: _groceries.splitType,
+        isSettlement: false,
         payers: _groceries.payers,
         splits: _groceries.splits,
       ), idempotencyKey: _key),

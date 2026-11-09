@@ -94,7 +94,7 @@ final _tables = <String, List<Map<String, Object?>>>{
   ],
   'profiles': [
     {'id': _me, 'name': 'Sana'},
-    {'id': 'u-rahul', 'name': 'Rahul'},
+    {'id': 'u-rahul', 'name': 'Rahul', 'upi_id': 'rahul@okaxis'},
   ],
 };
 
@@ -199,6 +199,15 @@ void main() {
     );
     expect(flat.others.map((m) => m.name), ['Rahul', 'Priya']);
     expect(flat.departed.map((m) => m.name), ['Gone']);
+    // A UPI id comes from the joined member's profile.
+    expect(
+      [for (final m in flat.members) m.upiId],
+      [null, 'rahul@okaxis', null],
+    );
+    expect(
+      [for (final p in flat.payments) (p.from.name, p.to.name, p.amount.value)],
+      [('Rahul', 'Sana', 285000)],
+    );
 
     final fresh = spaces[1];
     expect((fresh.hasExpenses, fresh.monthTotal), (false, Paise.zero));
@@ -221,6 +230,11 @@ void main() {
     expect(
       (shared.monthTotal.value, shared.yourFairShare.value),
       (100000, 33333),
+    );
+    // Both still pay Arun, so two payments for three people.
+    expect(
+      [for (final p in shared.payments) (p.from.name, p.to.name)],
+      [('Sana', 'Arun'), ('Bela', 'Arun')],
     );
   });
 
