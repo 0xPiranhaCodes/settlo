@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -19,6 +20,7 @@ env:
 jobs:
   analyze-test:
     name: Analyze & test
+    if: github.event_name != 'workflow_dispatch'
     # Pin golden rasterization to one runner image; update intentionally.
     runs-on: ubuntu-24.04
     steps:
@@ -175,6 +177,7 @@ jobs:
 
   android:
     name: Android debug build
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -193,6 +196,7 @@ jobs:
 
   ios:
     name: iOS debug build
+    if: github.event_name != 'workflow_dispatch'
     runs-on: macos-latest
     steps:
       - name: Check out repository
@@ -211,6 +215,7 @@ jobs:
 
   supabase:
     name: Supabase
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -229,3 +234,32 @@ jobs:
 
       - name: Run database tests
         run: scripts/supabase-local.sh test db
+
+  regenerate-goldens:
+    name: Regenerate app goldens
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Regenerate app goldens
+        working-directory: app
+        run: flutter test test/golden_harness_sample_test.dart --update-goldens
+
+      - name: Upload app goldens
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: settlo-app-goldens
+          path: app/test/goldens/*.png
+          if-no-files-found: error

@@ -27,6 +27,8 @@ if [[ -z "$chrome_bin" || ! -x "$chrome_bin" ]]; then
   exit 1
 fi
 
+"$chrome_bin" --version
+
 shopt -s nullglob
 artboards=("$canvas_dir"/*.dc.html)
 if (( ${#artboards[@]} == 0 )); then
@@ -34,21 +36,20 @@ if (( ${#artboards[@]} == 0 )); then
   exit 1
 fi
 
-for viewport in "390 844" "360 800"; do
-  read -r width height <<<"$viewport"
-  output_dir="$repo_root/design/reference/$width"
-  mkdir -p "$output_dir"
+width=390
+height=844
+output_dir="$repo_root/design/reference/$width"
+mkdir -p "$output_dir"
 
-  for artboard in "${artboards[@]}"; do
-    name="$(basename "$artboard" .dc.html)"
-    echo "Rendering $name at ${width}x${height}"
-    python3 "$repo_root/scripts/render_canvas.py" \
-      --chrome "$chrome_bin" \
-      --input "$artboard" \
-      --output "$output_dir/$name.png" \
-      --width "$width" \
-      --height "$height"
-  done
+for artboard in "${artboards[@]}"; do
+  name="$(basename "$artboard" .dc.html)"
+  echo "Rendering $name at ${width}x${height}"
+  python3 "$repo_root/scripts/render_canvas.py" \
+    --chrome "$chrome_bin" \
+    --input "$artboard" \
+    --output "$output_dir/$name.png" \
+    --width "$width" \
+    --height "$height"
 done
 
-echo "Rendered $((${#artboards[@]} * 2)) reference images."
+echo "Rendered ${#artboards[@]} reference images."

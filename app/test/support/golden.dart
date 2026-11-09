@@ -1,11 +1,40 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Loads any fonts needed by a golden before the widget is rendered.
-///
-/// App and package tests can provide their own bundled-asset loader without
-/// coupling this shared harness to a particular package's assets.
+/// Loads fonts before a golden is pumped; defaults to [loadSettloFonts].
 typedef GoldenFontLoader = Future<void> Function();
+
+var _settloFontsAreLoaded = false;
+
+/// Loads the bundled Settlo fonts under their direct and package family names.
+Future<void> loadSettloFonts() async {
+  if (_settloFontsAreLoaded) return;
+  await _loadSettloFonts();
+  _settloFontsAreLoaded = true;
+}
+
+Future<void> _loadSettloFonts() async {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  final manifest = jsonDecode(
+    await rootBundle.loadString('FontManifest.json'),
+  ) as List<dynamic>;
+  for (final family in manifest.cast<Map<String, dynamic>>()) {
+    final name = (family['family'] as String).split('/').last;
+    if (name != 'Figtree' && name != 'IBM Plex Serif') continue;
+    final files = [
+      for (final font in (family['fonts'] as List).cast<Map<String, dynamic>>())
+        rootBundle.load(font['asset'] as String),
+    ];
+    for (final loaderName in [name, 'packages/settlo_core/$name']) {
+      final loader = FontLoader(loaderName);
+      files.forEach(loader.addFont);
+      await loader.load();
+    }
+  }
+}
 
 /// A stable logical viewport used by Settlo golden tests.
 @immutable
@@ -32,20 +61,6 @@ abstract final class SettloGoldenDevices {
   static const all = <GoldenDevice>[canvas390, compact360];
 }
 
-/// Theme variants required for every Settlo golden.
-enum SettloGoldenTheme {
-  /// Dark-first product theme.
-  dark(Brightness.dark),
-
-  /// Light product theme.
-  light(Brightness.light);
-
-  new(this.brightness);
-
-  /// Flutter brightness represented by this variant.
-  final Brightness brightness;
-}
-
 /// Stable key for capturing only the configured device surface.
 const settloGoldenSurfaceKey = ValueKey<String>('settlo-golden-surface');
 
@@ -54,10 +69,10 @@ Future<void> pumpSettloGolden(
   WidgetTester tester, {
   required Widget child,
   required GoldenDevice device,
-  required SettloGoldenTheme theme,
-  GoldenFontLoader? loadFonts,
+  required ThemeData theme,
+  GoldenFontLoader loadFonts = loadSettloFonts,
 }) async {
-  await loadFonts?.call();
+  await loadFonts();
 
   tester.view
     ..physicalSize = device.size
@@ -80,13 +95,12 @@ Future<void> pumpSettloGolden(
   await tester.pumpWidget(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(brightness: theme.brightness),
+      theme: theme,
       home: MediaQuery(
         data: MediaQueryData(
           size: device.size,
           textScaler: TextScaler.noScaling,
           disableAnimations: true,
-          accessibleNavigation: true,
         ),
         child: TickerMode(
           enabled: false,

@@ -1,70 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:settlo_core/settlo_core.dart';
 
 import 'support/golden.dart';
 
 void main() {
   for (final device in SettloGoldenDevices.all) {
-    for (final theme in SettloGoldenTheme.values) {
-      testWidgets('${device.name} ${theme.name} sample golden', (tester) async {
-        var fontsLoaded = false;
+    for (final (name, theme) in [
+      ('dark', SettloTheme.dark()),
+      ('light', SettloTheme.light()),
+    ]) {
+      testWidgets('${device.name} $name sample golden', (tester) async {
         await pumpSettloGolden(
           tester,
           device: device,
           theme: theme,
-          loadFonts: () async => fontsLoaded = true,
-          child: SizedBox.expand(
-            child: CustomPaint(
-              painter: _SamplePainter(brightness: theme.brightness),
-            ),
-          ),
+          child: const _GoldenSample(),
         );
 
-        expect(fontsLoaded, isTrue);
         await expectLater(
           find.byKey(settloGoldenSurfaceKey),
-          matchesGoldenFile(
-            'goldens/golden_harness_${device.name}_${theme.name}.png',
-          ),
+          matchesGoldenFile('goldens/golden_harness_${device.name}_$name.png'),
         );
       });
     }
   }
 }
 
-class _SamplePainter extends CustomPainter {
-  const new({required this.brightness});
-
-  final Brightness brightness;
+class _GoldenSample extends StatelessWidget {
+  const new();
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final isDark = brightness == Brightness.dark;
-    final background = isDark
-        ? const Color(0xFF0A0B0D)
-        : const Color(0xFFF4F1EA);
-    final surface = isDark ? const Color(0xFF1E2126) : const Color(0xFFFFFFFF);
-    final action = isDark ? const Color(0xFFD8B36A) : const Color(0xFF1B1B18);
-
-    canvas
-      ..drawRect(Offset.zero & size, Paint()..color = background)
-      ..drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(20, 40, size.width - 40, 160),
-          const Radius.circular(24),
-        ),
-        Paint()..color = surface,
-      )
-      ..drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(20, size.height - 76, size.width - 40, 56),
-          const Radius.circular(16),
-        ),
-        Paint()..color = action,
-      );
-  }
-
-  @override
-  bool shouldRepaint(covariant _SamplePainter oldDelegate) =>
-      brightness != oldDelegate.brightness;
+  Widget build(BuildContext context) => Scaffold(
+    body: Padding(
+      padding: const EdgeInsets.all(SettloSpacing.screenMargin),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Shared balance',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: SettloSpacing.x2),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(SettloSpacing.x3),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'YOU ARE OWED',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                  const SizedBox(height: SettloSpacing.x1),
+                  const MoneyText(Paise.rupees(674200), size: 40, signed: true),
+                  const SizedBox(height: SettloSpacing.x1),
+                  Text(
+                    'Across Flat 402 and Goa trip',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
