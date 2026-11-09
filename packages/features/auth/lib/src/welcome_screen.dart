@@ -92,21 +92,7 @@ class _Wordmark extends StatelessWidget {
       excludeSemantics: true,
       child: Row(
         children: [
-          Container(
-            width: 26,
-            height: 26,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: c.action,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: AuthIcon(
-              AuthGlyph.mark,
-              color: c.onAction,
-              size: 13,
-              stroke: 3.2,
-            ),
-          ),
+          const SettloMark(semanticsLabel: null),
           const SizedBox(width: SettloSpacing.x1),
           Text(
             'settlo',

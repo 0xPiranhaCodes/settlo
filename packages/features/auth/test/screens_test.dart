@@ -67,6 +67,14 @@ void main() {
   setUp(() => auth = FakePhoneAuth());
 
   group('Welcome', () {
+    testWidgets('announces the Settlo lockup once', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await _pump(tester, auth, location: SettloRoutes.welcome);
+
+      expect(find.bySemanticsLabel('Settlo'), findsOneWidget);
+      semantics.dispose();
+    });
+
     testWidgets('marks the rows as examples and has one action', (
       tester,
     ) async {
