@@ -114,16 +114,17 @@ class FakeActivityRepository implements ActivityRepository {
   /// The space ledgers settle-ups are answered in.
   final FakeSpaceLedgerRepository? ledger;
 
-  /// Every read, as `feed <limit> <before>` or `needsYou`.
+  /// Every read, as `feed <limit> <before id>` or `needsYou`.
   final calls = <String>[];
 
   @override
-  Future<List<ActivityEntry>> feed({required int limit, int? before}) async {
-    calls.add('feed $limit $before');
-    return entries
-        .where((e) => before == null || e.id < before)
-        .take(limit)
-        .toList();
+  Future<List<ActivityEntry>> feed({
+    required int limit,
+    ActivityEntry? before,
+  }) async {
+    calls.add('feed $limit ${before?.id}');
+    final from = before == null ? 0 : entries.indexOf(before) + 1;
+    return entries.skip(from).take(limit).toList();
   }
 
   @override

@@ -33,7 +33,8 @@ activityFeedProvider = AsyncNotifierProvider.autoDispose(
   ActivityFeedController.new,
 );
 
-/// Loads the first page, then older pages on demand (keyset on id).
+/// Loads the first page, then older pages on demand (keyset on time and
+/// id).
 class ActivityFeedController extends AsyncNotifier<ActivityFeed> {
   bool _loadingMore = false;
 
@@ -56,7 +57,7 @@ class ActivityFeedController extends AsyncNotifier<ActivityFeed> {
     try {
       final page = await ref
           .read(activityRepositoryProvider)
-          .feed(before: feed.entries.last.id, limit: activityPageSize);
+          .feed(before: feed.entries.last, limit: activityPageSize);
       // A reload started meanwhile replaces the feed; drop this page.
       if (!ref.mounted || !identical(state.value, feed)) return;
       state = AsyncData(

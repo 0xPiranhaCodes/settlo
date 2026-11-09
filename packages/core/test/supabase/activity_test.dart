@@ -7,11 +7,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Rows as PostgREST returns them from the views.
 final _views = <String, List<Map<String, Object?>>>{
-  'activity_feed': [
+  'rpc/activity_feed': [
     // Rahul edited the wifi bill.
     {
       'id': 42,
-      'created_at': '2026-11-09T08:30:00Z',
+      'created_at': '2026-11-09T08:30:00.123456+00:00',
       'kind': 'expense',
       'action': 'edited',
       'by_me': false,
@@ -82,8 +82,12 @@ void main() {
     requests = [];
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0)
       ..listen((request) async {
+        final body = await utf8.decoder.bind(request).join();
         final path = request.uri.path.replaceFirst('/rest/v1/', '');
-        requests.add('${request.method} $path ${request.uri.query}');
+        requests.add(
+          '${request.method} $path ${request.uri.query}'
+          '${body.isEmpty ? '' : ' $body'}',
+        );
         request.response
           ..headers.contentType = ContentType.json
           ..write(jsonEncode(_views[path]));
@@ -105,8 +109,7 @@ void main() {
 
   test('feed reads the newest page, with before and after values', () async {
     final [edit, repaid] = await repository().feed(limit: 30);
-    expect(requests.single, startsWith('GET activity_feed select='));
-    expect(requests.single, contains('order=id.desc.nullslast&limit=30'));
+    expect(requests.single, 'POST rpc/activity_feed  {"p_limit":30}');
     expect(
       (edit.id, edit.kind, edit.action, edit.byYou, edit.actor),
       (42, ActivityKind.expense, ActivityAction.edited, false, 'Rahul'),
@@ -124,7 +127,7 @@ void main() {
       (edit.status, edit.toYou, edit.tone),
       (null, null, MoneyTone.neutral),
     );
-    expect(edit.at, DateTime.utc(2026, 11, 9, 8, 30));
+    expect(edit.at, DateTime.utc(2026, 11, 9, 8, 30, 0, 123, 456));
     expect(
       (repaid.kind, repaid.loanId, repaid.counterparty, repaid.byYou),
       (ActivityKind.repayment, 'l1', 'Arjun', true),
@@ -136,11 +139,15 @@ void main() {
     expect(repaid.beforeAmount, isNull);
   });
 
-  test('the next page starts below the last id seen (keyset)', () async {
-    await repository().feed(before: 41, limit: 2);
-    expect(requests.single, contains('id=lt.41'));
-    expect(requests.single, contains('order=id.desc.nullslast&limit=2'));
-    expect(requests.single, isNot(contains('offset')));
+  test('the next page starts below the last row, by time then id', () async {
+    final [edit, _] = await repository().feed(limit: 30);
+    requests.clear();
+    await repository().feed(before: edit, limit: 2);
+    // The exact microsecond goes back, so no row at that instant is lost.
+    expect(
+      requests.single,
+      'POST rpc/activity_feed  ${jsonEncode({'p_limit': 2, 'p_before_at': '2026-11-09T08:30:00.123456Z', 'p_before_id': 42})}',
+    );
   });
 
   test('needsYou reads repayments and settle-ups, newest first', () async {

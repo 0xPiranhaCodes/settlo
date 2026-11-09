@@ -105,11 +105,17 @@ schedule column (`installments_*`, `expected_minor`, `next_due_on`, `ends_on`, `
 GET /rest/v1/loan_summaries?loan_id=eq.<id>
 ```
 
-### `activity_feed`
-The Activity tab (#91): one row per `activity` row, with what the app needs to say it in one line.
-It shows only spaces the caller is an accepted, active member of and loans they are an accepted
-party to. A departed member, an outsider and a pending claimant see no rows (pending claimants can
-still review the claim itself through the tables).
+### `activity_feed(p_before_at timestamptz, p_before_id bigint, p_limit int)`
+An RPC, listed with the views it reads beside. The Activity tab (#91): one row per `activity` row,
+newest first, with what the app needs to say it in one line. It shows only spaces the caller is an
+accepted, active member of and loans they are an accepted party to. A departed member, an outsider,
+a pending claimant and an unverified user see no rows; anon cannot call it. Pending claimants can
+still review the claim itself through the tables.
+
+It starts from the caller's own spaces and loans, not from `activity` at large: each contributes
+at most one page through `activity (space_id | loan_id, created_at, id)`, so the cost follows the
+caller's memberships, not other tenants' traffic. Security definer with a fixed search path; it
+makes the membership checks itself and names a person only where `profiles` RLS would.
 
 | Column | Type | Meaning |
 | --- | --- | --- |
@@ -126,11 +132,16 @@ still review the claim itself through the tables).
 | `status` | text | Settle-ups and repayments as they stand now: `pending`, `confirmed`, `disputed`, or `deleted` |
 | `my_side` | text | Settle-ups and repayments: `in` (to the caller), `out` (from the caller), else null |
 
-Page by keyset on `id`, newest first; the next page starts below the last id seen:
+Rows are ordered by `(created_at, id)` descending. `created_at` is when the change happened (its
+transaction's start), so a transaction that began earlier but committed later still sorts by its
+time, not its id. Page by that pair: pass the `created_at` and `id` of the last row shown, and the
+next page starts strictly below it. Rows inserted between page loads are newer than the cursor
+or sort into their own place, so no row of the pages already shown is repeated or skipped.
+`p_limit` defaults to 30 and is held to 1–100; both cursor arguments null means the first page.
 
 ```
-GET /rest/v1/activity_feed?order=id.desc&limit=30
-GET /rest/v1/activity_feed?order=id.desc&limit=30&id=lt.<last id>
+POST /rest/v1/rpc/activity_feed  {"p_limit": 30}
+POST /rest/v1/rpc/activity_feed  {"p_limit": 30, "p_before_at": "2026-11-09T08:30:00.123456+00:00", "p_before_id": 4211}
 ```
 
 ### `needs_you`

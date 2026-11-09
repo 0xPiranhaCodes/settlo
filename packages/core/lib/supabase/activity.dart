@@ -91,10 +91,10 @@ final class ActivityEntry {
     this.toYou,
   });
 
-  /// `activity.id`; the feed pages below the last one seen.
+  /// `activity.id`; with [at], the feed's cursor.
   final int id;
 
-  /// When it happened.
+  /// When it happened; the feed runs newest first by this, then [id].
   final DateTime at;
 
   /// What it is about.
@@ -199,15 +199,16 @@ final class PendingAnswer {
 /// (docs/decisions/2026-11-09-interim-online-repositories.md); tests fake
 /// it. Answering goes through the spaces and loans flows.
 abstract interface class ActivityRepository {
-  /// Up to [limit] feed entries, newest first, older than entry [before]
-  /// when given (keyset, so new activity never shifts a page).
-  Future<List<ActivityEntry>> feed({required int limit, int? before});
+  /// Up to [limit] feed entries, newest first by time then id, after
+  /// entry [before] when given: keyset on that pair, so activity added
+  /// between pages never repeats or skips a row already shown.
+  Future<List<ActivityEntry>> feed({required int limit, ActivityEntry? before});
 
   /// What waits for your answer, newest first.
   Future<List<PendingAnswer>> needsYou();
 }
 
-/// [ActivityRepository] over the `activity_feed` and `needs_you` views
+/// [ActivityRepository] over the `activity_feed` RPC and `needs_you` view
 /// (docs/api.md).
 final class SupabaseActivityRepository implements ActivityRepository {
   /// Reads through [_db] as the signed-in user.
@@ -216,19 +217,24 @@ final class SupabaseActivityRepository implements ActivityRepository {
   final SupabaseClient _db;
 
   @override
-  Future<List<ActivityEntry>> feed({required int limit, int? before}) async {
-    var query = _db
-        .from('activity_feed')
-        .select(
-          'id, created_at, kind, action, by_me, space_id, space_name, '
-          'loan_id, actor_name, counterparty, description, amount_minor, '
-          'before_description, before_amount_minor, status, my_side',
-        );
-    if (before != null) query = query.lt('id', before);
-    final rows = await query.order('id', ascending: false).limit(limit);
+  Future<List<ActivityEntry>> feed({
+    required int limit,
+    ActivityEntry? before,
+  }) async {
+    final rows = await _db.rpc<List<dynamic>>(
+      'activity_feed',
+      params: {
+        'p_limit': limit,
+        if (before != null) ...{
+          // Microseconds survive the round trip, so the cursor is exact.
+          'p_before_at': before.at.toUtc().toIso8601String(),
+          'p_before_id': before.id,
+        },
+      },
+    );
     Paise? money(Object? v) => v is int ? Paise(v) : null;
     return [
-      for (final r in rows)
+      for (final r in rows.cast<Map<String, dynamic>>())
         ActivityEntry(
           id: r['id'] as int,
           at: DateTime.parse(r['created_at'] as String),
