@@ -1,9 +1,9 @@
 # Native launch screen (#32). Regenerate with: dart run flutter_native_splash:create
-# shortcut: the S-mark PNGs are placeholders, replace them when the owner supplies the real mark.
+# Images come from design/brand/derived/derive.sh.
 flutter_native_splash:
   color: "#0A0B0D"
-  image: assets/launch/splash_mark.png
+  image: ../design/brand/derived/splash.png
   android_12:
     color: "#0A0B0D"
-    image: assets/launch/splash_mark_android12.png
+    image: ../design/brand/derived/android12-splash.png
   web: false
