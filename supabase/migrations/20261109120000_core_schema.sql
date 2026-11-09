@@ -1,5 +1,8 @@
 -- Core schema (#6): profiles, friends, spaces, members, expenses, payers, splits, recurring, activity.
 -- Money is bigint paise (ADR 0003). RLS is enabled on every table with no policies; #8 adds them.
+-- Shared history must survive: spaces and members are soft-deleted, and every FK from history
+-- (spaces, members, expenses, payers, splits, recurring, activity) is ON DELETE RESTRICT.
+-- Account deletion anonymises the profile instead of deleting it (follow-up in #9).
 
 create domain public.e164 as text
   check (value ~ '^\+[1-9][0-9]{6,14}$');
@@ -30,17 +33,19 @@ create table public.spaces (
   id uuid primary key default gen_random_uuid(),
   name text not null check (length(btrim(name)) > 0),
   kind public.space_kind not null default 'other',
-  created_by uuid references public.profiles (id) on delete set null default auth.uid(),
-  created_at timestamptz not null default now()
+  created_by uuid references public.profiles (id) on delete restrict default auth.uid(),
+  created_at timestamptz not null default now(),
+  deleted_at timestamptz
 );
 
 create table public.space_members (
   id uuid primary key default gen_random_uuid(),
-  space_id uuid not null references public.spaces (id) on delete cascade,
+  space_id uuid not null references public.spaces (id) on delete restrict,
   phone public.e164 not null,
-  user_id uuid references public.profiles (id) on delete set null,
+  user_id uuid references public.profiles (id) on delete restrict,
   role public.member_role not null default 'member',
   created_at timestamptz not null default now(),
+  left_at timestamptz,
   unique (space_id, phone),
   unique (space_id, user_id)
 );
@@ -49,13 +54,13 @@ create index space_members_phone_idx on public.space_members (phone);
 
 create table public.expenses (
   id uuid primary key default gen_random_uuid(),
-  space_id uuid not null references public.spaces (id) on delete cascade,
+  space_id uuid not null references public.spaces (id) on delete restrict,
   description text not null,
   category text,
   amount_minor bigint not null check (amount_minor > 0),
   spent_on date not null default current_date,
   is_settlement boolean not null default false,
-  created_by uuid references public.profiles (id) on delete set null default auth.uid(),
+  created_by uuid references public.profiles (id) on delete restrict default auth.uid(),
   -- Client-generated replay key for add_expense (#10, ADR 0004).
   idempotency_key uuid,
   created_at timestamptz not null default now(),
@@ -64,11 +69,9 @@ create table public.expenses (
 );
 create index expenses_space_id_idx on public.expenses (space_id, spent_on);
 
--- Member FKs cascade so a space delete succeeds; removing a member from a live expense
--- still fails at commit via the balance trigger below.
 create table public.expense_payers (
-  expense_id uuid not null references public.expenses (id) on delete cascade,
-  member_id uuid not null references public.space_members (id) on delete cascade,
+  expense_id uuid not null references public.expenses (id) on delete restrict,
+  member_id uuid not null references public.space_members (id) on delete restrict,
   amount_minor bigint not null check (amount_minor > 0),
   primary key (expense_id, member_id)
 );
@@ -76,8 +79,8 @@ create index expense_payers_member_id_idx on public.expense_payers (member_id);
 
 -- amount_minor is the resolved paise owed; shares / percent_bp record how it was derived.
 create table public.expense_splits (
-  expense_id uuid not null references public.expenses (id) on delete cascade,
-  member_id uuid not null references public.space_members (id) on delete cascade,
+  expense_id uuid not null references public.expenses (id) on delete restrict,
+  member_id uuid not null references public.space_members (id) on delete restrict,
   split_type public.split_type not null,
   amount_minor bigint not null check (amount_minor >= 0),
   shares integer check (shares > 0),
@@ -91,23 +94,23 @@ create index expense_splits_member_id_idx on public.expense_splits (member_id);
 -- template holds the add_expense payers/splits payload used to create each occurrence.
 create table public.recurring_expenses (
   id uuid primary key default gen_random_uuid(),
-  space_id uuid not null references public.spaces (id) on delete cascade,
+  space_id uuid not null references public.spaces (id) on delete restrict,
   description text not null,
   category text,
   amount_minor bigint not null check (amount_minor > 0),
   template jsonb not null,
   recurrence public.recurrence not null,
   next_run_on date not null,
-  created_by uuid references public.profiles (id) on delete set null default auth.uid(),
+  created_by uuid references public.profiles (id) on delete restrict default auth.uid(),
   created_at timestamptz not null default now(),
   deleted_at timestamptz
 );
 
 create table public.activity (
   id bigint generated always as identity primary key,
-  space_id uuid not null references public.spaces (id) on delete cascade,
-  expense_id uuid,
-  actor_id uuid default auth.uid(),
+  space_id uuid not null references public.spaces (id) on delete restrict,
+  expense_id uuid references public.expenses (id) on delete restrict,
+  actor_id uuid references public.profiles (id) on delete restrict default auth.uid(),
   action text not null check (action in ('created', 'edited', 'deleted', 'restored')),
   before jsonb,
   after jsonb,
@@ -129,7 +132,7 @@ alter table public.activity enable row level security;
 revoke insert, update, delete, truncate on public.activity from anon, authenticated;
 
 -- Balance: sum(payers) = sum(splits) = amount_minor, checked at commit.
--- Soft-deleted expenses are skipped; restoring one is an update, which re-checks it.
+-- Soft-deleted expenses are checked too; they are frozen (below), so they stay balanced.
 create function public.check_expense_balance() returns trigger
 language plpgsql set search_path = '' as $$
 declare
@@ -140,7 +143,7 @@ begin
   -- tg_argv[0] names the column holding the expense id ('id' or 'expense_id').
   select * into e from public.expenses
    where id = (case when tg_op = 'DELETE' then to_jsonb(old) else to_jsonb(new) end ->> tg_argv[0])::uuid;
-  if not found or e.deleted_at is not null then
+  if not found then
     return null;
   end if;
 
@@ -186,12 +189,6 @@ declare
 begin
   if tg_op = 'INSERT' then
     act := 'created';
-  elsif tg_op = 'DELETE' then
-    -- A space delete cascades here; its activity goes with it.
-    if not exists (select from public.spaces where id = old.space_id) then
-      return null;
-    end if;
-    act := 'deleted';
   elsif old.deleted_at is null and new.deleted_at is not null then
     act := 'deleted';
   elsif old.deleted_at is not null and new.deleted_at is null then
@@ -202,17 +199,50 @@ begin
 
   insert into public.activity (space_id, expense_id, action, before, after)
   values (
-    coalesce(new.space_id, old.space_id),
-    coalesce(new.id, old.id),
+    new.space_id,
+    new.id,
     act,
-    case when tg_op <> 'INSERT' then to_jsonb(old) end,
-    case when tg_op <> 'DELETE' then to_jsonb(new) end
+    case when tg_op = 'UPDATE' then to_jsonb(old) end,
+    to_jsonb(new)
   );
   return null;
 end $$;
 
 revoke execute on function public.log_expense_activity() from public, anon, authenticated;
 
+-- No DELETE case: activity.expense_id is RESTRICT, so an expense with history cannot be hard-deleted.
 create trigger expenses_activity
-  after insert or update or delete on public.expenses
+  after insert or update on public.expenses
   for each row execute function public.log_expense_activity();
+
+-- A soft-deleted expense is frozen: the only allowed change is restoring it (clearing deleted_at),
+-- and its payers and splits cannot be added, changed or removed.
+create function public.freeze_deleted_expense() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  if tg_table_name = 'expenses' then
+    if old.deleted_at is not null
+       and (new.deleted_at is not null or to_jsonb(new) - 'deleted_at' <> to_jsonb(old) - 'deleted_at') then
+      raise exception 'expense % is deleted; only restoring it is allowed', old.id
+        using errcode = 'object_not_in_prerequisite_state';
+    end if;
+  elsif exists (select from public.expenses
+                 where deleted_at is not null and id in (old.expense_id, new.expense_id)) then
+    raise exception 'expense % is deleted; its payers and splits are frozen', coalesce(new.expense_id, old.expense_id)
+      using errcode = 'object_not_in_prerequisite_state';
+  end if;
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+  return new;
+end $$;
+
+create trigger expenses_frozen
+  before update on public.expenses
+  for each row execute function public.freeze_deleted_expense();
+create trigger expense_payers_frozen
+  before insert or update or delete on public.expense_payers
+  for each row execute function public.freeze_deleted_expense();
+create trigger expense_splits_frozen
+  before insert or update or delete on public.expense_splits
+  for each row execute function public.freeze_deleted_expense();
