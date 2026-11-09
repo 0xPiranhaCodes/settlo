@@ -146,20 +146,15 @@ void main() {
       ['charu@upi', 'asha@upi'],
     );
 
-    // Product bug #82 leaves the originating summary stale after a settle-up;
-    // exercise the product's pull-to-refresh path before the final UI check.
-    await _openSpaces(tester);
-    final spacesList = find.descendant(
-      of: find.byType(SpacesListScreen),
-      matching: find.byType(Scrollable),
-    );
-    await tester.drag(spacesList, const Offset(0, 360));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Flat 65'));
-    await _waitFor(tester, find.text('Balances'));
-    await tester.tap(find.text('Balances'));
-    await _waitFor(tester, find.text('ALL SETTLED'));
+    // PR #84 refreshes the originating space summary immediately. Balances
+    // owns the settlement copy; ALL SETTLED belongs only to the Expenses hero.
+    await _waitFor(tester, find.text('Everyone is settled up.'));
     expect(find.text('Everyone is settled up.'), findsOneWidget);
+    expect(find.text('ALL SETTLED'), findsNothing);
+    await _scrollTo(tester, find.text('Expenses'));
+    await tester.tap(find.text('Expenses'));
+    await _waitFor(tester, find.text('ALL SETTLED'));
+    expect(find.text('Everyone is settled up.'), findsNothing);
 
     // A read-only server assertion proves every member—not only the signed-in
     // member shown by the final UI—ended at exactly zero paise.
@@ -189,14 +184,21 @@ Future<void> _setProfile(
   required String name,
   required String upi,
 }) async {
-  // Product bug #81 makes the profile sheet's Save action untappable under
-  // the floating tab bar at 390x844. Use the same application RPC as that
-  // sheet to establish test identities; this is not direct SQL seeding.
-  await Supabase.instance.client.rpc<void>(
-    'update_profile',
-    params: {'p_name': name, 'p_upi_id': upi},
-  );
+  await tester.tap(find.byType(SAvatar).first);
+  await _waitFor(tester, find.byType(ProfileScreen));
+  await _scrollTo(tester, find.text('Name and UPI ID'));
+  await tester.tap(find.text('Name and UPI ID'));
+  await _waitFor(tester, find.byKey(const ValueKey('profile-name')));
+  await tester.enterText(find.byKey(const ValueKey('profile-name')), name);
+  await tester.enterText(find.byKey(const ValueKey('profile-upi-id')), upi);
+  FocusManager.instance.primaryFocus?.unfocus();
   await tester.pumpAndSettle();
+  await _scrollTo(tester, find.text('Save'));
+  await tester.tap(find.text('Save'));
+  await _waitForGone(tester, find.byKey(const ValueKey('profile-upi-id')));
+  await _waitFor(tester, find.text(upi));
+  await tester.tap(find.text('Home').last);
+  await _waitFor(tester, find.byType(HomeScreen));
 }
 
 Future<void> _acceptSpaceClaim(WidgetTester tester) async {
@@ -357,6 +359,21 @@ Future<void> _waitFor(
   while (finder.evaluate().isEmpty) {
     if (DateTime.now().isAfter(end)) {
       fail('Timed out waiting for $finder');
+    }
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+  await tester.pumpAndSettle();
+}
+
+Future<void> _waitForGone(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 25),
+}) async {
+  final end = DateTime.now().add(timeout);
+  while (finder.evaluate().isNotEmpty) {
+    if (DateTime.now().isAfter(end)) {
+      fail('Timed out waiting for $finder to disappear');
     }
     await tester.pump(const Duration(milliseconds: 200));
   }
