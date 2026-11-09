@@ -27,4 +27,5 @@ export 'widgets/placeholder_screen.dart';
 export 'widgets/pressable.dart';
 export 'widgets/s_card.dart';
 export 'widgets/settlo_mark.dart';
+export 'widgets/sheet.dart';
 export 'widgets/tab_icons.dart';

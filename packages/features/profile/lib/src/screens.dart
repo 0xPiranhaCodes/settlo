@@ -416,10 +416,8 @@ class _IconTile extends StatelessWidget {
 }
 
 Future<void> _showEditProfile(BuildContext context, ProfileData data) =>
-    showModalBottomSheet<void>(
+    showSettloSheet<void>(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
       builder: (_) => _EditProfileSheet(data),
     );
 
@@ -456,13 +454,9 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        12,
-        20,
-        20 + MediaQuery.viewInsetsOf(context).bottom,
-      ),
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       child: Form(
         key: _formKey,
         child: Column(
@@ -544,9 +538,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
 }
 
 Future<void> _showAppearance(BuildContext context, ThemeMode selected) =>
-    showModalBottomSheet<void>(
+    showSettloSheet<void>(
       context: context,
-      useSafeArea: true,
       builder: (_) => _AppearanceSheet(selected),
     );
 
@@ -558,8 +551,9 @@ class _AppearanceSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = SettloColors.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

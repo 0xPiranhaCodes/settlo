@@ -6,11 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_expenses/src/add_expense_sheet.dart';
 
-/// The spaces an expense can go in, loaded when Add expense opens.
+/// The spaces an expense can go in, loaded when Add expense opens and
+/// again whenever [ledgerRevisionProvider] is bumped.
 final FutureProvider<List<SpaceSummary>> expenseSpacesProvider =
-    FutureProvider.autoDispose<List<SpaceSummary>>(
-      (ref) => ref.watch(spacesRepositoryProvider).load(),
-    );
+    FutureProvider.autoDispose<List<SpaceSummary>>((ref) {
+      ref.watch(ledgerRevisionProvider);
+      return ref.watch(spacesRepositoryProvider).load();
+    });
 
 /// Add expense (AddExpense artboard), risen to 54px below the top of the
 /// screen. Opened from a space it goes straight to [AddExpenseSheet];
