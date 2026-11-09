@@ -154,7 +154,9 @@ begin
     if exists (select from public.expenses x
                  join public.expense_payers xp on xp.expense_id = x.id
                  join public.expense_splits xs on xs.expense_id = x.id
-                where x.id <> p_expense_id and x.settlement_status = 'pending' and x.deleted_at is null
+                -- Only this space, which the caller already reads: never an oracle for another one.
+                where x.space_id = v_space and x.id <> p_expense_id
+                  and x.settlement_status = 'pending' and x.deleted_at is null
                   and xp.member_id = (p -> 'payers' -> 0 ->> 'member_id')::uuid
                   and xs.member_id = (p -> 'splits' -> 0 ->> 'member_id')::uuid) then
       raise exception '%: a settle-up between these members is already waiting for the payee', p_caller

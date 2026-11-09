@@ -9,7 +9,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(82);
+select plan(83);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000007801', '919780000001', now()),
@@ -279,6 +279,18 @@ select pg_temp.login('00000000-0000-0000-0000-000000007803');
 select is(pg_temp.hint_of(pg_temp.settle('00000000-0000-0000-0000-000000007a14', '00000000-0000-0000-0000-000000007822',
     '00000000-0000-0000-0000-000000007821', 200)),
   'settlement_pending', 'add_expense: nor can C record it for them');
+-- O, in another space, names B and A: refused as outside O's space, never as settlement_pending.
+reset role;
+insert into public.spaces (id, name, kind, created_by) values
+  ('00000000-0000-0000-0000-000000007811', 'Omar''s', 'flat', '00000000-0000-0000-0000-000000007806');
+insert into public.space_members (id, space_id, phone, user_id, role) values
+  ('00000000-0000-0000-0000-000000007826', '00000000-0000-0000-0000-000000007811', '+919780000006',
+   '00000000-0000-0000-0000-000000007806', 'owner');
+set local role authenticated;
+select pg_temp.login('00000000-0000-0000-0000-000000007806');
+select isnt(pg_temp.hint_of(replace(pg_temp.settle('00000000-0000-0000-0000-000000007a15', '00000000-0000-0000-0000-000000007822',
+    '00000000-0000-0000-0000-000000007821', 500), '00000000-0000-0000-0000-000000007810', '00000000-0000-0000-0000-000000007811')),
+  'settlement_pending', 'add_expense: another space''s pending settle-ups are never revealed');
 select pg_temp.login('00000000-0000-0000-0000-000000007802');
 select pg_temp.login('00000000-0000-0000-0000-000000007801');
 select is(pg_temp.hint_of(format('select public.confirm_settlement(%L, 400, %L, %L)', pg_temp.id('00000000-0000-0000-0000-000000007a04'),
