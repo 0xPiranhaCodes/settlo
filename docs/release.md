@@ -17,3 +17,7 @@ The M6 gate is complete when both stores have accepted a submission for review.
 ## Merge rule
 
 All changes are squash-merged only after the `Analyze & test`, `Android debug build`, `iOS debug build`, and `Supabase` checks are green and the pull request has one approval from a non-author agent. Direct pushes to `main` are not allowed. Branch protection is unavailable on the private repository's current plan, so the manager enforces this rule.
+
+## Coverage baseline updates
+
+The committed total line-coverage baseline is a hand-maintained ratchet. After a green `Analyze & test` run on `main` reports total line coverage above `.github/coverage-baseline.txt`, open a pull request that updates the file to the run's two-decimal `Total line coverage` value and link that run as evidence. Never lower the baseline; a legitimate exception needs an explicit manager ruling in the pull request. The workflow reads the baseline from `main` when checking pull requests, and independently requires at least 80% line coverage for `packages/core/lib/money`.

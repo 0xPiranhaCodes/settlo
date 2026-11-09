@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -107,7 +111,7 @@ jobs:
                   output.write("end_of_record\n")
           PY
 
-      - name: Enforce main coverage baseline
+      - name: Enforce coverage requirements
         shell: bash
         run: |
           set -euo pipefail
@@ -141,6 +145,30 @@ jobs:
           if awk -v coverage="$coverage" -v baseline="$baseline" \
             'BEGIN { exit !(coverage + 0 < baseline + 0) }'; then
               echo "Coverage dropped below the main baseline." >&2
+              exit 1
+          fi
+
+          read -r money_lines_found money_lines_hit < <(
+            awk -F: '
+              /^SF:/ { money = ($2 ~ /^packages\/core\/lib\/money\//) }
+              money && /^LF:/ { found += $2 }
+              money && /^LH:/ { hit += $2 }
+              END { print found + 0, hit + 0 }
+            ' coverage/lcov.info
+          )
+
+          if (( money_lines_found == 0 )); then
+            echo "Merged coverage contains no packages/core/lib/money lines." >&2
+            exit 1
+          fi
+
+          money_coverage="$(awk -v hit="$money_lines_hit" -v found="$money_lines_found" \
+            'BEGIN { printf "%.2f", (hit * 100) / found }')"
+          echo "Money line coverage: $money_coverage% ($money_lines_hit/$money_lines_found)"
+
+          if awk -v hit="$money_lines_hit" -v found="$money_lines_found" \
+            'BEGIN { exit !((hit * 100) < (found * 80)) }'; then
+              echo "packages/core/lib/money line coverage is below 80%." >&2
               exit 1
           fi
 
