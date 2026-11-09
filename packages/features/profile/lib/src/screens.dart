@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_profile/src/glyphs.dart';
 import 'package:settlo_profile/src/profile_controller.dart';
 import 'package:settlo_profile/src/profile_repository.dart';
 import 'package:settlo_profile/src/theme_mode.dart';
@@ -95,7 +96,11 @@ class _Header extends StatelessWidget {
                 backgroundColor: colors.surface,
                 side: BorderSide(color: colors.hairline),
               ),
-              icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+              icon: ProfileIcon(
+                ProfileGlyph.back,
+                color: colors.textPrimary,
+                size: 18,
+              ),
             ),
           ),
           Text(
@@ -167,7 +172,7 @@ class _UpiCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       child: Row(
         children: [
-          const _IconTile(Icons.account_balance_wallet_outlined, action: true),
+          const _IconTile(ProfileGlyph.wallet, action: true),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -215,22 +220,18 @@ class _QuietPreferences extends StatelessWidget {
   Widget build(BuildContext context) => const _SettingsCard(
     rows: [
       _SettingRowData(
-        Icons.notifications_none,
+        ProfileGlyph.bell,
         'Reminders',
         'Gentle nudges before due dates',
       ),
       _SettingRowData(
-        Icons.person_outline,
+        ProfileGlyph.person,
         'Contacts matching',
         'Find friends already on Settlo',
       ),
+      _SettingRowData(ProfileGlyph.shield, 'App lock', 'Face ID when opening'),
       _SettingRowData(
-        Icons.shield_outlined,
-        'App lock',
-        'Face ID when opening',
-      ),
-      _SettingRowData(
-        Icons.download_outlined,
+        ProfileGlyph.download,
         'Export',
         'Statements as PDF or CSV',
       ),
@@ -249,28 +250,23 @@ class _AccountCard extends ConsumerWidget {
     return _SettingsCard(
       rows: [
         const _SettingRowData(
-          Icons.phone_iphone,
+          ProfileGlyph.phone,
           'Change number',
           'Keep your ledgers, move your account',
         ),
+        _SettingRowData(ProfileGlyph.appearance, 'Appearance', switch (mode) {
+          ThemeMode.system => 'Follows system',
+          ThemeMode.dark => 'Dark',
+          ThemeMode.light => 'Light',
+        }, onTap: () => _showAppearance(context, mode)),
         _SettingRowData(
-          Icons.brightness_6_outlined,
-          'Appearance',
-          switch (mode) {
-            ThemeMode.system => 'Follows system',
-            ThemeMode.dark => 'Dark',
-            ThemeMode.light => 'Light',
-          },
-          onTap: () => _showAppearance(context, mode),
-        ),
-        _SettingRowData(
-          Icons.edit_outlined,
+          ProfileGlyph.edit,
           'Name and UPI ID',
           'Edit your settle-up details',
           onTap: () => _showEditProfile(context, data),
         ),
         _SettingRowData(
-          Icons.logout,
+          ProfileGlyph.logout,
           'Sign out',
           'Your ledgers stay safely recorded',
           onTap: () => _signOut(context, ref),
@@ -329,7 +325,7 @@ class _SettingsCard extends StatelessWidget {
 class _SettingRowData {
   const new(this.icon, this.title, this.subtitle, {this.onTap});
 
-  final IconData icon;
+  final ProfileGlyph icon;
   final String title;
   final String subtitle;
   final VoidCallback? onTap;
@@ -379,7 +375,11 @@ class _SettingRow extends StatelessWidget {
                 ),
               ),
               if (data.onTap != null)
-                Icon(Icons.chevron_right, size: 20, color: colors.textMuted),
+                ProfileIcon(
+                  ProfileGlyph.chevron,
+                  color: colors.textMuted,
+                  size: 20,
+                ),
             ],
           ),
         ),
@@ -391,7 +391,7 @@ class _SettingRow extends StatelessWidget {
 class _IconTile extends StatelessWidget {
   const new(this.icon, {this.action = false});
 
-  final IconData icon;
+  final ProfileGlyph icon;
   final bool action;
 
   @override
@@ -410,10 +410,10 @@ class _IconTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       alignment: Alignment.center,
-      child: Icon(
+      child: ProfileIcon(
         icon,
-        size: 20,
         color: action ? colors.action : colors.textPrimary,
+        size: 20,
       ),
     );
   }
@@ -583,7 +583,7 @@ class _AppearanceSheet extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               title: Text(_themeLabel(mode)),
               trailing: mode == selected
-                  ? Icon(Icons.check, color: colors.action)
+                  ? ProfileIcon(ProfileGlyph.check, color: colors.action)
                   : null,
               onTap: () async {
                 await ref.read(themeModeProvider.notifier).setMode(mode);
