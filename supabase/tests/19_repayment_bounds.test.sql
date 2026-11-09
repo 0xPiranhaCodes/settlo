@@ -1,17 +1,19 @@
 -- Repayment bounds (#99): paid_on within the loan's start_on..today (Asia/Kolkata), reference
 -- trimmed, at most 64 printable characters. Through record_repayment and a direct insert alike.
--- L lends B 100000 on loan K, which started three days ago in India.
+-- L lends B 100000 on loan K, which started three days ago in India; O is an outsider.
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(17);
+select plan(18);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000009901', '919990000001', now()),
-  ('00000000-0000-0000-0000-000000009902', '919990000002', now());
+  ('00000000-0000-0000-0000-000000009902', '919990000002', now()),
+  ('00000000-0000-0000-0000-000000009904', '919990000004', now());
 insert into public.profiles (id, phone, name) values
   ('00000000-0000-0000-0000-000000009901', '+919990000001', 'Lata'),
-  ('00000000-0000-0000-0000-000000009902', '+919990000002', 'Bilal');
+  ('00000000-0000-0000-0000-000000009902', '+919990000002', 'Bilal'),
+  ('00000000-0000-0000-0000-000000009904', '+919990000004', 'Omar');
 
 create function pg_temp.today() returns date language sql as $$
   select (now() at time zone 'Asia/Kolkata')::date
@@ -84,6 +86,15 @@ select is(pg_temp.hint_of(format(
   'insert into public.loan_repayments (loan_id, amount_minor, principal_minor, reference) values (%L, 100, 100, %L)',
   '00000000-0000-0000-0000-000000009a01', E'a\u0007b')),
   'reference_invalid', 'direct insert: a control character is refused');
+
+
+-- An outsider is refused before the bounds read K, so learns nothing of its start_on.
+select set_config('request.jwt.claims',
+  '{"sub": "00000000-0000-0000-0000-000000009904", "role": "authenticated"}', true);
+select throws_ok(format(
+  'insert into public.loan_repayments (loan_id, amount_minor, principal_minor, paid_on) values (%L, 100, 100, %L)',
+  '00000000-0000-0000-0000-000000009a01', '2000-01-01'),
+  '42501', null, 'direct insert: an outsider is refused as such, not with a bounds hint');
 
 select * from finish();
 rollback;

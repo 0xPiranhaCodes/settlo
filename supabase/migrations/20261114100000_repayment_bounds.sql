@@ -2,7 +2,9 @@
 -- reference is trimmed, at most 64 characters and printable. A BEFORE INSERT trigger rather than
 -- checks in record_repayment, because parties may also insert repayments directly (RLS, #8); the
 -- RPC's insert fires it too, so its 22023 hints reach RPC callers as overpayment does. Insert only:
--- the guard trigger (#7) already freezes these columns once recorded.
+-- the guard trigger (#7) already freezes these columns once recorded. Named to fire after
+-- loan_repayments_guard (triggers fire in name order), which refuses non-parties first: BEFORE
+-- triggers run ahead of RLS, so this one must not read an outsider's loan.
 create function public.bound_loan_repayment() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -10,7 +12,7 @@ declare
 begin
   select l.start_on into start_on from public.loans l where l.id = new.loan_id;
   if new.paid_on < start_on then
-    raise exception 'repayment paid on % is before loan % started on %', new.paid_on, new.loan_id, start_on
+    raise exception 'repayment paid on % is before the loan started', new.paid_on
       using errcode = '22023', hint = 'paid_on_before_start';
   end if;
   if new.paid_on > (now() at time zone 'Asia/Kolkata')::date then
@@ -27,6 +29,6 @@ end $$;
 
 revoke execute on function public.bound_loan_repayment() from public, anon, authenticated;
 
-create trigger loan_repayments_bounds
+create trigger loan_repayments_limits
   before insert on public.loan_repayments
   for each row execute function public.bound_loan_repayment();
