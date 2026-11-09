@@ -31,6 +31,8 @@ typedef ExpenseSplit = ({
 /// An expense to record in a space. `payers` maps `space_members.id` to
 /// what they paid, in member order; `splits` are in member order too,
 /// since order decides who takes odd paise. `spentOn` null means today.
+/// A settlement (`isSettlement`) is a payment between members, not
+/// spending.
 typedef NewExpense = ({
   String spaceId,
   String description,
@@ -38,6 +40,7 @@ typedef NewExpense = ({
   Paise amount,
   DateTime? spentOn,
   SplitType splitType,
+  bool isSettlement,
   Map<String, Paise> payers,
   List<ExpenseSplit> splits,
 });
@@ -89,6 +92,7 @@ final class SupabaseExpensesRepository implements ExpensesRepository {
                   '${d.year}-${d.month.toString().padLeft(2, '0')}-'
                   '${d.day.toString().padLeft(2, '0')}',
             'split_type': e.splitType.name,
+            if (e.isSettlement) 'is_settlement': true,
             'payers': [
               for (final MapEntry(:key, :value) in e.payers.entries)
                 {'member_id': key, 'amount_minor': value.value},

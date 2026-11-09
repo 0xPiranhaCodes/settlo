@@ -189,6 +189,20 @@ void main() {
       expect(find.byType(SpaceDetailView), findsOne);
     });
 
+    testWidgets('no Pay to someone who left: it cannot be recorded', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        FakeSpacesRepository([spaceDepartedPayer]),
+        initialLocation: SettloRoutes.spaceBalances('s7'),
+      );
+      await _scrollToEnd(tester);
+
+      expect(find.text('You pay Arun'), findsOne);
+      expect(find.text('Pay'), findsNothing);
+    });
+
     testWidgets('the chips filter by kind', (tester) async {
       await _pump(tester, FakeSpacesRepository(spacesList));
 
@@ -525,7 +539,7 @@ void main() {
         ('Balances', SettloRoutes.spaceBalances('s1')),
         ('Activity', SettloRoutes.activity),
         ('Add expense', SettloRoutes.addExpenseIn('s1')),
-        ('Settle up', SettloRoutes.settle),
+        ('Settle up', SettloRoutes.settleWith('s1')),
       ]) {
         final (router, _) = await pumpSpace(tester);
         await tester.tap(
@@ -585,7 +599,10 @@ void main() {
 
       await tester.tap(find.text('Remind').first);
       await tester.pumpAndSettle();
-      expect(router.state.uri.toString(), SettloRoutes.settle);
+      expect(
+        router.state.uri.toString(),
+        SettloRoutes.settleWith('s1', memberId: 'm3'),
+      );
     });
 
     testWidgets('paid and fair share are read in rupees', (tester) async {

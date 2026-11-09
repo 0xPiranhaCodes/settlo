@@ -425,6 +425,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
                       amount: total,
                       spentOn: _spentOn,
                       splitType: _type,
+                      isSettlement: false,
                       payers: paid,
                       splits: splits,
                     ))

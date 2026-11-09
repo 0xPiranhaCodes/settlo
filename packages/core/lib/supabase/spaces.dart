@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/money/paise.dart';
+import 'package:settlo_core/money/simplify.dart';
 import 'package:settlo_core/supabase/home.dart';
 import 'package:settlo_core/supabase/providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,6 +21,7 @@ final class SpaceMember {
     this.joined = true,
     this.balance = Paise.zero,
     this.monthPaid = Paise.zero,
+    this.upiId,
   });
 
   /// `space_members.id`.
@@ -45,6 +47,9 @@ final class SpaceMember {
 
   /// What they paid towards this month's spending.
   final Paise monthPaid;
+
+  /// Their UPI id (`profiles.upi_id`); null until they join and add one.
+  final String? upiId;
 }
 
 /// A space the signed-in user has accepted.
@@ -102,6 +107,19 @@ final class SpaceSummary {
 
   /// Your balance in the space.
   Paise get balance => you.balance;
+
+  /// The fewest payments that settle everyone, members who left
+  /// included (ADR 0003): at most one fewer than the people owed or
+  /// owing.
+  List<Payment<SpaceMember>> get payments {
+    final nets = {
+      for (final m in [...members, ...departed]) m: m.balance,
+    };
+    // Balances always sum to zero; never let a bad read crash a screen.
+    return nets.values.fold(0, (s, b) => s + b.value) == 0
+        ? simplifyDebts(nets)
+        : const [];
+  }
 }
 
 /// Someone to add to a new space: their E.164 number and your label.
@@ -188,10 +206,11 @@ final class SupabaseSpacesRepository implements SpacesRepository {
           .from('space_monthly_fairness')
           .select('member_id, paid_minor, fair_share_minor, month_total_minor')
           .eq('month', monthKey),
-      _db.from('profiles').select('id, name'),
+      _db.from('profiles').select('id, name, upi_id'),
     ]);
 
     final names = {for (final p in profiles) p['id']: p['name'] as String?};
+    final upiIds = {for (final p in profiles) p['id']: p['upi_id'] as String?};
     final balanceOf = {for (final b in balances) b['member_id']: b};
     final fairnessOf = {for (final f in fairness) f['member_id']: f};
     Paise money(_Row? row, String key) => Paise((row?[key] as int?) ?? 0);
@@ -221,6 +240,7 @@ final class SupabaseSpacesRepository implements SpacesRepository {
         joined: m['accepted_at'] != null,
         balance: money(balanceOf[m['id']], 'balance_minor'),
         monthPaid: money(fairnessOf[m['id']], 'paid_minor'),
+        upiId: upiIds[m['user_id']],
       );
       final you = fairnessOf[mine['id']];
       spaces.add(

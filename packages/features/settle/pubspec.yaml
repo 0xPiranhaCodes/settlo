@@ -10,6 +10,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_riverpod: ^3.5.0
   go_router: ^18.1.3
   settlo_core:
     path: ../../core
+  settlo_platform:
+    path: ../../platform
+  url_launcher: ^6.3.3

@@ -8,8 +8,8 @@ import 'package:settlo_core/widgets/pressable.dart';
 const double _amountSize = 52;
 
 /// The frame of an amount-entry sheet (add expense, new loan, settle up):
-/// drag handle, close button and title, then the amount first and in the
-/// serif, then [body], then [action] pinned to the bottom.
+/// drag handle, close button and title, then an optional [header], the
+/// amount in the serif, then [body], then [action] pinned to the bottom.
 ///
 /// Show it with [showSAmountSheet].
 class SAmountSheet extends StatelessWidget {
@@ -19,6 +19,7 @@ class SAmountSheet extends StatelessWidget {
     required this.amount,
     required this.onClose,
     this.amountLabel = 'Amount',
+    this.header,
     this.body,
     this.action,
     super.key,
@@ -34,6 +35,9 @@ class SAmountSheet extends StatelessWidget {
 
   /// Small caps label above the amount.
   final String amountLabel;
+
+  /// Above the amount's label, such as who pays whom.
+  final Widget? header;
 
   /// Called by the close button.
   final VoidCallback onClose;
@@ -115,6 +119,10 @@ class SAmountSheet extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 22),
+                      if (header case final header?) ...[
+                        header,
+                        const SizedBox(height: 18),
+                      ],
                       Text(
                         amountLabel.toUpperCase(),
                         textAlign: TextAlign.center,
