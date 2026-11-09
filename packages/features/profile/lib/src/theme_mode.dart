@@ -17,27 +17,33 @@ abstract interface class ThemeModeRepository {
 final class SharedPreferencesThemeModeRepository
     implements ThemeModeRepository {
   /// Uses the uncached preferences API so reads reflect durable storage.
-  const new(this.preferences);
+  const new({required this.read, required this.write});
 
-  /// Platform preferences.
-  final SharedPreferencesAsync preferences;
+  /// Reads the stored enum name.
+  final Future<String?> Function() read;
+
+  /// Writes an enum name.
+  final Future<void> Function(String value) write;
 
   @override
   Future<ThemeMode> load() async {
-    final saved = await preferences.getString(_themeModeKey);
+    final saved = await read();
     return ThemeMode.values.where((mode) => mode.name == saved).firstOrNull ??
         ThemeMode.system;
   }
 
   @override
-  Future<void> save(ThemeMode mode) =>
-      preferences.setString(_themeModeKey, mode.name);
+  Future<void> save(ThemeMode mode) => write(mode.name);
 }
 
 /// Theme preference storage. Tests replace this with memory storage.
-final themeModeRepositoryProvider = Provider<ThemeModeRepository>(
-  (_) => SharedPreferencesThemeModeRepository(SharedPreferencesAsync()),
-);
+final themeModeRepositoryProvider = Provider<ThemeModeRepository>((_) {
+  final preferences = SharedPreferencesAsync();
+  return SharedPreferencesThemeModeRepository(
+    read: () => preferences.getString(_themeModeKey),
+    write: (value) => preferences.setString(_themeModeKey, value),
+  );
+});
 
 /// The persisted app theme.
 final themeModeProvider = AsyncNotifierProvider<ThemeModeController, ThemeMode>(

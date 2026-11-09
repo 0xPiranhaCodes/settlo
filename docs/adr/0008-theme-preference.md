@@ -9,6 +9,8 @@ Issue #64 adds a system, dark and light appearance choice that must survive app 
 ## Decision
 Add `shared_preferences ^2.5.6` directly to `settlo_profile` and store the enum name under `settlo.theme_mode`. Use `SharedPreferencesAsync`, not the legacy cached singleton, behind a `ThemeModeRepository` so tests and a future settings store can replace it without changing widgets.
 
+The feature's tests depend directly on `shared_preferences_platform_interface ^2.4.2` for its official in-memory async implementation. This exercises the same uncached adapter without a device plugin; the package is already part of the `shared_preferences` plugin family in the lockfile.
+
 ## Consequences
 - The setting follows the system when absent or unrecognised and supports explicit dark and light modes.
 - Profile owns the preference UI and storage; `app` only watches the exported provider when composing `MaterialApp`.
