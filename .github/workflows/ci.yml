@@ -138,11 +138,11 @@ jobs:
           echo "Total line coverage: $coverage% ($lines_hit/$lines_found)"
           echo "Main baseline: $baseline%"
 
-          awk -v coverage="$coverage" -v baseline="$baseline" \
-            'BEGIN { exit !(coverage + 0 < baseline + 0) }' && {
+          if awk -v coverage="$coverage" -v baseline="$baseline" \
+            'BEGIN { exit !(coverage + 0 < baseline + 0) }'; then
               echo "Coverage dropped below the main baseline." >&2
               exit 1
-            }
+          fi
 
   android:
     name: Android debug build
