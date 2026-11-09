@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_activity/settlo_activity.dart';
-import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_loans/settlo_loans.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
@@ -9,8 +8,8 @@ import 'package:settlo_spaces/settlo_spaces.dart';
 import 'support/golden.dart';
 
 void main() {
+  // Home is covered by home_golden_test.dart, with its data faked.
   const tabs = [
-    ('home', HomeScreen()),
     ('spaces', SpacesListScreen()),
     ('loans', LoanScreen()),
     ('activity', ActivityScreen()),
@@ -29,7 +28,7 @@ void main() {
             device: device,
             theme: theme,
             child: SettloShell(
-              currentIndex: i,
+              currentIndex: i + 1,
               onTabSelected: (_) {},
               child: screen,
             ),

@@ -4,6 +4,8 @@ import 'package:settlo/main.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'fake_home.dart';
+
 /// A signed-in session for a test user; no network or storage involved.
 final fakeSession = Session(
   accessToken: 'test-access-token',
@@ -36,8 +38,11 @@ class FakeSessionNotifier extends SessionNotifier {
   void signOut() => state = null;
 }
 
-/// [SettloApp] with the session faked to [session].
+/// [SettloApp] with the session faked to [session] and an empty Home.
 Widget fakeSessionApp(Session? session) => ProviderScope(
-  overrides: [sessionProvider.overrideWith(() => FakeSessionNotifier(session))],
+  overrides: [
+    sessionProvider.overrideWith(() => FakeSessionNotifier(session)),
+    homeRepositoryProvider.overrideWithValue(FakeHomeRepository(homeEmpty)),
+  ],
   child: const SettloApp(),
 );

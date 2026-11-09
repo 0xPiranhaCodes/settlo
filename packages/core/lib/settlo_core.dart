@@ -7,6 +7,7 @@ export 'money/simplify.dart';
 export 'money/split.dart';
 export 'router/routes.dart';
 export 'supabase/config.dart';
+export 'supabase/home.dart';
 export 'supabase/phone_auth.dart';
 export 'supabase/providers.dart';
 export 'theme/colors.dart';

@@ -22,8 +22,15 @@ class MoneyText extends StatelessWidget {
     super.key,
   });
 
-  /// The amount.
-  final Paise amount;
+  /// `₹—` in secondary grey: a balance that is not known yet, such as
+  /// before recorded claims are reviewed.
+  const new blank({this.size = 15, super.key})
+    : amount = null,
+      tone = MoneyTone.settled,
+      signed = false;
+
+  /// The amount; null for [MoneyText.blank].
+  final Paise? amount;
 
   /// Which way the money points.
   final MoneyTone tone;
@@ -36,7 +43,10 @@ class MoneyText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = formatInr(amount, signed: signed).replaceFirst('-', '−');
+    final amount = this.amount;
+    final text = amount == null
+        ? '₹—'
+        : formatInr(amount, signed: signed).replaceFirst('-', '−');
     final color = SettloColors.of(context).money(tone);
     final style = SettloTypography.amount(size, color: color);
     if (size < SettloTypography.serifFrom) {
@@ -54,7 +64,7 @@ class MoneyText extends StatelessWidget {
       color: color,
     ).copyWith(height: 1);
     return Semantics(
-      label: text,
+      label: amount == null ? 'not known yet' : text,
       excludeSemantics: true,
       child: Text.rich(
         TextSpan(

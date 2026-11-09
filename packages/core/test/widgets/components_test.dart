@@ -83,6 +83,24 @@ void main() {
     expect(value, 1);
   });
 
+  testWidgets('a blank amount shows ₹— in grey and reads as unknown', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await _pump(
+      tester,
+      const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [MoneyText.blank(), MoneyText.blank(size: 46)],
+      ),
+    );
+    expect(find.text('₹—'), findsOneWidget);
+    expect(find.bySemanticsLabel('not known yet'), findsOneWidget);
+    final small = tester.widget<Text>(find.text('₹—'));
+    expect(small.style?.color, SettloColors.dark.textSecondary);
+    semantics.dispose();
+  });
+
   testWidgets('an avatar shows an initial, or ? for no name', (tester) async {
     await _pump(
       tester,
