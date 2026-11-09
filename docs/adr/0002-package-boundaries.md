@@ -22,6 +22,7 @@ app ──► features/* ──► core
 - `app` composes: it builds the top-level router from routes each feature exports, wires providers, and is the only place that knows every feature.
 - Something two features need (a model, a widget, a provider) moves down into `core` or `local`; it is not imported sideways.
 - Cross-feature navigation goes by route path through go_router, not by importing the other feature's screen.
+- `test_support` is a dev-only leaf package: workspace packages may list it only under `dev_dependencies`, and production `lib/` code never imports it.
 
 ## Consequences
 - No cycles, and each feature can be built and tested on its own.

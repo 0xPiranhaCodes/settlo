@@ -67,8 +67,10 @@ gh workflow run CI --ref <branch> -f update_goldens=true
 ```
 
 The job commits changed PNGs directly to the selected branch as
-`github-actions[bot]`; review that commit and let the normal hosted PR checks
-compare every app and core golden on Linux. `scripts/ci-local.sh
+`github-actions[bot]`. Because a push made with `GITHUB_TOKEN` does not trigger
+the normal CI workflow, review the bot commit and manually run **CI** again with
+the golden-regeneration option disabled. That second hosted run must compare
+every app and core golden on Linux before merge. `scripts/ci-local.sh
 --update-goldens` remains an optional container-based developer preflight.
 Local macOS tests can report expected glyph-rasterization differences, so do not
 update goldens on macOS or treat those platform-only diffs as canonical.
