@@ -153,6 +153,38 @@ final class Loan {
   /// What is still owed: [principal] minus [repaid].
   Paise get outstanding => principal - repaid;
 
+  /// What would remain after [repayment].
+  ///
+  /// [repaid] already includes every confirmed repayment, so only a pending
+  /// repayment is added for this projection. Disputed repayments never count,
+  /// and an invalid overpayment is shown as zero rather than negative money.
+  Paise outstandingAfter(LoanRepayment repayment) {
+    final remaining = principal - _confirmedAfter(repayment);
+    return remaining.value < 0 ? Paise.zero : remaining;
+  }
+
+  /// Which scheduled instalment [repayment] represents.
+  ///
+  /// A pending repayment projects the count after confirmation from the
+  /// confirmed principal, rounded down to complete instalments and capped at
+  /// the schedule total. Decided receipts keep the server's current count.
+  /// Flexible loans have no instalment count.
+  int? installmentsAfter(LoanRepayment repayment) {
+    final amount = installment;
+    final total = installmentsTotal;
+    if (amount == null || total == null) return null;
+    if (repayment.status != RepaymentStatus.pending || amount.value <= 0) {
+      return installmentsPaid;
+    }
+    final projected = _confirmedAfter(repayment).value ~/ amount.value;
+    return projected > total ? total : projected;
+  }
+
+  Paise _confirmedAfter(LoanRepayment repayment) =>
+      repayment.status == RepaymentStatus.pending
+      ? repaid + repayment.amount
+      : repaid;
+
   /// The share repaid, 0 to 1, from confirmed repayments only.
   double get progress =>
       principal.value == 0 ? 0 : (repaid.value / principal.value).clamp(0, 1);
@@ -193,6 +225,7 @@ typedef NewRepayment = ({
   String loanId,
   Paise amount,
   RepaymentMethod? method,
+  DateTime? paidOn,
   String? reference,
 });
 
@@ -211,6 +244,16 @@ enum LoanRejection {
 
   /// Answering a repayment your own side recorded (`own_record`).
   ownRecord,
+
+  /// The repayment predates its loan (`paid_on_before_start`).
+  paidOnBeforeStart,
+
+  /// The repayment is after today in India (`paid_on_future`).
+  paidOnFuture,
+
+  /// The reference is too long or contains control/format characters
+  /// (`reference_invalid`).
+  referenceInvalid,
 
   /// You are not an accepted party to the loan (`42501`).
   notAllowed,
@@ -238,6 +281,11 @@ final class LoanRejected implements Exception {
       'This repayment was already answered. Pull down to see it.',
     LoanRejection.ownRecord =>
       'Your side recorded this one, so the other person confirms it.',
+    LoanRejection.paidOnBeforeStart =>
+      "Paid on can't be before the loan started.",
+    LoanRejection.paidOnFuture => "Paid on can't be in the future.",
+    LoanRejection.referenceInvalid =>
+      'Reference must be 64 characters or fewer, with no hidden controls.',
     LoanRejection.notAllowed => "You can't change this loan.",
     LoanRejection.invalid => "That didn't go through. Check it and try again.",
   };
@@ -266,6 +314,8 @@ abstract interface class LoansRepository {
   Future<String> createLoan(NewLoan loan, {required String idempotencyKey});
 
   /// Records [repayment] as pending and returns its id (the key).
+  /// The repayment's paid-on date is null for today; its reference is a
+  /// trimmed UPI, bank or cash reference when the recorder supplied one.
   Future<String> recordRepayment(
     NewRepayment repayment, {
     required String idempotencyKey,
@@ -433,6 +483,11 @@ final class SupabaseLoansRepository implements LoansRepository {
         'idempotency_key': idempotencyKey,
         'amount_minor': repayment.amount.value,
         'method': ?repayment.method?.name,
+        if (repayment.paidOn case final d?)
+          'paid_on':
+              '${d.year.toString().padLeft(4, '0')}-'
+              '${d.month.toString().padLeft(2, '0')}-'
+              '${d.day.toString().padLeft(2, '0')}',
         'reference': ?repayment.reference,
       },
     });
@@ -469,6 +524,13 @@ final class SupabaseLoansRepository implements LoansRepository {
         (_, 'loan_closed') => const LoanRejected(LoanRejection.closed),
         (_, 'not_pending') => const LoanRejected(LoanRejection.notPending),
         (_, 'own_record') => const LoanRejected(LoanRejection.ownRecord),
+        (_, 'paid_on_before_start') => const LoanRejected(
+          LoanRejection.paidOnBeforeStart,
+        ),
+        (_, 'paid_on_future') => const LoanRejected(LoanRejection.paidOnFuture),
+        (_, 'reference_invalid') => const LoanRejected(
+          LoanRejection.referenceInvalid,
+        ),
         ('42501', _) => const LoanRejected(LoanRejection.notAllowed),
         ('22023', _) => const LoanRejected(LoanRejection.invalid),
         _ => e,

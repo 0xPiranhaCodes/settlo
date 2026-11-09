@@ -76,6 +76,12 @@ Finder _said(String label) =>
     find.bySemanticsLabel(RegExp(RegExp.escape(label)));
 
 void main() {
+  test('India date crosses midnight independently of a UTC-8 device', () {
+    final justAfterIstMidnight = DateTime.parse('2026-11-09T10:45:00-08:00');
+
+    expect(indiaDate(justAfterIstMidnight), DateTime(2026, 11, 10));
+  });
+
   group('ring geometry', () {
     test("the canvas ring: r 51 in a 112 box, from twelve o'clock", () {
       final g = const LoanRingPainter(
@@ -197,7 +203,25 @@ void main() {
       expect(find.text('ARJUN PAID YOU'), findsOne);
       // The amount comes first, prefilled with the instalment.
       expect(find.widgetWithText(TextField, '25,000'), findsOne);
-      await tester.enterText(find.byType(TextField), '10000');
+      expect(find.text('PAID ON'), findsOne);
+      expect(find.text('Today'), findsOne);
+      expect(find.text('REFERENCE · OPTIONAL'), findsOne);
+      expect(
+        tester
+            .widget<TextField>(
+              find.widgetWithText(TextField, 'UPI or bank reference'),
+            )
+            .maxLength,
+        64,
+      );
+      await tester.enterText(
+        find.bySemanticsLabel('Amount in rupees'),
+        '10000',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'UPI or bank reference'),
+        'UPI 1234',
+      );
       await _tap(tester, find.text('Cash'));
       await _tap(tester, find.text('Record repayment').last);
 
@@ -217,6 +241,68 @@ void main() {
         'record_repayment',
         'confirm_repayment',
       ]);
+      expect(loans.data.loans.first.repayments.first.reference, 'UPI 1234');
+    });
+
+    testWidgets('paid-on picker is bounded by loan start and today', (
+      tester,
+    ) async {
+      await _pump(tester, location: SettloRoutes.loan('l1'));
+      await _tap(tester, find.text('Record repayment'));
+      await _tap(tester, find.text('Today'));
+
+      final calendar = tester.widget<CalendarDatePicker>(
+        find.byType(CalendarDatePicker),
+      );
+      expect(calendar.firstDate, DateTime(2026, 3, 5));
+      expect(calendar.lastDate, _today);
+    });
+
+    testWidgets('reference trims Unicode whitespace and filters Cc/Cf', (
+      tester,
+    ) async {
+      final (router: _, :loans) = await _pump(
+        tester,
+        location: SettloRoutes.loan('l1'),
+      );
+      await _tap(tester, find.text('Record repayment'));
+      final reference = find.widgetWithText(TextField, 'UPI or bank reference');
+
+      await tester.enterText(
+        reference,
+        '\u00A0UPI\u200B\u202E\uFEFF\u0007 123\u2003',
+      );
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(reference).controller!.text,
+        '\u00A0UPI 123\u2003',
+      );
+
+      await _tap(tester, find.text('Record repayment').last);
+      expect(loans.data.loans.first.repayments.first.reference, 'UPI 123');
+    });
+
+    testWidgets('reference limit counts Unicode code points', (tester) async {
+      await _pump(tester, location: SettloRoutes.loan('l1'));
+      await _tap(tester, find.text('Record repayment'));
+      final reference = find.widgetWithText(TextField, 'UPI or bank reference');
+      final sixtyFourRupees = List.filled(64, '₹').join();
+
+      await tester.enterText(reference, '\u00A0$sixtyFourRupees\u3000');
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(reference).controller!.text,
+        '\u00A0$sixtyFourRupees\u3000',
+      );
+
+      final fortyCombinedGraphemes = List.filled(40, 'e\u0301').join();
+
+      await tester.enterText(reference, fortyCombinedGraphemes);
+      await tester.pump();
+
+      final text = tester.widget<TextField>(reference).controller!.text;
+      expect(text.runes, hasLength(64));
+      expect(text, List.filled(32, 'e\u0301').join());
     });
 
     testWidgets('a retried confirmation reuses its key and shows plain copy', (
@@ -262,7 +348,10 @@ void main() {
     testWidgets('more than is outstanding cannot be recorded', (tester) async {
       await _pump(tester, location: SettloRoutes.loan('l1'));
       await _tap(tester, find.text('Record repayment'));
-      await tester.enterText(find.byType(TextField), '675001');
+      await tester.enterText(
+        find.bySemanticsLabel('Amount in rupees'),
+        '675001',
+      );
       await tester.pump();
 
       expect(find.text("That's more than is left on the loan."), findsOne);
@@ -591,6 +680,178 @@ void main() {
 
     await _tap(tester, find.text('Home'));
     expect(find.text('+919820011223 · interest free'), findsOne);
+  });
+
+  group('Confirm repayment', () {
+    testWidgets('shows a spoken receipt and routes from the pending row', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      final (:router, loans: _) = await _pump(
+        tester,
+        location: SettloRoutes.loan('l1'),
+      );
+
+      await _tap(tester, find.text('awaiting you'));
+      expect(router.state.uri.toString(), SettloRoutes.confirmRepayment('r3'));
+      expect(find.text('Arjun says they paid you'), findsOne);
+      expect(find.textContaining('on 5 Oct · UPI'), findsOne);
+      expect(find.text('Outstanding after'), findsOne);
+      expect(find.text('₹6,50,000'), findsOne);
+      expect(_said('twenty-five thousand rupees'), findsWidgets);
+      expect(
+        find.widgetWithText(FilledButton, 'Confirm ₹25,000 received'),
+        findsOne,
+      );
+      expect(find.text("Didn't receive this"), findsOne);
+      expect(find.textContaining('Confirming is final'), findsOne);
+      semantics.dispose();
+    });
+
+    testWidgets('borrower copy names the lender and describes money paid', (
+      tester,
+    ) async {
+      final repayment = LoanRepayment(
+        id: 'borrower-review',
+        amount: const Paise.rupees(5000),
+        paidOn: DateTime(2026, 10, 5),
+        method: RepaymentMethod.bank,
+        status: RepaymentStatus.pending,
+        recordedByYou: false,
+      );
+      final loan = Loan(
+        id: 'borrowed',
+        counterparty: 'Meera',
+        youLent: false,
+        principal: const Paise.rupees(40000),
+        repaid: const Paise.rupees(15000),
+        startOn: DateTime(2026, 9),
+        repayments: [repayment],
+      );
+      await _pump(
+        tester,
+        location: SettloRoutes.confirmRepayment(repayment.id),
+        loans: FakeLoansRepository(
+          LoansData(today: DateTime(2026, 11, 9), loans: [loan]),
+        ),
+      );
+
+      expect(find.text('Meera says you paid ₹5,000'), findsOne);
+      expect(find.textContaining('₹5,000 paid to Meera'), findsOne);
+      expect(
+        find.widgetWithText(FilledButton, 'Confirm ₹5,000 paid'),
+        findsOne,
+      );
+      expect(find.text("Didn't pay this"), findsOne);
+      expect(find.textContaining(' says he '), findsNothing);
+
+      await _tap(tester, find.text("Didn't pay this"));
+      expect(find.text("Didn't pay ₹5,000 to Meera?"), findsOne);
+      expect(find.widgetWithText(FilledButton, 'Mark as not paid'), findsOne);
+    });
+
+    testWidgets('primary no-pump double tap sends once', (tester) async {
+      final (router: _, :loans) = await _pump(
+        tester,
+        location: SettloRoutes.confirmRepayment('r3'),
+      );
+      final hold = loans.hold = Completer<void>();
+      final confirm = find.widgetWithText(
+        FilledButton,
+        'Confirm ₹25,000 received',
+      );
+
+      await tester.tap(confirm);
+      await tester.tap(confirm);
+      hold.complete();
+      await tester.pumpAndSettle();
+
+      expect(loans.calls, [startsWith('confirm_repayment ')]);
+      expect(
+        find.text('This repayment has already been answered and is read-only.'),
+        findsOne,
+      );
+      expect(find.text('₹6,50,000'), findsOne);
+    });
+
+    testWidgets('overpayment warns, clamps to zero and cannot confirm', (
+      tester,
+    ) async {
+      final repayment = LoanRepayment(
+        id: 'too-much',
+        amount: const Paise.rupees(25000),
+        paidOn: DateTime(2026, 10, 5),
+        status: RepaymentStatus.pending,
+        recordedByYou: false,
+      );
+      final loan = Loan(
+        id: 'nearly-closed',
+        counterparty: 'Arjun',
+        youLent: true,
+        principal: const Paise.rupees(100000),
+        repaid: const Paise.rupees(90000),
+        startOn: DateTime(2026),
+        repayments: [repayment],
+      );
+      await _pump(
+        tester,
+        location: SettloRoutes.confirmRepayment(repayment.id),
+        loans: FakeLoansRepository(
+          LoansData(today: DateTime(2026, 11, 9), loans: [loan]),
+        ),
+      );
+
+      expect(find.text('₹0'), findsOne);
+      expect(find.textContaining('Confirming will be refused'), findsOne);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Confirm ₹25,000 received'),
+            )
+            .onPressed,
+        isNull,
+      );
+    });
+
+    testWidgets('the recording party sees a read-only receipt', (tester) async {
+      final loan = arjunLoan(
+        repayments: [
+          LoanRepayment(
+            id: 'mine',
+            amount: const Paise.rupees(25000),
+            paidOn: DateTime(2026, 10, 5),
+            method: RepaymentMethod.upi,
+            status: RepaymentStatus.pending,
+            recordedByYou: true,
+          ),
+        ],
+      );
+      await _pump(
+        tester,
+        location: SettloRoutes.confirmRepayment('mine'),
+        loans: FakeLoansRepository(
+          LoansData(today: DateTime(2026, 11, 9), loans: [loan]),
+        ),
+      );
+
+      expect(find.text('You recorded this payment'), findsOne);
+      expect(
+        find.textContaining('Only the person who did not record'),
+        findsOne,
+      );
+      expect(find.byType(FilledButton), findsNothing);
+      expect(find.text("Didn't receive this"), findsNothing);
+    });
+
+    testWidgets('controls and receipt rows meet accessibility guidelines', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await _pump(tester, location: SettloRoutes.confirmRepayment('r3'));
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
+    });
   });
 
   group('a double tap in one frame sends once', () {

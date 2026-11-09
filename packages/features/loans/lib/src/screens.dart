@@ -201,18 +201,3 @@ class _LoanCard extends StatelessWidget {
     );
   }
 }
-
-/// Placeholder for the ConfirmRepayment artboard (#90).
-class ConfirmRepaymentScreen extends StatelessWidget {
-  /// The ConfirmRepayment screen for [repaymentId].
-  const new({required this.repaymentId, super.key});
-
-  /// The repayment to confirm.
-  final String repaymentId;
-
-  @override
-  Widget build(BuildContext context) => const SPlaceholderScreen(
-    title: 'Confirm repayment',
-    artboard: 'ConfirmRepayment',
-  );
-}

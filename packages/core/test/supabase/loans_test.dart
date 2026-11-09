@@ -128,6 +128,9 @@ void main() {
     'k-closed': (400, '22023', 'loan_closed'),
     'k-answered': (400, '22023', 'not_pending'),
     'k-own': (403, '42501', 'own_record'),
+    'k-before': (400, '22023', 'paid_on_before_start'),
+    'k-future': (400, '22023', 'paid_on_future'),
+    'k-reference': (400, '22023', 'reference_invalid'),
     'k-outsider': (403, '42501', null),
     'k-reason': (400, '22023', null),
     'k-interest': (400, '22023', 'interest_not_supported'),
@@ -313,7 +316,8 @@ void main() {
       loanId: 'l1',
       amount: const Paise.rupees(25000),
       method: RepaymentMethod.cash,
-      reference: null,
+      paidOn: DateTime(2026, 10, 4),
+      reference: 'UPI 4321',
     ), idempotencyKey: '7b1c0000-0000-4000-8000-000000000001');
 
     expect(id, 'k-record');
@@ -323,6 +327,8 @@ void main() {
         'idempotency_key': '7b1c0000-0000-4000-8000-000000000001',
         'amount_minor': 2500000,
         'method': 'cash',
+        'paid_on': '2026-10-04',
+        'reference': 'UPI 4321',
       },
     });
     expect(requests, ['POST rpc/record_repayment  $body']);
@@ -370,6 +376,21 @@ void main() {
         LoanRejection.ownRecord,
         'Your side recorded this one, so the other person confirms it.',
       ),
+      (
+        'k-before',
+        LoanRejection.paidOnBeforeStart,
+        "Paid on can't be before the loan started.",
+      ),
+      (
+        'k-future',
+        LoanRejection.paidOnFuture,
+        "Paid on can't be in the future.",
+      ),
+      (
+        'k-reference',
+        LoanRejection.referenceInvalid,
+        'Reference must be 64 characters or fewer, with no hidden controls.',
+      ),
       ('k-outsider', LoanRejection.notAllowed, "You can't change this loan."),
       (
         'k-reason',
@@ -396,6 +417,7 @@ void main() {
           loanId: 'l1',
           amount: const Paise(100),
           method: null,
+          paidOn: null,
           reference: null,
         ), idempotencyKey: 'k-conflict'),
         throwsA(isA<IdempotencyConflict>()),

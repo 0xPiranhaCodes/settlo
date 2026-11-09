@@ -35,6 +35,8 @@ final homeMain = HomeData(
       installmentsPaid: 13,
       installmentsTotal: 40,
       nextDueOn: DateTime(2026, 12, 5),
+      pendingRepaymentId: 'r3',
+      pendingRepaymentAmount: const Paise.rupees(25000),
     ),
   ],
 );

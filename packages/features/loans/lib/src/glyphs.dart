@@ -46,6 +46,27 @@ class LoanGlyph extends StatelessWidget {
       c + Offset.fromDirection(from + (to - from) * i / 24, r),
   ];
 
+  /// Check (`M5 12l5 5L20 7`).
+  static const check = [
+    [Offset(5, 12), Offset(10, 17), Offset(20, 7)],
+  ];
+
+  /// Shield with a check, used for final repayment decisions.
+  static const shieldCheck = [
+    [
+      Offset(12, 3),
+      Offset(20, 6),
+      Offset(20, 12),
+      Offset(18, 17),
+      Offset(12, 21),
+      Offset(6, 17),
+      Offset(4, 12),
+      Offset(4, 6),
+      Offset(12, 3),
+    ],
+    [Offset(9, 12), Offset(11, 14), Offset(15, 10)],
+  ];
+
   /// Polylines in the 24 box.
   final List<List<Offset>> lines;
 
