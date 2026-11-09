@@ -50,74 +50,7 @@ class SpaceEmptyView extends StatelessWidget {
             media.padding.bottom + SettloSpacing.x2,
           ),
           children: [
-            Row(
-              children: [
-                SizedBox(
-                  width: 96,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      tooltip: 'Back',
-                      onPressed: () => context.canPop()
-                          ? context.pop()
-                          : context.go(SettloRoutes.spaces),
-                      style: IconButton.styleFrom(
-                        fixedSize: const Size.square(
-                          SettloSpacing.minTouchTarget,
-                        ),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        backgroundColor: c.surface,
-                        side: BorderSide(color: c.hairline),
-                      ),
-                      icon: SpacesIcon(
-                        SpacesGlyph.back,
-                        color: c.textPrimary,
-                        size: 22,
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    space.name,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SettloTypography.figtree(
-                      15,
-                      weight: FontWeight.w500,
-                      color: c.textPrimary,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 96,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: ExcludeSemantics(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (final (i, m) in members.take(3).indexed)
-                            // Overlap by 8 and stay flush with the margin.
-                            Transform.translate(
-                              offset: Offset(
-                                8.0 * (math.min(members.length, 3) - 1 - i),
-                                0,
-                              ),
-                              child: Opacity(
-                                opacity: m.joined ? 1 : 0.5,
-                                child: SAvatar(m.name, size: 30),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            SpaceHeader(space),
             const SizedBox(height: 20),
             SCard(
               hero: true,
@@ -215,6 +148,87 @@ class SpaceEmptyView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// A space's top bar: back, its name, and up to three members' avatars.
+class SpaceHeader extends StatelessWidget {
+  /// The bar for [space].
+  const new(this.space, {super.key});
+
+  /// The space shown.
+  final SpaceSummary space;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final members = [space.you, ...space.others];
+    return Row(
+      children: [
+        SizedBox(
+          width: 96,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              tooltip: 'Back',
+              onPressed: () => context.canPop()
+                  ? context.pop()
+                  : context.go(SettloRoutes.spaces),
+              style: IconButton.styleFrom(
+                fixedSize: const Size.square(SettloSpacing.minTouchTarget),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                backgroundColor: c.surface,
+                side: BorderSide(color: c.hairline),
+              ),
+              icon: SpacesIcon(
+                SpacesGlyph.back,
+                color: c.textPrimary,
+                size: 22,
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            space.name,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: SettloTypography.figtree(
+              15,
+              weight: FontWeight.w500,
+              color: c.textPrimary,
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 96,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: ExcludeSemantics(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final (i, m) in members.take(3).indexed)
+                    // Overlap by 8 and stay flush with the margin.
+                    Transform.translate(
+                      offset: Offset(
+                        8.0 * (math.min(members.length, 3) - 1 - i),
+                        0,
+                      ),
+                      child: Opacity(
+                        opacity: m.joined ? 1 : 0.5,
+                        child: SAvatar(m.name, size: 30),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

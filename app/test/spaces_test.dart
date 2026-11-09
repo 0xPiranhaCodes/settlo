@@ -11,6 +11,7 @@ import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_home.dart';
 import 'support/fake_session.dart';
+import 'support/fake_space_ledger.dart';
 import 'support/fake_spaces.dart';
 
 /// Pumps the Spaces tab in the shell at [initialLocation] with
@@ -21,6 +22,7 @@ Future<GoRouter> _pump(
   FakeSpacesRepository repository, {
   String initialLocation = SettloRoutes.spaces,
   GoldenDevice device = SettloGoldenDevices.canvas390,
+  FakeSpaceLedgerRepository? ledger,
 }) async {
   await loadSettloFonts();
   tester.view
@@ -47,10 +49,26 @@ Future<GoRouter> _pump(
                 spaceId: state.pathParameters['spaceId']!,
               ),
             ),
+            routes: [
+              GoRoute(
+                path: 'balances',
+                builder: (_, state) => SettloShell(
+                  currentIndex: 1,
+                  onTabSelected: (_) {},
+                  child: SpaceScreen(spaceId: state.pathParameters['spaceId']!),
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      for (final path in [SettloRoutes.addExpense, SettloRoutes.profile])
+      for (final path in [
+        SettloRoutes.addExpense,
+        SettloRoutes.profile,
+        SettloRoutes.settle,
+        SettloRoutes.settlePay,
+        SettloRoutes.activity,
+      ])
         GoRoute(path: path, builder: (_, state) => Text('at ${state.uri}')),
     ],
   );
@@ -60,6 +78,9 @@ Future<GoRouter> _pump(
       overrides: [
         sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
         spacesRepositoryProvider.overrideWithValue(repository),
+        spaceLedgerRepositoryProvider.overrideWithValue(
+          ledger ?? FakeSpaceLedgerRepository(),
+        ),
       ],
       child: MaterialApp.router(
         theme: SettloTheme.dark(),
@@ -164,7 +185,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(router.state.uri.toString(), SettloRoutes.space('s7'));
       expect(find.text('NOVEMBER'), findsNothing, reason: 'not Space · empty');
-      expect(find.byType(SPlaceholderScreen), findsOne);
+      expect(find.byType(SpaceDetailView), findsOne);
     });
 
     testWidgets('the chips filter by kind', (tester) async {
@@ -429,7 +450,7 @@ void main() {
         initialLocation: SettloRoutes.space('s1'),
       );
       expect(find.text('NOVEMBER'), findsNothing);
-      expect(find.byType(SPlaceholderScreen), findsOne);
+      expect(find.byType(SpaceDetailView), findsOne);
     });
 
     for (final (label, location) in [
@@ -455,10 +476,214 @@ void main() {
     });
   });
 
+  group('Space with expenses', () {
+    Future<(GoRouter, FakeSpaceLedgerRepository)> pumpSpace(
+      WidgetTester tester, {
+      String spaceId = 's1',
+      bool balances = false,
+    }) async {
+      final ledger = FakeSpaceLedgerRepository();
+      final router = await _pump(
+        tester,
+        FakeSpacesRepository(spacesList),
+        initialLocation: balances
+            ? SettloRoutes.spaceBalances(spaceId)
+            : SettloRoutes.space(spaceId),
+        ledger: ledger,
+      );
+      return (router, ledger);
+    }
+
+    Future<void> openExpense(WidgetTester tester, String description) async {
+      await tester.ensureVisible(find.text(description));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(description));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('expenses are grouped by day under the month', (tester) async {
+      await pumpSpace(tester);
+
+      expect(find.text('YOU ARE OWED'), findsOne);
+      expect(find.text('November'), findsOne);
+      expect(find.text('Daily spend · Nov'), findsOne);
+      expect(find.text('₹4,140 today'), findsOne);
+      expect(find.text('Today'), findsOne);
+      expect(find.text('Yesterday'), findsOne);
+      expect(find.text('you paid · split 3 ways'), findsWidgets);
+      expect(find.text('Priya paid · split 3 ways'), findsWidgets);
+      await _scrollToEnd(tester);
+      for (final day in ['Thu 5 Nov', 'Mon 2 Nov', 'Sun 1 Nov']) {
+        expect(find.text(day), findsOne, reason: day);
+      }
+      expect(find.text('Milk · Nov'), findsOne);
+    });
+
+    testWidgets('the tabs and actions go where they say', (tester) async {
+      for (final (label, location) in [
+        ('Balances', SettloRoutes.spaceBalances('s1')),
+        ('Activity', SettloRoutes.activity),
+        ('Add expense', SettloRoutes.addExpense),
+        ('Settle up', SettloRoutes.settle),
+      ]) {
+        final (router, _) = await pumpSpace(tester);
+        await tester.tap(
+          find.descendant(
+            of: find.byType(SpaceDetailView),
+            matching: find.text(label),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(router.state.uri.toString(), location, reason: label);
+      }
+      final (router, _) = await pumpSpace(tester, balances: true);
+      await tester.tap(find.text('Expenses'));
+      await tester.pumpAndSettle();
+      expect(router.state.uri.toString(), SettloRoutes.space('s1'));
+    });
+
+    testWidgets('balances: who paid against a fair share, then settling', (
+      tester,
+    ) async {
+      final (router, _) = await pumpSpace(tester, balances: true);
+
+      expect(find.text('WHO PAID VS FAIR SHARE · NOV'), findsOne);
+      expect(find.text('₹6,150 EACH'), findsOne);
+      expect(
+        [
+          for (final bar in tester.widgetList<FairShareBar>(
+            find.byType(FairShareBar),
+          ))
+            (bar.name, bar.paid, bar.fairShare, bar.monthTotal),
+        ],
+        const [
+          ('You', Paise.rupees(9000), Paise.rupees(6150), Paise.rupees(18450)),
+          (
+            'Rahul',
+            Paise.rupees(5400),
+            Paise.rupees(6150),
+            Paise.rupees(18450),
+          ),
+          (
+            'Priya',
+            Paise.rupees(4050),
+            Paise.rupees(6150),
+            Paise.rupees(18450),
+          ),
+        ],
+      );
+      expect(find.text('+₹2,850'), findsOne);
+      expect(find.text('−₹2,100'), findsOne);
+      expect(find.text('2 PAYMENTS'), findsOne);
+      expect(find.text('Priya pays you'), findsOne);
+      expect(find.text('Rahul pays you'), findsOne);
+      await _scrollToEnd(tester);
+      expect(find.text('BY CATEGORY · NOV'), findsOne);
+      expect(find.text('Household'), findsOne);
+      expect(find.text('No category'), findsOne);
+
+      await tester.tap(find.text('Remind').first);
+      await tester.pumpAndSettle();
+      expect(router.state.uri.toString(), SettloRoutes.settle);
+    });
+
+    testWidgets('paid and fair share are read in rupees', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpSpace(tester, balances: true);
+
+      const you =
+          'You paid nine thousand rupees, fair share six thousand one hundred '
+          'fifty rupees, two thousand eight hundred fifty rupees more than '
+          'their share';
+      const priya =
+          'Priya paid four thousand fifty rupees, fair share six thousand one '
+          'hundred fifty rupees, two thousand one hundred rupees less than '
+          'their share';
+      for (final label in [you, priya]) {
+        expect(find.bySemanticsLabel(label), findsOne, reason: label);
+      }
+      expect(find.bySemanticsLabel(RegExp('₹|paise')), findsNothing);
+      semantics.dispose();
+    });
+
+    testWidgets('only the creator or an owner sees edit and delete', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      // In Goa trip you are not an owner.
+      await pumpSpace(tester, spaceId: 's2');
+
+      expect(find.bySemanticsLabel(RegExp('Shack lunch')), isNot(findsNothing));
+      expect(
+        tester.getSemantics(find.text('Shack lunch')),
+        isNot(isSemantics(hasTapAction: true)),
+      );
+      await openExpense(tester, 'Shack lunch');
+      expect(find.text('Save changes'), findsNothing);
+
+      await openExpense(tester, 'Scooters');
+      expect(find.text('Save changes'), findsOne);
+      semantics.dispose();
+    });
+
+    testWidgets('an edit saves through update_expense with one key', (
+      tester,
+    ) async {
+      final (_, ledger) = await pumpSpace(tester);
+      await openExpense(tester, 'Groceries · BigBasket');
+      expect(find.text('Edit expense · Flat 402'), findsOne);
+
+      await tester.enterText(find.byType(TextField).first, '2,000.50');
+      await tester.enterText(find.byType(TextField).last, 'Groceries');
+      ledger.failure = Exception('offline');
+      await tester.tap(find.text('Save changes'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          "We couldn't save that. Check your connection and try again.",
+        ),
+        findsOne,
+      );
+
+      await tester.tap(find.text('Save changes'));
+      await tester.pumpAndSettle();
+      expect(find.text('Save changes'), findsNothing);
+      final [first, retry] = ledger.calls;
+      expect(first, retry, reason: 'a retry reuses the key');
+      expect(first, matches(RegExp(r'^update \S{36} e1 Groceries 200050$')));
+      expect(find.text('Groceries'), findsOne);
+      expect(find.text('₹2,000.50'), findsOne);
+    });
+
+    testWidgets('a split by amounts keeps its amount', (tester) async {
+      await pumpSpace(tester);
+      await openExpense(tester, 'Wifi · Airtel');
+
+      expect(find.byType(TextField), findsOne, reason: 'description only');
+      expect(find.textContaining('its amount stays as it is'), findsOne);
+    });
+
+    testWidgets('delete asks once more, then removes it', (tester) async {
+      final (_, ledger) = await pumpSpace(tester);
+      await openExpense(tester, 'Electricity');
+
+      await tester.tap(find.text('Delete expense'));
+      await tester.pumpAndSettle();
+      expect(ledger.calls, isEmpty);
+      await tester.tap(find.text('Tap again to delete'));
+      await tester.pumpAndSettle();
+
+      expect(ledger.calls.single, matches(RegExp(r'^delete \S{36} e2$')));
+      expect(find.text('Electricity'), findsNothing);
+    });
+  });
+
   group('every control is at least 44x44pt', () {
     for (final (name, spaces, location, sheet) in [
       ('Spaces', spacesList, SettloRoutes.spaces, false),
       ('Space · empty', [spaceEmpty], SettloRoutes.space('s9'), false),
+      ('Space · expenses', spacesList, SettloRoutes.space('s1'), false),
+      ('Space · balances', spacesList, SettloRoutes.spaceBalances('s1'), false),
       ('New space', spacesList, SettloRoutes.spaces, true),
     ]) {
       testWidgets('$name meets the iOS tap target guideline', (tester) async {
@@ -509,6 +734,8 @@ void main() {
     for (final (name, spaces, location, sheet) in [
       ('Spaces', spacesList, SettloRoutes.spaces, false),
       ('Space · empty', [spaceEmpty], SettloRoutes.space('s9'), false),
+      ('Space · expenses', spacesList, SettloRoutes.space('s1'), false),
+      ('Space · balances', spacesList, SettloRoutes.spaceBalances('s1'), false),
       ('New space', spacesList, SettloRoutes.spaces, true),
     ]) {
       testWidgets(name, (tester) async {

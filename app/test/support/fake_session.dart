@@ -5,6 +5,7 @@ import 'package:settlo_core/settlo_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'fake_home.dart';
+import 'fake_space_ledger.dart';
 import 'fake_spaces.dart';
 
 /// A signed-in session for a test user; no network or storage involved.
@@ -40,13 +41,16 @@ class FakeSessionNotifier extends SessionNotifier {
 }
 
 /// [SettloApp] with the session faked to [session], an empty Home and the
-/// SpacesList spaces.
+/// SpacesList spaces with their ledgers.
 Widget fakeSessionApp(Session? session) => ProviderScope(
   overrides: [
     sessionProvider.overrideWith(() => FakeSessionNotifier(session)),
     homeRepositoryProvider.overrideWithValue(FakeHomeRepository(homeEmpty)),
     spacesRepositoryProvider.overrideWithValue(
       FakeSpacesRepository(spacesList),
+    ),
+    spaceLedgerRepositoryProvider.overrideWithValue(
+      FakeSpaceLedgerRepository(),
     ),
   ],
   child: const SettloApp(),
