@@ -20,9 +20,11 @@ mkdir -p "$gen/supabase"
 find "$gen/supabase" -maxdepth 1 -type l -delete
 shopt -s nullglob dotglob
 for entry in "$root"/supabase/*; do
-  case "$(basename "$entry")" in
+  name="$(basename "$entry")"
+  case "$name" in
     config.toml|config.local-dev.toml|.temp|.branches) ;;
-    *) ln -s "$entry" "$gen/supabase/" ;;
+    # Symlinks were just cleared, so anything still here is CLI-created state (e.g. snippets/); keep it.
+    *) [ -e "$gen/supabase/$name" ] || ln -s "$entry" "$gen/supabase/$name" ;;
   esac
 done
 cat "$root/supabase/config.toml" "$root/supabase/config.local-dev.toml" > "$gen/supabase/config.toml"
