@@ -130,6 +130,7 @@ void main() {
     'k-own': (403, '42501', 'own_record'),
     'k-outsider': (403, '42501', null),
     'k-reason': (400, '22023', null),
+    'k-interest': (400, '22023', 'interest_not_supported'),
     'k-other': (500, 'XX000', null),
   };
 
@@ -156,6 +157,8 @@ void main() {
             );
         } else if (path == 'rpc/record_repayment') {
           request.response.write(jsonEncode('k-record'));
+        } else if (path == 'rpc/create_loan') {
+          request.response.write(jsonEncode('k-create'));
         } else if (path.startsWith('rpc/')) {
           request.response.statusCode = 204;
         } else {
@@ -186,6 +189,7 @@ void main() {
     final data = await repository().load();
 
     expect(data.today, DateTime(2026, 11, 9));
+    expect(data.yourName, 'Sana');
     expect([for (final l in data.loans) l.id], ['l1', 'l4', 'l3']);
 
     final arjun = data.loans.first;
@@ -231,6 +235,77 @@ void main() {
     expect((dev.installment, dev.dueDay, dev.onTrack), (null, null, null));
     expect(dev.progress, 1);
     expect(dev.repayments, isEmpty);
+  });
+
+  group('createLoan', () {
+    NewLoan loan({Paise? installment, int? dueDay}) => (
+      youLent: true,
+      counterpartyPhone: '+919800000002',
+      principal: const Paise.rupees(1000000),
+      installment: installment,
+      dueDay: dueDay,
+      startOn: DateTime(2026, 11, 10),
+    );
+
+    test('sends a monthly loan with its key and returns the id', () async {
+      final id = await repository().createLoan(
+        loan(installment: const Paise.rupees(25000), dueDay: 5),
+        idempotencyKey: '3e7a0000-0000-4000-8000-000000000001',
+      );
+
+      expect(id, 'k-create');
+      final body = jsonEncode({
+        'p': {
+          'idempotency_key': '3e7a0000-0000-4000-8000-000000000001',
+          'direction': 'lent',
+          'counterparty_phone': '+919800000002',
+          'principal_minor': 100000000,
+          'installment_minor': 2500000,
+          'due_day': 5,
+          'start_on': '2026-11-10',
+        },
+      });
+      expect(requests, ['POST rpc/create_loan  $body']);
+    });
+
+    test(
+      'a flexible loan sends no schedule; borrowed is the other side',
+      () async {
+        await repository().createLoan((
+          youLent: false,
+          counterpartyPhone: '+919800000002',
+          principal: const Paise(500),
+          installment: null,
+          dueDay: null,
+          startOn: DateTime(2026),
+        ), idempotencyKey: 'k1');
+        final p = (jsonDecode(requests.single.split('  ').last) as Map)['p'];
+        expect(p, {
+          'idempotency_key': 'k1',
+          'direction': 'borrowed',
+          'counterparty_phone': '+919800000002',
+          'principal_minor': 500,
+          'start_on': '2026-01-01',
+        });
+      },
+    );
+
+    test('refusals and conflicts map as for repayments', () async {
+      await expectLater(
+        repository().createLoan(loan(), idempotencyKey: 'k-interest'),
+        throwsA(
+          isA<LoanRejected>().having(
+            (e) => e.reason,
+            'reason',
+            LoanRejection.invalid,
+          ),
+        ),
+      );
+      await expectLater(
+        repository().createLoan(loan(), idempotencyKey: 'k-conflict'),
+        throwsA(isA<IdempotencyConflict>()),
+      );
+    });
   });
 
   test('records a repayment with its key and returns the id', () async {

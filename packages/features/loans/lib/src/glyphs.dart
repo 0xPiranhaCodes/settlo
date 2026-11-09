@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 /// A canvas line icon in a 24 box, drawn as round-capped strokes.
@@ -16,10 +18,32 @@ class LoanGlyph extends StatelessWidget {
     [Offset(15, 5), Offset(8, 12), Offset(15, 19)],
   ];
 
+  /// Chevron down (`M6 9l6 6 6-6`).
+  static const chevronDown = [
+    [Offset(6, 9), Offset(12, 15), Offset(18, 9)],
+  ];
+
   /// Plus (`M12 5v14M5 12h14`).
   static const plus = [
     [Offset(12, 5), Offset(12, 19)],
     [Offset(5, 12), Offset(19, 12)],
+  ];
+
+  /// Arrow right (`M5 12h14m0 0l-5-5m5 5l-5 5`).
+  static const arrow = [
+    [Offset(5, 12), Offset(19, 12)],
+    [Offset(14, 7), Offset(19, 12), Offset(14, 17)],
+  ];
+
+  /// Person (`circle 12 9 r3.5`, `M5 20a7 7 0 0 1 14 0`).
+  static final List<List<Offset>> person = [
+    _arc(const Offset(12, 9), 3.5, 0, 2 * math.pi),
+    _arc(const Offset(12, 20), 7, math.pi, 2 * math.pi),
+  ];
+
+  static List<Offset> _arc(Offset c, double r, double from, double to) => [
+    for (var i = 0; i <= 24; i++)
+      c + Offset.fromDirection(from + (to - from) * i / 24, r),
   ];
 
   /// Polylines in the 24 box.

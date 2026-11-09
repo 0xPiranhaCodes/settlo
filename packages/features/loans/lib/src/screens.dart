@@ -202,16 +202,6 @@ class _LoanCard extends StatelessWidget {
   }
 }
 
-/// Placeholder for the NewLoan artboard (#88).
-class NewLoanScreen extends StatelessWidget {
-  /// The NewLoan screen.
-  const new({super.key});
-
-  @override
-  Widget build(BuildContext context) =>
-      const SPlaceholderScreen(title: 'New loan', artboard: 'NewLoan');
-}
-
 /// Placeholder for the ConfirmRepayment artboard (#90).
 class ConfirmRepaymentScreen extends StatelessWidget {
   /// The ConfirmRepayment screen for [repaymentId].
