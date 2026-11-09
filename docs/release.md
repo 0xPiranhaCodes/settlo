@@ -11,6 +11,7 @@ This document is the release gate owned by Principal QA. Check each item against
 - [ ] The light-first user test is complete and its findings are resolved or explicitly accepted.
 - [ ] Required CI checks are green for the release candidate.
 - [ ] Production SMS OTP is live: the owner's MSG91 account, DLT template and sender id are approved; `send-sms` is deployed, its secrets are set, and the Send-SMS hook is enabled in the Dashboard ([steps](../supabase/README.md#enabling-on-the-hosted-project)). An OTP to a real number arrives, and `supabase config diff` shows no `hook` changes.
+- [ ] After `supabase config push`, the hosted Auth settings show the SMS OTP expiry is `600` seconds (10 minutes).
 - [ ] The iOS and Android store submissions have been made.
 
 The M6 gate is complete when both stores have accepted a submission for review.
