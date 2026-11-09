@@ -257,8 +257,8 @@ select pg_temp.tagged(throws_ok(
 select pg_temp.tagged(is(pg_temp.affected($$update public.loan_repayments set confirmed_by = '00000000-0000-0000-0000-00000000f002'
                               where id = '00000000-0000-0000-0000-00000000f601'$$),
   0, 'pending borrower N cannot confirm a repayment [-loan_repayments_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-00000000f502'$$),
-  0, 'pending lender N cannot close L2 [-loans_update]'));
+select throws_ok($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-00000000f502'$$,
+  '42501', null, 'pending lender N cannot close L2');
 
 -- Accept S1 and L1.
 select lives_ok($$select public.accept_claim('space_member', '00000000-0000-0000-0000-00000000f202')$$,
@@ -331,8 +331,8 @@ select results_eq('select id from public.spaces order by id',
   'N no longer reads S2 after rejecting it');
 select pg_temp.tagged(results_eq('select id from public.loans', $$values ('00000000-0000-0000-0000-00000000f501'::uuid)$$,
   'N no longer reads L2 after rejecting its lender side [-loans_select]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-00000000f502'$$),
-  0, 'N cannot close L2 after rejecting its lender side [-loans_update]'));
+select throws_ok($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-00000000f502'$$,
+  '42501', null, 'N cannot close L2 after rejecting its lender side');
 select is((select count(*)::int from public.activity where action = 'rejected'), 0,
   'N does not read the rejection activity of what it rejected');
 reset role;
@@ -375,8 +375,8 @@ select results_eq('select id from public.loans order by id',
   'A still reads both loans');
 select pg_temp.tagged(is(pg_temp.affected($$update public.spaces set name = 'Flat 402B' where id = '00000000-0000-0000-0000-00000000f101'$$),
   1, 'accepted owner A renames S1 [+spaces_update]'));
-select pg_temp.tagged(is(pg_temp.affected($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-00000000f501'$$),
-  1, 'lender A closes L1 [+loans_update]'));
+select throws_ok($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-00000000f501'$$,
+  '42501', null, 'lender A cannot close L1 directly (#87: closing is derived)');
 reset role;
 
 -- U verifies the old number, accepts S3, leaves S5 pending, then changes number (review finding 2).
@@ -488,7 +488,7 @@ select is(
   (select array_agg(t order by t) from (
      select sign || p as t from unnest(array[
        'space_members_insert', 'space_members_update', 'spaces_update', 'expenses_insert', 'expenses_update',
-       'recurring_expenses_insert', 'recurring_expenses_update', 'loans_select', 'loans_update',
+       'recurring_expenses_insert', 'recurring_expenses_update', 'loans_select',
        'loan_repayments_insert', 'loan_repayments_update']) p
      cross join (values ('+'), ('-')) v(sign)
      except select tag from pg_temp.covered) missing),
