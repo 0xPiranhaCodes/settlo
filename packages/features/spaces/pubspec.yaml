@@ -1,0 +1,14 @@
+name: settlo_spaces
+description: The spaces feature.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  settlo_core:
+    path: ../../core
