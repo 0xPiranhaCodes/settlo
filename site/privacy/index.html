@@ -46,13 +46,16 @@
     <dd>The name and type of each space (flat, trip, friend or other), and for each member: their phone number, the name they were added under, their role, and when they were added, accepted, declined or left.</dd>
 
     <dt>Expenses</dt>
-    <dd>Description, category, amount, date, who paid and how it is split, who created it, and when. Settle-up payments are stored the same way, with whether the receiver confirmed them. Repeating expenses, where set up, are stored with their schedule.</dd>
+    <dd>Description, category, amount, date, who paid and how it is split, who created it, and when. Settle-up payments are stored the same way, with who confirmed or disputed them and when. Disputing a settle-up needs a reason, which you type in your own words (up to 500 characters); it is stored with the settle-up and visible to the members of that space. Repeating expenses, where set up, are stored with their schedule.</dd>
 
     <dt>Loans and repayments</dt>
-    <dd>The phone numbers of the lender and the borrower, the amount, interest type, schedule, instalment and due day; and for each repayment the amount, date, method (UPI, cash, bank or other), any reference you type, who recorded it, who confirmed or disputed it and when, and the reason given for a dispute.</dd>
+    <dd>The phone numbers of the lender and the borrower, the amount, interest type, schedule, instalment and due day; and for each repayment the amount, date, method (UPI, cash, bank or other), any reference you type, who recorded it, who confirmed or disputed it and when, and the reason typed for a dispute, in free text, which the other person in the loan can see.</dd>
 
     <dt>Activity history</dt>
     <dd>A log of changes in each space and loan: who created, edited, deleted, restored, recorded, confirmed, disputed or declined something, when, and a copy of the entry before and after the change. Members of the space or loan can see it.</dd>
+
+    <dt>Friends list</dt>
+    <dd>Our server can hold a list of phone numbers you save as friends, each linked to that person’s account if they have one. The current app does not save anything to it. It is visible only to you.</dd>
 
     <dt>Invite links</dt>
     <dd>When you send an invite, we store a one-way hash of the link (not the link itself), what it invites to, the phone number it is for, who issued it, and when it was created, used, declined or revoked.</dd>
@@ -120,9 +123,9 @@
   <ul>
     <li>Your name, UPI ID and phone number are removed from your profile, and your number is released from sign-in so that it is no longer tied to the account.</li>
     <li>Invitations you had not yet accepted are unlinked from you.</li>
-    <li>Expenses, loans, repayments and history in spaces and loans you shared with others are kept, because they are also the other people’s records. Your empty profile stays attached to them so the totals still add up. Those entries still carry the phone number and name that you were added under.</li>
+    <li>Any friends list saved for you is deleted.</li>
   </ul>
-  <p>If you also want your number and name removed from shared entries, say so in your request and we will remove them wherever the other people’s records do not depend on them, and tell you what we could not remove and why.</p>
+  <p>Deleting your account removes your profile and your sign-in. It does not remove the expenses, loans, repayments and settle-ups you share with other people, or their history. Those stay in the other people’s records, including the name and phone number they entered for you, because they are part of those people’s own financial history. Your emptied profile stays attached to them so the totals still add up. The person who created an expense, or an owner of the space, can still edit or delete it.</p>
   <p>Signing out, or uninstalling the app, removes the copy on your phone but not the data on the server.</p>
 
   <h2 id="rights">Your rights under the DPDP Act, 2023</h2>
@@ -130,7 +133,7 @@
   <ul>
     <li><strong>Access:</strong> ask for a summary of the personal data we hold about you, what we do with it, and who we have shared it with. You can also export your spaces and loans from the app at any time.</li>
     <li><strong>Correction and updating:</strong> change your name and UPI ID in the app, or ask us to correct, complete or update anything else.</li>
-    <li><strong>Erasure:</strong> ask us to delete your personal data, as described above.</li>
+    <li><strong>Erasure:</strong> ask us to delete your account, with the limits described above for records you share with other people.</li>
     <li><strong>Withdraw consent:</strong> at any time, by asking us to delete your account. This does not affect what was done before you withdrew, and the app cannot work without an account.</li>
     <li><strong>Nominate:</strong> name another person to exercise these rights if you die or become unable to.</li>
     <li><strong>Grievance redressal:</strong> complain to us and receive a response, as set out below.</li>
