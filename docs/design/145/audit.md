@@ -149,7 +149,9 @@ This follow-up changes tests only; the successful Linux renders remain current.
 
 Local verification: all 652 app tests and 392 core tests pass; root analyze is
 clean. Diagnostic renders confirm the two-line regular Welcome headline, seamless
-glass and full large-text names. Remaining gates: affected Linux renders and
-comparison sheets, exact-head pull_request CI including Android, workflow
-restoration and flutter clean. No palette, font assets, routes,
+glass and full large-text names. Affected Linux goldens and 32 comparison groups
+were regenerated in successful run 42860898594 and visually checked for the
+Welcome composition, continuous glass band and accessible loan/payer names.
+The temporary workflow is restored to the PR base. Exact-head pull_request CI
+including Android and final flutter clean are recorded in the PR reply. No palette, font assets, routes,
 providers or mutation guards are changed in this round.
