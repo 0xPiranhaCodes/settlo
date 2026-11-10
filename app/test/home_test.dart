@@ -83,7 +83,7 @@ Future<GoRouter> _pump(
 
 /// Scrolls Home to its end, so every row has been laid out.
 Future<void> _scrollToEnd(WidgetTester tester) async {
-  await tester.drag(find.byType(ListView), const Offset(0, -2000));
+  await tester.drag(find.byType(CustomScrollView), const Offset(0, -2000));
   await tester.pumpAndSettle();
 }
 
@@ -303,7 +303,11 @@ void main() {
       final activityReads = activity.calls.length;
 
       repository.data = homeMain;
-      await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+      await tester.fling(
+        find.byType(CustomScrollView),
+        const Offset(0, 400),
+        1000,
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Flat 402'), findsOne);
@@ -428,7 +432,8 @@ void main() {
         await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
         await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
         await _scrollToEnd(tester);
-        await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+        // Pinned chrome clips the first visible row; audit its full hit box.
+        expectSettloTapTargets(tester);
         semantics.dispose();
       });
     }
