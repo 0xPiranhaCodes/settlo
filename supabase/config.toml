@@ -290,7 +290,7 @@ otp_expiry = 600
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
 # No SMS provider is declared: prod sends OTPs through the MSG91 Send-SMS hook (#13), served by
-# supabase/functions/send-sms. The hook is enabled in the Dashboard, never here: `config push`
+# supabase/functions/send-sms. The hook is enabled by the Supabase hosted workflow, never here: `config push`
 # would send unresolved env(...) literals and an `enabled = false` would switch it off. See
 # supabase/README.md.
 

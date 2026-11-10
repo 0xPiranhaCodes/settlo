@@ -12,6 +12,10 @@ on:
           - db-push
           - set-test-otp
           - clear-test-otp
+          - deploy-send-sms
+          - set-sms-secrets
+          - enable-sms-hook
+          - disable-sms-hook
       apply:
         description: "db-push only: apply the migrations after the dry run"
         required: false
@@ -28,7 +32,7 @@ permissions:
 env:
   SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
 
-# Trust boundary (docs/decisions/2026-11-10-release-trust-boundary.md): both jobs run in the
+# Trust boundary (docs/decisions/2026-11-10-release-trust-boundary.md): every job runs in the
 # `production` environment and refuse any ref but main. SUPABASE_ACCESS_TOKEN is a repository
 # secret, handed only to the steps that call Supabase.
 jobs:
@@ -78,7 +82,7 @@ jobs:
 
   test-otp:
     name: Test OTP numbers
-    if: inputs.action != 'db-push'
+    if: endsWith(inputs.action, '-test-otp')
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -87,6 +91,11 @@ jobs:
         run: |
           echo "::error::Hosted Auth config is changed from main only."
           exit 1
+
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Patch hosted Auth config
         shell: bash
@@ -127,3 +136,65 @@ jobs:
             exit 1
           fi
           echo "Hosted Auth config updated ($ACTION)."
+
+      # Once real SMS is live (repository variable SMS_LIVE=true), no test number may remain (#119).
+      - name: Require no test numbers when SMS is live
+        if: inputs.action == 'clear-test-otp' && vars.SMS_LIVE == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: scripts/supabase-hosted-sms.sh check-test-otp
+
+  # Production SMS through the MSG91 Send-SMS hook (#119). Order: deploy-send-sms, set-sms-secrets,
+  # enable-sms-hook; see supabase/README.md#enabling-on-the-hosted-project.
+  sms-hook:
+    name: Send-SMS hook
+    if: contains(fromJSON('["deploy-send-sms", "set-sms-secrets", "enable-sms-hook", "disable-sms-hook"]'), inputs.action)
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Require main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::The hosted Send-SMS hook is changed from main only."
+          exit 1
+
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Supabase CLI
+        if: inputs.action == 'deploy-send-sms'
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+        with:
+          version: 3.0.0
+
+      # Reads verify_jwt = false from config.toml: GoTrue signs the hook call, it sends no user JWT.
+      - name: Deploy send-sms
+        if: inputs.action == 'deploy-send-sms'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy send-sms --project-ref "$SUPABASE_PROJECT_REF"
+
+      # Generates a new hook secret each run and sets it on the function and the Auth hook; the
+      # hook must be disabled first. Values are masked and never printed.
+      - name: Set function secrets and hook config
+        if: inputs.action == 'set-sms-secrets'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          MSG91_AUTH_KEY: ${{ secrets.MSG91_AUTH_KEY }}
+          MSG91_TEMPLATE_ID: ${{ secrets.MSG91_TEMPLATE_ID }}
+          MSG91_SENDER_ID: ${{ secrets.MSG91_SENDER_ID }}
+        run: scripts/supabase-hosted-sms.sh set-secrets
+
+      - name: Enable the hook
+        if: inputs.action == 'enable-sms-hook'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: scripts/supabase-hosted-sms.sh enable
+
+      - name: Disable the hook
+        if: inputs.action == 'disable-sms-hook'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: scripts/supabase-hosted-sms.sh disable

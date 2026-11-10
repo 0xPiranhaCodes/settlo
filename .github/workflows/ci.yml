@@ -355,6 +355,9 @@ jobs:
         working-directory: supabase/functions
         run: deno test
 
+      - name: Test hosted SMS cutover script
+        run: scripts/test/supabase-hosted-sms-test.sh
+
   regenerate-goldens:
     name: Regenerate app and core goldens
     if: inputs.update_goldens == true && inputs.supabase_only != true

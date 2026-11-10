@@ -50,13 +50,13 @@ phone login is off locally.
   safe to push as-is: no `[auth.sms.test_otp]`, no SMS provider block. Keep dev-only values in
   `config.local-dev.toml`.
 - Production OTPs go out through the MSG91 Send-SMS auth hook (#13), not a built-in provider.
-  The hook is configured in the Dashboard only; `config.toml` must never declare
+  The hook is configured through the **Supabase hosted** workflow only; `config.toml` must never declare
   `[auth.hook.send_sms]`. `config push` sends unresolved `env(...)` values as literals, and a
-  declared `enabled = false` would turn off the Dashboard hook. See
+  declared `enabled = false` would turn off the hosted hook. See
   [Send-SMS hook](#send-sms-hook-msg91) below.
 - Migrations reach the hosted project through the manual **Supabase hosted** workflow
   (`.github/workflows/supabase-hosted.yml`): a dry run first, then `apply`. The same workflow sets
-  and clears the hosted test OTP numbers; see [docs/release.md](../docs/release.md#internal-builds-testflight).
+  and clears the hosted test OTP numbers and runs the Send-SMS hook cutover; see [docs/release.md](../docs/release.md#internal-builds-testflight).
 - To push config safely, run the **raw** CLI from the repo root (never the wrapper, which refuses):
   `supabase link --project-ref <ref>`, then `supabase config diff`, check that the diff has no
   `test_otp`, `twilio` or `hook`, then `supabase config push`.
@@ -91,18 +91,35 @@ OTP numbers. To try the function locally, `scripts/supabase-local.sh start` serv
 ### Enabling on the hosted project
 
 Needs the owner's MSG91 account, an approved DLT template and sender id, and the template created in
-MSG91 against that DLT template id. Also listed in `docs/release.md`.
+MSG91 against that DLT template id. Everything else is the **Supabase hosted** workflow
+(`.github/workflows/supabase-hosted.yml`), run from `main`; it prints no secret or API response body.
+Also listed in `docs/release.md`.
 
-1. Deploy the function from the repo root with the raw CLI: `supabase link --project-ref <ref>`, then
-   `supabase functions deploy send-sms` (`config.toml` sets `verify_jwt = false` for it).
-2. Dashboard → Authentication → Hooks → Send SMS → HTTPS: URI
-   `https://<ref>.supabase.co/functions/v1/send-sms`, then generate a secret and copy it. Leave the
-   hook disabled until step 3 is done.
-3. Set the function secrets:
-   `supabase secrets set SEND_SMS_HOOK_SECRET='v1,whsec_...' MSG91_AUTH_KEY=... MSG91_TEMPLATE_ID=... MSG91_SENDER_ID=...`
-4. Enable the hook in the Dashboard and save.
+1. Store the owner's values as **production** environment secrets (prompted, never on the command line):
+
+   ```sh
+   gh secret set MSG91_AUTH_KEY --env production
+   gh secret set MSG91_TEMPLATE_ID --env production
+   gh secret set MSG91_SENDER_ID --env production
+   ```
+
+2. `gh workflow run "Supabase hosted" -f action=deploy-send-sms` deploys the function
+   (`config.toml` sets `verify_jwt = false` for it).
+3. `gh workflow run "Supabase hosted" -f action=set-sms-secrets` sets the three MSG91 function
+   secrets, generates a new `SEND_SMS_HOOK_SECRET` (`v1,whsec_` + 32 random bytes in base64), and
+   sets it on both the function and the Auth hook along with the hook URI
+   `https://<ref>.supabase.co/functions/v1/send-sms`. It refuses while the hook is enabled, and leaves
+   it disabled.
+4. `gh workflow run "Supabase hosted" -f action=enable-sms-hook` checks that `send-sms` is deployed
+   and active, that all four function secrets exist, and that the hook URI and secret are set, then
+   turns on phone sign-in and the hook.
 5. Send an OTP to a real number and check the function logs for `sent OTP to ********NNNN`.
+6. Clear the test numbers (`-f action=clear-test-otp`), then set the repository variable
+   `gh variable set SMS_LIVE --body true`. From then on `clear-test-otp` and every **Release** run
+   fail if the hosted project still has a test number.
 
-To rotate the secret, regenerate it in the Dashboard and update `SEND_SMS_HOOK_SECRET` right away;
-OTPs fail with 401 in between. To turn the hook off, disable it in the Dashboard; Auth then has no
-SMS provider and phone sign-in fails until it is re-enabled.
+To rotate the secret or change an MSG91 value, run `disable-sms-hook`, `set-sms-secrets`, then
+`enable-sms-hook`; phone sign-in fails while the hook is off. `disable-sms-hook` alone turns the
+hook off: Auth then has no SMS provider and phone sign-in fails until it is re-enabled.
+`scripts/test/supabase-hosted-sms-test.sh` checks the script behind these actions offline (CI runs
+it in the Supabase job).

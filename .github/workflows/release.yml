@@ -79,6 +79,14 @@ jobs:
           jq -n '{SUPABASE_URL: env.SUPABASE_URL, SUPABASE_ANON_KEY: env.SUPABASE_PUBLISHABLE_KEY}' \
             > "$RUNNER_TEMP/release.env.json"
 
+      # Before the build so a rejected candidate never uploads. Skipped until SMS_LIVE is true (#119).
+      - name: Require no test OTP numbers on the hosted project
+        if: vars.SMS_LIVE == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: scripts/supabase-hosted-sms.sh check-test-otp
+
       - name: Build unsigned archive
         working-directory: app
         run: >

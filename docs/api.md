@@ -4,6 +4,23 @@ Owner: Principal Backend. Every amount is integer paise (`bigint`, `*_minor`; AD
 Clients read and write through PostgREST under the caller's JWT, so row-level security decides
 what each caller sees.
 
+## Phone sign-in (OTP)
+
+Supabase Auth phone OTP (`POST /auth/v1/otp`, then `POST /auth/v1/verify`). Production SMS goes
+through the MSG91 Send-SMS hook (#119, [supabase/README.md](../supabase/README.md#send-sms-hook-msg91)).
+Limits come from `supabase/config.toml` and reach the hosted project on `supabase config push`:
+
+| Limit | Value | Config |
+| --- | --- | --- |
+| SMS sent, whole project | 30 per hour | `[auth.rate_limit] sms_sent` |
+| Gap between OTPs to one phone | 5 seconds | `[auth.sms] max_frequency` |
+| OTP lifetime | 10 minutes | `[auth.sms] otp_expiry = 600` |
+| OTP verifications per IP | 30 per 5 minutes | `[auth.rate_limit] token_verifications` |
+| Sign-in and sign-up requests per IP | 30 per 5 minutes | `[auth.rate_limit] sign_in_sign_ups` |
+| Session refreshes per IP | 150 per 5 minutes | `[auth.rate_limit] token_refresh` |
+
+Change a limit in `config.toml` and this table together.
+
 ## Views
 
 All views are `security_invoker = true`: they read the underlying tables as the caller, so RLS on

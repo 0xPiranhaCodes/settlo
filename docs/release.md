@@ -58,6 +58,20 @@ gh workflow run "Supabase hosted" -f action=set-test-otp
 
 The numbers lapse 60 days after the last run, and a `supabase config push` removes them; re-run the workflow in either case.
 
+### Production SMS (MSG91)
+
+Real OTPs go out through the `send-sms` hook once the owner's MSG91 account, DLT template and sender id are approved (#119). After the three MSG91 values are stored as **production** environment secrets, the cutover is four dispatches from `main`:
+
+```sh
+gh workflow run "Supabase hosted" -f action=deploy-send-sms
+gh workflow run "Supabase hosted" -f action=set-sms-secrets   # hook secret generated, hook left disabled
+gh workflow run "Supabase hosted" -f action=enable-sms-hook   # checks deploy + secrets first
+gh workflow run "Supabase hosted" -f action=clear-test-otp
+gh variable set SMS_LIVE --body true
+```
+
+`disable-sms-hook` turns it off again. Once `SMS_LIVE` is `true`, `clear-test-otp` and the **Release** workflow (before it builds or uploads) fail if any test number remains on the hosted project; until then both skip the check, so current release candidates keep using test numbers. Details and rotation: [supabase/README.md](../supabase/README.md#enabling-on-the-hosted-project).
+
 ### External TestFlight (Family Testers)
 
 After the workflow PR is reviewed and merged, the manager can run **TestFlight external** (`testflight-external.yml`) from `main`. Select `build_number: 6` for v0.1.0-rc6, `group: Family Testers`, and public `what_to_test` text describing the intended checks. For later candidates, use the actual uploaded build number, which need not match the rc suffix. This workflow configures an existing build; it does not build or upload an IPA, and it does not change the existing Release jobs.
@@ -95,14 +109,14 @@ API references: Apple's [beta app localization attributes](https://developer.app
 
 ## M6 Release gate
 
-- [ ] The test OTP numbers are gone from the hosted project: **Supabase hosted** has run with `clear-test-otp`, and the `HOSTED_TEST_OTP` secret is deleted (#119).
+- [ ] The test OTP numbers are gone from the hosted project: **Supabase hosted** has run with `clear-test-otp`, the `HOSTED_TEST_OTP` secret is deleted, and the repository variable `SMS_LIVE` is `true` so **Release** fails if one comes back (#119).
 - [ ] Store listings are complete for iOS and Android.
 - [ ] App Store and Play Store privacy labels match the app's actual data collection and use.
 - [ ] Final release screenshots are approved, including the 390x844 and 360x800 layouts.
 - [ ] The release candidate has completed beta testing.
 - [ ] The light-first user test is complete and its findings are resolved or explicitly accepted.
 - [ ] Required CI checks are green for the release candidate.
-- [ ] Production SMS OTP is live: the owner's MSG91 account, DLT template and sender id are approved; `send-sms` is deployed, its secrets are set, and the Send-SMS hook is enabled in the Dashboard ([steps](../supabase/README.md#enabling-on-the-hosted-project)). An OTP to a real number arrives, and `supabase config diff` shows no `hook` changes.
+- [ ] Production SMS OTP is live: the owner's MSG91 account, DLT template and sender id are approved; **Supabase hosted** has run `deploy-send-sms`, `set-sms-secrets` and `enable-sms-hook` ([steps](../supabase/README.md#enabling-on-the-hosted-project)). An OTP to a real number arrives, and `supabase config diff` shows no `hook` changes.
 - [ ] After `supabase config push`, the hosted Auth settings show the SMS OTP expiry is `600` seconds (10 minutes).
 - [ ] The iOS and Android store submissions have been made.
 
