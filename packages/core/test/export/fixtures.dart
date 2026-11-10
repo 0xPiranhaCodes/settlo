@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:settlo_core/settlo_core.dart';
 
 /// Flat 4B: Sana (you), Priya in Devanagari, Zoë, and someone known only
@@ -129,4 +133,21 @@ Loan arjunLoan() => Loan(
         recordedByYou: false,
       ),
   ],
+);
+
+ByteData _font(String file) =>
+    ByteData.sublistView(File('assets/fonts/$file').readAsBytesSync());
+
+/// The bundled fonts, read from the package's assets.
+final StatementFonts fonts = (
+  regular: _font('Figtree-Regular.ttf'),
+  medium: _font('Figtree-Medium.ttf'),
+  serif: _font('IBMPlexSerif-Medium.ttf'),
+);
+
+/// The page count in a PDF's page tree, which the pdf package writes
+/// uncompressed.
+int pdfPages(Uint8List pdf) => int.parse(
+  RegExp(r'/Type\s*/Pages\b[^>]*?/Count\s+(\d+)')
+      .firstMatch(latin1.decode(pdf))![1]!,
 );

@@ -2,6 +2,7 @@
 library;
 
 export 'export/csv.dart';
+export 'export/names.dart';
 export 'export/statements.dart';
 export 'money/format.dart';
 export 'money/paise.dart';

@@ -1,7 +1,14 @@
+import 'dart:collection';
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:settlo_core/export/csv.dart';
 import 'package:settlo_core/export/names.dart';
 import 'package:settlo_core/money/format.dart';
 import 'package:settlo_core/money/paise.dart';
@@ -10,15 +17,16 @@ import 'package:settlo_core/supabase/loans.dart';
 import 'package:settlo_core/supabase/space_ledger.dart';
 import 'package:settlo_core/supabase/spaces.dart';
 
-/// The bundled fonts a statement embeds (ADR 0006), so ₹ and any name
-/// render the same everywhere.
-typedef StatementFonts = ({pw.Font regular, pw.Font medium, pw.Font serif});
+/// The bundled font files a statement embeds (ADR 0006), so ₹ and Latin
+/// names render the same everywhere. Plain bytes, so they can be sent to
+/// the isolate that builds the PDF.
+typedef StatementFonts = ({ByteData regular, ByteData medium, ByteData serif});
 
 /// Loads [StatementFonts] from the app's asset bundle.
 Future<StatementFonts> loadStatementFonts([AssetBundle? bundle]) async {
   final b = bundle ?? rootBundle;
-  Future<pw.Font> font(String file) async =>
-      pw.Font.ttf(await b.load('packages/settlo_core/assets/fonts/$file'));
+  Future<ByteData> font(String file) =>
+      b.load('packages/settlo_core/assets/fonts/$file');
   return (
     regular: await font('Figtree-Regular.ttf'),
     medium: await font('Figtree-Medium.ttf'),
@@ -206,7 +214,10 @@ Statement loanStatement(
             (
               cells: [
                 _day(r.paidOn),
-                [r.method?.label ?? 'Repayment', ?r.reference].join(' · '),
+                [
+                  r.method?.label ?? 'Repayment',
+                  if (r.reference case final ref?) redactPhones(ref),
+                ].join(' · '),
                 if (r.recordedByYou) 'You' else them,
                 switch (r.status) {
                   RepaymentStatus.confirmed => 'Confirmed',
@@ -215,7 +226,7 @@ Statement loanStatement(
                   RepaymentStatus.disputed =>
                     'Disputed, not counted'
                         '${r.disputeReason == null ? '' : ': '
-                                  '“${r.disputeReason}”'}',
+                                  '“${redactPhones(r.disputeReason!)}”'}',
                 },
                 Inr(r.amount),
               ],
@@ -263,12 +274,22 @@ Statement spaceSummary(
   }
 
   final dates = [for (final e in ledger.expenses) e.spentOn]..sort();
+  final months = SplayTreeMap<DateTime, ({Paise total, int count})>();
+  for (final e in spending) {
+    final m = DateTime(e.spentOn.year, e.spentOn.month);
+    final was = months[m] ?? (total: Paise.zero, count: 0);
+    months[m] = (total: was.total + e.amount, count: was.count + 1);
+  }
   return Statement(
     title: 'Space summary',
     generated: istStamp(generatedAt),
     blocks: [
       StatementFacts([
-        (label: 'Space', value: space.name, note: _kind(space.kind)),
+        (
+          label: 'Space',
+          value: redactPhones(space.name),
+          note: _kind(space.kind),
+        ),
         (
           label: 'Members',
           value: [for (final m in space.members) names[m.id]].join(', '),
@@ -318,16 +339,159 @@ Statement spaceSummary(
         settled('Awaiting', SettlementStatus.pending, 'not counted yet'),
         settled('Disputed', SettlementStatus.disputed, 'never counted'),
       ]),
+      StatementTable(
+        heading: 'By month',
+        header: const ['Month', 'Expenses', 'Spent'],
+        empty: 'Nothing spent yet.',
+        rows: [
+          for (final MapEntry(key: month, :value) in months.entries)
+            (
+              cells: [_month(month), '${value.count}', Inr(value.total)],
+              muted: false,
+            ),
+        ],
+      ),
     ],
   );
 }
 
-/// [statement] as an A4 PDF in [fonts], made on device.
+/// Text the PDF fonts cannot draw, such as a name in Devanagari, drawn by
+/// Flutter's text engine (which shapes complex scripts) as a PNG, with its
+/// size in points at a 10pt font.
+typedef StatementImage = ({Uint8List png, double width, double height});
+
+/// What a statement shows when a text's image could not be drawn.
+const unsupportedScriptPlaceholder = 'Name in another script';
+
+/// Every string [statement] prints.
+Iterable<String> statementTexts(Statement statement) sync* {
+  yield statement.title;
+  yield statement.generated;
+  for (final block in statement.blocks) {
+    switch (block) {
+      case StatementFacts(:final heading, :final facts):
+        if (heading != null) yield heading;
+        for (final f in facts) {
+          yield f.label;
+          yield '${f.value}';
+          if (f.note case final note?) yield note;
+        }
+      case StatementTotal():
+        yield block.label;
+        yield block.words;
+      case StatementTable():
+        yield block.heading;
+        yield block.empty;
+        yield* block.header;
+        for (final r in block.rows) {
+          yield* r.cells.map((c) => '$c');
+        }
+    }
+  }
+}
+
+/// The strings in [statement] that [fonts] has no glyphs for; they are
+/// drawn as images ([renderTextImages]).
+Set<String> textsOutsideFonts(Statement statement, StatementFonts fonts) {
+  final glyphs = TtfParser(fonts.regular).charToGlyphIndexMap;
+  return {
+    for (final t in statementTexts(statement))
+      if (!_covered(t, glyphs)) t,
+  };
+}
+
+bool _covered(String text, Map<int, int> glyphs) =>
+    text.runes.every((r) => r <= 0x20 || glyphs.containsKey(r));
+
+/// Draws each of [texts] with Flutter's text engine in the PDF's ink, at
+/// 10pt and four times that resolution. Runs on the UI isolate, so it is
+/// only for the few strings the fonts cannot cover. A text that fails to
+/// draw is left out, and the PDF shows [unsupportedScriptPlaceholder].
+Future<Map<String, StatementImage>> renderTextImages(
+  Iterable<String> texts,
+) async {
+  const scale = 4.0;
+  final images = <String, StatementImage>{};
+  for (final text in texts) {
+    try {
+      final painter = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: const TextStyle(
+            fontFamily: 'Figtree',
+            package: 'settlo_core',
+            // Tests register it (as packages/settlo_core/…); on device it is
+            // absent and the platform's fallback fonts draw the script.
+            fontFamilyFallback: ['Noto Sans Devanagari'],
+            fontSize: 10,
+            color: Color(0xFF1B1B18),
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final w = painter.width;
+      final h = painter.height;
+      final recorder = ui.PictureRecorder();
+      painter
+        ..paint(Canvas(recorder)..scale(scale), Offset.zero)
+        ..dispose();
+      final picture = recorder.endRecording();
+      final image = await picture.toImage(
+        (w * scale).ceil(),
+        (h * scale).ceil(),
+      );
+      picture.dispose();
+      final png = await image.toByteData(format: ui.ImageByteFormat.png);
+      image.dispose();
+      if (png == null || w == 0) continue;
+      images[text] = (png: png.buffer.asUint8List(), width: w, height: h);
+    } on Object {
+      continue;
+    }
+  }
+  return images;
+}
+
+/// Writes [statement] as a PDF to [file] on a background isolate, so a
+/// long statement never stalls the UI. [images] come from
+/// [renderTextImages].
+Future<void> writeStatementPdf(
+  Statement statement,
+  File file, {
+  required StatementFonts fonts,
+  Map<String, StatementImage> images = const {},
+}) => Isolate.run(() async {
+  await file.writeAsBytes(
+    await statementPdf(statement, fonts: fonts, images: images),
+  );
+});
+
+/// Writes [space]'s CSV ([writeSpaceCsv]) and its [summary] PDF on a
+/// background isolate, streaming the CSV to [csv].
+Future<void> writeSpaceExport(
+  SpaceSummary space,
+  SpaceLedger ledger,
+  Statement summary, {
+  required File csv,
+  required File pdf,
+  required StatementFonts fonts,
+  Map<String, StatementImage> images = const {},
+}) => Isolate.run(() async {
+  await writeSpaceCsv(space, ledger, csv);
+  await pdf.writeAsBytes(
+    await statementPdf(summary, fonts: fonts, images: images),
+  );
+});
+
+/// [statement] as an A4 PDF in [fonts]. Text the fonts cannot draw is
+/// placed as its image from [images], or as
+/// [unsupportedScriptPlaceholder]. Pure Dart, so it runs on any isolate.
 Future<Uint8List> statementPdf(
   Statement statement, {
   required StatementFonts fonts,
+  Map<String, StatementImage> images = const {},
 }) {
-  final s = _Styles(fonts);
+  final s = _Styles(fonts, images);
   final title = statement.title;
   final doc = pw.Document(title: title, creator: 'Settlo')
     ..addPage(
@@ -335,30 +499,24 @@ Future<Uint8List> statementPdf(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.fromLTRB(48, 44, 48, 40),
         maxPages: 200,
-        theme: pw.ThemeData.withFont(
-          base: s.fonts.regular,
-          bold: s.fonts.medium,
-        ),
+        theme: pw.ThemeData.withFont(base: s.regular, bold: s.medium),
         header: (context) => context.pageNumber > 1
             ? pw.Padding(
                 padding: const pw.EdgeInsets.only(bottom: 12),
-                child: pw.Text(title, style: s.muted),
+                child: s.text(title, s.muted),
               )
             : pw.Padding(
                 padding: const pw.EdgeInsets.only(bottom: 22),
                 child: pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    pw.Text('settlo', style: s.wordmark),
+                    s.text('settlo', s.wordmark),
                     pw.Spacer(),
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.end,
                       children: [
-                        pw.Text(title, style: s.heading),
-                        pw.Text(
-                          'Generated ${statement.generated}',
-                          style: s.muted,
-                        ),
+                        s.text(title, s.heading),
+                        s.text('Generated ${statement.generated}', s.muted),
                       ],
                     ),
                   ],
@@ -368,16 +526,16 @@ Future<Uint8List> statementPdf(
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
             pw.Expanded(
-              child: pw.Text(
+              child: s.text(
                 'Made on this device from what you see in Settlo. Settlo is '
                 'a record; it never holds or moves money.',
-                style: s.muted,
+                s.muted,
               ),
             ),
             pw.SizedBox(width: 12),
-            pw.Text(
+            s.text(
               'Page ${context.pageNumber} of ${context.pagesCount}',
-              style: s.muted,
+              s.muted,
             ),
           ],
         ),
@@ -386,21 +544,21 @@ Future<Uint8List> statementPdf(
             if (i > 0) pw.SizedBox(height: 18),
             ...switch (block) {
               StatementFacts(:final heading?) => [
-                pw.Text(heading, style: s.heading),
+                s.text(heading, s.heading),
                 pw.SizedBox(height: 6),
                 _facts(s, block.facts),
               ],
               StatementFacts() => [_facts(s, block.facts)],
               StatementTotal() => [_total(s, block)],
               StatementTable(rows: []) => [
-                pw.Text(block.heading, style: s.heading),
+                s.text(block.heading, s.heading),
                 pw.SizedBox(height: 6),
-                pw.Text(block.empty, style: s.muted),
+                s.text(block.empty, s.muted),
               ],
               StatementTable() => [
-                pw.Text(block.heading, style: s.heading),
+                s.text(block.heading, s.heading),
                 pw.SizedBox(height: 6),
-                _table(s, block),
+                ..._table(s, block),
               ],
             },
           ],
@@ -419,13 +577,13 @@ pw.Widget _facts(_Styles s, List<StatementFact> facts) => pw.Column(
         child: pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.SizedBox(width: 96, child: pw.Text(label, style: s.muted)),
+            pw.SizedBox(width: 96, child: s.text(label, s.muted)),
             pw.Expanded(
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('$value', style: s.body),
-                  if (note != null) pw.Text(note, style: s.muted),
+                  s.text('$value', s.body),
+                  if (note != null) s.text(note, s.muted),
                 ],
               ),
             ),
@@ -445,51 +603,54 @@ pw.Widget _total(_Styles s, StatementTotal total) => pw.Container(
   child: pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
-      pw.Text(total.label, style: s.muted),
+      s.text(total.label, s.muted),
       pw.SizedBox(height: 2),
-      pw.Text(formatInr(total.amount), style: s.amount),
+      s.text(formatInr(total.amount), s.amount),
       pw.SizedBox(height: 2),
-      pw.Text(total.words, style: s.body),
+      s.text(total.words, s.body),
     ],
   ),
 );
 
-/// A table; a muted row is in the secondary colour.
-pw.Widget _table(_Styles s, StatementTable table) {
+/// A table as one widget per row, so it can break across pages with its
+/// header repeated; a muted row is in the secondary colour.
+List<pw.Widget> _table(_Styles s, StatementTable table) {
   final last = table.header.length - 1;
   pw.Widget cell(Object text, int i, pw.TextStyle style) => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 4),
-    child: pw.Text(
+    child: s.text(
       '$text',
-      style: style,
-      textAlign: i == last ? pw.TextAlign.right : pw.TextAlign.left,
+      style,
+      align: i == last ? pw.TextAlign.right : pw.TextAlign.left,
     ),
   );
-  return pw.Table(
-    border: const pw.TableBorder(
-      horizontalInside: pw.BorderSide(color: _hairline, width: 0.5),
-      bottom: pw.BorderSide(color: _hairline, width: 0.5),
-    ),
-    columnWidths: {last: const pw.IntrinsicColumnWidth()},
-    children: [
-      pw.TableRow(
-        repeat: true,
-        decoration: const pw.BoxDecoration(
-          border: pw.Border(bottom: pw.BorderSide(color: _ink, width: 0.8)),
-        ),
-        children: [
-          for (final (i, h) in table.header.indexed) cell(h, i, s.label),
-        ],
+  return [
+    pw.Table(
+      border: const pw.TableBorder(
+        horizontalInside: pw.BorderSide(color: _hairline, width: 0.5),
+        bottom: pw.BorderSide(color: _hairline, width: 0.5),
       ),
-      for (final r in table.rows)
+      columnWidths: {last: const pw.IntrinsicColumnWidth()},
+      children: [
         pw.TableRow(
+          repeat: true,
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(bottom: pw.BorderSide(color: _ink, width: 0.8)),
+          ),
           children: [
-            for (final (i, c) in r.cells.indexed)
-              cell(c, i, r.muted ? s.muted : s.body),
+            for (final (i, h) in table.header.indexed) cell(h, i, s.label),
           ],
         ),
-    ],
-  );
+        for (final r in table.rows)
+          pw.TableRow(
+            children: [
+              for (final (i, c) in r.cells.indexed)
+                cell(c, i, r.muted ? s.muted : s.body),
+            ],
+          ),
+      ],
+    ),
+  ];
 }
 
 /// `10 Nov 2026, 3:04 pm IST`: India's time at [instant], whatever the
@@ -507,7 +668,9 @@ String _words(Paise p) {
 }
 
 String _named(String? name, String fallback) =>
-    name == null || name.trim().isEmpty || isPhoneLike(name) ? fallback : name;
+    name == null || name.trim().isEmpty || isPhoneLike(name)
+    ? fallback
+    : redactPhones(name);
 
 String _kind(SpaceKind kind) => switch (kind) {
   SpaceKind.flat => 'Flatmates',
@@ -542,32 +705,59 @@ const _secondary = PdfColor.fromInt(0xFF5F605B);
 const _hairline = PdfColor.fromInt(0xFFD9D6CE);
 
 final class _Styles {
-  new(this.fonts);
+  new(StatementFonts fonts, this.images)
+    : regular = pw.Font.ttf(fonts.regular),
+      medium = pw.Font.ttf(fonts.medium),
+      serif = pw.Font.ttf(fonts.serif),
+      _glyphs = TtfParser(fonts.regular).charToGlyphIndexMap;
 
-  final StatementFonts fonts;
+  final pw.Font regular;
+  final pw.Font medium;
+  final pw.Font serif;
+  final Map<String, StatementImage> images;
+  final Map<int, int> _glyphs;
+
+  /// [value] in [style], or its image when the fonts cannot draw it.
+  pw.Widget text(
+    String value,
+    pw.TextStyle style, {
+    pw.TextAlign align = pw.TextAlign.left,
+  }) {
+    if (_covered(value, _glyphs)) {
+      return pw.Text(value, style: style, textAlign: align);
+    }
+    final image = images[value];
+    if (image == null) {
+      return pw.Text(
+        unsupportedScriptPlaceholder,
+        style: style,
+        textAlign: align,
+      );
+    }
+    final k = (style.fontSize ?? 10) / 10;
+    return pw.Image(
+      pw.MemoryImage(image.png),
+      width: image.width * k,
+      height: image.height * k,
+    );
+  }
 
   late final pw.TextStyle body = pw.TextStyle(
-    font: fonts.regular,
+    font: regular,
     fontSize: 10,
     color: _ink,
   );
   late final pw.TextStyle muted = body.copyWith(fontSize: 9, color: _secondary);
-  late final pw.TextStyle label = body.copyWith(
-    font: fonts.medium,
-    fontSize: 9,
-  );
-  late final pw.TextStyle heading = body.copyWith(
-    font: fonts.medium,
-    fontSize: 13,
-  );
+  late final pw.TextStyle label = body.copyWith(font: medium, fontSize: 9);
+  late final pw.TextStyle heading = body.copyWith(font: medium, fontSize: 13);
   late final pw.TextStyle wordmark = pw.TextStyle(
-    font: fonts.medium,
+    font: medium,
     fontSize: 22,
     letterSpacing: -0.6,
     color: _ink,
   );
   late final pw.TextStyle amount = pw.TextStyle(
-    font: fonts.serif,
+    font: serif,
     fontSize: 24,
     color: _ink,
   );

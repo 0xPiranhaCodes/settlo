@@ -3,23 +3,12 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:settlo_core/settlo_core.dart';
 
 import 'fixtures.dart';
 
 /// 10 Nov 2026, 3:04 pm in India.
 final _at = DateTime.utc(2026, 11, 10, 9, 34);
-
-pw.Font _font(String file) => pw.Font.ttf(
-  ByteData.sublistView(File('assets/fonts/$file').readAsBytesSync()),
-);
-
-final StatementFonts _fonts = (
-  regular: _font('Figtree-Regular.ttf'),
-  medium: _font('Figtree-Medium.ttf'),
-  serif: _font('IBMPlexSerif-Medium.ttf'),
-);
 
 T _block<T extends StatementBlock>(Statement s, [int skip = 0]) =>
     s.blocks.whereType<T>().elementAt(skip);
@@ -33,29 +22,7 @@ List<List<Object>> _rows(Statement s) => [
   for (final r in _block<StatementTable>(s).rows) [r.cells, r.muted],
 ];
 
-/// Every string a statement prints, to search for numbers.
-String _allText(Statement s) => [
-  s.title,
-  s.generated,
-  for (final b in s.blocks)
-    ...switch (b) {
-      StatementFacts() => [
-        for (final f in b.facts) ...[f.label, '${f.value}', ?f.note],
-      ],
-      StatementTotal() => [b.label, '${Inr(b.amount)}', b.words],
-      StatementTable() => [
-        ...b.header,
-        for (final r in b.rows) ...r.cells.map((c) => '$c'),
-      ],
-    },
-].join('\n');
-
-/// The page count in a PDF's page tree, which the pdf package writes
-/// uncompressed.
-int _pages(Uint8List pdf) => int.parse(
-  RegExp(r'/Type\s*/Pages\b[^>]*?/Count\s+(\d+)')
-      .firstMatch(latin1.decode(pdf))![1]!,
-);
+String _allText(Statement s) => statementTexts(s).join('\n');
 
 const _r25k = Inr(Paise(2500000));
 
@@ -79,7 +46,7 @@ void main() {
   test('loads the bundled fonts by their package keys', () async {
     final fonts = await loadStatementFonts(_Bundle());
     final s = loanStatement(arjunLoan(), generatedAt: _at);
-    expect(_pages(await statementPdf(s, fonts: fonts)), 1);
+    expect(pdfPages(await statementPdf(s, fonts: fonts)), 1);
   });
 
   test('amounts compare by paise', () {
@@ -143,7 +110,7 @@ void main() {
         [
           [
             '6 Nov 2026',
-            'UPI · 4321 8812 0099',
+            'UPI · ••••',
             'Arjun',
             'Awaiting you',
             const Inr(Paise(2500050)),
@@ -179,9 +146,9 @@ void main() {
     });
 
     test('renders a one-page PDF', () async {
-      final pdf = await statementPdf(s, fonts: _fonts);
+      final pdf = await statementPdf(s, fonts: fonts);
       expect(latin1.decode(pdf.sublist(0, 5)), '%PDF-');
-      expect(_pages(pdf), 1);
+      expect(pdfPages(pdf), 1);
     });
 
     test('a long history runs over pages; none prints a note', () async {
@@ -205,7 +172,7 @@ void main() {
         _values(_block<StatementFacts>(long))['Instalment'],
         '₹25,000 monthly, on the 22nd',
       );
-      expect(_pages(await statementPdf(long, fonts: _fonts)), greaterThan(1));
+      expect(pdfPages(await statementPdf(long, fonts: fonts)), greaterThan(1));
 
       final none = loanStatement(withRepayments([], 13), generatedAt: _at);
       expect(
@@ -213,7 +180,7 @@ void main() {
         '₹25,000 monthly, on the 13th',
       );
       expect(_block<StatementTable>(none).empty, 'Nothing repaid yet.');
-      expect(_pages(await statementPdf(none, fonts: _fonts)), 1);
+      expect(pdfPages(await statementPdf(none, fonts: fonts)), 1);
     });
   });
 
@@ -283,9 +250,9 @@ void main() {
     });
 
     test('renders a one-page PDF', () async {
-      final pdf = await statementPdf(s, fonts: _fonts);
+      final pdf = await statementPdf(s, fonts: fonts);
       expect(latin1.decode(pdf.sublist(0, 5)), '%PDF-');
-      expect(_pages(pdf), 1);
+      expect(pdfPages(pdf), 1);
     });
   });
 }

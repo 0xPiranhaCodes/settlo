@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -28,25 +30,28 @@ class _StatementButtonState extends ConsumerState<StatementButton> {
   Future<void> _share() async {
     if (_busy) return;
     setState(() => _busy = true);
-    final share = ref.read(shareFilesProvider);
+    final export = ref.read(shareExportProvider);
     final box = context.findRenderObject()! as RenderBox;
     final origin = box.localToGlobal(Offset.zero) & box.size;
     try {
       final now = DateTime.now();
       final day = indiaDate(now).toIso8601String().substring(0, 10);
-      // shortcut: built on the UI isolate; fine for a loan's few dozen
-      // repayments, move to an isolate if statements grow to many pages.
-      final pdf = await statementPdf(
-        loanStatement(widget.loan, generatedAt: now, yourName: widget.yourName),
-        fonts: await loadStatementFonts(),
+      final statement = loanStatement(
+        widget.loan,
+        generatedAt: now,
+        yourName: widget.yourName,
       );
-      await share([
-        (
-          name: 'settlo-loan-statement-$day.pdf',
-          mimeType: 'application/pdf',
-          bytes: pdf,
-        ),
-      ], origin);
+      final fonts = await loadStatementFonts();
+      // Names the fonts cannot draw are shaped by Flutter here, on the UI
+      // isolate; the PDF itself is built on a background one.
+      final images = await renderTextImages(
+        textsOutsideFonts(statement, fonts),
+      );
+      await export((dir) async {
+        final file = File('${dir.path}/settlo-loan-statement-$day.pdf');
+        await writeStatementPdf(statement, file, fonts: fonts, images: images);
+        return [(path: file.path, mimeType: 'application/pdf')];
+      }, origin);
     } on Object {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

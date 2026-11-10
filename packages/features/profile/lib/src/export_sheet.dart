@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,7 +33,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
       _busy = space.id;
       _error = null;
     });
-    final share = ref.read(shareFilesProvider);
+    final export = ref.read(shareExportProvider);
     try {
       final ledger = await ref
           .read(spaceLedgerRepositoryProvider)
@@ -41,22 +41,28 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
       final now = DateTime.now();
       final stamp = _istDay(now);
       final name = _slug(space.name);
-      final pdf = await statementPdf(
-        spaceSummary(space, ledger, generatedAt: now),
-        fonts: await loadStatementFonts(),
-      );
-      await share([
-        (
-          name: 'settlo-$name-expenses-$stamp.csv',
-          mimeType: 'text/csv',
-          bytes: utf8.encode(spaceCsv(space, ledger)),
-        ),
-        (
-          name: 'settlo-$name-summary-$stamp.pdf',
-          mimeType: 'application/pdf',
-          bytes: pdf,
-        ),
-      ], origin);
+      final summary = spaceSummary(space, ledger, generatedAt: now);
+      final fonts = await loadStatementFonts();
+      // Names the fonts cannot draw are shaped by Flutter here, on the UI
+      // isolate; the CSV and PDF are written on a background one.
+      final images = await renderTextImages(textsOutsideFonts(summary, fonts));
+      await export((dir) async {
+        final csv = File('${dir.path}/settlo-$name-expenses-$stamp.csv');
+        final pdf = File('${dir.path}/settlo-$name-summary-$stamp.pdf');
+        await writeSpaceExport(
+          space,
+          ledger,
+          summary,
+          csv: csv,
+          pdf: pdf,
+          fonts: fonts,
+          images: images,
+        );
+        return [
+          (path: csv.path, mimeType: 'text/csv'),
+          (path: pdf.path, mimeType: 'application/pdf'),
+        ];
+      }, origin);
     } on Object {
       if (mounted) {
         setState(() => _error = "We couldn't make the export. Try again.");

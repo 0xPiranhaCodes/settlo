@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -429,7 +430,8 @@ void main() {
 
   testWidgets('Export shares a space as CSV and PDF, once on a no-pump '
       'double tap', (tester) async {
-    final shared = <List<SharedFile>>[];
+    final shared = <List<(SharedFile, List<int>)>>[];
+    final exports = _exportsDir();
     final sharing = Completer<void>();
     final sheet = Completer<void>();
     await tester.pumpWidget(
@@ -442,10 +444,14 @@ void main() {
           spacesRepositoryProvider.overrideWithValue(_SpacesRepository()),
           spaceLedgerRepositoryProvider.overrideWithValue(_LedgerRepository()),
           shareFilesProvider.overrideWithValue((files, _) async {
-            shared.add(files);
+            shared.add([
+              for (final f in files) (f, File(f.path).readAsBytesSync()),
+            ]);
             sharing.complete();
             await sheet.future;
+            return true;
           }),
+          exportsDirectoryProvider.overrideWithValue(() async => exports),
         ],
         child: MaterialApp(
           theme: SettloTheme.dark(),
@@ -462,35 +468,41 @@ void main() {
 
     await tester.tap(find.text('Flat 4B'));
     await tester.tap(find.text('Flat 4B'));
-    // The PDF is built with real fonts and real async work.
-    await tester.runAsync(() => sharing.future);
+    // Real file and isolate work, with pumps so its callbacks land.
+    while (!sharing.isCompleted) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
     await tester.pump();
     expect(find.text('Preparing…'), findsOneWidget);
     sheet.complete();
     await tester.pumpAndSettle();
 
     expect(shared, hasLength(1));
-    final [csv, pdf] = shared.single;
+    final [(csv, csvBytes), (pdf, pdfBytes)] = shared.single;
     expect(
-      csv.name,
-      matches(RegExp(r'^settlo-flat-4b-expenses-[\d-]{10}\.csv$')),
+      csv.path,
+      matches(RegExp(r'/exports/settlo-flat-4b-expenses-[\d-]{10}\.csv$')),
     );
     expect(csv.mimeType, 'text/csv');
-    final text = utf8.decode(csv.bytes);
+    final text = utf8.decode(csvBytes);
     expect(text, contains('Rent,,no,,1000,10.00,Satheesh,1000,10.00,500,5.00'));
     expect(text, contains('Member 2,0,0.00,500,5.00'));
     expect(text, isNot(contains('98765')));
     expect(
-      pdf.name,
-      matches(RegExp(r'^settlo-flat-4b-summary-[\d-]{10}\.pdf$')),
+      pdf.path,
+      matches(RegExp(r'/exports/settlo-flat-4b-summary-[\d-]{10}\.pdf$')),
     );
-    expect(String.fromCharCodes(pdf.bytes.take(5)), '%PDF-');
+    expect(String.fromCharCodes(pdfBytes.take(5)), '%PDF-');
     expect(find.text('CSV and PDF'), findsOneWidget);
   });
 
   testWidgets('Export says when there is nothing to export or it fails', (
     tester,
   ) async {
+    final exports = _exportsDir();
     Future<void> open({bool none = false, bool fail = false}) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -506,7 +518,8 @@ void main() {
             spaceLedgerRepositoryProvider.overrideWithValue(
               _LedgerRepository(fail: fail),
             ),
-            shareFilesProvider.overrideWithValue((_, _) async {}),
+            shareFilesProvider.overrideWithValue((_, _) async => true),
+            exportsDirectoryProvider.overrideWithValue(() async => exports),
           ],
           child: MaterialApp(
             theme: SettloTheme.dark(),
@@ -533,6 +546,13 @@ void main() {
     );
     expect(find.text('CSV and PDF'), findsOneWidget);
   });
+}
+
+/// A private exports folder in a temporary directory.
+Directory _exportsDir() {
+  final temp = Directory.systemTemp.createTempSync('settlo');
+  addTearDown(() => temp.deleteSync(recursive: true));
+  return Directory('${temp.path}/exports');
 }
 
 final class _SpacesRepository implements SpacesRepository {

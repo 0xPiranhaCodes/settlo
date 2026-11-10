@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -22,8 +23,8 @@ var _canOpen = true;
 /// The Loan artboard's start: ₹10 lakh at ₹25,000 from March ends Jul 2029.
 final _today = DateTime(2026, 3, 5);
 
-/// Files handed to the share sheet; reset by [_pump].
-final _shared = <List<SharedFile>>[];
+/// Files handed to the share sheet, with their bytes; reset by [_pump].
+final _shared = <List<(SharedFile, List<int>)>>[];
 
 /// Completes when the share sheet opens; set by a test.
 Completer<void>? _sharing;
@@ -31,10 +32,11 @@ Completer<void>? _sharing;
 /// While set, the share sheet stays open until it completes.
 Completer<void>? _sheetOpen;
 
-Future<void> _share(List<SharedFile> files, Rect origin) async {
-  _shared.add(files);
+Future<bool> _share(List<SharedFile> files, Rect origin) async {
+  _shared.add([for (final f in files) (f, File(f.path).readAsBytesSync())]);
   _sharing?.complete();
   await _sheetOpen?.future;
+  return true;
 }
 
 Future<bool> _open(Uri uri) async {
@@ -54,6 +56,9 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final repo = loans ?? FakeLoansRepository(loansList());
+  final temp = Directory.systemTemp.createTempSync('settlo');
+  addTearDown(() => temp.deleteSync(recursive: true));
+  final exports = Directory('${temp.path}/exports');
   _opened.clear();
   _shared.clear();
   _canOpen = true;
@@ -71,6 +76,7 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
         indiaTodayProvider.overrideWithValue(_today),
         openUrlProvider.overrideWithValue(_open),
         shareFilesProvider.overrideWithValue(_share),
+        exportsDirectoryProvider.overrideWithValue(() async => exports),
       ],
       child: MaterialApp.router(
         theme: SettloTheme.dark(),
@@ -418,20 +424,27 @@ void main() {
 
       await tester.tap(download);
       await tester.tap(download);
-      // The PDF is built with real fonts and real async work.
-      await tester.runAsync(() => _sharing!.future);
+      // Real file and isolate work, with pumps so its callbacks land.
+      while (!_sharing!.isCompleted) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
       await tester.pump();
       sheet.complete();
       await tester.pumpAndSettle();
 
       expect(_shared, hasLength(1));
-      final [file] = _shared.single;
+      final [(file, bytes)] = _shared.single;
       expect(
-        file.name,
-        matches(RegExp(r'^settlo-loan-statement-\d{4}-\d\d-\d\d\.pdf$')),
+        file.path,
+        matches(
+          RegExp(r'/exports/settlo-loan-statement-\d{4}-\d\d-\d\d\.pdf$'),
+        ),
       );
       expect(file.mimeType, 'application/pdf');
-      expect(String.fromCharCodes(file.bytes.take(5)), '%PDF-');
+      expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
     });
   });
 
