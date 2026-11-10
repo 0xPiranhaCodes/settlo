@@ -30,6 +30,8 @@ and, in the generated config only, sets:
 `supabase-local: project_id settlo-d31d6c06, API port 57141, DB port 57142 (slot 274)`; `status`
 shows them again. The base `config.toml` keeps `settlo` and `54321`–`54329`, which the wrapper never
 uses. If two worktrees land on the same slot, set `SUPABASE_LOCAL_SLOT=<0-499>` in one of them.
+CI also sets `SUPABASE_LOCAL_PORT_BASE=30000` with slot 0 so its fixed block stays below Linux's
+ephemeral port range. The default base remains 54400, so local per-worktree behaviour is unchanged.
 `stop` stops only this worktree's stack; it keeps that stack's volumes (`stop --no-backup` drops them).
 
 The interim `/tmp/settlo-supabase.lock` mutex is no longer needed. A stack started before this
