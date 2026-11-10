@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,6 +74,25 @@ void main() {
   testWidgets('owner mock beside empty Home at 390x844', (tester) async {
     await loadSettloFonts();
     final home = await homeInShell(homeEmpty);
+    final mock = [
+      File('../docs/design/home-mock.png'),
+      File('docs/design/home-mock.png'),
+    ].singleWhere((file) => file.existsSync());
+    final mockBytes = mock.readAsBytesSync();
+    final decoded = (await tester.runAsync(() async {
+      final codec = await ui.instantiateImageCodec(
+        mockBytes,
+        targetWidth: 390,
+        targetHeight: 844,
+      );
+      return (codec: codec, image: (await codec.getNextFrame()).image);
+    }))!;
+    final (:codec, :image) = decoded;
+    final mockImage = image;
+    addTearDown(() {
+      mockImage.dispose();
+      codec.dispose();
+    });
     tester.view
       ..physicalSize = const Size(780, 844)
       ..devicePixelRatio = 1;
@@ -94,11 +114,7 @@ void main() {
                 SizedBox(
                   width: 390,
                   height: 844,
-                  child: Image.file(
-                    File('../docs/design/home-mock.png'),
-                    fit: BoxFit.fill,
-                    filterQuality: FilterQuality.high,
-                  ),
+                  child: CustomPaint(painter: _MockPainter(mockImage)),
                 ),
                 SizedBox(
                   width: 390,
@@ -118,4 +134,23 @@ void main() {
       matchesGoldenFile('goldens/home_comparison_390x844_dark.png'),
     );
   });
+}
+
+class _MockPainter extends CustomPainter {
+  const new(this.image);
+
+  final ui.Image image;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      Offset.zero & size,
+      Paint()..filterQuality = FilterQuality.high,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_MockPainter oldDelegate) => oldDelegate.image != image;
 }
