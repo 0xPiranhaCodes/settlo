@@ -20,7 +20,9 @@ const publicUrl = "https://settlo.hellojosh.studio/";
       { env: { ...process.env, GIT_CONFIG_COUNT: "0" }, encoding: "utf8" },
     );
     const current = fs.readFileSync(file, "utf8");
-    if (before.split("<body>")[1] !== current.split("<body>")[1])
+    // Policy wording lives in <main>; the shared header and footer may change.
+    const main = (html) => html.split("<main>")[1].split("</main>")[0];
+    if (main(before) !== main(current))
       throw Error("Policy body changed: " + slug);
   }
   for (const width of [360, 1440]) {
