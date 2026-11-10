@@ -11,7 +11,7 @@ final List<SGlassTab> _tabs = [
   (icon: STabIcon.activity.widget, label: 'Activity'),
 ];
 
-/// Hosts a tab's screen with the floating glass tab bar over it, 16px from
+/// Hosts a tab's screen with the floating glass tab bar over it, 20px from
 /// each side and 22px above the bottom edge as on the canvas.
 ///
 /// The bar is reported to the tab's screen as a bottom system inset
@@ -37,7 +37,7 @@ class SettloShell extends StatelessWidget {
   /// The current tab's screen.
   final Widget child;
 
-  /// Draw the tab bar's flat 92% surface instead of glass (n32).
+  /// Draw the tab bar's opaque surface instead of glass (n32).
   final bool flatChrome;
 
   @override
@@ -46,7 +46,8 @@ class SettloShell extends StatelessWidget {
     // clear of taller system navigation (e.g. Android three-button).
     final media = MediaQuery.of(context);
     final bottom = math.max<double>(22, media.viewPadding.bottom - 12);
-    final inset = bottom + SettloElevation.tabBarHeight + SettloSpacing.x1;
+    final inset =
+        bottom + SGlassTabBar.heightFor(media.textScaler) + SettloSpacing.x1;
     return Scaffold(
       body: Stack(
         children: [
@@ -60,8 +61,8 @@ class SettloShell extends StatelessWidget {
             ),
           ),
           Positioned(
-            left: 16,
-            right: 16,
+            left: SettloSpacing.screenMargin,
+            right: SettloSpacing.screenMargin,
             bottom: bottom,
             child: SGlassTabBar(
               tabs: _tabs,

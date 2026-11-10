@@ -27,3 +27,39 @@ regeneration and exact-head pull_request CI including Android debug build.
 
 Before evidence comes from the base commit's Linux golden PNGs. After evidence
 must come from the Linux regeneration workflow, never macOS raster output.
+
+## Owner update: Liquid Glass navigation
+
+Use Flutter emulation on both platforms, without a new dependency. Apple's
+[UIKit guidance](https://developer.apple.com/videos/play/wwdc2025/284/) describes
+native glass bars; [native_liquid_glass](https://pub.dev/packages/native_liquid_glass)
+provides UIKit platform views but documents whole-screen compositing cost, popup
+overlay suppression, and manual handling for tab transitions. Flutter's
+[UiKitView documentation](https://api.flutter.dev/flutter/widgets/UiKitView-class.html)
+also calls out embedding cost. For this change, platform views cannot be justified
+as a robust replacement for the tested shell and owner-approved bronze gradient;
+this is a compatibility decision, not a claim that those packages are unmaintained.
+
+The capsule uses a 28-sigma backdrop blur, a 1.15 saturation matrix, existing
+surface tint, a fading 1px specular edge, a restrained inner glow, and layered
+ambient shadows. Its bronze pill slides for 250ms with ease-out. High contrast
+and explicit low-end mode use an opaque surface. Android falls back after twelve
+raster frames above 20ms in a thirty-frame window; the decision stays stable for
+the bar's lifetime. Reduce Motion disables both sliding and press scale.
+Inactive icons/labels use existing primary text so contrast remains at least
+4.5:1 even over extreme backgrounds; tests cover tint, glow, and bronze endpoints.
+The shell retains content behind the bar and increases its bottom inset when
+large navigation labels need a taller capsule.
+
+## Accessibility refinements found during rendering
+
+- Fixed double-scaled rupee WidgetSpans, with a rendered-size regression test.
+- Fit complete money amounts to their available width; preserve spoken rupees.
+- Allow primary action labels to wrap instead of truncating confirmation amounts.
+- At 200% text, amount sheets use one scrolling form and schedule fields stack.
+- The widget-tree target audit runs from every screen golden and each panel
+  capture, with a negative test proving a 24px control fails. Flutter's native
+  text-selection handles are excluded; app tap detectors are not.
+- Before renders use the unchanged base source at the recorded SHA with the
+  current screenshot fixtures at 100%; only the new target assertion is omitted
+  for the base. Head runs all assertions and the full 100%/200% matrix.
