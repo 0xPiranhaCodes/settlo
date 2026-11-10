@@ -22,6 +22,38 @@ void main() {
     expect(failures, isEmpty);
   });
 
+  test(
+    'core raw sizing is limited to named roles, PDF and derived symbols',
+    () {
+      const allowed = {
+        '../packages/core/lib/widgets/amount_sheet.dart': 1,
+        '../packages/core/lib/widgets/money_text.dart': 1,
+        '../packages/core/lib/widgets/avatar.dart': 1,
+      };
+      final seen = <String, int>{};
+      for (final file in Directory(
+        '../packages/core/lib',
+      ).listSync(recursive: true).whereType<File>()) {
+        if (!file.path.endsWith('.dart') ||
+            file.path.endsWith('/theme/typography.dart') ||
+            file.path.endsWith('/export/statements.dart')) {
+          continue;
+        }
+        final source = file.readAsStringSync();
+        expect(
+          RegExp(r'fontSize\s*:').hasMatch(source),
+          isFalse,
+          reason: file.path,
+        );
+        final count = RegExp(r'SettloTypography\.figtree\s*\(')
+            .allMatches(source)
+            .length;
+        if (count > 0) seen[file.path] = count;
+      }
+      expect(seen, allowed);
+    },
+  );
+
   test('named roles map to the platform ramp', () {
     final theme = SettloTypography.textTheme(Colors.black);
     expect(

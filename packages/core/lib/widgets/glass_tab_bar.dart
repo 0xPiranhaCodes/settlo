@@ -108,7 +108,7 @@ class _SGlassTabBarState extends State<SGlassTabBar> {
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        // The capsule stays translucent; each glyph has a local contrast plate.
+        // One feathered band supports the label row without item plates.
         color: solid
             ? c.surface
             : c.glass.withValues(alpha: SettloElevation.glassTint),
@@ -118,7 +118,48 @@ class _SGlassTabBarState extends State<SGlassTabBar> {
         builder: (context, constraints) {
           final width = constraints.maxWidth / widget.tabs.length;
           return Stack(
+            clipBehavior: Clip.none,
             children: [
+              Positioned(
+                top: -8,
+                bottom: -8,
+                left: -10,
+                right: -10,
+                child: IgnorePointer(
+                  child: ShaderMask(
+                    blendMode: BlendMode.dstIn,
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.white,
+                        Colors.white,
+                        Colors.transparent,
+                      ],
+                      stops: [0, 0.08, 0.92, 1],
+                    ).createShader(bounds),
+                    child: DecoratedBox(
+                      key: const ValueKey('nav-legibility-band'),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            c.surface.withValues(alpha: 0),
+                            c.surface.withValues(
+                              alpha: SettloElevation.glassLegibility,
+                            ),
+                            c.surface.withValues(
+                              alpha: SettloElevation.glassLegibility,
+                            ),
+                            c.surface.withValues(alpha: 0),
+                          ],
+                          stops: const [0, 0.18, 0.90, 1],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               AnimatedPositionedDirectional(
                 key: const ValueKey('nav-active-pill'),
                 duration: reduceMotion ? Duration.zero : SettloMotion.selection,
@@ -248,40 +289,27 @@ class _Tab extends StatelessWidget {
         child: SizedBox(
           height: height,
           child: Center(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: selected
-                    ? null
-                    : c.surface.withValues(
-                        alpha: SettloElevation.glassLegibility,
-                      ),
-                borderRadius: BorderRadius.circular(SettloRadius.compact),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconTheme.merge(
-                      data: IconThemeData(
-                        color: color,
-                        size: iconOnly ? 28 : 22,
-                      ),
-                      child: tab.icon,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconTheme.merge(
+                    data: IconThemeData(color: color, size: iconOnly ? 28 : 22),
+                    child: tab.icon,
+                  ),
+                  if (!iconOnly) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      tab.label,
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.labelSmall
+                          ?.copyWith(color: color, height: 1.1),
                     ),
-                    if (!iconOnly) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        tab.label,
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.labelSmall
-                            ?.copyWith(color: color, height: 1.1),
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
             ),
           ),

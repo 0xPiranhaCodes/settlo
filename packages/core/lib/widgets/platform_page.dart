@@ -62,16 +62,22 @@ class SettloPageTransitionsBuilder extends PageTransitionsBuilder {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    if (MediaQuery.disableAnimationsOf(context)) return child;
+    final reduced = MediaQuery.disableAnimationsOf(context);
     final platform = Theme.of(context).platform;
     final builder =
         const PageTransitionsTheme().builders[platform] ??
         const FadeUpwardsPageTransitionsBuilder();
+    // Cupertino's builder also owns the edge-swipe detector. Keep it installed
+    // under Reduce Motion; suppress automatic movement, not user-driven swipes.
+    if (reduced && platform != TargetPlatform.iOS) return child;
+    final interactive = route.popGestureInProgress;
     return builder.buildTransitions(
       route,
       context,
-      animation,
-      secondaryAnimation,
+      reduced && !interactive ? const AlwaysStoppedAnimation(1) : animation,
+      reduced && !interactive
+          ? const AlwaysStoppedAnimation(0)
+          : secondaryAnimation,
       child,
     );
   }

@@ -73,6 +73,7 @@ class SettloScrollScaffold extends StatefulWidget {
     this.slivers,
     this.statusInset,
     this.expandedHeight = 84,
+    this.headerGap = 0,
     super.key,
   });
 
@@ -102,6 +103,9 @@ class SettloScrollScaffold extends StatefulWidget {
 
   /// Height below the status bar while expanded.
   final double expandedHeight;
+
+  /// Explicit space after the header; child spacers are never discarded.
+  final double headerGap;
 
   @override
   State<SettloScrollScaffold> createState() => _SettloScrollScaffoldState();
@@ -205,19 +209,11 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
           SliverPadding(
             padding: EdgeInsets.fromLTRB(
               padding.left,
-              0,
+              widget.headerGap,
               padding.right,
               padding.bottom,
             ),
-            sliver: SliverList.list(
-              children: widget.children
-                  .skip(
-                    widget.children.length > 1 && widget.children[1] is SizedBox
-                        ? 2
-                        : 1,
-                  )
-                  .toList(),
-            ),
+            sliver: SliverList.list(children: widget.children.skip(1).toList()),
           ),
       ],
     );

@@ -202,6 +202,41 @@ void main() {
     expect(detail, isFalse);
     expect(find.text('Root page'), findsOneWidget);
   });
+  for (final reduced in [false, true]) {
+    testWidgets('native iOS MaterialPage swipes back reduced=$reduced', (
+      tester,
+    ) async {
+      var detail = true;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: SettloTheme.dark().copyWith(platform: TargetPlatform.iOS),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(disableAnimations: reduced),
+            child: child!,
+          ),
+          home: StatefulBuilder(
+            builder: (context, setState) => Navigator(
+              pages: [
+                const MaterialPage<void>(
+                  child: Scaffold(body: Center(child: Text('Root page'))),
+                ),
+                if (detail)
+                  const MaterialPage<void>(
+                    child: Scaffold(body: Center(child: Text('Detail page'))),
+                  ),
+              ],
+              onDidRemovePage: (_) => setState(() => detail = false),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.flingFrom(const Offset(1, 300), const Offset(600, 0), 1200);
+      await tester.pumpAndSettle();
+      expect(detail, isFalse);
+      expect(find.text('Root page'), findsOneWidget);
+    });
+  }
 
   testWidgets('registry ignores hidden surfaces and honors Reduce Motion', (
     tester,
@@ -526,4 +561,63 @@ void main() {
       0,
     );
   });
+
+  testWidgets('explicit header gap preserves the first content spacer', (
+    tester,
+  ) async {
+    Future<double> render(double gap, double spacer) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: SettloTheme.dark(),
+          home: Scaffold(
+            body: SettloScrollScaffold(
+              title: 'Spacing',
+              headerGap: gap,
+              children: [
+                const SettloNavigationHeader(title: 'Spacing'),
+                SizedBox(height: spacer),
+                const Text('First content'),
+              ],
+            ),
+          ),
+        ),
+      );
+      return tester.getTopLeft(find.text('First content')).dy;
+    }
+
+    final baseline = await render(0, 0);
+    expect(await render(8, 32), baseline + 40);
+  });
+
+  testWidgets('glass uses one seamless legibility band, never item boxes', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: SettloTheme.light(),
+        home: const Scaffold(
+          body: SGlassTabBar(
+            tabs: [
+              (icon: Icon(Icons.home), label: 'Home'),
+              (icon: Icon(Icons.list), label: 'Activity'),
+            ],
+            currentIndex: 0,
+            onTap: _ignoreTab,
+          ),
+        ),
+      ),
+    );
+    expect(find.byKey(const ValueKey('nav-legibility-band')), findsOneWidget);
+    final inactive = find.byTooltip('Activity');
+    final decorations = tester.widgetList<DecoratedBox>(
+      find.descendant(of: inactive, matching: find.byType(DecoratedBox)),
+    );
+    for (final decoration in decorations) {
+      final box = decoration.decoration as BoxDecoration;
+      expect(box.color, isNull);
+      expect(box.gradient, isNull);
+    }
+  });
 }
+
+void _ignoreTab(int index) {}

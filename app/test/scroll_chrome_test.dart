@@ -304,6 +304,41 @@ void main() {
     expect(detail, isFalse);
     expect(find.text('Root page'), findsOneWidget);
   });
+  for (final reduced in [false, true]) {
+    testWidgets('native iOS MaterialPage swipes back reduced=$reduced', (
+      tester,
+    ) async {
+      var detail = true;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: SettloTheme.dark().copyWith(platform: TargetPlatform.iOS),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(disableAnimations: reduced),
+            child: child!,
+          ),
+          home: StatefulBuilder(
+            builder: (context, setState) => Navigator(
+              pages: [
+                const MaterialPage<void>(
+                  child: Scaffold(body: Center(child: Text('Root page'))),
+                ),
+                if (detail)
+                  const MaterialPage<void>(
+                    child: Scaffold(body: Center(child: Text('Detail page'))),
+                  ),
+              ],
+              onDidRemovePage: (_) => setState(() => detail = false),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.flingFrom(const Offset(1, 300), const Offset(600, 0), 1200);
+      await tester.pumpAndSettle();
+      expect(detail, isFalse);
+      expect(find.text('Root page'), findsOneWidget);
+    });
+  }
 
   for (final device in SettloGoldenDevices.accessible) {
     for (final (name, theme) in [
