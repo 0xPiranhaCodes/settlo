@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(46);
+select plan(97);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000009301', '919930000001', now()),
@@ -96,6 +96,106 @@ select ok(has_table_privilege('authenticated', 'public.activity_seen', 'select')
   'activity_seen is read-only under RLS; only mark_activity_seen writes it');
 select is((select count(*)::int from pg_proc where proname = 'activity_feed' and pronamespace = 'public'::regnamespace), 1,
   'activity_feed has one signature, so a call naming only the old arguments is not ambiguous');
+
+-- Redaction: the app's rule (redactPhones), case for case. Expected values are what the app's own
+-- function returns for the same input. Invisible characters, spaces other than U+0020 and
+-- characters outside the BMP are written as escapes so the file shows what it tests.
+select is(private.redact_phones(c.input), c.want, 'redact: ' || c.what) from (values
+  (E'Call +९१ ९८०००–००००९ / 9\u200C8000 00009',
+   E'Call •••• / ••••', E'the reviewer''s probe: Devanagari with +91 and an en dash, and a zero-width non-joiner'),
+  (E'फ़ोन ९८०००००००९ पर',
+   E'फ़ोन •••• पर', E'Devanagari digits'),
+  (E'৯৮০০০০০০০৯',
+   E'••••', E'Bengali digits'),
+  (E'９８０００００００９',
+   E'••••', E'fullwidth digits'),
+  (E'٩٨٠٠٠٠٠٠٠٩',
+   E'••••', E'Arabic-Indic digits'),
+  (E'x \U0001D7D7\U0001D7D6\U0001D7CE\U0001D7CE\U0001D7CE\U0001D7CE\U0001D7CE\U0001D7CE\U0001D7CE\U0001D7D7',
+   E'x ••••', E'digits outside the BMP (mathematical bold)'),
+  (E'98०००০০০০9',
+   E'••••', E'scripts mixed inside one number'),
+  (E'98000\u200D00009',
+   E'••••', E'a zero-width joiner inside'),
+  (E'9\u200B8\u200B0\u200B0\u200B0\u200B0\u200B0\u200B0\u200B0\u200B9',
+   E'••••', E'a zero-width space between every digit'),
+  (E'\u200E98000\u00AD00009',
+   E'\u200E••••', E'a left-to-right mark before and a soft hyphen inside'),
+  (E'+9\u20601 9800000009',
+   E'••••', E'a word joiner inside the +91'),
+  (E'98000—00009',
+   E'••••', E'an em dash'),
+  (E'98000–00009',
+   E'••••', E'an en dash'),
+  (E'９８０００－００００９',
+   E'••••', E'a fullwidth hyphen between fullwidth digits'),
+  (E'+91\u00A098000\u00A000009',
+   E'••••', E'no-break spaces'),
+  (E'98000\u300000009',
+   E'••••', E'an ideographic space'),
+  (E'98000\u2009 00009',
+   E'••••', E'a thin space and a space'),
+  (E'98000.00009',
+   E'••••', E'dots'),
+  (E'9.8.0.0.0.0.0.0.0.9',
+   E'••••', E'a dot between every digit'),
+  (E'(+91) 98000.00009',
+   E'••••', E'parentheses and a dot'),
+  (E'Ask Riya (98000) 00009 today',
+   E'Ask Riya •••• today', E'parentheses around the first half'),
+  (E'+919800000009',
+   E'••••', E'prefix +91, joined'),
+  (E'+91 98000 00009',
+   E'••••', E'prefix +91, spaced'),
+  (E'UTR 919800000009',
+   E'UTR ••••', E'prefix 91, joined, in a sentence'),
+  (E'91-98000-00009',
+   E'••••', E'prefix 91, hyphens'),
+  (E'09800000009',
+   E'••••', E'prefix 0, joined'),
+  (E'0 98000 00009',
+   E'••••', E'prefix 0, spaced'),
+  (E'(0)9800000009',
+   E'••••', E'prefix 0 in parentheses'),
+  (E'9800000009 9800000010',
+   E'•••• ••••', E'two numbers a space apart'),
+  (E'कमरा १२\u00A0— 98000 00009 🎉',
+   E'कमरा १२\u00A0— •••• 🎉', E'the rest is returned as written: its own digits, no-break space, dash and emoji'),
+  (E'19800000009',
+   E'19800000009', E'11 digits with no trunk prefix is not a phone'),
+  (E'980000000',
+   E'980000000', E'9 digits is not a phone'),
+  (E'Ref 4321 8812 0099 1234',
+   E'Ref 4321 8812 0099 1234', E'a card-like run is not a phone'),
+  (E'₹10,00,000 on 2026-11-05, ref 12345',
+   E'₹10,00,000 on 2026-11-05, ref 12345', E'amounts and dates are not phones'),
+  (E'98000 - 00009',
+   E'98000 - 00009', E'three separators break a number'),
+  (E'9198000000091',
+   E'9198000000091', E'13 digits is not a phone'),
+  (E'',
+   E'', E'an empty note')
+) c(input, want, what);
+select is(private.redact_phones(c.input, true), c.want, 'redact, as a reference: ' || c.what) from (values
+  (E'432188120099',
+   E'432188120099', E'a whole 12-digit UTR is kept'),
+  (E' 919800000009 ',
+   E' 919800000009 ', E'a UTR is kept with spaces around it'),
+  (E'९१२३४५६७८९०१',
+   E'९१२३४५६७८९०१', E'a UTR in Devanagari digits is kept'),
+  (E'\u00A0432188120099\u00A0',
+   E'\u00A0432188120099\u00A0', E'a UTR with no-break spaces around it is kept'),
+  (E'9198\u200B00000009',
+   E'••••', E'an invisible character inside means it is not a UTR'),
+  (E'UTR 919800000009',
+   E'UTR ••••', E'anything else beside the digits means it is not a UTR'),
+  (E'432188120099x',
+   E'432188120099x', E'12 digits that do not read as a phone are kept either way')
+) c(input, want, what);
+select is(private.redact_phones(null), null, 'redact: null stays null');
+select ok(not has_function_privilege('authenticated', 'private.redact_phones(text, boolean)', 'execute')
+          and not has_function_privilege('anon', 'private.redact_phones(text, boolean)', 'execute'),
+  'redact: the helper is not callable through the API');
 
 set local role authenticated;
 
@@ -197,6 +297,18 @@ select lives_ok(format('select public.question_activity(%s, %L)', (select s1 fro
     'Call +91 98000 00009 or 9800000010, ref 12345 ' || repeat('a', 234)),
   'note: D, a member, asks too, at the 280 character cap');
 
+-- Straight through the RPC, as a client that redacts nothing would call it: the reviewer's probe.
+select pg_temp.login('00000000-0000-0000-0000-000000009302');
+select lives_ok(format('select public.question_activity(%s, %L)', (select s1 from x),
+    E'Call +९१ ९८०००–००००९ / 9\u200C8000 00009, or ৯৮০০০০০০০৯, ９８０００\u200D００００９, 98000—00009'),
+  'note: B sends numbers in other scripts, with a zero-width joiner and an em dash');
+select is((select q ->> 'note' from public.activity_feed() f, jsonb_array_elements(f.questions) q
+            where f.id = (select s1 from x) and (q ->> 'by_me')::boolean),
+  'Call •••• / ••••, or ••••, ••••, ••••', 'note: none of them is stored or returned');
+select lives_ok(format('select public.question_activity(%s, %L)', (select s1 from x), 'Why did this go up?'),
+  'note: B asks the first question again');
+select pg_temp.login('00000000-0000-0000-0000-000000009303');
+
 -- Who sees the notes: members of that space, on that row.
 select is(pg_temp.notes(), 'Bilal:false:Why did this go up? | Dev:true:Call •••• or ••••, ref 12345 ' || repeat('a', 234),
   'note: trimmed, phone numbers redacted, shown oldest first with who asked');
@@ -206,6 +318,22 @@ select lives_ok(format('select public.question_activity(%s, %L)', (select s1 fro
 select pg_temp.login('00000000-0000-0000-0000-000000009301');
 select ok(pg_temp.notes() like 'Bilal:false:Was the water extra? | Dev:false:Call •••• or %',
   'note: the editor sees them; asking again replaced B''s note');
+-- Each note says when it was asked, which is what rings the editor's bell (and nobody else's: the
+-- app counts a question only on the caller's own edit). The same note again is not a new question.
+select ok((select bool_and((q ->> 'created_at')::timestamptz = now()) and count(*) = 2
+             from public.activity_feed() f, jsonb_array_elements(f.questions) q),
+  'note: each note carries when it was asked');
+reset role;
+update private.activity_questions set created_at = now() - interval '1 day';
+set local role authenticated;
+select pg_temp.login('00000000-0000-0000-0000-000000009302');
+select public.question_activity((select s1 from x), 'Was the water extra?');
+select pg_temp.login('00000000-0000-0000-0000-000000009303');
+select public.question_activity((select s1 from x), 'And the gas?');
+select pg_temp.login('00000000-0000-0000-0000-000000009301');
+select is((select string_agg(concat_ws(':', q ->> 'name', (q ->> 'created_at')::timestamptz = now()), ' ')
+             from public.activity_feed() f, jsonb_array_elements(f.questions) q),
+  'Bilal:f Dev:t', 'note: a replay keeps its time; a changed note is asked now, and sorts last');
 select pg_temp.login('00000000-0000-0000-0000-000000009305');
 select ok((select count(*) = 3 and bool_and(questions is null) from public.activity_feed()),
   'note: O sees S2''s rows and no note from S1');

@@ -11,7 +11,8 @@
 --
 -- 'Question this': a short note on an 'edited' row, from an accepted member of that space who is
 -- not the editor. It is stored out of the API's reach and read only through activity_feed, which
--- shows the row, and so the note, only to accepted, active members of the space.
+-- shows the row, and so the note, only to accepted, active members of the space. Each note carries
+-- when it was asked, so the app can count it as unread for the editor alone.
 
 create table public.activity_seen (
   user_id uuid primary key references public.profiles (id) on delete cascade,
@@ -38,6 +39,86 @@ begin
   on conflict (user_id) do update set seen_at = greatest(activity_seen.seen_at, excluded.seen_at);
 end $$;
 
+-- The app's phone redaction (redactPhones in packages/core/lib/export/names.dart), in full, so the
+-- rule holds for any client of the API. An Indian phone number is 10 digits, optionally led by +91,
+-- 91 or 0 (itself optionally in parentheses), with up to two spaces, dashes, dots or parentheses
+-- between digits and no digit directly before or after. It is found in a folded copy of the text:
+-- every Unicode decimal digit (Nd) becomes its ASCII digit, every space separator (Zs) a space,
+-- every dash (Pd) a hyphen, and invisible format characters (Cf) are dropped, so none of them can
+-- hide a number. Each match is replaced by •••• in the original text; the rest is returned as it
+-- was. With p_keep_utr, a text that is nothing but 12 contiguous digits once trimmed is kept: as a
+-- repayment's whole reference it is a UTR. An invisible character among them makes it not one.
+-- The character tables are Unicode 16's.
+create function private.redact_phones(p_text text, p_keep_utr boolean default false) returns text
+language plpgsql immutable set search_path = '' as $$
+declare
+  -- The zero of every Nd digit set; each set is ten contiguous code points.
+  c_zeros constant int[] := array[48,1632,1776,1984,2406,2534,2662,2790,2918,3046,3174,3302,3430,3558,3664,3792,
+    3872,4160,4240,6112,6160,6470,6608,6784,6800,6992,7088,7232,7248,42528,43216,43264,43472,43504,43600,44016,
+    65296,66720,68912,68928,69734,69872,69942,70096,70384,70736,70864,71248,71360,71376,71386,71472,71904,72016,
+    72688,72784,73040,73120,73552,90416,92768,92864,93008,93552,118000,120782,120792,120802,120812,120822,123200,
+    123632,124144,124401,125264,130032];
+  -- Zs, Pd and Cf as inclusive ranges: first[i] to last[i].
+  c_space_first constant int[] := array[32,160,5760,8192,8239,8287,12288];
+  c_space_last constant int[] := array[32,160,5760,8202,8239,8287,12288];
+  c_dash_first constant int[] := array[45,1418,1470,5120,6150,8208,11799,11802,11834,11840,11869,12316,12336,12448,
+    65073,65112,65123,65293,68974,69293];
+  c_dash_last constant int[] := array[45,1418,1470,5120,6150,8213,11799,11802,11835,11840,11869,12316,12336,12448,
+    65074,65112,65123,65293,68974,69293];
+  c_format_first constant int[] := array[173,1536,1564,1757,1807,2192,2274,6158,8203,8234,8288,8294,65279,65529,
+    69821,69837,78896,113824,119155,917505,917536];
+  c_format_last constant int[] := array[173,1541,1564,1757,1807,2193,2274,6158,8207,8238,8292,8303,65279,65531,
+    69821,69837,78911,113827,119162,917505,917631];
+  c_phone constant text := '(?<![0-9])\(?(?:(?:\+91|91|0)[ .()-]{0,2})?[0-9](?:[ .()-]{0,2}[0-9]){9}(?![0-9])';
+  v_from text;      -- every digit, space and dash to fold
+  v_to text;        -- what each folds to
+  v_format text;    -- every invisible character; past the end of v_to, so translate drops them
+  v_folded text;    -- p_text folded, without its invisible characters
+  v_at int[];       -- v_at[i]: where character i of v_folded sits in p_text
+  v_out text := '';
+  v_next int := 1;  -- the first character of p_text not yet written
+  v_start int;
+  v_end int;
+  n int := 1;
+begin
+  if p_text is null then
+    return null;
+  end if;
+  select string_agg(chr(z.zero + k), '' order by z.o, k), string_agg(k::text, '' order by z.o, k)
+    into v_from, v_to
+    from unnest(c_zeros) with ordinality z(zero, o), generate_series(0, 9) k;
+  select v_from || string_agg(chr(c), '' order by r.o, c), v_to || repeat(' ', count(*)::int)
+    into v_from, v_to
+    from unnest(c_space_first, c_space_last) with ordinality r(first, last, o), generate_series(r.first, r.last) c;
+  select v_from || string_agg(chr(c), '' order by r.o, c), v_to || repeat('-', count(*)::int)
+    into v_from, v_to
+    from unnest(c_dash_first, c_dash_last) with ordinality r(first, last, o), generate_series(r.first, r.last) c;
+  select string_agg(chr(c), '' order by r.o, c)
+    into v_format
+    from unnest(c_format_first, c_format_last) with ordinality r(first, last, o), generate_series(r.first, r.last) c;
+
+  -- Invisible characters stay for this check, as non-digits.
+  if p_keep_utr and btrim(translate(p_text, v_from, v_to), E' \t\n\r\f\v') ~ '^[0-9]{12}$' then
+    return p_text;
+  end if;
+
+  select coalesce(string_agg(f.c, '' order by f.i), ''), coalesce(array_agg(f.i order by f.i), '{}')
+    into v_folded, v_at
+    from (select t.i::int as i, translate(t.c, v_from || v_format, v_to) as c
+            from string_to_table(p_text, null) with ordinality t(c, i)) f
+   where f.c <> '';
+  loop
+    v_start := regexp_instr(v_folded, c_phone, 1, n);
+    exit when v_start = 0;
+    v_end := regexp_instr(v_folded, c_phone, 1, n, 1);  -- one past the match
+    v_out := v_out || substr(p_text, v_next, v_at[v_start] - v_next) || '••••';
+    v_next := v_at[v_end - 1] + 1;
+    n := n + 1;
+  end loop;
+  return v_out || substr(p_text, v_next);
+end $$;
+revoke execute on function private.redact_phones(text, boolean) from public, anon, authenticated;
+
 create table private.activity_questions (
   activity_id bigint not null references public.activity (id) on delete cascade,
   author_id uuid not null references public.profiles (id) on delete cascade,
@@ -47,7 +128,8 @@ create table private.activity_questions (
 );
 revoke all on table private.activity_questions from public, anon, authenticated;
 
--- One note per member per edit; asking again replaces it, so a replayed call is harmless.
+-- One note per member per edit; asking again replaces it, so a replayed call is harmless. Phone
+-- numbers are redacted here, on write, whatever the client did.
 create function public.question_activity(p_activity_id bigint, p_note text) returns void
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -68,15 +150,12 @@ begin
        and public.is_accepted_member(a.space_id)) then
     raise exception 'question_activity: not an edit you can question' using errcode = '42501';
   end if;
-  -- The app's rule for an Indian phone number (packages/core/lib/export/names.dart, _phone).
-  -- shortcut: ASCII digits and separators only; the app also redacts other scripts' digits and
-  -- invisible separators before sending and again when showing. Port that normalisation here if
-  -- notes are ever shown outside the app.
-  v_note := regexp_replace(v_note,
-    '(?<!\d)\(?(?:(?:\+91|91|0)[ .()\-]{0,2})?\d(?:[ .()\-]{0,2}\d){9}(?!\d)', '••••', 'g');
   insert into private.activity_questions (activity_id, author_id, note)
-  values (p_activity_id, public.verified_uid(), v_note)
-  on conflict (activity_id, author_id) do update set note = excluded.note;
+  values (p_activity_id, public.verified_uid(), private.redact_phones(v_note))
+  -- A replay of the same note changes nothing; a new note counts as asked now, so its editor's
+  -- bell rings again.
+  on conflict (activity_id, author_id) do update set note = excluded.note, created_at = now()
+    where activity_questions.note is distinct from excluded.note;
 end $$;
 
 revoke execute on function public.mark_activity_seen(timestamptz), public.question_activity(bigint, text)
@@ -186,7 +265,7 @@ language sql stable security definer set search_path = '' as $$
                              where m.space_id = a.space_id and m.user_id = q.author_id
                              order by m.left_at desc nulls first
                              limit 1),
-                   'note', q.note) order by q.created_at, q.author_id)
+                   'note', q.note, 'created_at', q.created_at) order by q.created_at, q.author_id)
             from private.activity_questions q
            where q.activity_id = a.id)
     from page

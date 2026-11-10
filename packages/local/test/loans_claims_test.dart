@@ -904,6 +904,7 @@ void main() {
         byYou: false,
         name: 'Priya',
         note: 'Call ••••?',
+        at: null,
       ));
       expect(edit.canQuestion, isTrue);
 
@@ -911,8 +912,8 @@ void main() {
       await activity().question(edit, '  Why? Ask 98000 00009  ');
       final [asked, other] = await activity().feed(limit: 9);
       expect(asked.questions, [
-        (byYou: false, name: 'Priya', note: 'Call ••••?'),
-        (byYou: true, name: null, note: 'Why? Ask ••••'),
+        (byYou: false, name: 'Priya', note: 'Call ••••?', at: null),
+        (byYou: true, name: null, note: 'Why? Ask ••••', at: null),
       ]);
       expect(asked.canQuestion, isFalse);
       expect(other.questions, isEmpty);
@@ -923,6 +924,45 @@ void main() {
       expect(server.calls.single.$2, {
         'p_activity_id': 2,
         'p_note': 'Why? Ask ••••',
+      });
+    });
+
+    test('a question about your edit is unread for you alone, until '
+        'seen', () async {
+      Map<String, Object?> edit({required bool byMe}) => {
+        ...row(2, day: 2, byMe: byMe),
+        'action': 'edited',
+        'questions': [
+          {
+            'by_me': false,
+            'name': 'Priya',
+            'note': 'Why?',
+            'created_at': '2026-11-05T00:00:00+00:00',
+          },
+        ],
+      };
+      server
+        ..tables['rpc/activity_feed'] = [edit(byMe: true), row(1)]
+        ..tables['activity_seen'] = [
+          {'seen_at': '2026-11-03T00:00:00+00:00'},
+        ];
+      await engine.sync();
+      // Both entries were seen; the question came after.
+      expect(await activity().unread(), 1);
+
+      // The same question on someone else's edit is not yours to answer.
+      server.tables['rpc/activity_feed'] = [edit(byMe: false), row(1)];
+      await engine.sync();
+      expect(await activity().unread(), 0);
+
+      server.tables['rpc/activity_feed'] = [edit(byMe: true), row(1)];
+      await engine.sync();
+      offline();
+      await activity().markSeen();
+      expect(await activity().unread(), 0);
+      // Seen up to the question, not just the newest entry.
+      expect((await db.mutations(_me)).single.params, {
+        'p_at': '2026-11-05T00:00:00.000Z',
       });
     });
 

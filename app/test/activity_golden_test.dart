@@ -27,7 +27,7 @@ final List<ActivityEntry> _questioned = [
         beforeDescription: e.beforeDescription,
         beforeAmount: e.beforeAmount,
         questions: const [
-          (byYou: false, name: 'Priya', note: 'Did the plan change?'),
+          (byYou: false, name: 'Priya', note: 'Did the plan change?', at: null),
         ],
       )
     else

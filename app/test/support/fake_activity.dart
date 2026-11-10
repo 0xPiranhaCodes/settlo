@@ -107,7 +107,7 @@ class FakeActivityRepository implements ActivityRepository {
     this.ledger,
     DateTime? seenAt,
   }) : entries = entries ?? [...activityFeed],
-       seenAt = seenAt ?? (entries ?? activityFeed).firstOrNull?.at,
+       seenAt = seenAt ?? newestIn(entries ?? activityFeed),
        pending = pending ?? [arjunRepaymentAnswer];
 
   /// The feed, newest first.
@@ -158,7 +158,7 @@ class FakeActivityRepository implements ActivityRepository {
   @override
   Future<void> markSeen() async {
     calls.add('markSeen');
-    seenAt = entries.firstOrNull?.at;
+    seenAt = newestIn(entries);
   }
 
   @override
@@ -186,6 +186,7 @@ class FakeActivityRepository implements ActivityRepository {
           name: null,
           // Redacted as the real repositories send it.
           note: questionParams(e, note)['p_note']! as String,
+          at: null,
         ),
       ],
     );

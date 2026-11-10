@@ -77,8 +77,14 @@ typedef ActivityFilter = ({String? spaceId, bool loansOnly});
 const ActivityFilter allActivity = (spaceId: null, loansOnly: false);
 
 /// A member's 'Question this' note on an edit: whether you asked, else who
-/// did, and the note with phone numbers redacted.
-typedef ActivityQuestion = ({bool byYou, String? name, String note});
+/// did, the note with phone numbers redacted, and when it was asked (null
+/// while yours is still queued on this device).
+typedef ActivityQuestion = ({
+  bool byYou,
+  String? name,
+  String note,
+  DateTime? at,
+});
 
 /// The longest 'Question this' note, as `question_activity` allows.
 const questionMaxLength = 280;
@@ -250,11 +256,12 @@ abstract interface class ActivityRepository {
     ActivityFilter filter = allActivity,
   });
 
-  /// How many of the newest [unreadWindow] entries are someone else's and
-  /// newer than the last one you saw, on any of your devices.
+  /// How many of the newest [unreadWindow] entries are unread ([unreadIn])
+  /// since you last looked, on any of your devices.
   Future<int> unread();
 
-  /// Marks everything up to the newest entry as seen.
+  /// Marks everything in the newest [unreadWindow] entries as seen,
+  /// questions included.
   Future<void> markSeen();
 
   /// Leaves [note] on [entry], an edit, for its editor; the space's members
@@ -305,17 +312,45 @@ List<ActivityEntry> activityFromRows(List<Map<String, dynamic>> rows) {
               // Again here: the server only knows ASCII digits, and another
               // client may not have redacted at all.
               note: redactPhones(q['note'] as String),
+              at: switch (q['created_at']) {
+                final String at => DateTime.parse(at),
+                _ => null,
+              },
             ),
         ],
       ),
   ];
 }
 
-/// How many of [entries] are unread: someone else's, and newer than
-/// [seenAt] (all of them when nothing was seen yet).
-int unreadIn(Iterable<ActivityEntry> entries, DateTime? seenAt) => entries
-    .where((e) => !e.byYou && (seenAt == null || e.at.isAfter(seenAt)))
-    .length;
+/// How many of [entries] are unread, that is newer than [seenAt] (or all
+/// of them when nothing was seen yet): each entry of someone else's, and
+/// each question someone asked about an edit of yours. A question rings
+/// only for the editor it is addressed to, never for the space's other
+/// members.
+int unreadIn(Iterable<ActivityEntry> entries, DateTime? seenAt) {
+  bool isNew(DateTime? at) =>
+      at != null && (seenAt == null || at.isAfter(seenAt));
+  return entries.fold(
+    0,
+    (n, e) =>
+        n +
+        (e.byYou
+            ? e.questions.where((q) => !q.byYou && isNew(q.at)).length
+            : isNew(e.at)
+            ? 1
+            : 0),
+  );
+}
+
+/// The time of the newest thing in [entries], an entry or a question on
+/// one: what seeing all of them moves the cursor to.
+DateTime? newestIn(Iterable<ActivityEntry> entries) =>
+    [
+      for (final e in entries) ...[e.at, for (final q in e.questions) ?q.at],
+    ].fold(
+      null,
+      (newest, at) => newest == null || at.isAfter(newest) ? at : newest,
+    );
 
 /// When the caller last saw the feed, from their `activity_seen` rows (one
 /// at most).
@@ -392,12 +427,9 @@ final class SupabaseActivityRepository implements ActivityRepository {
 
   @override
   Future<void> markSeen() async {
-    final newest = (await feed(limit: 1)).firstOrNull;
+    final newest = newestIn(await feed(limit: unreadWindow));
     if (newest == null) return;
-    await _db.rpc<void>(
-      'mark_activity_seen',
-      params: markSeenParams(newest.at),
-    );
+    await _db.rpc<void>('mark_activity_seen', params: markSeenParams(newest));
   }
 
   @override

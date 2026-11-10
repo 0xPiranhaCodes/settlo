@@ -310,10 +310,10 @@ final class DriftActivityRepository implements ActivityRepository {
   @override
   Future<void> markSeen() async {
     final t = await _sync.snapshot(now());
-    final newest = activityFromRows(t['activity_feed'] ?? const []).firstOrNull;
+    final newest = newestIn(activityFromRows(t['activity_feed'] ?? const []));
     final seen = seenAtFromRows(t['activity_seen'] ?? const []);
-    if (newest == null || (seen != null && !newest.at.isAfter(seen))) return;
-    final params = markSeenParams(newest.at);
+    if (newest == null || (seen != null && !newest.isAfter(seen))) return;
+    final params = markSeenParams(newest);
     // The call is idempotent on the server; the key only names it in the
     // queue.
     await _sync.submit('mark_activity_seen', params, 'seen:${params['p_at']}');

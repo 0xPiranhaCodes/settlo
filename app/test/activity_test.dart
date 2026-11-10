@@ -464,6 +464,58 @@ void main() {
       expect(find.text('2'), findsNothing);
     });
 
+    testWidgets('a question about your edit rings for you, the editor, only', (
+      tester,
+    ) async {
+      // Asked at 10:00 on 9 Nov, after every entry, about an edit made on
+      // 3 Nov; you last looked at 09:45.
+      List<ActivityEntry> feed({required bool yours}) => [
+        for (final e in activityFeed)
+          if (e.action == ActivityAction.edited)
+            ActivityEntry(
+              id: e.id,
+              at: e.at,
+              kind: e.kind,
+              action: e.action,
+              byYou: yours,
+              actor: yours ? 'Sana' : e.actor,
+              spaceId: e.spaceId,
+              spaceName: e.spaceName,
+              description: e.description,
+              amount: e.amount,
+              beforeAmount: e.beforeAmount,
+              questions: [
+                (
+                  byYou: false,
+                  name: 'Priya',
+                  note: 'Why?',
+                  at: DateTime(2026, 11, 9, 10),
+                ),
+              ],
+            )
+          else
+            e,
+      ];
+      final seenAt = DateTime(2026, 11, 9, 9, 45);
+
+      // Rahul's edit: Priya's question is for Rahul, not for you.
+      await _pump(
+        tester,
+        FakeActivityRepository(entries: feed(yours: false), seenAt: seenAt),
+      );
+      expect(find.byTooltip('Notifications'), findsOneWidget);
+
+      // Your edit: it is for you, and opening Activity marks it seen.
+      final activity = FakeActivityRepository(
+        entries: feed(yours: true),
+        seenAt: seenAt,
+      );
+      await _pump(tester, activity);
+      expect(find.byTooltip('Notifications, 1 new'), findsOneWidget);
+      expect(find.text('Priya asked: “Why?”'), findsOneWidget);
+      expect(activity.seenAt, DateTime(2026, 11, 9, 10));
+    });
+
     testWidgets('with nothing new it is plain and marks nothing', (
       tester,
     ) async {
@@ -574,8 +626,8 @@ void main() {
         amount: const Paise.rupees(1200),
         beforeAmount: const Paise.rupees(1100),
         questions: const [
-          (byYou: false, name: 'Priya', note: 'Was this agreed?'),
-          (byYou: false, name: null, note: 'Same question'),
+          (byYou: false, name: 'Priya', note: 'Was this agreed?', at: null),
+          (byYou: false, name: null, note: 'Same question', at: null),
         ],
       );
       await _pump(

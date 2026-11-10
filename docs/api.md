@@ -131,7 +131,7 @@ makes the membership checks itself and names a person only where `profiles` RLS 
 | `before_description`, `before_amount_minor` | text, bigint | `edited` rows only: the values before |
 | `status` | text | Settle-ups and repayments as they stand now: `pending`, `confirmed`, `disputed`, or `deleted` |
 | `my_side` | text | Settle-ups and repayments: `in` (to the caller), `out` (from the caller), else null |
-| `questions` | jsonb | `edited` rows in a space: members' 'Question this' notes, oldest first, as `[{"by_me": bool, "name": text, "note": text}]`; null when there are none |
+| `questions` | jsonb | `edited` rows in a space: members' 'Question this' notes, oldest first, as `[{"by_me": bool, "name": text, "note": text, "created_at": timestamptz}]`; null when there are none |
 
 Rows are ordered by `(created_at, id)` descending. `created_at` is when the change happened (its
 transaction's start), so a transaction that began earlier but committed later still sorts by its
@@ -163,9 +163,11 @@ POST /rest/v1/rpc/activity_feed  {"p_limit": 30, "p_loans_only": true}
 ### `activity_seen`
 A table, listed with the feed it belongs to (#109): one row per user, `seen_at`, the `created_at` of
 the newest feed entry they have seen. RLS shows a user only their own row, and only
-`mark_activity_seen` writes it. The bell counts feed entries that are not the caller's own with
-`created_at > seen_at` (every such entry when there is no row), among the newest 100. It is on the
-server, not the device, so opening Activity on one phone clears the bell on the caller's others.
+`mark_activity_seen` writes it. Among the newest 100 feed entries, the bell counts what is newer
+than `seen_at` (everything when there is no row): each entry that is not the caller's own, and each
+question (`questions[].created_at`) someone else asked about an edit the caller made. A question
+therefore rings for the editor it is addressed to and for no other member. It is on the server, not
+the device, so opening Activity on one phone clears the bell on the caller's others.
 
 ```
 GET /rest/v1/activity_seen?select=seen_at
@@ -769,7 +771,8 @@ POST /rest/v1/rpc/dispute_settlement
 ## Activity (#109)
 
 ### `mark_activity_seen(p_at timestamptz)`
-Records that the caller has seen the feed up to `p_at`, the `created_at` of the newest entry shown.
+Records that the caller has seen the feed up to `p_at`, the newest `created_at` shown, of an entry
+or of a question on one.
 The cursor only moves forward and is held to now, so the call is idempotent: a replay, or two phones
 answering out of order, changes nothing. No idempotency key. An unverified caller gets `42501`, a
 null time `22023`; anon cannot call it.
@@ -778,12 +781,19 @@ null time `22023`; anon cannot call it.
 'Question this': leaves a short note on an `edited` row for whoever made the edit. The caller must
 be an accepted, active member of the row's space and not the editor; anything else, a missing row
 included, gets the same `42501`, so the call cannot probe for rows. The note is trimmed and must be
-1 to 280 characters (`22023`). Indian phone numbers in it are replaced with `••••` by the app's
-rule (`redactPhones`); the server applies it to ASCII digits, and the app also applies it to other
-scripts' digits before sending and when showing a note.
+1 to 280 characters (`22023`).
 
-One note per member per row: asking again replaces the caller's note, so a replay is harmless and
-there is no idempotency key. Notes are stored outside the API schema and are read only as
+Indian phone numbers in it are replaced with `••••` on write, by `private.redact_phones`, the
+app's `redactPhones` rule in full: 10 digits, optionally led by `+91`, `91` or `0`, with up to two
+spaces, dashes, dots or parentheses between digits, in any script's digits (`Nd`), with any space
+(`Zs`) or dash (`Pd`), and with invisible format characters (`Cf`) ignored. So a client that
+redacts nothing still cannot store a number. The helper also carries the rule's exemption for a
+reference that is exactly 12 contiguous digits (a UTR); notes are free text and do not use it. The
+app still redacts before sending and when showing a note, as a second line.
+
+One note per member per row: asking again replaces the caller's note. The same note again changes
+nothing, so a replay is harmless and there is no idempotency key; a changed note counts as asked
+now. Notes are stored outside the API schema and are read only as
 `activity_feed.questions`, which shows them to exactly the people who see the row: accepted, active
 members of that space. A member who leaves stops seeing them; their own note stays for the others.
 

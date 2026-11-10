@@ -35,7 +35,12 @@ final _views = <String, List<Map<String, Object?>>?>{
       'my_side': null,
       'link_only': true,
       'questions': [
-        {'by_me': false, 'name': 'Priya', 'note': 'Why? Call ९८००० ००००९'},
+        {
+          'by_me': false,
+          'name': 'Priya',
+          'note': 'Why? Call ९८००० ००००९',
+          'created_at': '2026-11-09T10:00:00.5+00:00',
+        },
       ],
     },
     // Arjun repaid you, and you confirmed.
@@ -285,12 +290,50 @@ void main() {
       expect(seenAtFromRows(const []), isNull);
     });
 
-    test("markSeen sends the newest entry's exact time", () async {
-      await repository().markSeen();
-      expect(requests, [
-        'POST rpc/activity_feed  {"p_limit":1}',
-        'POST rpc/mark_activity_seen  {"p_at":"2026-11-09T08:30:00.123456Z"}',
-      ]);
+    test(
+      'markSeen sends the exact time of the newest entry or question',
+      () async {
+        // Priya's question is newer than the edit it is on.
+        await repository().markSeen();
+        expect(requests, [
+          'POST rpc/activity_feed  {"p_limit":100}',
+          'POST rpc/mark_activity_seen  {"p_at":"2026-11-09T10:00:00.500Z"}',
+        ]);
+      },
+    );
+
+    test('a question rings for the editor only', () {
+      final seen = DateTime(2026, 11, 9, 12);
+      ActivityEntry edit({required bool byYou, required bool askedByYou}) =>
+          ActivityEntry(
+            id: 1,
+            at: DateTime(2026, 11, 9, 9),
+            kind: ActivityKind.expense,
+            action: ActivityAction.edited,
+            byYou: byYou,
+            spaceId: 's1',
+            questions: [
+              (
+                byYou: askedByYou,
+                name: askedByYou ? null : 'Priya',
+                note: 'Why?',
+                at: DateTime(2026, 11, 9, 13),
+              ),
+              // Still queued on this device: no time yet.
+              (byYou: askedByYou, name: null, note: 'Why?', at: null),
+            ],
+          );
+      // Your edit, asked about after you last looked: one unread.
+      final yours = edit(byYou: true, askedByYou: false);
+      expect(unreadIn([yours], seen), 1);
+      expect(unreadIn([yours], DateTime(2026, 11, 9, 14)), 0);
+      // Someone else's edit, already seen: the question is not yours to
+      // answer, whoever asked it.
+      expect(unreadIn([edit(byYou: false, askedByYou: false)], seen), 0);
+      expect(unreadIn([edit(byYou: false, askedByYou: true)], seen), 0);
+      // Seeing the feed moves the cursor past the question.
+      expect(newestIn([yours]), DateTime(2026, 11, 9, 13));
+      expect(newestIn(const []), isNull);
     });
 
     test('markSeen with an empty feed sends nothing', () async {
@@ -298,7 +341,7 @@ void main() {
       _views['rpc/activity_feed'] = [];
       addTearDown(() => _views['rpc/activity_feed'] = feed);
       await repository().markSeen();
-      expect(requests, ['POST rpc/activity_feed  {"p_limit":1}']);
+      expect(requests, ['POST rpc/activity_feed  {"p_limit":100}']);
     });
 
     test('a question is trimmed and loses its phone numbers before it is '
@@ -308,6 +351,7 @@ void main() {
         byYou: false,
         name: 'Priya',
         note: 'Why? Call ••••',
+        at: DateTime.utc(2026, 11, 9, 10, 0, 0, 500),
       ));
       expect(repaid.questions, isEmpty);
       requests.clear();
@@ -349,15 +393,17 @@ void main() {
       );
       expect(entry().canQuestion, isTrue);
       expect(
-        entry(questions: [(byYou: false, name: 'Priya', note: 'Why?')])
-            .canQuestion,
+        entry(
+          questions: [(byYou: false, name: 'Priya', note: 'Why?', at: null)],
+        ).canQuestion,
         isTrue,
       );
       expect(entry(action: ActivityAction.created).canQuestion, isFalse);
       expect(entry(byYou: true).canQuestion, isFalse);
       expect(entry(spaceId: null).canQuestion, isFalse);
       expect(
-        entry(questions: [(byYou: true, name: null, note: 'Why?')]).canQuestion,
+        entry(questions: [(byYou: true, name: null, note: 'Why?', at: null)])
+            .canQuestion,
         isFalse,
       );
     });
