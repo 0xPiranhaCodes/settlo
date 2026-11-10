@@ -35,7 +35,16 @@ done
 # Slot 0 would be 54400-54409; the base config's 54320-54329 block is never used.
 hash="$(printf '%s' "$identity" | cksum | cut -d' ' -f1)"
 slot="${SUPABASE_LOCAL_SLOT:-$((hash % 500))}"
-base=$((54400 + slot * 10))
+port_base="${SUPABASE_LOCAL_PORT_BASE:-54400}"
+if ! [[ "$slot" =~ ^[0-9]+$ ]] || (( slot > 499 )); then
+  echo "supabase-local: SUPABASE_LOCAL_SLOT must be an integer from 0 to 499." >&2
+  exit 2
+fi
+if ! [[ "$port_base" =~ ^[0-9]+$ ]] || (( port_base < 1024 || port_base + slot * 10 + 9 > 65535 )); then
+  echo "supabase-local: SUPABASE_LOCAL_PORT_BASE does not yield a valid 10-port block." >&2
+  exit 2
+fi
+base=$((port_base + slot * 10))
 project_id="settlo-$(printf '%08x' "$hash")"
 cat "$root/supabase/config.toml" "$root/supabase/config.local-dev.toml" |
   awk -v id="$project_id" -v b="$base" '

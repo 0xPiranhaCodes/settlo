@@ -12,6 +12,16 @@ on:
         required: false
         type: boolean
         default: false
+      supabase_only:
+        description: Run only the Supabase job
+        required: false
+        type: boolean
+        default: false
+      exercise_supabase_retry:
+        description: Force the first Supabase start attempt to fail
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -23,7 +33,7 @@ permissions:
 jobs:
   analyze-test:
     name: Analyze & test
-    if: inputs.update_goldens != true
+    if: inputs.update_goldens != true && inputs.supabase_only != true
     # Pin golden rasterization to one runner image; update intentionally.
     runs-on: ubuntu-24.04
     steps:
@@ -180,7 +190,7 @@ jobs:
 
   android:
     name: Android debug build
-    if: inputs.update_goldens != true
+    if: inputs.update_goldens != true && inputs.supabase_only != true
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -199,7 +209,7 @@ jobs:
 
   ios-paths:
     name: Determine iOS build requirement
-    if: inputs.update_goldens != true
+    if: inputs.update_goldens != true && inputs.supabase_only != true
     runs-on: ubuntu-latest
     outputs:
       should_build: ${{ steps.ios-changes.outputs.should_build }}
@@ -255,6 +265,11 @@ jobs:
     name: Supabase
     if: inputs.update_goldens != true
     runs-on: ubuntu-latest
+    env:
+      # Fixed below Linux's default ephemeral range (32768-60999). The wrapper defaults stay
+      # hash-derived for local worktrees.
+      SUPABASE_LOCAL_PORT_BASE: 30000
+      SUPABASE_LOCAL_SLOT: 0
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -264,8 +279,66 @@ jobs:
         with:
           version: 3.0.0
 
-      - name: Start local Supabase
-        run: scripts/supabase-local.sh start
+      - name: Restore Supabase Docker images
+        id: supabase-image-cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: /tmp/supabase-images.tar.zst
+          key: supabase-images-${{ runner.os }}-cli-3.0.0-${{ hashFiles('supabase/config.toml') }}
+
+      - name: Load cached Supabase Docker images
+        if: steps.supabase-image-cache.outputs.cache-hit == 'true'
+        run: zstd -dc /tmp/supabase-images.tar.zst | docker load
+
+      - name: Start local Supabase with one retry
+        env:
+          EXERCISE_RETRY: ${{ inputs.exercise_supabase_retry }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          start_attempt() {
+            local attempt="$1"
+            echo "Supabase start attempt $attempt of 2"
+            if ! scripts/supabase-local.sh start; then
+              return 1
+            fi
+            if [[ "$attempt" == 1 && "$EXERCISE_RETRY" == true ]]; then
+              echo "Forced first-attempt failure after a real start for cleanup proof." >&2
+              return 1
+            fi
+            return 0
+          }
+
+          if start_attempt 1; then
+            exit 0
+          fi
+
+          echo "::warning::Supabase start attempt 1 failed; retrying once after 15 seconds."
+          scripts/supabase-local.sh stop --no-backup || true
+          sleep 15
+          if start_attempt 2; then
+            exit 0
+          fi
+
+          echo "::error::Supabase failed to start after 2 attempts."
+          exit 1
+
+      - name: Prepare Supabase Docker image cache
+        if: steps.supabase-image-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t images < <(
+            docker image ls --format '{{.Repository}}:{{.Tag}}' |
+              grep '^public\.ecr\.aws/supabase/' |
+              sort -u
+          )
+          if (( ${#images[@]} == 0 )); then
+            echo "No Supabase Docker images found to cache." >&2
+            exit 1
+          fi
+          docker save "${images[@]}" | zstd -T0 -3 -o /tmp/supabase-images.tar.zst
 
       - name: Reset local database
         run: scripts/supabase-local.sh db reset
@@ -284,7 +357,7 @@ jobs:
 
   regenerate-goldens:
     name: Regenerate app and core goldens
-    if: inputs.update_goldens == true
+    if: inputs.update_goldens == true && inputs.supabase_only != true
     runs-on: ubuntu-24.04
     permissions:
       contents: write
