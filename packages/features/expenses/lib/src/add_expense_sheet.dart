@@ -327,10 +327,10 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
           const SizedBox(height: SettloSpacing.x3),
           Text('PAID BY', style: label),
           const SizedBox(height: SettloSpacing.x1),
-          Row(
-            spacing: SettloSpacing.x1,
+          SResponsiveRow(
+            threshold: 1.3,
             children: [
-              for (final m in _members.take(3))
+              for (final m in _members.take(3)) ...[
                 Expanded(
                   child: _Option(
                     label: _name(m),
@@ -341,6 +341,8 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
                     }),
                   ),
                 ),
+                const SizedBox(width: SettloSpacing.x1),
+              ],
               _Option(
                 label: '+',
                 semanticLabel: 'Multiple payers',

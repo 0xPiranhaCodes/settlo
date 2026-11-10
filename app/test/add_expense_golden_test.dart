@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -52,6 +53,21 @@ void main() {
             FocusManager.instance.primaryFocus?.unfocus();
           },
         );
+
+        if (device.name.contains('text200')) {
+          for (final name in ['Rahul', 'Priya']) {
+            final paragraphs = tester.renderObjectList<RenderParagraph>(
+              find.descendant(
+                of: find.text(name),
+                matching: find.byType(RichText),
+              ),
+            );
+            expect(paragraphs, isNotEmpty);
+            for (final paragraph in paragraphs) {
+              expect(paragraph.didExceedMaxLines, isFalse);
+            }
+          }
+        }
 
         await expectLater(
           find.byKey(settloGoldenSurfaceKey),
