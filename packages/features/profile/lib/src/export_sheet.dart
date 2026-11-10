@@ -76,33 +76,29 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
     final spaces = ref.watch(exportSpacesProvider);
-    final small = SettloTypography.figtree(13, color: colors.textSecondary);
+    final small = SettloTypography.subheadline(color: colors.textSecondary);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Export',
-            style: SettloTypography.figtree(
-              20,
-              weight: FontWeight.w500,
-              color: colors.textPrimary,
-            ),
+            style: SettloTypography.title3(color: colors.textPrimary),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: SettloSpacing.x1),
           Text(
             'Every expense as CSV and a summary PDF, made on this phone. '
             'Members appear by name, never by number. Loan statements are '
             'on each loan.',
             style: small,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: SettloSpacing.x2),
           switch (spaces) {
             AsyncData(value: final list) when list.isEmpty => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
               child: Text('No spaces to export yet.', style: small),
             ),
             AsyncData(value: final list) => Flexible(
@@ -111,32 +107,37 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                 children: [
                   for (final space in list)
                     Builder(
-                      builder: (row) => ListTile(
-                        minTileHeight: 52,
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(space.name),
-                        subtitle: Text(
-                          _busy == space.id ? 'Preparing…' : 'CSV and PDF',
+                      builder: (row) => SPressable(
+                        onTap: _busy != null
+                            ? null
+                            : () async {
+                                final box =
+                                    row.findRenderObject()! as RenderBox;
+                                await _export(
+                                  space,
+                                  box.localToGlobal(Offset.zero) & box.size,
+                                );
+                              },
+                        child: ListTile(
+                          minTileHeight: 52,
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(space.name),
+                          subtitle: Text(
+                            _busy == space.id ? 'Preparing…' : 'CSV and PDF',
+                          ),
+                          enabled: _busy == null,
                         ),
-                        enabled: _busy == null,
-                        onTap: () async {
-                          final box = row.findRenderObject()! as RenderBox;
-                          await _export(
-                            space,
-                            box.localToGlobal(Offset.zero) & box.size,
-                          );
-                        },
                       ),
                     ),
                 ],
               ),
             ),
             AsyncError() => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
               child: Text("We couldn't load your spaces.", style: small),
             ),
             _ => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
+              padding: EdgeInsets.symmetric(vertical: SettloSpacing.x2),
               child: Center(child: CircularProgressIndicator()),
             ),
           },
@@ -144,7 +145,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
             const SizedBox(height: 8),
             Text(
               error,
-              style: SettloTypography.figtree(13, color: colors.textPrimary),
+              style: SettloTypography.subheadline(color: colors.textPrimary),
             ),
           ],
         ],

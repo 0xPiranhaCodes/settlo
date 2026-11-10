@@ -21,87 +21,68 @@ class LoanScreen extends ConsumerWidget {
     final media = MediaQuery.of(context);
     final list = loans.value?.loans;
     return Scaffold(
-      body: RefreshIndicator(
+      body: SettloScrollScaffold(
+        title: 'Loans',
         onRefresh: () => ref.refresh(loansProvider.future),
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            SettloSpacing.screenMargin,
-            math.max(media.padding.top, 44) + 16,
-            SettloSpacing.screenMargin,
-            media.padding.bottom + SettloSpacing.x2,
-          ),
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Loans',
-                  style: SettloTypography.figtree(
-                    24,
-                    weight: FontWeight.w500,
-                    letterSpacing: -0.6,
-                    color: c.textPrimary,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  tooltip: 'New loan',
-                  onPressed: () => context.push(SettloRoutes.newLoan),
-                  style: IconButton.styleFrom(
-                    fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    backgroundColor: c.surface,
-                    side: BorderSide(color: c.hairline),
-                  ),
-                  icon: LoanGlyph(LoanGlyph.plus, color: c.textPrimary),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (list == null)
-              Text(
-                loans.hasError
-                    ? "We couldn't load your loans. Pull down to try again."
-                    : '',
-                style: SettloTypography.figtree(13, color: c.textSecondary),
-              )
-            else if (list.isEmpty)
-              SCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'No loans yet',
-                      style: SettloTypography.figtree(
-                        17,
-                        weight: FontWeight.w500,
-                        color: c.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Lent or borrowed a larger sum? Record it once and '
-                      'both of you track every repayment.',
-                      style: SettloTypography.figtree(
-                        14,
-                        color: c.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    SPrimaryButton(
-                      label: 'Record a loan',
-                      onPressed: () => context.push(SettloRoutes.newLoan),
-                    ),
-                  ],
-                ),
-              )
-            else
-              for (final (i, l) in list.indexed) ...[
-                if (i > 0) const SizedBox(height: 12),
-                _LoanCard(l),
-              ],
-          ],
+        padding: EdgeInsets.fromLTRB(
+          SettloSpacing.screenMargin,
+          math.max(media.padding.top, 44) + 16,
+          SettloSpacing.screenMargin,
+          media.padding.bottom + SettloSpacing.x2,
         ),
+        children: [
+          SettloNavigationHeader(
+            title: 'Loans',
+            trailing: IconButton(
+              tooltip: 'New loan',
+              onPressed: () => context.push(SettloRoutes.newLoan),
+              style: IconButton.styleFrom(
+                fixedSize: const Size.square(SettloSpacing.minTouchTarget),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                backgroundColor: c.surface,
+                side: BorderSide(color: c.hairline),
+              ),
+              icon: LoanGlyph(LoanGlyph.plus, color: c.textPrimary),
+            ),
+          ),
+          const SizedBox(height: SettloSpacing.x3),
+          if (list == null)
+            Text(
+              loans.hasError
+                  ? "We couldn't load your loans. Pull down to try again."
+                  : '',
+              style: SettloTypography.subheadline(color: c.textSecondary),
+            )
+          else if (list.isEmpty)
+            SCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'No loans yet',
+                    style: SettloTypography.headline(color: c.textPrimary),
+                  ),
+                  const SizedBox(height: SettloSpacing.x1),
+                  Text(
+                    'Lent or borrowed a larger sum? Record it once and '
+                    'both of you track every repayment.',
+                    style: SettloTypography.body(color: c.textSecondary),
+                  ),
+                  const SizedBox(height: SettloSpacing.x3),
+                  SPrimaryButton(
+                    label: 'Record a loan',
+                    onPressed: () => context.push(SettloRoutes.newLoan),
+                  ),
+                ],
+              ),
+            )
+          else
+            for (final (i, l) in list.indexed) ...[
+              if (i > 0) const SizedBox(height: SettloSpacing.x3),
+              _LoanCard(l),
+            ],
+        ],
       ),
     );
   }
@@ -136,36 +117,39 @@ class _LoanCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
+            SResponsiveRow(
+              threshold: 1.3,
               children: [
                 ExcludeSemantics(child: SAvatar(loan.counterparty)),
-                const SizedBox(width: 12),
+                const SizedBox(width: SettloSpacing.x2),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '${loan.counterparty} · interest free',
-                        maxLines: 1,
+                        maxLines:
+                            MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                            ? 2
+                            : 1,
                         overflow: TextOverflow.ellipsis,
-                        style: SettloTypography.figtree(
-                          15,
-                          color: c.textPrimary,
-                        ),
+                        style: SettloTypography.headline(color: c.textPrimary),
                       ),
                       Text(
                         _detail,
-                        maxLines: 1,
+                        maxLines:
+                            MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                            ? 2
+                            : 1,
                         overflow: TextOverflow.ellipsis,
-                        style: SettloTypography.figtree(
-                          13,
+                        style: SettloTypography.subheadline(
                           color: c.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: SettloSpacing.x2),
                 MoneyText(
                   loan.outstanding,
                   tone: switch (loan) {
@@ -176,7 +160,7 @@ class _LoanCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: SettloSpacing.x2),
             ClipRRect(
               borderRadius: BorderRadius.circular(2),
               child: LinearProgressIndicator(
@@ -187,12 +171,12 @@ class _LoanCard extends StatelessWidget {
               ),
             ),
             if (waiting > 0) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Text(
                 waiting == 1
                     ? '1 repayment to confirm'
                     : '$waiting repayments to confirm',
-                style: SettloTypography.figtree(13, color: c.textPrimary),
+                style: SettloTypography.subheadline(color: c.textPrimary),
               ),
             ],
           ],

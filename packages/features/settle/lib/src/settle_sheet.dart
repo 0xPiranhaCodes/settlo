@@ -149,7 +149,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final text = SettloTypography.figtree(13, color: c.textSecondary);
+    final text = SettloTypography.subheadline(color: c.textSecondary);
     Widget note(String s) => Text(s, textAlign: TextAlign.center, style: text);
     final ask = _youPay
         ? 'Did you pay ${_other.name} $_amount?'
@@ -171,20 +171,19 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
           ),
         ),
       ),
-      body: ListView(
-        padding: EdgeInsets.zero,
+      body: SFormBody(
         children: [
           note(
             _youPay
                 ? 'clears your balance in ${widget.space.name}'
                 : 'full balance',
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: SettloSpacing.x3),
           if (_confirming)
             Text(
               ask,
               textAlign: TextAlign.center,
-              style: SettloTypography.figtree(17, color: c.textPrimary),
+              style: SettloTypography.headline(color: c.textPrimary),
             )
           else if (_youPay)
             _Info(
@@ -206,7 +205,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                   ? null
                   : () => setState(() => _cash = false),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: SettloSpacing.x2),
             _Option(
               title: 'Record cash or bank payment',
               subtitle: 'Already paid outside Settlo',
@@ -215,11 +214,11 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
             ),
           ],
           if (_error case final error?) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: SettloSpacing.x2),
             Text(
               error,
               textAlign: TextAlign.center,
-              style: SettloTypography.figtree(13, color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.textPrimary),
             ),
           ],
         ],
@@ -235,7 +234,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                 : "Settlo doesn't move money. Nothing is recorded until you "
                       'confirm the payment arrived.',
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: SettloSpacing.x2),
           ...switch ((_confirming, _youPay)) {
             (true, _) => [
               SPrimaryButton(
@@ -246,7 +245,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                     : 'Yes, ${_other.name} paid',
                 onPressed: _busy ? null : _record,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: SettloSpacing.x2),
               SSecondaryButton(
                 label: 'Not yet',
                 onPressed: _busy
@@ -259,7 +258,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
             ],
             (false, true) when _p.to.upiId != null => [
               SPrimaryButton(label: 'Pay $_amount via UPI', onPressed: _pay),
-              const SizedBox(height: 10),
+              const SizedBox(height: SettloSpacing.x2),
               SSecondaryButton(
                 label: 'I already paid in cash',
                 onPressed: () => setState(() => _confirming = true),
@@ -307,7 +306,7 @@ class _Parties extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: SettloTypography.figtree(13, color: c.textPrimary),
+            style: SettloTypography.subheadline(color: c.textPrimary),
           ),
         ],
       ),
@@ -346,10 +345,7 @@ class _Info extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return Text(
-      text,
-      style: SettloTypography.figtree(14, color: c.textSecondary),
-    );
+    return Text(text, style: SettloTypography.body(color: c.textSecondary));
   }
 }
 
@@ -375,7 +371,10 @@ class _Option extends StatelessWidget {
       constraints: const BoxConstraints(
         minHeight: SettloSpacing.minTouchTarget,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: SettloSpacing.x2,
+      ),
       decoration: BoxDecoration(
         color: c.surfaceRaised,
         borderRadius: radius,
@@ -398,23 +397,21 @@ class _Option extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: SettloSpacing.x2),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: SettloTypography.figtree(
-                    15,
-                    weight: FontWeight.w500,
+                  style: SettloTypography.headline(
                     color: onTap == null ? c.textSecondary : c.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: SettloTypography.figtree(12, color: c.textSecondary),
+                  style: SettloTypography.footnote(color: c.textSecondary),
                 ),
               ],
             ),
@@ -425,7 +422,7 @@ class _Option extends StatelessWidget {
     return onTap == null
         ? Semantics(enabled: false, child: card)
         : SPressable(
-            onTap: onTap!,
+            onTap: onTap,
             ringRadius: radius,
             selected: selected,
             child: card,

@@ -245,7 +245,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
         payersProblem == null &&
         splits != null;
     final label = _sectionLabel(c);
-    final note = SettloTypography.figtree(12, color: c.textMuted);
+    final note = SettloTypography.footnote(color: c.textMuted);
 
     return SAmountSheet(
       title: 'New expense · ${widget.space.name}',
@@ -279,16 +279,18 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
           );
         },
       ),
-      body: ListView(
-        padding: EdgeInsets.zero,
+      body: SFormBody(
         children: [
           Semantics(
             label: 'What for',
             child: TextField(
               controller: _description,
+              minLines: 1,
+              maxLines: 3,
+              textInputAction: TextInputAction.next,
               textCapitalization: TextCapitalization.sentences,
               onChanged: (_) => setState(() {}),
-              style: SettloTypography.figtree(15, color: c.textPrimary),
+              style: SettloTypography.body(color: c.textPrimary),
               decoration: const InputDecoration(
                 hintText: 'What for',
                 contentPadding: EdgeInsets.symmetric(
@@ -298,7 +300,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: SettloSpacing.x1),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -322,13 +324,13 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
               ],
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: SettloSpacing.x3),
           Text('PAID BY', style: label),
           const SizedBox(height: SettloSpacing.x1),
-          Row(
-            spacing: SettloSpacing.x1,
+          SResponsiveRow(
+            threshold: 1.3,
             children: [
-              for (final m in _members.take(3))
+              for (final m in _members.take(3)) ...[
                 Expanded(
                   child: _Option(
                     label: _name(m),
@@ -339,6 +341,8 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
                     }),
                   ),
                 ),
+                const SizedBox(width: SettloSpacing.x1),
+              ],
               _Option(
                 label: '+',
                 semanticLabel: 'Multiple payers',
@@ -371,10 +375,12 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
                 child: Text(payersProblem, style: note),
               ),
           ],
-          const SizedBox(height: 18),
-          Row(
+          const SizedBox(height: SettloSpacing.x3),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: Text('SPLIT', style: label)),
+              Text('SPLIT', style: label),
+              const SizedBox(height: SettloSpacing.x1),
               SSegmentedControl<SplitType>(
                 segments: const [
                   (value: SplitType.equal, label: 'Equally'),
@@ -411,7 +417,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
                 error,
-                style: SettloTypography.figtree(13, color: c.textPrimary),
+                style: SettloTypography.subheadline(color: c.textPrimary),
               ),
             ),
           SizedBox(
@@ -446,7 +452,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
       void toggle() =>
           setState(() => on ? _included.remove(m.id) : _included.add(m.id));
       return MergeSemantics(
-        child: InkWell(
+        child: SPressable(
           onTap: toggle,
           child: _Line(
             divider: divider,
@@ -454,8 +460,8 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
               Checkbox(
                 value: on,
                 onChanged: (_) => toggle(),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.padded,
+                visualDensity: VisualDensity.standard,
               ),
               const SizedBox(width: 4),
               Expanded(child: _Name(name)),
@@ -480,7 +486,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
         Expanded(child: _Name(name)),
         if (_type != SplitType.exact && amount != null)
           MoneyText(amount, size: 13, tone: MoneyTone.settled),
-        const SizedBox(width: 12),
+        const SizedBox(width: SettloSpacing.x2),
         _Input(
           // Keyed by type: each split type keeps its own entries.
           key: ValueKey<(SplitType?, String)>((_type, m.id)),
@@ -497,7 +503,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
 
 /// Small-caps section labels: 12, tracked, secondary.
 TextStyle _sectionLabel(SettloColors c) =>
-    SettloTypography.figtree(12, letterSpacing: 0.3, color: c.textSecondary);
+    SettloTypography.footnote(letterSpacing: 0.3, color: c.textSecondary);
 
 /// A split or payer row: at least 44 high, hairline below unless last.
 class _Line extends StatelessWidget {
@@ -531,10 +537,7 @@ class _Name extends StatelessWidget {
     name,
     maxLines: 1,
     overflow: TextOverflow.ellipsis,
-    style: SettloTypography.figtree(
-      14,
-      color: SettloColors.of(context).textPrimary,
-    ),
+    style: SettloTypography.body(color: SettloColors.of(context).textPrimary),
   );
 }
 
@@ -566,9 +569,7 @@ class _Input extends StatelessWidget {
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [formatter],
         onChanged: (_) => onChanged(),
-        style: SettloTypography.figtree(
-          14,
-          weight: FontWeight.w500,
+        style: SettloTypography.body(
           color: SettloColors.of(context).textPrimary,
         ),
         decoration: InputDecoration(
@@ -576,7 +577,7 @@ class _Input extends StatelessWidget {
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
-            vertical: 12,
+            vertical: SettloSpacing.x2,
           ),
         ),
       ),
@@ -604,7 +605,7 @@ class _Option extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final radius = BorderRadius.circular(14);
+    final radius = BorderRadius.circular(SettloRadius.iconTile);
     return Semantics(
       button: true,
       selected: selected,
@@ -617,7 +618,7 @@ class _Option extends StatelessWidget {
           side: selected ? BorderSide.none : BorderSide(color: c.hairline),
         ),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
+        child: SPressable(
           onTap: onTap,
           child: Container(
             height: 46,
@@ -628,8 +629,7 @@ class _Option extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: SettloTypography.figtree(
-                label == '+' ? 16 : 14,
+              style: SettloTypography.callout(
                 weight: selected ? FontWeight.w500 : FontWeight.w400,
                 color: selected ? c.background : c.textPrimary,
               ),

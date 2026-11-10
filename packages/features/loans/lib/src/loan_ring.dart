@@ -42,7 +42,7 @@ class LoanRing extends StatelessWidget {
               ),
               Text(
                 'repaid',
-                style: SettloTypography.figtree(11, color: c.textSecondary),
+                style: SettloTypography.caption1(color: c.textSecondary),
               ),
             ],
           ),

@@ -666,11 +666,12 @@ void main() {
         100,
         scrollable: find
             .descendant(
-              of: find.byType(ListView),
+              of: find.byType(CustomScrollView),
               matching: find.byType(Scrollable),
             )
             .first,
       );
+      await tester.pumpAndSettle();
       final toggle = tester.widget<Switch>(find.byType(Switch));
       expect((toggle.value, toggle.onChanged), (false, null));
       expect(
@@ -768,6 +769,17 @@ void main() {
         find.widgetWithText(FilledButton, 'Confirm ₹25,000 received'),
         findsOne,
       );
+      await tester.scrollUntilVisible(
+        find.text("Didn't receive this"),
+        100,
+        scrollable: find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget is Scrollable &&
+                  widget.axisDirection == AxisDirection.down,
+            )
+            .first,
+      );
       expect(find.text("Didn't receive this"), findsOne);
       expect(find.textContaining('Confirming is final'), findsOne);
       semantics.dispose();
@@ -806,6 +818,17 @@ void main() {
       expect(
         find.widgetWithText(FilledButton, 'Confirm ₹5,000 paid'),
         findsOne,
+      );
+      await tester.scrollUntilVisible(
+        find.text("Didn't pay this"),
+        100,
+        scrollable: find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget is Scrollable &&
+                  widget.axisDirection == AxisDirection.down,
+            )
+            .first,
       );
       expect(find.text("Didn't pay this"), findsOne);
       expect(find.textContaining(' says he '), findsNothing);
@@ -1010,7 +1033,7 @@ void main() {
         await _pump(tester, location: location);
         await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
         await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-        await tester.drag(find.byType(ListView), const Offset(0, -800));
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, -800));
         await tester.pumpAndSettle();
         await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
         semantics.dispose();
@@ -1024,7 +1047,7 @@ void main() {
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
       await tester.enterText(find.byType(TextField).at(1), '98200 11223');
       await _tap(tester, find.text('Add person'));
-      await tester.drag(find.byType(ListView), const Offset(0, -800));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -800));
       await tester.pumpAndSettle();
       await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));

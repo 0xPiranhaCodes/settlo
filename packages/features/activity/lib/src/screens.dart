@@ -120,8 +120,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     _show(allActivity);
     _scroll.animateTo(
       0,
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : SettloMotion.panel,
+      curve: SettloMotion.curve,
     );
   }
 
@@ -169,47 +171,25 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     final pending = needs.value ?? const <PendingAnswer>[];
     // Never another filter's rows while this one loads.
     final entries = feed.value?.filter == filter ? feed.value?.entries : null;
-    final muted = SettloTypography.figtree(13, color: c.textSecondary);
+    final muted = SettloTypography.subheadline(color: c.textSecondary);
 
     Widget empty(String title, String body) => SCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            title,
-            style: SettloTypography.figtree(
-              17,
-              weight: FontWeight.w500,
-              color: c.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            body,
-            style: SettloTypography.figtree(14, color: c.textSecondary),
-          ),
+          Text(title, style: SettloTypography.headline(color: c.textPrimary)),
+          const SizedBox(height: SettloSpacing.x1),
+          Text(body, style: SettloTypography.body(color: c.textSecondary)),
         ],
       ),
     );
 
     final children = <Widget>[
-      Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Activity',
-              style: SettloTypography.figtree(
-                24,
-                weight: FontWeight.w500,
-                letterSpacing: -0.6,
-                color: c.textPrimary,
-              ),
-            ),
-          ),
-          SBell(unread: _newSinceOpen, onPressed: _showNewest),
-        ],
+      SettloNavigationHeader(
+        title: 'Activity',
+        trailing: SBell(unread: _newSinceOpen, onPressed: _showNewest),
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: SettloSpacing.x2),
       // One row, as on the canvas; it scrolls once the spaces outgrow it.
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -242,7 +222,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
           ],
         ),
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: SettloSpacing.x2),
       if (pending.isNotEmpty) ...[
         _NeedsYouCard(pending, onReview: _review),
         const SizedBox(height: 8),
@@ -279,31 +259,30 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     ];
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (n) {
-            // The chips scroll sideways; only the feed's end loads more.
-            if (!_needsYouOnly &&
-                n.metrics.axis == Axis.vertical &&
-                n.metrics.extentAfter < 600) {
-              unawaited(ref.read(activityFeedProvider.notifier).loadMore());
-            }
-            return false;
-          },
-          child: ListView(
-            controller: _scroll,
-            // With its own controller a short feed would not scroll, and
-            // so could not be pulled down to refresh.
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(
-              SettloSpacing.screenMargin,
-              math.max(media.padding.top, 44) + 16,
-              SettloSpacing.screenMargin,
-              media.padding.bottom + SettloSpacing.x2,
-            ),
-            children: children,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (n) {
+          // The chips scroll sideways; only the feed's end loads more.
+          if (!_needsYouOnly &&
+              n.metrics.axis == Axis.vertical &&
+              n.metrics.extentAfter < 600) {
+            unawaited(ref.read(activityFeedProvider.notifier).loadMore());
+          }
+          return false;
+        },
+        child: SettloScrollScaffold(
+          title: 'Activity',
+          onRefresh: _refresh,
+          controller: _scroll,
+          // With its own controller a short feed would not scroll, and
+          // so could not be pulled down to refresh.
+
+          padding: EdgeInsets.fromLTRB(
+            SettloSpacing.screenMargin,
+            math.max(media.padding.top, 44) + 16,
+            SettloSpacing.screenMargin,
+            media.padding.bottom + SettloSpacing.x2,
           ),
+          children: children,
         ),
       ),
     );
@@ -335,7 +314,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               header: true,
               child: Text(
                 h,
-                style: SettloTypography.figtree(12, color: c.textSecondary),
+                style: SettloTypography.footnote(color: c.textSecondary),
               ),
             ),
           ),
@@ -364,18 +343,12 @@ class _NeedsYouCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
     return SCard(
-      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final (i, a) in pending.indexed) ...[
-            if (i > 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Divider(height: 1, thickness: 1, color: c.hairline),
-              ),
+            if (i > 0) const SizedBox(height: SettloSpacing.x2),
             _PendingRow(a, onReview: () => onReview(a)),
           ],
         ],
@@ -407,7 +380,7 @@ class _PendingRow extends StatelessWidget {
         Row(
           children: [
             SAvatar(a.counterparty, size: 36),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
               child: Semantics(
                 label: '${title(spokenInr(a.amount))}, $detail',
@@ -417,15 +390,12 @@ class _PendingRow extends StatelessWidget {
                   children: [
                     Text(
                       title(formatInr(a.amount)),
-                      style: SettloTypography.figtree(14, color: c.textPrimary),
+                      style: SettloTypography.body(color: c.textPrimary),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       detail,
-                      style: SettloTypography.figtree(
-                        12,
-                        color: c.textSecondary,
-                      ),
+                      style: SettloTypography.footnote(color: c.textSecondary),
                     ),
                   ],
                 ),
@@ -472,11 +442,7 @@ class _ReviewPill extends StatelessWidget {
               widthFactor: 1,
               child: Text(
                 'Review',
-                style: SettloTypography.figtree(
-                  13,
-                  weight: FontWeight.w500,
-                  color: c.onAction,
-                ),
+                style: SettloTypography.subheadline(color: c.onAction),
               ),
             ),
           ),
@@ -501,7 +467,7 @@ class ActivityPreview extends ConsumerWidget {
     final c = SettloColors.of(context);
     final shown = entries.take(3).toList();
     return SCard(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+      padding: const EdgeInsets.all(SettloSpacing.screenMargin),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -510,8 +476,7 @@ class ActivityPreview extends ConsumerWidget {
               Expanded(
                 child: Text(
                   'RECENT ACTIVITY',
-                  style: SettloTypography.figtree(
-                    12,
+                  style: SettloTypography.footnote(
                     letterSpacing: 0.3,
                     color: c.textSecondary,
                   ),
@@ -553,19 +518,14 @@ class _EntryRow extends StatelessWidget {
     final e = entry;
     final (title, detail, spoken) = _describe(e);
     final spokenDetail = onQuestion == null ? spoken : '$spoken, Question this';
-    final small = SettloTypography.figtree(12, color: c.textSecondary);
+    final small = SettloTypography.footnote(color: c.textSecondary);
     final row = Container(
       constraints: const BoxConstraints(
         minHeight: SettloSpacing.minTouchTarget,
       ),
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      decoration: divider
-          ? BoxDecoration(
-              border: Border(bottom: BorderSide(color: c.hairline)),
-            )
-          : null,
+      padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
       child: MergeSemantics(
-        child: Row(
+        child: SResponsiveRow(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SAvatar(switch (e.kind) {
@@ -573,17 +533,15 @@ class _EntryRow extends StatelessWidget {
               ActivityKind.repayment => e.counterparty ?? _who(e),
               _ => e.actor ?? _who(e),
             }, size: 36),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text.rich(
                     title,
-                    style: SettloTypography.figtree(
-                      14,
-                      color: c.textPrimary,
-                    ).copyWith(height: 1.4),
+                    style: SettloTypography.body(color: c.textPrimary)
+                        .copyWith(height: 1.4),
                   ),
                   const SizedBox(height: 3),
                   Semantics(
@@ -597,11 +555,7 @@ class _EntryRow extends StatelessWidget {
                             const TextSpan(text: ' · '),
                             TextSpan(
                               text: 'Question this',
-                              style: SettloTypography.figtree(
-                                12,
-                                weight: FontWeight.w500,
-                                color: c.action,
-                              ),
+                              style: SettloTypography.footnote(color: c.action),
                             ),
                           ],
                         ],
@@ -697,19 +651,15 @@ class _QuestionSheetState extends ConsumerState<_QuestionSheet> {
           children: [
             Text(
               'Question this edit',
-              style: SettloTypography.figtree(
-                17,
-                weight: FontWeight.w500,
-                color: c.textPrimary,
-              ),
+              style: SettloTypography.headline(color: c.textPrimary),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: SettloSpacing.x1),
             Text(
               'Ask $editor about the change to '
               '${e.description ?? 'this expense'}. Everyone in '
               '${e.spaceName ?? 'the space'} sees your note here in '
               'Activity.',
-              style: SettloTypography.figtree(13, color: c.textSecondary),
+              style: SettloTypography.subheadline(color: c.textSecondary),
             ),
             const SizedBox(height: 16),
             Semantics(
@@ -720,7 +670,7 @@ class _QuestionSheetState extends ConsumerState<_QuestionSheet> {
                 maxLength: questionMaxLength,
                 textCapitalization: TextCapitalization.sentences,
                 onChanged: (_) => setState(() => _failed = false),
-                style: SettloTypography.figtree(15, color: c.textPrimary),
+                style: SettloTypography.headline(color: c.textPrimary),
                 decoration: const InputDecoration(
                   hintText: 'Why did this change?',
                   counterText: '',
@@ -728,10 +678,10 @@ class _QuestionSheetState extends ConsumerState<_QuestionSheet> {
               ),
             ),
             if (_failed) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Text(
                 "We couldn't send that. Try again.",
-                style: SettloTypography.figtree(13, color: c.textPrimary),
+                style: SettloTypography.subheadline(color: c.textPrimary),
               ),
             ],
             const SizedBox(height: 16),
@@ -753,7 +703,7 @@ String _who(ActivityEntry e) => e.byYou ? 'You' : e.actor ?? 'Someone';
 /// in rupees, never glyphs).
 (TextSpan, String, String) _describe(ActivityEntry e) {
   final who = _who(e);
-  final bold = SettloTypography.figtree(14, weight: FontWeight.w500);
+  final bold = SettloTypography.body(weight: FontWeight.w500);
   TextSpan line(String before, [String? name, String after = '']) => TextSpan(
     children: [
       TextSpan(text: before),

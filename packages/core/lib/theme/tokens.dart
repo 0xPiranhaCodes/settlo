@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/widgets.dart';
 
 /// Spacing on the 8pt grid. [half] is for tight optical gaps only.
@@ -30,8 +32,29 @@ abstract final class SettloSpacing {
   static const double minTouchTarget = 44;
 }
 
+/// Shared motion; callers suppress animation when Reduce Motion is enabled.
+abstract final class SettloMotion {
+  /// Short press response.
+  static const press = Duration(milliseconds: 150);
+
+  /// Panels and content transitions.
+  static const panel = Duration(milliseconds: 200);
+
+  /// Sliding selection pill.
+  static const selection = Duration(milliseconds: 250);
+
+  /// Native deceleration without bounce.
+  static const Curve curve = Curves.easeOutCubic;
+
+  /// Subtle compression while held.
+  static const double pressedScale = 0.97;
+}
+
 /// Corner radii.
 abstract final class SettloRadius {
+  /// Compact nested controls.
+  static const double compact = 12;
+
   /// List cards.
   static const double card = 24;
 
@@ -53,6 +76,9 @@ abstract final class SettloRadius {
 /// They live with the design-system tokens so the screen does not grow a
 /// second, private set of visual constants.
 abstract final class SettloWelcomeMetrics {
+  /// Owner-approved mock exception to the standard 20px screen margin.
+  static const double screenMargin = 24;
+
   /// Circular portrait and letter-tile diameter.
   static const double avatar = 52;
 
@@ -75,7 +101,7 @@ abstract final class SettloWelcomeMetrics {
   static const double actionArrowNudge = 3;
 
   /// Duration of Welcome's short press response.
-  static const Duration actionPressDuration = Duration(milliseconds: 90);
+  static const Duration actionPressDuration = SettloMotion.press;
 
   /// Blur radius of the warm shadow beneath Welcome's primary action.
   static const double actionShadowBlur = 24;
@@ -91,19 +117,67 @@ abstract final class SettloHomeMetrics {
 
   /// Diameter of the gold arrow control on an empty-state action card.
   static const double arrowButton = 44;
-
-  /// Scale while a custom Home control is held.
-  static const double pressedScale = 0.98;
-
-  /// Duration of the short press response.
-  static const Duration pressDuration = Duration(milliseconds: 90);
 }
 
-/// Depth. Cards get no drop shadow: a hairline edge plus a 1px specular
-/// highlight along the top. Only floating chrome casts a shadow.
+/// Shared micro-borders and soft layered ambient elevation.
 abstract final class SettloElevation {
   /// Width of card edges, dividers and the specular highlight.
   static const double hairline = 1;
+
+  /// Shared blur and saturation for floating and pinned glass chrome.
+  static ImageFilter get glassFilter => ImageFilter.compose(
+    // A restrained saturation lift of the backdrop only.
+    outer: const ColorFilter.matrix([
+      1.118,
+      -0.107,
+      -0.011,
+      0,
+      0,
+      -0.032,
+      1.043,
+      -0.011,
+      0,
+      0,
+      -0.032,
+      -0.107,
+      1.139,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+    ]),
+    inner: ImageFilter.blur(
+      sigmaX: SettloElevation.glassBlur,
+      sigmaY: SettloElevation.glassBlur,
+    ),
+  );
+
+  /// Glass tint leaves the backdrop visible outside the legibility plates.
+  static const double glassTint = 0.42;
+
+  /// Local backing under navigation glyphs, never the entire capsule.
+  static const double glassLegibility = 0.72;
+
+  /// Low-opacity neutral card edge, without changing palette hues.
+  static Color border({required bool dark}) =>
+      dark ? const Color(0x14FFFFFF) : const Color(0x0F000000);
+
+  /// A broad ambient layer and a close contact layer.
+  static List<BoxShadow> ambient({required bool dark}) => [
+    BoxShadow(
+      color: Color(dark ? 0x14000000 : 0x0A000000),
+      offset: const Offset(0, 4),
+      blurRadius: 16,
+    ),
+    BoxShadow(
+      color: Color(dark ? 0x0A000000 : 0x05000000),
+      offset: const Offset(0, 1),
+      blurRadius: 4,
+    ),
+  ];
 
   /// Floating tab bar height.
   static const double tabBarHeight = 68;
@@ -113,11 +187,13 @@ abstract final class SettloElevation {
 
   /// Shadow under the floating tab bar, dark theme.
   static const floatingDark = [
-    BoxShadow(color: Color(0x73000000), offset: Offset(0, 24), blurRadius: 48),
+    BoxShadow(color: Color(0x24000000), offset: Offset(0, 8), blurRadius: 24),
+    BoxShadow(color: Color(0x14000000), offset: Offset(0, 2), blurRadius: 8),
   ];
 
   /// Shadow under the floating tab bar, light theme.
   static const floatingLight = [
-    BoxShadow(color: Color(0x1A1B1B18), offset: Offset(0, 20), blurRadius: 40),
+    BoxShadow(color: Color(0x101B1B18), offset: Offset(0, 8), blurRadius: 24),
+    BoxShadow(color: Color(0x081B1B18), offset: Offset(0, 2), blurRadius: 8),
   ];
 }

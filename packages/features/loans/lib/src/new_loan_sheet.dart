@@ -148,11 +148,16 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
     ref.watch(loansProvider);
     final c = SettloColors.of(context);
     final media = MediaQuery.of(context);
-    final label = SettloTypography.figtree(
-      12,
+    final label = SettloTypography.footnote(
       letterSpacing: 0.3,
       color: c.textSecondary,
     );
+    final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
+    Widget field({required Widget child, double? width}) => largeText
+        ? child
+        : width == null
+        ? Expanded(child: child)
+        : SizedBox(width: width, child: child);
     const gap = SizedBox(height: 16);
     final principal = parseInr(_principal.text) ?? Paise.zero;
     final installment = _installment.text.isEmpty
@@ -236,18 +241,17 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
               );
             },
           ),
-          body: ListView(
-            padding: EdgeInsets.zero,
+          body: SFormBody(
             children: [
               // So ₹10,00,000 is never misread as one lakh (n21).
               Text(
                 principal.value == 0 ? '' : amountInWords(principal),
                 textAlign: TextAlign.center,
-                style: SettloTypography.figtree(13, color: c.textSecondary),
+                style: SettloTypography.subheadline(color: c.textSecondary),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: SettloSpacing.x3),
               Text(_youLent ? 'TO' : 'FROM', style: label),
-              const SizedBox(height: 6),
+              const SizedBox(height: SettloSpacing.x1),
               if (who != null)
                 _Person(who: who, onChange: () => setState(() => _who = null))
               else ...[
@@ -262,14 +266,14 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                     errorText: _phoneError,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: SettloSpacing.x2),
                 TextField(
                   controller: _person,
                   textCapitalization: TextCapitalization.words,
                   onSubmitted: (_) => _add(),
                   decoration: const InputDecoration(labelText: 'Their name'),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: SettloSpacing.x2),
                 SSecondaryButton(
                   label: 'Add person',
                   icon: LoanGlyph(
@@ -281,10 +285,13 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                 ),
               ],
               gap,
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Flex(
+                direction: largeText ? Axis.vertical : Axis.horizontal,
+                crossAxisAlignment: largeText
+                    ? CrossAxisAlignment.stretch
+                    : CrossAxisAlignment.start,
                 children: [
-                  Expanded(
+                  field(
                     child: _Labelled(
                       label: 'REPAY MONTHLY',
                       child: TextField(
@@ -307,8 +314,11 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
                   SizedBox(
+                    width: SettloSpacing.x2,
+                    height: largeText ? SettloSpacing.x2 : 0,
+                  ),
+                  field(
                     width: 88,
                     child: _Labelled(
                       label: 'DUE DAY',
@@ -326,7 +336,14 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                         menuMaxHeight: 320,
                         items: [
                           for (var d = 1; d <= 28; d++)
-                            DropdownMenuItem(value: d, child: Text(ordinal(d))),
+                            DropdownMenuItem(
+                              value: d,
+                              child: Text(
+                                ordinal(d),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                         ],
                         onChanged: installment == null
                             ? null
@@ -334,8 +351,11 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
                   SizedBox(
+                    width: SettloSpacing.x2,
+                    height: largeText ? SettloSpacing.x2 : 0,
+                  ),
+                  field(
                     width: 104,
                     child: _Labelled(
                       label: 'STARTS',
@@ -352,8 +372,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                             maxLines: 1,
                             softWrap: false,
                             overflow: TextOverflow.fade,
-                            style: SettloTypography.figtree(
-                              15,
+                            style: SettloTypography.headline(
                               color: c.textPrimary,
                             ),
                           ),
@@ -368,7 +387,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                 Text(
                   'The monthly amount must be more than ₹0 and at most the '
                   'principal.',
-                  style: SettloTypography.figtree(13, color: c.textPrimary),
+                  style: SettloTypography.subheadline(color: c.textPrimary),
                 ),
               ],
               gap,
@@ -384,21 +403,19 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                 Text(
                   error,
                   textAlign: TextAlign.center,
-                  style: SettloTypography.figtree(13, color: c.textPrimary),
+                  style: SettloTypography.subheadline(color: c.textPrimary),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: SettloSpacing.x2),
               ],
               Text(
                 '${first ?? 'They'} ${first == null ? 'get' : 'gets'} a '
                 'WhatsApp message.$schedule\nSettlo keeps the record. It is '
                 'not a lender and never moves money.',
                 textAlign: TextAlign.center,
-                style: SettloTypography.figtree(
-                  12,
-                  color: c.textMuted,
-                ).copyWith(height: 1.5),
+                style: SettloTypography.footnote(color: c.textMuted)
+                    .copyWith(height: 1.5),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               SPrimaryButton(
                 label: _busy ? 'Creating…' : 'Create loan and share',
                 icon: Builder(
@@ -447,22 +464,31 @@ class _Direction extends StatelessWidget {
               child: SPressable(
                 onTap: () => onChanged(lent),
                 selected: lent == youLent,
-                ringRadius: BorderRadius.circular(12),
+                ringRadius: BorderRadius.circular(SettloRadius.compact),
                 child: Container(
-                  height: SettloSpacing.minTouchTarget,
+                  constraints: const BoxConstraints(
+                    minHeight: SettloSpacing.minTouchTarget,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: SettloSpacing.x2,
+                    vertical: SettloSpacing.x1,
+                  ),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: lent == youLent ? c.textPrimary : null,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(SettloRadius.compact),
                   ),
-                  child: Text(
-                    label,
-                    style: SettloTypography.figtree(
-                      14,
-                      weight: lent == youLent
-                          ? FontWeight.w500
-                          : FontWeight.w400,
-                      color: lent == youLent ? c.background : c.textSecondary,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      style: SettloTypography.body(
+                        weight: lent == youLent
+                            ? FontWeight.w500
+                            : FontWeight.w400,
+                        color: lent == youLent ? c.background : c.textSecondary,
+                      ),
                     ),
                   ),
                 ),
@@ -489,14 +515,13 @@ class _Labelled extends StatelessWidget {
         child: Text(
           label,
           maxLines: 1,
-          style: SettloTypography.figtree(
-            12,
+          style: SettloTypography.footnote(
             letterSpacing: 0.3,
             color: SettloColors.of(context).textSecondary,
           ),
         ),
       ),
-      const SizedBox(height: 6),
+      const SizedBox(height: SettloSpacing.x1),
       Semantics(label: label.toLowerCase(), child: child),
     ],
   );
@@ -518,8 +543,8 @@ class _Person extends StatelessWidget {
       label: 'Change ${who.name}',
       ringRadius: BorderRadius.circular(SettloRadius.button),
       child: Container(
-        height: 50,
-        padding: const EdgeInsets.only(left: 10, right: 12),
+        constraints: const BoxConstraints(minHeight: 50),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: c.surfaceRaised,
           border: Border.all(color: c.hairline),
@@ -528,22 +553,26 @@ class _Person extends StatelessWidget {
         child: Row(
           children: [
             SAvatar(who.name, size: 30),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
-              child: Text(
-                who.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: SettloTypography.figtree(15, color: c.textPrimary),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    who.name,
+                    style: SettloTypography.headline(color: c.textPrimary),
+                  ),
+                  if (named)
+                    Text(
+                      groupPhone(who.phone),
+                      style: SettloTypography.subheadline(
+                        color: c.textSecondary,
+                      ),
+                    ),
+                ],
               ),
             ),
-            if (named) ...[
-              const SizedBox(width: 8),
-              Text(
-                groupPhone(who.phone),
-                style: SettloTypography.figtree(13, color: c.textSecondary),
-              ),
-            ],
             const SizedBox(width: 8),
             LoanGlyph(LoanGlyph.person, color: c.textSecondary, size: 18),
           ],
@@ -576,12 +605,12 @@ class _Interest extends StatelessWidget {
                 children: [
                   Text(
                     'Interest',
-                    style: SettloTypography.figtree(14, color: c.textPrimary),
+                    style: SettloTypography.body(color: c.textPrimary),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'Interest free · add simple or reducing later',
-                    style: SettloTypography.figtree(12, color: c.textSecondary),
+                    style: SettloTypography.footnote(color: c.textSecondary),
                   ),
                 ],
               ),

@@ -45,7 +45,7 @@ class SChip extends StatelessWidget {
           widthFactor: 1,
           heightFactor: 1,
           child: Container(
-            height: _visualHeight,
+            constraints: const BoxConstraints(minHeight: _visualHeight),
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: ShapeDecoration(
               color: selected ? c.textPrimary : null,
@@ -57,10 +57,10 @@ class SChip extends StatelessWidget {
             ),
             child: Center(
               widthFactor: 1,
+              heightFactor: 1,
               child: Text(
                 label,
-                style: SettloTypography.figtree(
-                  13,
+                style: SettloTypography.subheadline(
                   weight: selected ? FontWeight.w500 : FontWeight.w400,
                   color: selected ? c.background : c.textPrimary,
                 ),
@@ -119,16 +119,22 @@ class SSegmentedControl<T> extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 3),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final segment in segments)
-                _Segment(
-                  label: segment.label,
-                  selected: segment.value == selected,
-                  onTap: () => onChanged(segment.value),
-                ),
-            ],
+          child: SizedBox(
+            height: (MediaQuery.textScalerOf(context).scale(15) * 1.2 + 24)
+                .clamp(44, double.infinity),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final segment in segments)
+                    _Segment(
+                      label: segment.label,
+                      selected: segment.value == selected,
+                      onTap: () => onChanged(segment.value),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
@@ -150,25 +156,25 @@ class _Segment extends StatelessWidget {
       onTap: onTap,
       selected: selected,
       ringRadius: BorderRadius.circular(12),
-      child: SizedBox(
-        height: SettloSpacing.minTouchTarget,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: SettloSpacing.minTouchTarget,
+        ),
         child: Center(
           widthFactor: 1,
           child: Container(
-            height: _visualHeight - 4,
             constraints: const BoxConstraints(
               minWidth: SettloSpacing.minTouchTarget,
+              minHeight: _visualHeight - 4,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: selected ? c.surfaceHighest : null,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               label,
-              style: SettloTypography.figtree(
-                13,
+              style: SettloTypography.subheadline(
                 weight: selected ? FontWeight.w500 : FontWeight.w400,
                 color: selected ? c.textPrimary : c.textSecondary,
               ),

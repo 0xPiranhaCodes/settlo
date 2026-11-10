@@ -384,7 +384,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(profile.saved, (name: 'Asha K', upiId: 'asha.k@okaxis'));
 
-    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Appearance'));
     await tester.pumpAndSettle();
@@ -423,6 +423,8 @@ void main() {
     await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Sign out'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Sign out'));
     await tester.pump();
     expect(profile.signedOut, isTrue);
@@ -471,7 +473,9 @@ void main() {
     await tester.pumpAndSettle();
 
     profile.signOutError = StateError('private');
-    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Sign out'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
@@ -510,12 +514,14 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.drag(find.byType(ListView), const Offset(0, -700));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
       await tester.pumpAndSettle();
     }
 
     testWidgets('nothing unsent signs out without asking', (tester) async {
       await open(tester, count: 0);
+      await tester.ensureVisible(find.text('Sign out'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Sign out'));
       await tester.pumpAndSettle();
       expect(find.text('Keep'), findsNothing);
@@ -525,6 +531,8 @@ void main() {
     testWidgets('Keep stays signed in and tries to send them', (tester) async {
       await open(tester, count: 2);
       // A double tap on the row opens one sheet.
+      await tester.ensureVisible(find.text('Sign out'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Sign out'));
       await tester.tap(find.text('Sign out'), warnIfMissed: false);
       await tester.pumpAndSettle();
@@ -546,6 +554,8 @@ void main() {
       );
 
       // The row works again afterwards.
+      await tester.ensureVisible(find.text('Sign out'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Sign out'));
       await tester.pumpAndSettle();
       expect(find.text('You have 2 unsent changes'), findsOneWidget);
@@ -555,6 +565,8 @@ void main() {
       tester,
     ) async {
       await open(tester, count: 1);
+      await tester.ensureVisible(find.text('Sign out'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Sign out'));
       await tester.pumpAndSettle();
       expect(find.text('You have 1 unsent change'), findsOneWidget);
@@ -570,6 +582,8 @@ void main() {
 
     testWidgets('dismissing the sheet stays signed in', (tester) async {
       await open(tester, count: 1);
+      await tester.ensureVisible(find.text('Sign out'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Sign out'));
       await tester.pumpAndSettle();
       await tester.tapAt(const Offset(10, 10));
@@ -582,6 +596,8 @@ void main() {
         'and deletes once on a no-pump double tap', (tester) async {
       await open(tester, count: 0);
       // A double tap on the row opens one sheet.
+      await tester.ensureVisible(find.text('Delete account'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Delete account'));
       await tester.tap(find.text('Delete account'), warnIfMissed: false);
       await tester.pumpAndSettle();
@@ -614,6 +630,8 @@ void main() {
       tester,
     ) async {
       await open(tester, count: 0);
+      await tester.ensureVisible(find.text('Delete account'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Delete account'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Keep my account'));
@@ -622,6 +640,8 @@ void main() {
       expect(find.text('Delete your account?'), findsNothing);
       expect(find.byType(ProfileScreen), findsOneWidget);
 
+      await tester.ensureVisible(find.text('Delete account'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Delete account'));
       await tester.pumpAndSettle();
       await tester.tapAt(const Offset(10, 10));
@@ -634,6 +654,8 @@ void main() {
       tester,
     ) async {
       await open(tester, count: 2);
+      await tester.ensureVisible(find.text('Delete account'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Delete account'));
       await tester.pumpAndSettle();
       expect(
@@ -650,6 +672,8 @@ void main() {
     ) async {
       await open(tester, count: 0);
       profile.deleteError = StateError('private');
+      await tester.ensureVisible(find.text('Delete account'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Delete account'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete account').last);
@@ -666,6 +690,8 @@ void main() {
       ], reason: 'the account stays, so syncing starts again');
 
       profile.deleteError = null;
+      await tester.ensureVisible(find.text('Delete account'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Delete account'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete account').last);
@@ -694,7 +720,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Appearance'));
     await tester.pumpAndSettle();
@@ -740,7 +766,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Export'));
     await tester.pumpAndSettle();
@@ -819,7 +845,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.drag(find.byType(ListView), const Offset(0, -700));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Export'));
       await tester.pumpAndSettle();

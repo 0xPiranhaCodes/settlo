@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -139,7 +140,7 @@ Future<void> _tapCreate(WidgetTester tester) async {
 
 /// Scrolls the screen's list to its end, so every row has been laid out.
 Future<void> _scrollToEnd(WidgetTester tester) async {
-  await tester.drag(find.byType(ListView), const Offset(0, -2000));
+  await tester.drag(find.byType(CustomScrollView), const Offset(0, -2000));
   await tester.pumpAndSettle();
 }
 
@@ -196,6 +197,27 @@ SpaceSummary _settledFlat() {
 }
 
 void main() {
+  testWidgets('selected space tab has one enabled button announcement', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pump(
+      tester,
+      FakeSpacesRepository(spacesList),
+      initialLocation: SettloRoutes.space(spacesList.first.id),
+    );
+    final tab = find.bySemanticsLabel('Expenses');
+    expect(tab, findsOneWidget);
+    final flags = tester.getSemantics(tab).getSemanticsData().flagsCollection;
+    expect(flags.isButton, isTrue);
+    expect(flags.isSelected, Tristate.isTrue);
+    expect(flags.isEnabled, isNot(Tristate.isFalse));
+    await tester.tap(find.text('Expenses'));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Expenses'), findsOneWidget);
+    handle.dispose();
+  });
+
   test('spacesProvider creates a space and reloads it into the list', () async {
     final repository = FakeSpacesRepository(spacesList);
     final c = ProviderContainer(
@@ -258,7 +280,7 @@ void main() {
       final invite = find
           .ancestor(
             of: find.text("Kabir hasn't joined yet"),
-            matching: find.byType(InkWell),
+            matching: find.byType(SPressable),
           )
           .first;
       await tester.ensureVisible(invite);
@@ -363,7 +385,11 @@ void main() {
       await _pump(tester, repository);
       expect(find.textContaining("We couldn't load your spaces"), findsOne);
 
-      await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+      await tester.fling(
+        find.byType(CustomScrollView),
+        const Offset(0, 400),
+        1000,
+      );
       await tester.pumpAndSettle();
       expect(find.text('Flat 402'), findsOne);
     });
@@ -836,7 +862,7 @@ void main() {
         ('Paid back in cash', true, SettlementStatus.pending),
       );
       expect(find.text('settle-up · waiting for Priya to confirm'), findsOne);
-      await tester.drag(find.byType(ListView), const Offset(0, 2000));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 2000));
       await tester.pumpAndSettle();
       expect(find.text('₹4,140 today'), findsOne, reason: 'still not spending');
     });
@@ -988,7 +1014,8 @@ void main() {
         await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
         if (!sheet) {
           await _scrollToEnd(tester);
-          await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+          // Pinned chrome clips the first visible row; audit its full hit box.
+          expectSettloTapTargets(tester);
         }
         semantics.dispose();
       });

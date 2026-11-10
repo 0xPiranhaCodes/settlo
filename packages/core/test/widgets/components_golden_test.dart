@@ -15,7 +15,7 @@ void main() {
     ('segmented', 80, const _Segmented()),
     ('avatar', 80, const _Avatars()),
     ('amount_sheet', 520, const _Sheet()),
-    ('tab_bar', 220, const _TabBars()),
+    ('tab_bar', 240, const _TabBars()),
   ];
 
   for (final (theme, data) in [

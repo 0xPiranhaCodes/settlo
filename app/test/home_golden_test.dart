@@ -43,9 +43,9 @@ void main() {
   final states = [
     ('main', homeMain, ['dark', 'light']),
     ('empty', homeEmpty, ['dark', 'light']),
-    ('found', homeFound, ['dark']),
+    ('found', homeFound, ['dark', 'light']),
   ];
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     for (final (state, data, themes) in states) {
       for (final themeName in themes) {
         testWidgets('${device.name} $themeName home $state golden', (

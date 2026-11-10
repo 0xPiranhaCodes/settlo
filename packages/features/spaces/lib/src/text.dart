@@ -17,4 +17,4 @@ String joinNames(List<String> names) => switch (names) {
 
 /// Small-caps section labels: 12, tracked, secondary.
 TextStyle sectionLabel(SettloColors c) =>
-    SettloTypography.figtree(12, letterSpacing: 0.3, color: c.textSecondary);
+    SettloTypography.footnote(letterSpacing: 0.3, color: c.textSecondary);

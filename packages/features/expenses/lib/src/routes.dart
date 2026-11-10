@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_expenses/src/screens.dart';
@@ -8,17 +7,8 @@ import 'package:settlo_expenses/src/screens.dart';
 final List<RouteBase> expensesRoutes = [
   GoRoute(
     path: SettloRoutes.addExpense,
-    pageBuilder: (context, state) => CustomTransitionPage<void>(
+    pageBuilder: (context, state) => SettloPage<void>(
       key: state.pageKey,
-      opaque: false,
-      barrierDismissible: true,
-      barrierColor: SettloColors.of(context).background.withValues(alpha: 0.6),
-      transitionsBuilder: (_, animation, _, child) => SlideTransition(
-        position: Tween(begin: const Offset(0, 1), end: Offset.zero).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-        ),
-        child: child,
-      ),
       child: AddExpenseScreen(spaceId: state.uri.queryParameters['space']),
     ),
   ),

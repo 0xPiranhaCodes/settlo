@@ -55,7 +55,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   SafeArea(
                     child: LayoutBuilder(
                       builder: (context, constraints) => SingleChildScrollView(
-                        padding: const EdgeInsets.all(SettloSpacing.x3),
+                        padding: const EdgeInsets.all(
+                          SettloWelcomeMetrics.screenMargin,
+                        ),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
                             minHeight: math.max(
@@ -78,21 +80,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 ),
                                 Semantics(
                                   header: true,
-                                  child: Text(
-                                    'Money between friends,\nfinally settled.',
-                                    style: SettloTypography.figtree(
-                                      31,
-                                      color: colors.textPrimary,
-                                    ).copyWith(height: 1.13),
-                                  ),
+                                  child: _WelcomeHeadline(colors: colors),
                                 ),
                                 const SizedBox(height: SettloSpacing.x2),
                                 Text(
                                   'Flatmates, trips, and the ₹10 lakh you lent '
                                   'your '
                                   'friend — one quiet ledger you both can see.',
-                                  style: SettloTypography.figtree(
-                                    15,
+                                  style: SettloTypography.body(
                                     color: colors.textSecondary,
                                   ).copyWith(height: 1.5),
                                 ),
@@ -126,8 +121,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   'No email. No password. Your number is your '
                                   'account.',
                                   textAlign: TextAlign.center,
-                                  style: SettloTypography.figtree(
-                                    12,
+                                  style: SettloTypography.footnote(
                                     color: colors.textMuted,
                                   ),
                                 ),
@@ -176,7 +170,7 @@ class _WelcomeActionButtonState extends State<_WelcomeActionButton> {
         : SettloWelcomeMetrics.actionPressDuration;
 
     return SizedBox(
-      height: 56,
+      height: MediaQuery.textScalerOf(context).scale(56),
       child: AnimatedScale(
         key: const ValueKey('welcome-action-scale'),
         scale: pressed ? SettloWelcomeMetrics.actionPressedScale : 1,
@@ -237,10 +231,7 @@ class _WelcomeActionButtonState extends State<_WelcomeActionButton> {
                       Flexible(
                         child: Text(
                           'Continue with phone number',
-                          overflow: TextOverflow.ellipsis,
-                          style: SettloTypography.figtree(
-                            15,
-                            weight: FontWeight.w600,
+                          style: SettloTypography.headline(
                             color: SettloColors.dark.onAction,
                           ),
                         ),
@@ -328,10 +319,7 @@ class _AvatarStack extends StatelessWidget {
                 borderColor: colors.textSecondary,
                 child: Text(
                   'A',
-                  style: SettloTypography.figtree(
-                    20,
-                    color: colors.textPrimary,
-                  ),
+                  style: SettloTypography.title3(color: colors.textPrimary),
                 ),
               ),
             ),
@@ -346,10 +334,9 @@ class _AvatarStack extends StatelessWidget {
                 borderWidth: 1.75,
                 child: Text(
                   '+',
-                  style: SettloTypography.figtree(
-                    30,
-                    weight: FontWeight.w500,
+                  style: SettloTypography.largeTitle(
                     color: colors.action,
+                    weight: FontWeight.w500,
                   ).copyWith(height: 1),
                 ),
               ),
@@ -461,7 +448,7 @@ class _ExampleCard extends StatelessWidget {
               ),
               child: Text(
                 initial,
-                style: SettloTypography.figtree(14, color: colors.textPrimary),
+                style: SettloTypography.body(color: colors.textPrimary),
               ),
             ),
             const SizedBox(width: 14),
@@ -472,15 +459,11 @@ class _ExampleCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: SettloTypography.figtree(
-                      14,
-                      color: colors.textPrimary,
-                    ),
+                    style: SettloTypography.body(color: colors.textPrimary),
                   ),
                   Text(
                     detail,
-                    style: SettloTypography.figtree(
-                      12,
+                    style: SettloTypography.footnote(
                       color: colors.textSecondary,
                     ),
                   ),
@@ -488,8 +471,7 @@ class _ExampleCard extends StatelessWidget {
                     const SizedBox(height: SettloSpacing.half),
                     Text(
                       amount,
-                      style: SettloTypography.figtree(
-                        16,
+                      style: SettloTypography.callout(
                         color: colors.textPrimary,
                       ),
                     ),
@@ -501,12 +483,40 @@ class _ExampleCard extends StatelessWidget {
               const SizedBox(width: SettloSpacing.x1),
               Text(
                 amount,
-                style: SettloTypography.figtree(16, color: colors.textPrimary),
+                style: SettloTypography.callout(color: colors.textPrimary),
               ),
             ],
           ],
         ),
       ),
     );
+  }
+}
+
+/// The approved two-line headline keeps its regular weight. At default text
+/// size the two-line composition fits the phone width; accessibility
+/// sizes reflow naturally instead of being scaled back down.
+class _WelcomeHeadline extends StatelessWidget {
+  const new({required this.colors});
+  final SettloColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final regular = MediaQuery.textScalerOf(context).scale(1) <= 1;
+    final headline = Text(
+      'Money between friends,\nfinally settled.',
+      softWrap: !regular,
+      style: SettloTypography.largeTitle(
+        color: colors.textPrimary,
+        weight: FontWeight.w400,
+      ).copyWith(height: 1.13),
+    );
+    return regular
+        ? FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: headline,
+          )
+        : headline;
   }
 }

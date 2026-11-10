@@ -333,7 +333,11 @@ void main() {
         .position
         .jumpTo(0);
     await tester.pump();
-    await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+    await tester.fling(
+      find.byType(CustomScrollView),
+      const Offset(0, 400),
+      1000,
+    );
     await tester.pumpAndSettle();
 
     expect(activity.calls.where((c) => c.startsWith('feed')), ['feed 30 null']);
@@ -458,7 +462,11 @@ void main() {
       expect(activity.seenAt, activityFeed.first.at);
 
       // Looking again: nothing is new any more.
-      await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+      await tester.fling(
+        find.byType(CustomScrollView),
+        const Offset(0, 400),
+        1000,
+      );
       await tester.pumpAndSettle();
       expect(find.byTooltip('Notifications'), findsOneWidget);
       expect(find.text('2'), findsNothing);
@@ -548,6 +556,8 @@ void main() {
       final activity = FakeActivityRepository();
       await _pump(tester, activity);
 
+      await tester.ensureVisible(find.text('Rahul edited Wifi · Airtel'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Rahul edited Wifi · Airtel'));
       await tester.pumpAndSettle();
       expect(find.text('Question this edit'), findsOneWidget);
@@ -595,6 +605,8 @@ void main() {
       final activity = FakeActivityRepository()..questionFails = true;
       await _pump(tester, activity);
 
+      await tester.ensureVisible(find.text('Rahul edited Wifi · Airtel'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Rahul edited Wifi · Airtel'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Why?');

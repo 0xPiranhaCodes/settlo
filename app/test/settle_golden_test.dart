@@ -17,41 +17,45 @@ void main() {
     ('settle', const SettleScreen(spaceId: 's1', memberId: 'm3')),
     ('settle_pay', const SettlePayScreen(spaceId: 's2', memberId: 'm5')),
   ]) {
-    for (final device in SettloGoldenDevices.all) {
-      testWidgets('${device.name} dark $name golden', (tester) async {
-        final container = ProviderContainer(
-          overrides: [
-            spacesRepositoryProvider.overrideWithValue(
-              FakeSpacesRepository(settleSpaces()),
-            ),
-            expensesRepositoryProvider.overrideWithValue(
-              FakeExpensesRepository(),
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
-        container.listen(settleSpacesProvider, (_, _) {});
-        await container.read(settleSpacesProvider.future);
-        final theme = SettloTheme.dark();
+    for (final device in SettloGoldenDevices.accessible) {
+      for (final (themeName, theme) in [
+        ('dark', SettloTheme.dark()),
+        ('light', SettloTheme.light()),
+      ]) {
+        testWidgets('${device.name} $themeName $name golden', (tester) async {
+          final container = ProviderContainer(
+            overrides: [
+              spacesRepositoryProvider.overrideWithValue(
+                FakeSpacesRepository(settleSpaces()),
+              ),
+              expensesRepositoryProvider.overrideWithValue(
+                FakeExpensesRepository(),
+              ),
+            ],
+          );
+          addTearDown(container.dispose);
+          container.listen(settleSpacesProvider, (_, _) {});
+          await container.read(settleSpacesProvider.future);
 
-        await pumpSettloGolden(
-          tester,
-          device: device,
-          theme: theme,
-          child: UncontrolledProviderScope(
-            container: container,
-            child: ColoredBox(
-              color: theme.scaffoldBackgroundColor,
-              child: screen,
+          await pumpSettloGolden(
+            tester,
+            device: device,
+            theme: theme,
+            child: UncontrolledProviderScope(
+              container: container,
+              child: ColoredBox(
+                color: theme.scaffoldBackgroundColor,
+                child: screen,
+              ),
             ),
-          ),
-        );
+          );
 
-        await expectLater(
-          find.byKey(settloGoldenSurfaceKey),
-          matchesGoldenFile('goldens/${name}_${device.name}_dark.png'),
-        );
-      });
+          await expectLater(
+            find.byKey(settloGoldenSurfaceKey),
+            matchesGoldenFile('goldens/${name}_${device.name}_$themeName.png'),
+          );
+        });
+      }
     }
   }
 }

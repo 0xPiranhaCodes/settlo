@@ -83,7 +83,7 @@ Future<GoRouter> _pump(
 
 /// Scrolls Home to its end, so every row has been laid out.
 Future<void> _scrollToEnd(WidgetTester tester) async {
-  await tester.drag(find.byType(ListView), const Offset(0, -2000));
+  await tester.drag(find.byType(CustomScrollView), const Offset(0, -2000));
   await tester.pumpAndSettle();
 }
 
@@ -303,7 +303,11 @@ void main() {
       final activityReads = activity.calls.length;
 
       repository.data = homeMain;
-      await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+      await tester.fling(
+        find.byType(CustomScrollView),
+        const Offset(0, 400),
+        1000,
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Flat 402'), findsOne);
@@ -428,7 +432,8 @@ void main() {
         await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
         await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
         await _scrollToEnd(tester);
-        await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+        // Pinned chrome clips the first visible row; audit its full hit box.
+        expectSettloTapTargets(tester);
         semantics.dispose();
       });
     }
@@ -437,7 +442,10 @@ void main() {
       await _pump(tester, FakeHomeRepository(homeMain));
       await expectTargets(tester, find.byType(IconButton));
       await expectTargets(tester, tappable('SEE ALL', GestureDetector));
-      await expectTargets(tester, tappable('Arjun · interest free', InkWell));
+      await expectTargets(
+        tester,
+        tappable('Arjun · interest free', SPressable),
+      );
     });
 
     testWidgets('a single-line loan row still has a 44pt target', (
@@ -462,7 +470,10 @@ void main() {
           ),
         ),
       );
-      await expectTargets(tester, tappable('Arjun · interest free', InkWell));
+      await expectTargets(
+        tester,
+        tappable('Arjun · interest free', SPressable),
+      );
     });
 
     testWidgets('claim actions', (tester) async {
@@ -590,11 +601,8 @@ void main() {
     final scale = tester.widget<AnimatedScale>(
       find.descendant(of: action, matching: find.byType(AnimatedScale)),
     );
-    final opacity = tester.widget<AnimatedOpacity>(
-      find.descendant(of: action, matching: find.byType(AnimatedOpacity)),
-    );
     expect(scale.duration, Duration.zero);
-    expect(opacity.duration, Duration.zero);
+    expect(scale.scale, 1);
     await gesture.up();
     await tester.pumpAndSettle();
   });

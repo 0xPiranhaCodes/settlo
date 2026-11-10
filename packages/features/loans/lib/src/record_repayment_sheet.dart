@@ -114,7 +114,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
     final who = loan.counterparty;
     final amount = parseInr(_amount.text) ?? Paise.zero;
     final over = amount.value > loan.outstanding.value;
-    final note = SettloTypography.figtree(13, color: c.textSecondary);
+    final note = SettloTypography.subheadline(color: c.textSecondary);
     return SAmountSheet(
       title: 'Record repayment · $who',
       onClose: widget.onClose,
@@ -152,8 +152,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
           );
         },
       ),
-      body: ListView(
-        padding: EdgeInsets.zero,
+      body: SFormBody(
         children: [
           Semantics(
             label: '${spokenInr(loan.outstanding)} left',
@@ -164,16 +163,15 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
               style: note,
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: SettloSpacing.x3),
           Text(
             'PAID BY',
-            style: SettloTypography.figtree(
-              12,
+            style: SettloTypography.footnote(
               letterSpacing: 0.3,
               color: c.textSecondary,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: SettloSpacing.x1),
           Wrap(
             spacing: SettloSpacing.x1,
             children: [
@@ -185,9 +183,9 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
                 ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: SettloSpacing.x3),
           Text('PAID ON', style: _sheetLabel(c)),
-          const SizedBox(height: 6),
+          const SizedBox(height: SettloSpacing.x1),
           Align(
             alignment: Alignment.centerLeft,
             child: SChip(
@@ -199,9 +197,9 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
               onSelected: (_) => _pickDate(),
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: SettloSpacing.x3),
           Text('REFERENCE · OPTIONAL', style: _sheetLabel(c)),
-          const SizedBox(height: 6),
+          const SizedBox(height: SettloSpacing.x1),
           TextField(
             controller: _reference,
             maxLength: 64,
@@ -209,18 +207,18 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
             inputFormatters: [_RepaymentReferenceFormatter()],
             textCapitalization: TextCapitalization.characters,
             onChanged: (_) => setState(() => _error = null),
-            style: SettloTypography.figtree(15, color: c.textPrimary),
+            style: SettloTypography.headline(color: c.textPrimary),
             decoration: const InputDecoration(
               hintText: 'UPI or bank reference',
               counterText: '',
             ),
           ),
           if (over || _error != null) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: SettloSpacing.x2),
             Text(
               _error ?? "That's more than is left on the loan.",
               textAlign: TextAlign.center,
-              style: SettloTypography.figtree(13, color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.textPrimary),
             ),
           ],
         ],
@@ -234,7 +232,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
             textAlign: TextAlign.center,
             style: note,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: SettloSpacing.x2),
           SPrimaryButton(
             label: _busy ? 'Recording…' : 'Record repayment',
             onPressed: _busy || amount.value == 0 || over
@@ -357,4 +355,4 @@ const _months = [
 ];
 
 TextStyle _sheetLabel(SettloColors c) =>
-    SettloTypography.figtree(12, letterSpacing: 0.3, color: c.textSecondary);
+    SettloTypography.footnote(letterSpacing: 0.3, color: c.textSecondary);

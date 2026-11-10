@@ -46,93 +46,79 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
     return Scaffold(
       body: DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0, height: 1.2),
-        child: RefreshIndicator(
+        child: SettloScrollScaffold(
+          title: 'Spaces',
           onRefresh: () => ref.refresh(spacesProvider.future),
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              SettloSpacing.screenMargin,
-              math.max(media.padding.top, 44) + 16,
-              SettloSpacing.screenMargin,
-              media.padding.bottom + SettloSpacing.x2,
+          padding: EdgeInsets.fromLTRB(
+            SettloSpacing.screenMargin,
+            math.max(media.padding.top, 44) + 16,
+            SettloSpacing.screenMargin,
+            media.padding.bottom + SettloSpacing.x2,
+          ),
+          children: [
+            SettloNavigationHeader(
+              title: 'Spaces',
+              trailing: IconButton(
+                tooltip: 'New space',
+                onPressed: () => showCreateSpaceSheet(context),
+                style: IconButton.styleFrom(
+                  fixedSize: const Size.square(SettloSpacing.minTouchTarget),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  backgroundColor: c.surface,
+                  side: BorderSide(color: c.hairline),
+                ),
+                icon: SpacesIcon(
+                  SpacesGlyph.plus,
+                  color: c.textPrimary,
+                  size: 22,
+                ),
+              ),
             ),
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Spaces',
-                    style: SettloTypography.figtree(
-                      24,
-                      weight: FontWeight.w500,
-                      letterSpacing: -0.6,
-                      color: c.textPrimary,
-                    ),
+            // Chips are 36 drawn inside a 44 target: 4 less above and
+            // below keeps the canvas's 24 and 18.
+            const SizedBox(height: SettloSpacing.x3),
+            Row(
+              children: [
+                for (final (kind, label) in const [
+                  (null, 'All'),
+                  (SpaceKind.flat, 'Home'),
+                  (SpaceKind.trip, 'Trips'),
+                ]) ...[
+                  SChip(
+                    label: label,
+                    selected: _filter == kind,
+                    onSelected: (_) => setState(() => _filter = kind),
                   ),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: 'New space',
-                    onPressed: () => showCreateSpaceSheet(context),
-                    style: IconButton.styleFrom(
-                      fixedSize: const Size.square(
-                        SettloSpacing.minTouchTarget,
-                      ),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      backgroundColor: c.surface,
-                      side: BorderSide(color: c.hairline),
-                    ),
-                    icon: SpacesIcon(
-                      SpacesGlyph.plus,
-                      color: c.textPrimary,
-                      size: 22,
-                    ),
-                  ),
-                ],
-              ),
-              // Chips are 36 drawn inside a 44 target: 4 less above and
-              // below keeps the canvas's 24 and 18.
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  for (final (kind, label) in const [
-                    (null, 'All'),
-                    (SpaceKind.flat, 'Home'),
-                    (SpaceKind.trip, 'Trips'),
-                  ]) ...[
-                    SChip(
-                      label: label,
-                      selected: _filter == kind,
-                      onSelected: (_) => setState(() => _filter = kind),
-                    ),
-                    const SizedBox(width: SettloSpacing.x1),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 14),
-              if (all == null)
-                Text(
-                  spaces.hasError
-                      ? "We couldn't load your spaces. Pull down to try again."
-                      : '',
-                  style: SettloTypography.figtree(13, color: c.textSecondary),
-                )
-              else if (all.isEmpty)
-                const _NoSpaces()
-              else
-                for (final (i, s) in shown.indexed) ...[
-                  if (i > 0) const SizedBox(height: 12),
-                  _SpaceCard(s),
-                ],
-              if (pending.isNotEmpty) ...[
-                const SizedBox(height: 22),
-                Text('INVITE PENDING', style: sectionLabel(c)),
-                const SizedBox(height: 10),
-                for (final (i, (space, member)) in pending.indexed) ...[
-                  if (i > 0) const SizedBox(height: SettloSpacing.x1),
-                  _PendingCard(space: space, member: member),
+                  const SizedBox(width: SettloSpacing.x1),
                 ],
               ],
+            ),
+            const SizedBox(height: SettloSpacing.x2),
+            if (all == null)
+              Text(
+                spaces.hasError
+                    ? "We couldn't load your spaces. Pull down to try again."
+                    : '',
+                style: SettloTypography.subheadline(color: c.textSecondary),
+              )
+            else if (all.isEmpty)
+              const _NoSpaces()
+            else
+              for (final (i, s) in shown.indexed) ...[
+                if (i > 0) const SizedBox(height: SettloSpacing.x2),
+                _SpaceCard(s),
+              ],
+            if (pending.isNotEmpty) ...[
+              const SizedBox(height: SettloSpacing.x3),
+              Text('INVITE PENDING', style: sectionLabel(c)),
+              const SizedBox(height: SettloSpacing.x2),
+              for (final (i, (space, member)) in pending.indexed) ...[
+                if (i > 0) const SizedBox(height: SettloSpacing.x1),
+                _PendingCard(space: space, member: member),
+              ],
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -152,12 +138,10 @@ class _NoSpaces extends StatelessWidget {
           Text(
             'Flatmates, a trip, or one friend. Add people by phone number '
             "— they don't need the app yet.",
-            style: SettloTypography.figtree(
-              13,
-              color: c.textSecondary,
-            ).copyWith(height: 1.5),
+            style: SettloTypography.subheadline(color: c.textSecondary)
+                .copyWith(height: 1.5),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: SettloSpacing.x3),
           SPrimaryButton(
             label: 'Start a space',
             onPressed: () => showCreateSpaceSheet(context),
@@ -178,34 +162,34 @@ class _SpaceCard extends StatelessWidget {
     final c = SettloColors.of(context);
     final s = space;
     final others = s.others;
-    final small = SettloTypography.figtree(11, color: c.textSecondary);
+    final small = SettloTypography.caption1(color: c.textSecondary);
     final total = s.monthTotal.value;
     int percent(Paise part) => (part.value * 100 / total).round();
     return MergeSemantics(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(SettloRadius.card),
+      child: SPressable(
+        ringRadius: BorderRadius.circular(SettloRadius.card),
         onTap: () => context.go(SettloRoutes.space(s.id)),
         child: SCard(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          padding: const EdgeInsets.all(SettloSpacing.screenMargin),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
+              SResponsiveRow(
                 children: [
                   SpaceKindTile(s.kind),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: SettloSpacing.x2),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           s.name,
-                          maxLines: 1,
+                          maxLines:
+                              MediaQuery.textScalerOf(context).scale(1) >= 1.5
+                              ? null
+                              : 1,
                           overflow: TextOverflow.ellipsis,
-                          style: SettloTypography.figtree(
-                            16,
-                            color: c.textPrimary,
-                          ),
+                          style: SettloTypography.callout(color: c.textPrimary),
                         ),
                         const SizedBox(height: 3),
                         Text(
@@ -218,8 +202,7 @@ class _SpaceCard extends StatelessWidget {
                           },
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: SettloTypography.figtree(
-                            12,
+                          style: SettloTypography.footnote(
                             color: c.textSecondary,
                           ).copyWith(height: 1.3),
                         ),
@@ -254,8 +237,8 @@ class _SpaceCard extends StatelessWidget {
                   (others.isNotEmpty || s.departed.isNotEmpty)) ...[
                 const SizedBox(height: 16),
                 _PaidBar(s),
-                const SizedBox(height: 6),
-                Row(
+                const SizedBox(height: SettloSpacing.x1),
+                SResponsiveRow(
                   children: [
                     Expanded(
                       child: Text(
@@ -301,7 +284,7 @@ class _PaidBar extends StatelessWidget {
       child: Row(
         children: [
           for (final (i, m) in payers.indexed) ...[
-            if (i > 0) const SizedBox(width: 6),
+            if (i > 0) const SizedBox(width: SettloSpacing.x1),
             Expanded(
               flex: m.monthPaid.value,
               child: Container(
@@ -378,39 +361,35 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
     String detail(String amount) => b.value == 0
         ? 'Added to ${space.name} as $number'
         : '$amount in ${space.name} is recorded against $number';
-    return Semantics(
-      button: true,
-      label: 'Send ${member.name} an invite on WhatsApp',
-      child: InkWell(
-        borderRadius: BorderRadius.circular(SettloRadius.card),
-        onTap: _busy ? null : _send,
-        child: SCard(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              SAvatar(member.name, size: 36),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "${member.name} hasn't joined yet",
-                      style: SettloTypography.figtree(14, color: c.textPrimary),
-                    ),
-                    Text(
-                      detail(formatInr(Paise(b.value.abs()))),
-                      semanticsLabel: detail(spokenInr(Paise(b.value.abs()))),
-                      style: SettloTypography.figtree(
-                        12,
-                        color: c.textSecondary,
-                      ).copyWith(height: 1.3),
-                    ),
-                  ],
-                ),
+    return SPressable(
+      label:
+          'Send ${member.name} an invite on WhatsApp. '
+          '${detail(spokenInr(Paise(b.value.abs())))}',
+      ringRadius: BorderRadius.circular(SettloRadius.card),
+      onTap: _busy ? null : _send,
+      child: SCard(
+        child: Row(
+          children: [
+            SAvatar(member.name, size: 36),
+            const SizedBox(width: SettloSpacing.x2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${member.name} hasn't joined yet",
+                    style: SettloTypography.body(color: c.textPrimary),
+                  ),
+                  Text(
+                    detail(formatInr(Paise(b.value.abs()))),
+                    semanticsLabel: detail(spokenInr(Paise(b.value.abs()))),
+                    style: SettloTypography.footnote(color: c.textSecondary)
+                        .copyWith(height: 1.3),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

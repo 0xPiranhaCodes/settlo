@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_auth/settlo_auth.dart';
@@ -74,7 +75,37 @@ void main() {
     });
   }
 
-  testWidgets('the Welcome subtitle wraps as the canvas does at 390', (
+  for (final device in [
+    SettloGoldenDevices.compact360,
+    SettloGoldenDevices.canvas390,
+  ]) {
+    testWidgets(
+      'Welcome keeps mock weights and two headline lines ${device.name}',
+      (tester) async {
+        await pumpSettloGolden(
+          tester,
+          device: device,
+          theme: SettloTheme.dark(),
+          child: const WelcomeScreen(),
+        );
+        final title = find.textContaining('Money between');
+        expect(tester.widget<Text>(title).style!.fontWeight, FontWeight.w400);
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.descendant(of: title, matching: find.byType(RichText)),
+        );
+        final boxes = paragraph.getBoxesForSelection(
+          const TextSelection(baseOffset: 0, extentOffset: 38),
+        );
+        expect(boxes.map((box) => box.top).toSet(), hasLength(2));
+        expect(
+          tester.widget<Text>(find.text('+')).style!.fontWeight,
+          FontWeight.w500,
+        );
+      },
+    );
+  }
+
+  testWidgets('the Welcome subtitle grows for the platform type ramp at 390', (
     tester,
   ) async {
     await pumpSettloGolden(
@@ -84,8 +115,8 @@ void main() {
       child: const WelcomeScreen(),
     );
     final subtitle = find.textContaining('Flatmates, trips');
-    // Two 15px lines at 1.5 line height, matching the owner's mock.
-    expect(tester.getSize(subtitle).height, 46);
+    // The owner-approved 17pt ramp grows to three lines in the same grid.
+    expect(tester.getSize(subtitle).height, 78);
     expect(
       tester.getRect(find.textContaining('Money between')).top,
       closeTo(190, 6),
@@ -97,7 +128,14 @@ void main() {
       await pump(tester, screen, error: error);
       final button = tester.getRect(find.byType(FilledButton));
       expect(button.bottom, lessThanOrEqualTo(800 - 24));
-      expect(button.width, 360 - 48);
+      expect(
+        button.width,
+        360 -
+            2 *
+                (screen is WelcomeScreen
+                    ? SettloWelcomeMetrics.screenMargin
+                    : SettloSpacing.screenMargin),
+      );
     }
   });
 

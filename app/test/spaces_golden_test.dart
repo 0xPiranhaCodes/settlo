@@ -45,7 +45,7 @@ void main() {
       'empty',
       [spaceEmpty],
       SpaceExpensesScreen(spaceId: spaceEmpty.id),
-      ['dark'],
+      ['dark', 'light'],
     ),
     (
       'expenses',
@@ -60,7 +60,7 @@ void main() {
       ['dark', 'light'],
     ),
   ];
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     for (final (state, spaces, screen, themes) in states) {
       for (final themeName in themes) {
         testWidgets('${device.name} $themeName spaces $state golden', (
@@ -86,7 +86,7 @@ void main() {
     }
   }
 
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     testWidgets('${device.name} dark spaces settle-ups golden', (tester) async {
       await pumpSettloGolden(
         tester,

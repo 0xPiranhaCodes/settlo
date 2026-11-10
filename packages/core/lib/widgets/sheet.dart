@@ -16,14 +16,22 @@ Future<T?> showSettloSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   Color? backgroundColor,
+  bool showDragHandle = true,
 }) {
   final c = SettloColors.of(context);
   return showModalBottomSheet<T>(
     context: context,
     useRootNavigator: true,
+    showDragHandle: false,
+    sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+        ? AnimationStyle.noAnimation
+        : const AnimationStyle(
+            duration: SettloMotion.panel,
+            reverseDuration: SettloMotion.panel,
+          ),
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: backgroundColor ?? c.surface,
+    backgroundColor: Colors.transparent,
     barrierColor: c.background.withValues(alpha: 0.6),
     elevation: 0,
     shape: const RoundedRectangleBorder(
@@ -33,7 +41,44 @@ Future<T?> showSettloSheet<T>({
     ),
     builder: (context) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: builder(context),
+      child: Container(
+        decoration: backgroundColor == Colors.transparent
+            ? null
+            : BoxDecoration(
+                color: backgroundColor ?? c.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(SettloRadius.cardHero),
+                ),
+                border: Border.all(
+                  color: SettloElevation.border(
+                    dark: Theme.of(context).brightness == Brightness.dark,
+                  ),
+                ),
+                boxShadow: SettloElevation.ambient(
+                  dark: Theme.of(context).brightness == Brightness.dark,
+                ),
+              ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showDragHandle)
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 4),
+                child: Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: c.textMuted,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ),
+            Flexible(child: builder(context)),
+          ],
+        ),
+      ),
     ),
   );
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo/shell.dart';
@@ -14,7 +16,7 @@ void main() {
     ('list', const LoanScreen()),
     ('detail', const LoanDetailScreen(loanId: 'l1')),
   ]) {
-    for (final device in SettloGoldenDevices.all) {
+    for (final device in SettloGoldenDevices.accessible) {
       for (final (themeName, theme) in [
         ('dark', SettloTheme.dark()),
         ('light', SettloTheme.light()),
@@ -47,6 +49,18 @@ void main() {
             ),
           );
 
+          if (state == 'list' && device.name.contains('text200')) {
+            final name = find.text('Arjun · interest free');
+            final paragraph = tester.renderObject<RenderParagraph>(
+              find.descendant(of: name, matching: find.byType(RichText)),
+            );
+            expect(
+              paragraph.didExceedMaxLines,
+              isFalse,
+              reason: 'The primary name and loan type must remain readable',
+            );
+          }
+
           await expectLater(
             find.byKey(settloGoldenSurfaceKey),
             matchesGoldenFile(
@@ -58,7 +72,7 @@ void main() {
     }
   }
 
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     for (final (themeName, theme) in [
       ('dark', SettloTheme.dark()),
       ('light', SettloTheme.light()),

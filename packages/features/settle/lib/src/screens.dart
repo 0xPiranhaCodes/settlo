@@ -213,7 +213,8 @@ class _Frame extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: ListView(
+        child: SettloScrollScaffold(
+          title: 'Settle up',
           padding: const EdgeInsets.fromLTRB(
             SettloSpacing.screenMargin,
             20,
@@ -246,12 +247,11 @@ class _Frame extends StatelessWidget {
                 const SizedBox(width: SettloSpacing.minTouchTarget - 12),
               ],
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: SettloSpacing.x3),
             if (label case final label?) ...[
               Text(
                 label,
-                style: SettloTypography.figtree(
-                  12,
+                style: SettloTypography.footnote(
                   letterSpacing: 0.3,
                   color: c.textSecondary,
                 ),
@@ -263,7 +263,7 @@ class _Frame extends StatelessWidget {
               if (children.isNotEmpty) const SizedBox(height: SettloSpacing.x2),
               Text(
                 message,
-                style: SettloTypography.figtree(15, color: c.textPrimary),
+                style: SettloTypography.headline(color: c.textPrimary),
               ),
               const SizedBox(height: SettloSpacing.x3),
             ],
@@ -298,14 +298,11 @@ class _PaymentRow extends StatelessWidget {
         constraints: const BoxConstraints(
           minHeight: SettloSpacing.minTouchTarget,
         ),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: c.hairline)),
-        ),
+        padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
         child: Row(
           children: [
             SAvatar(other.name, size: 32),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,18 +311,18 @@ class _PaymentRow extends StatelessWidget {
                     youPay ? 'You pay ${other.name}' : '${other.name} pays you',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SettloTypography.figtree(15, color: c.textPrimary),
+                    style: SettloTypography.headline(color: c.textPrimary),
                   ),
                   Text(
                     space.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SettloTypography.figtree(13, color: c.textSecondary),
+                    style: SettloTypography.subheadline(color: c.textSecondary),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             MoneyText(
               payment.amount,
               tone: youPay ? MoneyTone.youOwe : MoneyTone.owedToYou,
@@ -353,14 +350,11 @@ class _WaitingRow extends StatelessWidget {
         constraints: const BoxConstraints(
           minHeight: SettloSpacing.minTouchTarget,
         ),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: c.hairline)),
-        ),
+        padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
         child: Row(
           children: [
             SAvatar(payment.to.name, size: 32),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,18 +363,18 @@ class _WaitingRow extends StatelessWidget {
                     'Waiting for ${payment.to.name} to confirm',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SettloTypography.figtree(15, color: c.textPrimary),
+                    style: SettloTypography.headline(color: c.textPrimary),
                   ),
                   Text(
                     space.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SettloTypography.figtree(13, color: c.textSecondary),
+                    style: SettloTypography.subheadline(color: c.textSecondary),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             MoneyText(payment.amount, tone: MoneyTone.settled),
           ],
         ),

@@ -201,6 +201,8 @@ void main() {
     final invites = _Invites();
     await _pump(tester, invites, signedIn: false);
 
+    await tester.ensureVisible(find.text("This isn't me"));
+    await tester.pumpAndSettle();
     await tester.tap(find.text("This isn't me"));
     await tester.pumpAndSettle();
 
@@ -277,6 +279,8 @@ void main() {
     controller.add(Uri.parse('settlo://join/$_warmToken'));
     await tester.pumpAndSettle();
     expect(find.text('Bilal added you to Flat B'), findsOneWidget);
+    await tester.ensureVisible(find.text("This isn't me"));
+    await tester.pumpAndSettle();
     await tester.tap(find.text("This isn't me"));
     await tester.pumpAndSettle();
 

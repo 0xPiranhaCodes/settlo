@@ -62,7 +62,7 @@ void main() {
         );
       }
       expect(text.bodyLarge!.fontWeight, FontWeight.w400);
-      expect(text.labelLarge!.fontWeight, FontWeight.w500);
+      expect(text.labelLarge!.fontWeight, FontWeight.w600);
     });
   });
 
@@ -176,7 +176,9 @@ void main() {
       expect(span.toPlainText(), endsWith('6,74,200'));
     });
 
-    testWidgets('the ₹ raise follows the system text scale', (tester) async {
+    testWidgets('the ₹ raise is scaled once by its parent span', (
+      tester,
+    ) async {
       await pump(
         tester,
         const MediaQuery(
@@ -187,7 +189,7 @@ void main() {
       final raise = tester.widget<Transform>(
         find.ancestor(of: find.text('₹'), matching: find.byType(Transform)),
       );
-      expect(raise.transform.getTranslation().y, closeTo(-0.26 * 92, 0.001));
+      expect(raise.transform.getTranslation().y, closeTo(-0.26 * 46, 0.001));
     });
   });
 }

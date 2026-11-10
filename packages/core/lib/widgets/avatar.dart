@@ -34,8 +34,10 @@ class SAvatar extends StatelessWidget {
         ),
         child: Text(
           initial,
+          textScaler: MediaQuery.textScalerOf(context)
+              .clamp(maxScaleFactor: 1.3),
           style: SettloTypography.figtree(
-            size * 0.375,
+            (size * 0.375).clamp(12, double.infinity),
             weight: FontWeight.w500,
             color: c.textPrimary,
           ).copyWith(height: 1),

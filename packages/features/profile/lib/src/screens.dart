@@ -29,7 +29,8 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       body: DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0, height: 1.2),
-        child: ListView(
+        child: SettloScrollScaffold(
+          title: 'You',
           padding: EdgeInsets.fromLTRB(
             SettloSpacing.screenMargin,
             math.max(media.padding.top, 44) + 16,
@@ -41,31 +42,30 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             if (data != null) ...[
               _Identity(data),
-              const SizedBox(height: 20),
+              const SizedBox(height: SettloSpacing.x3),
               _UpiCard(data),
-              const SizedBox(height: 20),
+              const SizedBox(height: SettloSpacing.x3),
               const _SectionLabel('Preferences'),
-              const SizedBox(height: 10),
+              const SizedBox(height: SettloSpacing.x2),
               const _QuietPreferences(),
               const SizedBox(height: 16),
               const _SectionLabel('Help'),
-              const SizedBox(height: 10),
+              const SizedBox(height: SettloSpacing.x2),
               const _HelpCard(),
               const SizedBox(height: 16),
               const _SectionLabel('Account'),
-              const SizedBox(height: 10),
+              const SizedBox(height: SettloSpacing.x2),
               _AccountCard(data),
             ] else if (profile.hasError) ...[
               const SizedBox(height: 80),
               Text(
                 "We couldn't load your profile.",
                 textAlign: TextAlign.center,
-                style: SettloTypography.figtree(
-                  15,
+                style: SettloTypography.headline(
                   color: SettloColors.of(context).textPrimary,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Center(
                 child: SSecondaryButton(
                   label: 'Try again',
@@ -116,11 +116,7 @@ class _Header extends StatelessWidget {
           ),
           Text(
             'You',
-            style: SettloTypography.figtree(
-              15,
-              weight: FontWeight.w500,
-              color: colors.textPrimary,
-            ),
+            style: SettloTypography.headline(color: colors.textPrimary),
           ),
         ],
       ),
@@ -148,9 +144,7 @@ class _Identity extends StatelessWidget {
                 data.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: SettloTypography.figtree(
-                  20,
-                  weight: FontWeight.w500,
+                style: SettloTypography.title3(
                   letterSpacing: -0.3,
                   color: colors.textPrimary,
                 ),
@@ -158,8 +152,7 @@ class _Identity extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 _groupPhone(data.phone),
-                style: SettloTypography.figtree(
-                  13,
+                style: SettloTypography.subheadline(
                   color: colors.textSecondary,
                 ),
               ),
@@ -180,32 +173,24 @@ class _UpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
     return SCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       child: Row(
         children: [
           const _IconTile(ProfileGlyph.wallet, action: true),
-          const SizedBox(width: 12),
+          const SizedBox(width: SettloSpacing.x2),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'UPI ID for settle-ups',
-                  style: SettloTypography.figtree(
-                    12,
-                    color: colors.textSecondary,
-                  ),
+                  style: SettloTypography.footnote(color: colors.textSecondary),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   data.upiId ?? 'Not added',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SettloTypography.figtree(
-                    15,
-                    weight: FontWeight.w500,
-                    color: colors.textPrimary,
-                  ),
+                  style: SettloTypography.headline(color: colors.textPrimary),
                 ),
               ],
             ),
@@ -447,44 +432,40 @@ class _LeaveSheetState extends State<_LeaveSheet> {
     final colors = SettloColors.of(context);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            widget.title,
-            style: SettloTypography.figtree(
-              20,
-              weight: FontWeight.w500,
-              color: colors.textPrimary,
+      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.title,
+              style: SettloTypography.title3(color: colors.textPrimary),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.body,
-            style: SettloTypography.figtree(
-              14,
-              color: colors.textSecondary,
-            ).copyWith(height: 1.4),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: SPrimaryButton(
-              label: widget.keep,
-              onPressed: () => _close(leave: false),
+            const SizedBox(height: 8),
+            Text(
+              widget.body,
+              style: SettloTypography.body(color: colors.textSecondary)
+                  .copyWith(height: 1.4),
             ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: SSecondaryButton(
-              label: widget.leave,
-              onPressed: () => _close(leave: true),
+            const SizedBox(height: SettloSpacing.x3),
+            SizedBox(
+              width: double.infinity,
+              child: SPrimaryButton(
+                label: widget.keep,
+                onPressed: () => _close(leave: false),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: SSecondaryButton(
+                label: widget.leave,
+                onPressed: () => _close(leave: true),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -498,8 +479,7 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     label.toUpperCase(),
-    style: SettloTypography.figtree(
-      12,
+    style: SettloTypography.footnote(
       letterSpacing: 0.3,
       color: SettloColors.of(context).textSecondary,
     ),
@@ -513,12 +493,13 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SCard(
-    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+    padding: const EdgeInsets.all(SettloSpacing.screenMargin),
     child: Column(
       children: [
         for (var index = 0; index < rows.length; index++) ...[
           _SettingRow(rows[index]),
-          if (index != rows.length - 1) const Divider(height: 1),
+          if (index != rows.length - 1)
+            const SizedBox(height: SettloSpacing.x2),
         ],
       ],
     ),
@@ -544,14 +525,14 @@ class _SettingRow extends StatelessWidget {
     final colors = SettloColors.of(context);
     return Semantics(
       button: data.onTap != null,
-      child: InkWell(
+      child: SPressable(
         onTap: data.onTap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 64),
           child: Row(
             children: [
               _IconTile(data.icon),
-              const SizedBox(width: 14),
+              const SizedBox(width: SettloSpacing.x2),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -559,8 +540,7 @@ class _SettingRow extends StatelessWidget {
                   children: [
                     Text(
                       data.title,
-                      style: SettloTypography.figtree(
-                        15,
+                      style: SettloTypography.headline(
                         color: colors.textPrimary,
                       ),
                     ),
@@ -569,8 +549,7 @@ class _SettingRow extends StatelessWidget {
                       data.subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: SettloTypography.figtree(
-                        12,
+                      style: SettloTypography.footnote(
                         color: colors.textSecondary,
                       ),
                     ),
@@ -606,7 +585,7 @@ class _IconTile extends StatelessWidget {
                 colors.surface,
               )
             : colors.surfaceRaised,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(SettloRadius.iconTile),
       ),
       alignment: Alignment.center,
       child: ProfileIcon(
@@ -658,7 +637,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
     final colors = SettloColors.of(context);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       child: Form(
         key: _formKey,
         child: Column(
@@ -667,13 +646,9 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
           children: [
             Text(
               'Name and UPI ID',
-              style: SettloTypography.figtree(
-                20,
-                weight: FontWeight.w500,
-                color: colors.textPrimary,
-              ),
+              style: SettloTypography.title3(color: colors.textPrimary),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: SettloSpacing.x3),
             TextFormField(
               key: const ValueKey('profile-name'),
               controller: _name,
@@ -696,13 +671,13 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
               validator: validateUpiId,
             ),
             if (_serverError != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Text(
                 _serverError!,
-                style: SettloTypography.figtree(13, color: colors.textPrimary),
+                style: SettloTypography.subheadline(color: colors.textPrimary),
               ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: SettloSpacing.x3),
             SizedBox(
               width: double.infinity,
               child: SPrimaryButton(
@@ -755,28 +730,18 @@ class _AppearanceSheet extends ConsumerWidget {
     final colors = SettloColors.of(context);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Appearance',
-            style: SettloTypography.figtree(
-              20,
-              weight: FontWeight.w500,
-              color: colors.textPrimary,
-            ),
+            style: SettloTypography.title3(color: colors.textPrimary),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: SettloSpacing.x2),
           for (final mode in ThemeMode.values)
-            ListTile(
-              minTileHeight: 52,
-              contentPadding: EdgeInsets.zero,
-              title: Text(_themeLabel(mode)),
-              trailing: mode == selected
-                  ? ProfileIcon(ProfileGlyph.check, color: colors.textPrimary)
-                  : null,
+            SPressable(
               onTap: () async {
                 try {
                   await ref.read(themeModeProvider.notifier).setMode(mode);
@@ -792,6 +757,14 @@ class _AppearanceSheet extends ConsumerWidget {
                   );
                 }
               },
+              child: ListTile(
+                minTileHeight: 52,
+                contentPadding: EdgeInsets.zero,
+                title: Text(_themeLabel(mode)),
+                trailing: mode == selected
+                    ? ProfileIcon(ProfileGlyph.check, color: colors.textPrimary)
+                    : null,
+              ),
             ),
         ],
       ),

@@ -35,14 +35,13 @@ class SpaceEmptyView extends StatelessWidget {
         if (!m.joined) m.name,
     ];
     final month = space.month ?? DateTime.now();
-    final caption = SettloTypography.figtree(
-      13,
-      color: c.textSecondary,
-    ).copyWith(height: 1.5);
+    final caption = SettloTypography.subheadline(color: c.textSecondary)
+        .copyWith(height: 1.5);
     return Scaffold(
       body: DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0, height: 1.2),
-        child: ListView(
+        child: SettloScrollScaffold(
+          title: 'Space',
           padding: EdgeInsets.fromLTRB(
             SettloSpacing.screenMargin,
             math.max(media.padding.top, 44) + 16,
@@ -51,10 +50,10 @@ class SpaceEmptyView extends StatelessWidget {
           ),
           children: [
             SpaceHeader(space),
-            const SizedBox(height: 20),
+            const SizedBox(height: SettloSpacing.x3),
             SCard(
               hero: true,
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(SettloSpacing.x3),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -71,7 +70,7 @@ class SpaceEmptyView extends StatelessWidget {
                       tone: MoneyTone.settled,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: SettloSpacing.x1),
                   Text(switch (waiting) {
                     [] when space.others.isEmpty => 'No expenses yet.',
                     [] =>
@@ -86,7 +85,7 @@ class SpaceEmptyView extends StatelessWidget {
                           '${joinNames(waiting)} will see everything the '
                           'moment their numbers are verified.',
                   }, style: caption),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: SettloSpacing.x3),
                   SPrimaryButton(
                     label: 'Add first expense',
                     icon: SpacesIcon(
@@ -101,13 +100,13 @@ class SpaceEmptyView extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: SettloSpacing.x2),
             SCard(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+              padding: const EdgeInsets.all(SettloSpacing.screenMargin),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
+                  SResponsiveRow(
                     children: [
                       Expanded(child: Text('MEMBERS', style: sectionLabel(c))),
                       Text(
@@ -117,20 +116,20 @@ class SpaceEmptyView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: SettloSpacing.x2),
                   for (final (i, m) in members.indexed)
                     _MemberRow(m, divider: i < members.length - 1),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: SettloSpacing.x2),
             SCard(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+              padding: const EdgeInsets.all(SettloSpacing.screenMargin),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text('SET UP ONCE', style: sectionLabel(c)),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: SettloSpacing.x2),
                   _SetUpRow(
                     glyph: SpacesGlyph.clock,
                     label: 'Add rent as a monthly expense',
@@ -196,11 +195,7 @@ class SpaceHeader extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: SettloTypography.figtree(
-              15,
-              weight: FontWeight.w500,
-              color: c.textPrimary,
-            ),
+            style: SettloTypography.headline(color: c.textPrimary),
           ),
         ),
         SizedBox(
@@ -233,11 +228,7 @@ class SpaceHeader extends StatelessWidget {
   }
 }
 
-BoxDecoration? _divider(SettloColors c, {required bool on}) => on
-    ? BoxDecoration(
-        border: Border(bottom: BorderSide(color: c.hairline)),
-      )
-    : null;
+BoxDecoration? _divider(SettloColors c, {required bool on}) => null;
 
 class _MemberRow extends StatelessWidget {
   const new(this.member, {required this.divider});
@@ -251,12 +242,12 @@ class _MemberRow extends StatelessWidget {
     final m = member;
     return MergeSemantics(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
         decoration: _divider(c, on: divider),
         child: Row(
           children: [
             SAvatar(m.name, size: 36),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,15 +256,12 @@ class _MemberRow extends StatelessWidget {
                     m.isYou ? 'You' : m.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SettloTypography.figtree(14, color: c.textPrimary),
+                    style: SettloTypography.body(color: c.textPrimary),
                   ),
                   if (!m.joined)
                     Text(
                       '${maskPhone(m.phone)} · not joined yet',
-                      style: SettloTypography.figtree(
-                        12,
-                        color: c.textSecondary,
-                      ),
+                      style: SettloTypography.footnote(color: c.textSecondary),
                     ),
                 ],
               ),
@@ -287,10 +275,8 @@ class _MemberRow extends StatelessWidget {
                 ),
                 child: Text(
                   'admin',
-                  style: SettloTypography.figtree(
-                    11,
-                    color: c.textSecondary,
-                  ).copyWith(height: 1.3),
+                  style: SettloTypography.caption1(color: c.textSecondary)
+                      .copyWith(height: 1.3),
                 ),
               ),
           ],
@@ -317,22 +303,22 @@ class _SetUpRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     return MergeSemantics(
-      child: InkWell(
+      child: SPressable(
         onTap: () => context.push(route),
         child: Container(
           constraints: const BoxConstraints(
             minHeight: SettloSpacing.minTouchTarget,
           ),
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
           decoration: _divider(c, on: divider),
           child: Row(
             children: [
               SpacesIcon(glyph, color: c.textPrimary, size: 18),
-              const SizedBox(width: 12),
+              const SizedBox(width: SettloSpacing.x2),
               Expanded(
                 child: Text(
                   label,
-                  style: SettloTypography.figtree(14, color: c.textPrimary),
+                  style: SettloTypography.body(color: c.textPrimary),
                 ),
               ),
               SpacesIcon(SpacesGlyph.chevron, color: c.textMuted, size: 18),

@@ -31,109 +31,105 @@ class LoanDetailScreen extends ConsumerWidget {
     final c = SettloColors.of(context);
     final media = MediaQuery.of(context);
     return Scaffold(
-      body: RefreshIndicator(
+      body: SettloScrollScaffold(
+        title: 'Loan',
         onRefresh: () => ref.refresh(loansProvider.future),
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            SettloSpacing.screenMargin,
-            math.max(media.padding.top, 44) + 16,
-            SettloSpacing.screenMargin,
-            media.padding.bottom + SettloSpacing.x2,
-          ),
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  tooltip: 'Back',
-                  onPressed: () => context.canPop()
-                      ? context.pop()
-                      : context.go(SettloRoutes.loans),
-                  style: IconButton.styleFrom(
-                    fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    backgroundColor: c.surface,
-                    side: BorderSide(color: c.hairline),
-                  ),
-                  icon: LoanGlyph(LoanGlyph.back, color: c.textPrimary),
+        padding: EdgeInsets.fromLTRB(
+          SettloSpacing.screenMargin,
+          math.max(media.padding.top, 44) + 16,
+          SettloSpacing.screenMargin,
+          media.padding.bottom + SettloSpacing.x2,
+        ),
+        children: [
+          Row(
+            children: [
+              IconButton(
+                tooltip: 'Back',
+                onPressed: () => context.canPop()
+                    ? context.pop()
+                    : context.go(SettloRoutes.loans),
+                style: IconButton.styleFrom(
+                  fixedSize: const Size.square(SettloSpacing.minTouchTarget),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  backgroundColor: c.surface,
+                  side: BorderSide(color: c.hairline),
                 ),
-                Expanded(
-                  child: Text(
-                    'Loan',
-                    textAlign: TextAlign.center,
-                    style: SettloTypography.figtree(
-                      15,
-                      weight: FontWeight.w500,
-                      color: c.textPrimary,
-                    ),
-                  ),
-                ),
-                StatementButton(loan, yourName: data.yourName),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _Hero(loan, today: data.today),
-            if (!loan.closed) ...[
-              const SizedBox(height: 12),
-              SPrimaryButton(
-                label: 'Record repayment',
-                icon: LoanGlyph(
-                  LoanGlyph.plus,
-                  color: c.onAction,
-                  size: 18,
-                  stroke: 1.9,
-                ),
-                onPressed: () => showRecordRepaymentSheet(context, loan),
+                icon: LoanGlyph(LoanGlyph.back, color: c.textPrimary),
               ),
+              Expanded(
+                child: Text(
+                  'Loan',
+                  textAlign: TextAlign.center,
+                  style: SettloTypography.headline(color: c.textPrimary),
+                ),
+              ),
+              StatementButton(loan, yourName: data.yourName),
             ],
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Text('REPAYMENTS', style: _label(c)),
-                const Spacer(),
-                Text('BOTH OF YOU SEE THIS', style: _label(c)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            SCard(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              child: loan.repayments.isEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      child: Text(
-                        loan.youLent
-                            ? 'Nothing repaid yet. Record a repayment when '
-                                  '${loan.counterparty} pays you.'
-                            : 'Nothing repaid yet. Record a repayment when '
-                                  'you pay ${loan.counterparty}.',
-                        style: SettloTypography.figtree(
-                          14,
-                          color: c.textSecondary,
-                        ),
-                      ),
-                    )
-                  : Column(
-                      children: [
-                        for (final (i, r) in loan.repayments.indexed)
-                          RepaymentRow(
-                            r,
-                            key: ValueKey(r.id),
-                            counterparty: loan.counterparty,
-                            youLent: loan.youLent,
-                            divider: i < loan.repayments.length - 1,
-                          ),
-                      ],
-                    ),
+          ),
+          const SizedBox(height: SettloSpacing.x3),
+          _Hero(loan, today: data.today),
+          if (!loan.closed) ...[
+            const SizedBox(height: SettloSpacing.x2),
+            SPrimaryButton(
+              label: 'Record repayment',
+              icon: LoanGlyph(
+                LoanGlyph.plus,
+                color: c.onAction,
+                size: 18,
+                stroke: 1.9,
+              ),
+              onPressed: () => showRecordRepaymentSheet(context, loan),
             ),
           ],
-        ),
+          const SizedBox(height: SettloSpacing.x3),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: SettloSpacing.x2,
+            runSpacing: SettloSpacing.x1,
+            children: [
+              Text('REPAYMENTS', style: _label(c)),
+              Text('BOTH OF YOU SEE THIS', style: _label(c)),
+            ],
+          ),
+          const SizedBox(height: SettloSpacing.x2),
+          SCard(
+            padding: const EdgeInsets.all(SettloSpacing.screenMargin),
+            child: loan.repayments.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: SettloSpacing.x2,
+                    ),
+                    child: Text(
+                      loan.youLent
+                          ? 'Nothing repaid yet. Record a repayment when '
+                                '${loan.counterparty} pays you.'
+                          : 'Nothing repaid yet. Record a repayment when '
+                                'you pay ${loan.counterparty}.',
+                      style: SettloTypography.body(color: c.textSecondary),
+                    ),
+                  )
+                : Column(
+                    children: [
+                      for (final (i, r) in loan.repayments.indexed)
+                        RepaymentRow(
+                          r,
+                          key: ValueKey(r.id),
+                          counterparty: loan.counterparty,
+                          youLent: loan.youLent,
+                          divider: i < loan.repayments.length - 1,
+                        ),
+                    ],
+                  ),
+          ),
+        ],
       ),
     );
   }
 }
 
 TextStyle _label(SettloColors c) =>
-    SettloTypography.figtree(12, letterSpacing: 0.3, color: c.textSecondary);
+    SettloTypography.footnote(letterSpacing: 0.3, color: c.textSecondary);
 
 /// The ring, who and what is outstanding, and the three tiles.
 class _Hero extends StatelessWidget {
@@ -145,22 +141,24 @@ class _Hero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final small = SettloTypography.figtree(12, color: c.textSecondary);
+    final small = SettloTypography.footnote(color: c.textSecondary);
     const terms = '· interest free';
     return SCard(
       hero: true,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(SettloSpacing.x3),
       child: Column(
         children: [
-          Row(
+          SResponsiveRow(
+            threshold: 1.3,
             children: [
               LoanRing(loan.progress),
-              const SizedBox(width: 18),
+              const SizedBox(width: SettloSpacing.x3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    SResponsiveRow(
+                      threshold: 1.3,
                       children: [
                         ExcludeSemantics(
                           child: SAvatar(loan.counterparty, size: 24),
@@ -169,25 +167,30 @@ class _Hero extends StatelessWidget {
                         Flexible(
                           child: Text(
                             loan.counterparty,
-                            maxLines: 1,
+                            maxLines:
+                                MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                                ? 2
+                                : 1,
                             overflow: TextOverflow.ellipsis,
-                            style: SettloTypography.figtree(
-                              14,
-                              color: c.textPrimary,
-                            ),
+                            style: SettloTypography.body(color: c.textPrimary),
                           ),
                         ),
                         Flexible(
                           child: Text(
-                            ' · since ${monthYear(loan.startOn)}',
-                            maxLines: 1,
+                            MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                                ? 'since ${monthYear(loan.startOn)}'
+                                : ' · since ${monthYear(loan.startOn)}',
+                            maxLines:
+                                MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                                ? 2
+                                : 1,
                             overflow: TextOverflow.ellipsis,
                             style: small,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: SettloSpacing.x2),
                     Text(
                       loan.youLent ? 'Outstanding' : 'You owe',
                       style: small,
@@ -212,9 +215,10 @@ class _Hero extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: SettloSpacing.x3),
           IntrinsicHeight(
-            child: Row(
+            child: SResponsiveRow(
+              threshold: 1.3,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 for (final (i, tile) in _tiles().indexed) ...[
@@ -275,12 +279,15 @@ class _Tile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final small = SettloTypography.figtree(11, color: c.textSecondary);
+    final small = SettloTypography.caption1(color: c.textSecondary);
     return Semantics(
       label: '$label, ${spoken ?? value}, $detail',
       excludeSemantics: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: SettloSpacing.x2,
+        ),
         decoration: BoxDecoration(
           color: c.surfaceRaised,
           borderRadius: BorderRadius.circular(SettloRadius.button),
@@ -288,18 +295,18 @@ class _Tile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: small),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(label, style: small, maxLines: 1),
+            ),
             const SizedBox(height: 4),
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
               child: Text(
                 value,
-                style: SettloTypography.figtree(
-                  16,
-                  weight: FontWeight.w500,
-                  color: c.textPrimary,
-                ),
+                style: SettloTypography.callout(color: c.textPrimary),
               ),
             ),
             const SizedBox(height: 2),
@@ -368,22 +375,18 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
     final who = widget.counterparty;
     final how = r.method?.label ?? 'Repayment';
     final by = r.recordedByYou ? who : 'you';
-    final text = SettloTypography.figtree(14, color: c.textPrimary);
-    final small = SettloTypography.figtree(13, color: c.textSecondary);
+    final text = SettloTypography.body(color: c.textPrimary);
+    final small = SettloTypography.subheadline(color: c.textSecondary);
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        border: widget.divider
-            ? Border(bottom: BorderSide(color: c.hairline))
-            : null,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Semantics(
             button: r.awaitsYou,
             label: r.awaitsYou ? 'Review repayment' : null,
-            child: InkWell(
+            child: SPressable(
               onTap: r.awaitsYou
                   ? () => context.push(SettloRoutes.confirmRepayment(r.id))
                   : null,
@@ -391,13 +394,16 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
                 constraints: const BoxConstraints(
                   minHeight: SettloSpacing.minTouchTarget,
                 ),
-                child: Row(
+                child: SResponsiveRow(
+                  threshold: 1.3,
                   children: [
                     SizedBox(
-                      width: 44,
+                      width: MediaQuery.textScalerOf(context).scale(1) >= 1.5
+                          ? null
+                          : 44,
                       child: Text(dayMonth(r.paidOn), style: small),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: SettloSpacing.x2),
                     Expanded(
                       child: switch (r.status) {
                         RepaymentStatus.confirmed => Text(
@@ -421,7 +427,7 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
                         ),
                       },
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: SettloSpacing.x2),
                     MoneyText(
                       r.amount,
                       tone: r.status == RepaymentStatus.disputed
@@ -478,7 +484,7 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
               padding: const EdgeInsets.only(left: 56, top: 4),
               child: Text(
                 error,
-                style: SettloTypography.figtree(13, color: c.textPrimary),
+                style: SettloTypography.subheadline(color: c.textPrimary),
               ),
             ),
         ],
@@ -506,10 +512,8 @@ class _Badge extends StatelessWidget {
         label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: SettloTypography.figtree(
-          11,
-          color: c.textSecondary,
-        ).copyWith(height: 1.3),
+        style: SettloTypography.caption1(color: c.textSecondary)
+            .copyWith(height: 1.3),
       ),
     );
   }
@@ -550,8 +554,7 @@ class _Pill extends StatelessWidget {
             widthFactor: 1,
             child: Text(
               label,
-              style: SettloTypography.figtree(
-                13,
+              style: SettloTypography.subheadline(
                 weight: primary ? FontWeight.w500 : FontWeight.w400,
                 color: primary ? c.onAction : c.textPrimary,
               ),
@@ -658,18 +661,14 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
                           '${widget.counterparty}?'
                     : "Didn't pay ${formatInr(r.amount)} to "
                           '${widget.counterparty}?',
-                style: SettloTypography.figtree(
-                  17,
-                  weight: FontWeight.w500,
-                  color: c.textPrimary,
-                ),
+                style: SettloTypography.headline(color: c.textPrimary),
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: SettloSpacing.x1),
             Text(
               "Tell ${widget.counterparty} what's wrong. It won't count, and "
               "this can't be undone; they can record a corrected one.",
-              style: SettloTypography.figtree(13, color: c.textSecondary),
+              style: SettloTypography.subheadline(color: c.textSecondary),
             ),
             const SizedBox(height: 16),
             Semantics(
@@ -683,7 +682,7 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
                   widget.decision.clearError();
                   setState(() {});
                 },
-                style: SettloTypography.figtree(15, color: c.textPrimary),
+                style: SettloTypography.headline(color: c.textPrimary),
                 decoration: InputDecoration(
                   hintText: widget.youLent
                       ? 'Not received yet'
@@ -693,10 +692,10 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
               ),
             ),
             if (widget.decision.error case final error?) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Text(
                 error,
-                style: SettloTypography.figtree(13, color: c.textPrimary),
+                style: SettloTypography.subheadline(color: c.textPrimary),
               ),
             ],
             const SizedBox(height: 16),
@@ -708,7 +707,7 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
                   : 'Mark as not paid',
               onPressed: widget.decision.busy || reason.isEmpty ? null : _send,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: SettloSpacing.x2),
             SSecondaryButton(
               label: 'Cancel',
               onPressed: widget.decision.busy ? null : widget.onClose,

@@ -114,17 +114,6 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: c.surfaceHighest,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
           Row(
             children: [
               Transform.translate(
@@ -149,7 +138,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
               const SizedBox(width: SettloSpacing.minTouchTarget - 12),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: SettloSpacing.x3),
           TextField(
             controller: _name,
             textCapitalization: TextCapitalization.sentences,
@@ -178,23 +167,19 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
               child: Row(
                 children: [
                   SAvatar(m.name, size: 36),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: SettloSpacing.x2),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           m.name,
-                          style: SettloTypography.figtree(
-                            14,
-                            color: c.textPrimary,
-                          ),
+                          style: SettloTypography.body(color: c.textPrimary),
                         ),
                         if (m.name != m.phone)
                           Text(
                             groupPhone(m.phone),
-                            style: SettloTypography.figtree(
-                              12,
+                            style: SettloTypography.footnote(
                               color: c.textSecondary,
                             ),
                           ),
@@ -216,9 +201,9 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
           Text(
             "They don't need the app yet. They see the space when they "
             'verify their number.',
-            style: SettloTypography.figtree(13, color: c.textSecondary),
+            style: SettloTypography.subheadline(color: c.textSecondary),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: SettloSpacing.x2),
           TextField(
             controller: _phone,
             keyboardType: TextInputType.phone,
@@ -230,14 +215,14 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
               errorText: _phoneError,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: SettloSpacing.x2),
           TextField(
             controller: _person,
             textCapitalization: TextCapitalization.words,
             onSubmitted: (_) => _add(),
             decoration: const InputDecoration(labelText: 'Their name'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: SettloSpacing.x2),
           SSecondaryButton(
             label: 'Add person',
             icon: SpacesIcon(SpacesGlyph.plus, color: c.textPrimary, size: 18),
@@ -247,7 +232,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
             gap,
             Text(
               error,
-              style: SettloTypography.figtree(13, color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.textPrimary),
             ),
           ],
           const SizedBox(height: SettloSpacing.x3),

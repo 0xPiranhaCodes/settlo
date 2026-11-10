@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
+import 'package:settlo_core/widgets/platform_page.dart';
+import 'package:settlo_core/widgets/pressable.dart';
 
 /// Settlo [ThemeData]. Dark is the default.
 abstract final class SettloTheme {
@@ -38,6 +40,12 @@ abstract final class SettloTheme {
     const buttonSize = Size(SettloSpacing.minTouchTarget, 50);
     return ThemeData(
       brightness: brightness,
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          for (final platform in TargetPlatform.values)
+            platform: const SettloPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: scheme,
       scaffoldBackgroundColor: c.background,
       textTheme: text,
@@ -114,11 +122,18 @@ abstract final class SettloTheme {
         selectionColor: c.textSecondary.withValues(alpha: 0.4),
         selectionHandleColor: c.textPrimary,
       ),
+      iconButtonTheme: const IconButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: WidgetStatePropertyAll(Size(44, 44)),
+          foregroundBuilder: _pressFeedback,
+        ),
+      ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: c.textPrimary,
+          minimumSize: const Size(44, 44),
           textStyle: text.labelLarge,
-        ),
+        ).copyWith(foregroundBuilder: _pressFeedback),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -137,6 +152,16 @@ abstract final class SettloTheme {
       ),
     );
   }
+
+  static Widget _pressFeedback(
+    BuildContext context,
+    Set<WidgetState> states,
+    Widget? child,
+  ) => SPressFeedback(
+    enabled: !states.contains(WidgetState.disabled),
+    pressed: states.contains(WidgetState.pressed),
+    child: child ?? const SizedBox.shrink(),
+  );
 
   static WidgetStateProperty<Color> _selected(Color on, Color off) =>
       WidgetStateProperty.resolveWith(

@@ -92,7 +92,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final state = ref.watch(signInProvider);
     final sentTo = state.sentTo;
     final error = state.error;
-    final caption = SettloTypography.figtree(13, color: c.textSecondary);
+    final caption = SettloTypography.subheadline(color: c.textSecondary);
     return AuthPage(
       top: const StepHeader(step: 2, of: 2),
       content: [
@@ -124,7 +124,6 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               _TextAction(
                 label: 'change',
                 semanticLabel: 'Change number',
-                size: 15,
                 onTap: () => StepHeader.goBack(context),
               ),
             ],
@@ -171,12 +170,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         const Spacer(),
         const SizedBox(height: SettloSpacing.x3),
         SCard(
-          padding: const EdgeInsets.all(SettloSpacing.x2),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AuthIcon(AuthGlyph.shield, color: c.textSecondary, size: 20),
-              const SizedBox(width: 12),
+              const SizedBox(width: SettloSpacing.x2),
               Expanded(
                 child: Text(
                   'This code is valid for 10 minutes. Settlo will never ask '
@@ -233,11 +231,7 @@ class _CodeBoxes extends StatelessWidget {
       ),
       child: Text(
         i < code.length ? code[i] : '',
-        style: SettloTypography.figtree(
-          26,
-          weight: FontWeight.w500,
-          color: c.textPrimary,
-        ),
+        style: SettloTypography.body(color: c.textPrimary),
       ),
     );
     // Boxes are 50 wide with at least 8 between, narrowing on small screens.
@@ -303,15 +297,9 @@ class _CodeBoxes extends StatelessWidget {
 
 /// An inline text action in the action colour, with a 44pt tall target.
 class _TextAction extends StatelessWidget {
-  const new({
-    required this.label,
-    required this.onTap,
-    this.semanticLabel,
-    this.size = 13,
-  });
+  const new({required this.label, required this.onTap, this.semanticLabel});
 
   final String label;
-  final double size;
   final String? semanticLabel;
   final VoidCallback? onTap;
 
@@ -323,9 +311,8 @@ class _TextAction extends StatelessWidget {
       enabled: onTap != null,
       label: semanticLabel ?? label,
       excludeSemantics: true,
-      child: GestureDetector(
+      child: SPressable(
         key: ValueKey('action-$label'),
-        behavior: HitTestBehavior.opaque,
         onTap: onTap,
         // At least 44pt each way; the text stays centred on its line.
         child: ConstrainedBox(
@@ -338,8 +325,7 @@ class _TextAction extends StatelessWidget {
             heightFactor: 1,
             child: Text(
               label,
-              style: SettloTypography.figtree(
-                size,
+              style: SettloTypography.subheadline(
                 color: onTap == null ? c.textMuted : c.action,
               ),
             ),

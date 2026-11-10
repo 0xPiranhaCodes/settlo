@@ -131,7 +131,7 @@ class AuthPage extends StatelessWidget {
     this.top,
     this.topInset = 16,
     this.bottom,
-    this.bottomInset = 28,
+    this.bottomInset = SettloSpacing.x4,
     super.key,
   });
 
@@ -142,7 +142,7 @@ class AuthPage extends StatelessWidget {
   /// larger) and [top].
   final double topInset;
 
-  /// The page body, 24px from each side.
+  /// The page body, 20px from each side.
   final List<Widget> content;
 
   /// The primary action at the foot.
@@ -154,27 +154,26 @@ class AuthPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
-    final topPad = math.max(media.padding.top, 44) + topInset;
     final bottomPad = math.max(bottomInset, media.padding.bottom + 8);
     // Styles here set letter spacing only where the canvas does; anything
     // left unset is 0, not the theme's ambient label spacing.
     return Scaffold(
       body: DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0),
-        child: CustomScrollView(
+        child: SettloScrollScaffold(
+          title: 'Sign in',
           slivers: [
             SliverFillRemaining(
               hasScrollBody: false,
               child: Padding(
-                padding: EdgeInsets.only(top: topPad, bottom: bottomPad),
+                padding: EdgeInsets.only(bottom: bottomPad),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ?top,
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: SettloSpacing.x3,
+                          horizontal: SettloSpacing.screenMargin,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -187,6 +186,7 @@ class AuthPage extends StatelessWidget {
               ),
             ),
           ],
+          children: [top ?? const SizedBox.shrink()],
         ),
       ),
     );
@@ -207,38 +207,30 @@ class StepHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: SettloSpacing.screenMargin,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Semantics(
-            button: true,
-            label: 'Back',
-            child: InkWell(
-              onTap: () => goBack(context),
-              customBorder: const CircleBorder(),
-              child: Container(
-                width: SettloSpacing.minTouchTarget,
-                height: SettloSpacing.minTouchTarget,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: c.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: c.hairline),
-                ),
-                child: AuthIcon(AuthGlyph.back, color: c.textPrimary, size: 22),
-              ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        SPressable(
+          label: 'Back',
+          onTap: () => goBack(context),
+          ringRadius: BorderRadius.circular(SettloRadius.pill),
+          child: Container(
+            width: SettloSpacing.minTouchTarget,
+            height: SettloSpacing.minTouchTarget,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: c.surface,
+              shape: BoxShape.circle,
+              border: Border.all(color: c.hairline),
             ),
+            child: AuthIcon(AuthGlyph.back, color: c.textPrimary, size: 22),
           ),
-          Text(
-            '$step of $of',
-            style: SettloTypography.figtree(13, color: c.textSecondary),
-          ),
-        ],
-      ),
+        ),
+        Text(
+          '$step of $of',
+          style: SettloTypography.subheadline(color: c.textSecondary),
+        ),
+      ],
     );
   }
 
@@ -273,8 +265,8 @@ class AuthButton extends StatelessWidget {
   final bool arrow;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 56,
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: 56),
     child: SPrimaryButton(
       label: label,
       onPressed: onPressed,
@@ -300,7 +292,7 @@ class StepTitle extends StatelessWidget {
   const new({
     required this.title,
     required this.subtitle,
-    this.gap = 10,
+    this.gap = SettloSpacing.x2,
     super.key,
   });
 
@@ -323,9 +315,7 @@ class StepTitle extends StatelessWidget {
           header: true,
           child: Text(
             title,
-            style: SettloTypography.figtree(
-              30,
-              weight: FontWeight.w500,
+            style: SettloTypography.largeTitle(
               letterSpacing: -0.8,
               color: c.textPrimary,
             ).copyWith(height: 1.15),
@@ -333,10 +323,8 @@ class StepTitle extends StatelessWidget {
         ),
         SizedBox(height: gap),
         DefaultTextStyle(
-          style: SettloTypography.figtree(
-            15,
-            color: c.textSecondary,
-          ).copyWith(height: 1.5),
+          style: SettloTypography.body(color: c.textSecondary)
+              .copyWith(height: 1.5),
           child: subtitle,
         ),
       ],
@@ -357,8 +345,7 @@ class AuthErrorText extends StatelessWidget {
     liveRegion: true,
     child: Text(
       message,
-      style: SettloTypography.figtree(
-        13,
+      style: SettloTypography.subheadline(
         color: SettloColors.of(context).textPrimary,
       ).copyWith(height: 1.4),
     ),

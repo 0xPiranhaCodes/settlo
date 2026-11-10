@@ -64,7 +64,7 @@ final List<_Screen> _screens = [
 ];
 
 void main() {
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     for (final (themeName, theme) in [
       ('dark', SettloTheme.dark()),
       ('light', SettloTheme.light()),

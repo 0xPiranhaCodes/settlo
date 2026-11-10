@@ -33,16 +33,4 @@ final List<RouteBase> settleRoutes = [
 ];
 
 Page<void> _sheet(BuildContext context, GoRouterState state, Widget child) =>
-    CustomTransitionPage<void>(
-      key: state.pageKey,
-      opaque: false,
-      barrierDismissible: true,
-      barrierColor: SettloColors.of(context).background.withValues(alpha: 0.6),
-      transitionsBuilder: (_, animation, _, child) => SlideTransition(
-        position: Tween(begin: const Offset(0, 1), end: Offset.zero).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-        ),
-        child: child,
-      ),
-      child: child,
-    );
+    SettloPage<void>(key: state.pageKey, child: child);
