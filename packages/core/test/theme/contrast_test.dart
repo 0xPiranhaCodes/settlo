@@ -49,10 +49,19 @@ void main() {
       });
 
       test('covers every text token on every content surface', () {
-        // 8 text colours x 3 surfaces, plus 5 special pairs. Welcome uses
+        // 9 text colours x 3 surfaces, plus 7 special pairs. Welcome uses
         // the lightest gradient stop so the whole action is covered.
-        expect(colors.textPairs, hasLength(29));
+        expect(colors.textPairs, hasLength(34));
       });
     });
   }
+
+  test('light Home gold clears text and icon contrast', () {
+    const c = SettloColors.light;
+    for (final surface in [c.background, c.surface, c.surfaceRaised]) {
+      final ratio = contrast(c.homeGold, surface);
+      expect(ratio, greaterThanOrEqualTo(4.5), reason: '$surface');
+      expect(ratio, greaterThanOrEqualTo(3), reason: 'icon on $surface');
+    }
+  });
 }

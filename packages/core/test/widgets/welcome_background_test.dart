@@ -34,5 +34,16 @@ void main() {
       ),
       isTrue,
     );
+    expect(
+      painter.shouldRepaint(
+        const WelcomeBackgroundPainter(
+          background: Color(0xFF0A0B0D),
+          gold: Color(0xFFD8B36A),
+          highlight: Color(0xFFF2C77F),
+          placement: SettloArcPlacement.home,
+        ),
+      ),
+      isTrue,
+    );
   });
 }

@@ -87,7 +87,7 @@ abstract final class SettloWelcomeMetrics {
 /// Measurements unique to the owner-approved Home composition.
 abstract final class SettloHomeMetrics {
   /// Diameter of the circular header controls.
-  static const double headerControl = 52;
+  static const double headerControl = 44;
 
   /// Diameter of the gold arrow control on an empty-state action card.
   static const double arrowButton = 44;

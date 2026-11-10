@@ -22,8 +22,8 @@ dev_dependencies:
     path: ../test_support
 
 flutter:
-  # Figtree and IBM Plex Serif, bundled so text never depends on the network
-  # (ADR 0006). Use them through SettloTypography, which sets
+  # Figtree, bundled so text never depends on the network. Use it through
+  # SettloTypography, which sets
   # `package: 'settlo_core'`.
   fonts:
     - family: Figtree
@@ -33,12 +33,7 @@ flutter:
           weight: 500
         - asset: assets/fonts/Figtree-SemiBold.ttf
           weight: 600
-    - family: IBM Plex Serif
-      fonts:
-        - asset: assets/fonts/IBMPlexSerif-Medium.ttf
-          weight: 500
   # Licence texts for the fonts above.
   assets:
     - assets/brand/settlo_mark.png
     - assets/fonts/Figtree-OFL.txt
-    - assets/fonts/IBMPlexSerif-OFL.txt

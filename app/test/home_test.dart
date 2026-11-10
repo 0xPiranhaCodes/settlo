@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show SemanticsAction;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
-import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_activity.dart';
@@ -20,7 +20,8 @@ Future<GoRouter> _pump(
   FakeHomeRepository repository, {
   GoldenDevice device = SettloGoldenDevices.canvas390,
   double textScaleFactor = 1,
-  Future<bool> Function(Uri)? openUrl,
+  FakeActivityRepository? activityRepository,
+  bool disableAnimations = false,
 }) async {
   await loadSettloFonts();
   tester.view
@@ -28,7 +29,13 @@ Future<GoRouter> _pump(
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   tester.platformDispatcher.textScaleFactorTestValue = textScaleFactor;
-  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  tester.platformDispatcher.accessibilityFeaturesTestValue =
+      FakeAccessibilityFeatures(disableAnimations: disableAnimations);
+  addTearDown(() {
+    tester.platformDispatcher
+      ..clearTextScaleFactorTestValue()
+      ..clearAccessibilityFeaturesTestValue();
+  });
   final router = GoRouter(
     initialLocation: SettloRoutes.home,
     routes: [
@@ -60,8 +67,9 @@ Future<GoRouter> _pump(
     ProviderScope(
       overrides: [
         homeRepositoryProvider.overrideWithValue(repository),
-        activityRepositoryProvider.overrideWithValue(FakeActivityRepository()),
-        if (openUrl != null) openUrlProvider.overrideWithValue(openUrl),
+        activityRepositoryProvider.overrideWithValue(
+          activityRepository ?? FakeActivityRepository(),
+        ),
       ],
       child: MaterialApp.router(
         theme: SettloTheme.dark(),
@@ -289,14 +297,17 @@ void main() {
 
     testWidgets('pulling down reloads', (tester) async {
       final repository = FakeHomeRepository(homeEmpty);
-      await _pump(tester, repository);
+      final activity = FakeActivityRepository();
+      await _pump(tester, repository, activityRepository: activity);
       expect(find.text('Start a space'), findsOne);
+      final activityReads = activity.calls.length;
 
       repository.data = homeMain;
       await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
       await tester.pumpAndSettle();
 
       expect(find.text('Flat 402'), findsOne);
+      expect(activity.calls.length, greaterThan(activityReads));
     });
 
     for (final (data, label, location) in [
@@ -320,6 +331,7 @@ void main() {
 
     for (final (label, target, location) in [
       ('Notifications', find.byTooltip('Notifications'), SettloRoutes.activity),
+      ('Profile', find.byTooltip('Profile'), SettloRoutes.profile),
     ]) {
       testWidgets('$label goes to $location', (tester) async {
         final router = await _pump(tester, FakeHomeRepository(homeMain));
@@ -328,25 +340,6 @@ void main() {
         expect(router.state.uri.toString(), location);
       });
     }
-
-    testWidgets('Help opens the existing support page', (tester) async {
-      final opened = <Uri>[];
-      await _pump(
-        tester,
-        FakeHomeRepository(homeEmpty),
-        openUrl: (uri) async {
-          opened.add(uri);
-          return true;
-        },
-      );
-
-      await tester.tap(find.byTooltip('Help and support'));
-      await tester.pump();
-
-      expect(opened, [
-        Uri.parse('https://0xpiranhacodes.github.io/settlo/support/'),
-      ]);
-    });
 
     testWidgets('pending repayment opens its confirmation receipt', (
       tester,
@@ -560,5 +553,49 @@ void main() {
     );
     await _scrollToEnd(tester);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('populated Home fits at 200% text scaling', (tester) async {
+    await _pump(
+      tester,
+      FakeHomeRepository(homeMain),
+      device: SettloGoldenDevices.compact360,
+      textScaleFactor: 2,
+    );
+    await _scrollToEnd(tester);
+    expect(find.byType(HomeScreen), findsOneWidget);
+  });
+
+  testWidgets('empty action cards expose a semantic tap action', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await _pump(tester, FakeHomeRepository(homeEmpty));
+    for (final label in ['Start a space', 'Record a loan']) {
+      final data = tester
+          .getSemantics(find.bySemanticsLabel(label))
+          .getSemanticsData();
+      expect(data.hasAction(SemanticsAction.tap), isTrue, reason: label);
+    }
+    semantics.dispose();
+  });
+
+  testWidgets('Reduce Motion makes Home press feedback immediate', (
+    tester,
+  ) async {
+    await _pump(tester, FakeHomeRepository(homeEmpty), disableAnimations: true);
+    final action = find.bySemanticsLabel('Start a space');
+    final gesture = await tester.startGesture(tester.getCenter(action));
+    await tester.pump();
+    final scale = tester.widget<AnimatedScale>(
+      find.descendant(of: action, matching: find.byType(AnimatedScale)),
+    );
+    final opacity = tester.widget<AnimatedOpacity>(
+      find.descendant(of: action, matching: find.byType(AnimatedOpacity)),
+    );
+    expect(scale.duration, Duration.zero);
+    expect(opacity.duration, Duration.zero);
+    await gesture.up();
+    await tester.pumpAndSettle();
   });
 }

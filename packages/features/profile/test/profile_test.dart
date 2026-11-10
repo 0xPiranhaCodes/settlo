@@ -256,6 +256,76 @@ void main() {
     expect(find.byType(ProfileIcon), findsNWidgets(ProfileGlyph.values.length));
   });
 
+  testWidgets('Help and support opens the existing support page', (
+    tester,
+  ) async {
+    final opened = <Uri>[];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
+          themeModeRepositoryProvider.overrideWithValue(
+            _ThemeRepository(ThemeMode.dark),
+          ),
+          openUrlProvider.overrideWithValue((uri) async {
+            opened.add(uri);
+            return true;
+          }),
+        ],
+        child: MaterialApp(
+          theme: SettloTheme.dark(),
+          home: const ProfileScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Help and support'),
+      250,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.tap(find.text('Help and support'));
+    await tester.pump();
+
+    expect(opened, [
+      Uri.parse('https://0xpiranhacodes.github.io/settlo/support/'),
+    ]);
+  });
+
+  for (final failure in ['returns false', 'throws']) {
+    testWidgets('support $failure shows safe feedback', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
+            themeModeRepositoryProvider.overrideWithValue(
+              _ThemeRepository(ThemeMode.dark),
+            ),
+            openUrlProvider.overrideWithValue((_) async {
+              if (failure == 'throws') throw Exception('private');
+              return false;
+            }),
+          ],
+          child: MaterialApp(
+            theme: SettloTheme.dark(),
+            home: const ProfileScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Help and support'),
+        250,
+        scrollable: find.byType(Scrollable),
+      );
+      await tester.tap(find.text('Help and support'));
+      await tester.pump();
+
+      expect(find.text("We couldn't open support. Try again."), findsOne);
+      expect(find.textContaining('private'), findsNothing);
+    });
+  }
+
   testWidgets('edits profile, validates VPA, and signs out', (tester) async {
     final profile = _ProfileRepository();
     final theme = _ThemeRepository(ThemeMode.dark);

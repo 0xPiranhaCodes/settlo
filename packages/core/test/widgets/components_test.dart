@@ -229,7 +229,7 @@ void main() {
     expect(find.text('New loan'), findsOneWidget);
     expect(find.text('AMOUNT'), findsOneWidget);
 
-    // The amount is first and in the serif.
+    // The amount is first and in Figtree.
     final amount = tester.widget<DefaultTextStyle>(
       find
           .ancestor(
@@ -238,7 +238,7 @@ void main() {
           )
           .first,
     );
-    expect(amount.style.fontFamily, contains(SettloTypography.serifFamily));
+    expect(amount.style.fontFamily, contains(SettloTypography.figtreeFamily));
     expect(
       tester.getTopLeft(find.text('25,000')).dy,
       lessThan(tester.getTopLeft(find.text('AMOUNT')).dy + 40),

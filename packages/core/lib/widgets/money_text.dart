@@ -6,11 +6,8 @@ import 'package:settlo_core/theme/typography.dart';
 
 /// An amount of money in the tone's colour.
 ///
-/// From [SettloTypography.serifFrom] up, the number is IBM Plex Serif and
-/// the ₹ is Figtree at 56% of the number, raised towards the cap height
-/// (canvas: `0.56em`, `vertical-align: 0.26em`). Below that the whole amount
-/// is Figtree, as list amounts are on the canvas. Negative amounts use a
-/// true minus sign.
+/// The number is Figtree and the ₹ is Figtree at 66% of the number, raised
+/// towards the cap height. Negative amounts use a true minus sign.
 class MoneyText extends StatelessWidget {
   /// Shows [amount] at [size] in [tone]; [signed] adds `+` to positive
   /// amounts.
@@ -19,6 +16,7 @@ class MoneyText extends StatelessWidget {
     this.tone = MoneyTone.neutral,
     this.size = 15,
     this.signed = false,
+    this.color,
     super.key,
   });
 
@@ -27,7 +25,8 @@ class MoneyText extends StatelessWidget {
   const new blank({this.size = 15, super.key})
     : amount = null,
       tone = MoneyTone.settled,
-      signed = false;
+      signed = false,
+      color = null;
 
   /// The amount; null for [MoneyText.blank].
   final Paise? amount;
@@ -41,6 +40,10 @@ class MoneyText extends StatelessWidget {
   /// Whether positive amounts get a `+`.
   final bool signed;
 
+  /// An explicit colour for fixed-surface treatments such as Home's dark
+  /// net-position card. Otherwise [tone] selects the colour.
+  final Color? color;
+
   @override
   Widget build(BuildContext context) {
     final amount = this.amount;
@@ -52,9 +55,9 @@ class MoneyText extends StatelessWidget {
     final spoken = amount == null
         ? 'not known yet'
         : spokenInr(amount, signed: signed);
-    final color = SettloColors.of(context).money(tone);
+    final color = this.color ?? SettloColors.of(context).money(tone);
     final style = SettloTypography.amount(size, color: color);
-    if (size < SettloTypography.serifFrom) {
+    if (size < 20) {
       return Semantics(
         label: spoken,
         excludeSemantics: true,
@@ -67,7 +70,7 @@ class MoneyText extends StatelessWidget {
     // follow the system text scale.
     final em = MediaQuery.textScalerOf(context).scale(size);
     final symbol = SettloTypography.figtree(
-      size * 0.56,
+      size * 0.66,
       weight: FontWeight.w500,
       letterSpacing: 0,
       color: color,

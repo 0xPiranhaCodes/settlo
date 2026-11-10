@@ -1,5 +1,14 @@
 import 'package:flutter/widgets.dart';
 
+/// Arc geometry for the screen using the shared warm treatment.
+enum SettloArcPlacement {
+  /// Welcome's top-right and bottom-left framing arcs.
+  welcome,
+
+  /// Home's single bottom-right arc, kept above the floating navigation.
+  home,
+}
+
 /// The owner-approved warm arcs shared by Welcome and Home.
 ///
 /// The painter owns the background fill as well as the two hairline arcs so
@@ -10,6 +19,7 @@ class WelcomeBackgroundPainter extends CustomPainter {
     required this.background,
     required this.gold,
     required this.highlight,
+    this.placement = SettloArcPlacement.welcome,
   });
 
   /// The solid screen background.
@@ -21,25 +31,43 @@ class WelcomeBackgroundPainter extends CustomPainter {
   /// The hottest point in each arc.
   final Color highlight;
 
+  /// Where the shared arc treatment is placed.
+  final SettloArcPlacement placement;
+
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, Paint()..color = background);
-    final topArc = Path()
-      ..moveTo(size.width * 0.37, -4)
-      ..quadraticBezierTo(
-        size.width * 0.82,
-        size.height * 0.065,
-        size.width + 12,
-        size.height * 0.32,
-      );
-    final bottomArc = Path()
-      ..moveTo(-8, size.height * 0.95)
-      ..quadraticBezierTo(
-        size.width * 0.2,
-        size.height * 0.97,
-        size.width * 0.48,
-        size.height + 8,
-      );
+    final paths = switch (placement) {
+      SettloArcPlacement.welcome => (
+        Path()
+          ..moveTo(size.width * 0.37, -4)
+          ..quadraticBezierTo(
+            size.width * 0.82,
+            size.height * 0.065,
+            size.width + 12,
+            size.height * 0.32,
+          ),
+        Path()
+          ..moveTo(-8, size.height * 0.95)
+          ..quadraticBezierTo(
+            size.width * 0.2,
+            size.height * 0.97,
+            size.width * 0.48,
+            size.height + 8,
+          ),
+      ),
+      SettloArcPlacement.home => (
+        null,
+        Path()
+          ..moveTo(size.width * 0.52, size.height * 0.86)
+          ..quadraticBezierTo(
+            size.width * 0.73,
+            size.height * 0.78,
+            size.width + 10,
+            size.height * 0.8,
+          ),
+      ),
+    };
     final bounds = Offset.zero & size;
     final hot = Color.lerp(gold, highlight, 0.96)!;
     final topShader = LinearGradient(
@@ -120,13 +148,16 @@ class WelcomeBackgroundPainter extends CustomPainter {
         );
     }
 
-    drawGlowingArc(topArc, topShader, topHotShader);
-    drawGlowingArc(bottomArc, bottomShader, bottomHotShader);
+    if (paths.$1 case final topArc?) {
+      drawGlowingArc(topArc, topShader, topHotShader);
+    }
+    drawGlowingArc(paths.$2, bottomShader, bottomHotShader);
   }
 
   @override
   bool shouldRepaint(WelcomeBackgroundPainter oldDelegate) =>
       oldDelegate.background != background ||
       oldDelegate.gold != gold ||
-      oldDelegate.highlight != highlight;
+      oldDelegate.highlight != highlight ||
+      oldDelegate.placement != placement;
 }

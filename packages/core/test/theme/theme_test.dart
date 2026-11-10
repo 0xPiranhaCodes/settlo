@@ -111,19 +111,16 @@ void main() {
   });
 
   group('SettloTypography.amount', () {
-    test('serif from 20px, Figtree below', () {
-      expect(
-        SettloTypography.amount(17).fontFamily,
-        'packages/settlo_core/Figtree',
-      );
-      expect(
-        SettloTypography.amount(19.9).fontFamily,
-        'packages/settlo_core/Figtree',
-      );
-      final serif = SettloTypography.amount(20);
-      expect(serif.fontFamily, 'packages/settlo_core/IBM Plex Serif');
-      expect(serif.fontWeight, FontWeight.w500);
-      expect(serif.fontFeatures, contains(const FontFeature.tabularFigures()));
+    test('uses Figtree with tabular figures at every size', () {
+      for (final size in [17.0, 19.9, 20.0, 28.0, 46.0]) {
+        final amount = SettloTypography.amount(size);
+        expect(amount.fontFamily, 'packages/settlo_core/Figtree');
+        expect(amount.fontWeight, FontWeight.w500);
+        expect(
+          amount.fontFeatures,
+          contains(const FontFeature.tabularFigures()),
+        );
+      }
       expect(SettloTypography.amount(28).letterSpacing, -0.8);
       expect(SettloTypography.amount(46).letterSpacing, -1);
     });
@@ -155,9 +152,7 @@ void main() {
       expect(text.style!.color, const Color(0xFFB6342B));
     });
 
-    testWidgets('hero size splits a small Figtree ₹ from the serif number', (
-      tester,
-    ) async {
+    testWidgets('hero size uses Figtree with the mock-size ₹', (tester) async {
       await pump(
         tester,
         const MoneyText(Paise.rupees(674200), size: 46, signed: true),
@@ -170,7 +165,7 @@ void main() {
       );
       final rupee = tester.widget<Text>(find.text('₹'));
       expect(rupee.style!.fontFamily, 'packages/settlo_core/Figtree');
-      expect(rupee.style!.fontSize, closeTo(46 * 0.56, 0.001));
+      expect(rupee.style!.fontSize, closeTo(46 * 0.66, 0.001));
       final raise = tester.widget<Transform>(
         find.ancestor(of: find.text('₹'), matching: find.byType(Transform)),
       );

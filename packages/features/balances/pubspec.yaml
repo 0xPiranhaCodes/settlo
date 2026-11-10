@@ -16,8 +16,6 @@ dependencies:
     path: ../activity
   settlo_core:
     path: ../../core
-  settlo_platform:
-    path: ../../platform
 
 dev_dependencies:
   flutter_test:

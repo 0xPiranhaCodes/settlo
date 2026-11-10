@@ -1,4 +1,6 @@
-import 'package:flutter/widgets.dart';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo/shell.dart';
@@ -67,4 +69,53 @@ void main() {
       }
     }
   }
+
+  testWidgets('owner mock beside empty Home at 390x844', (tester) async {
+    await loadSettloFonts();
+    final home = await homeInShell(homeEmpty);
+    tester.view
+      ..physicalSize = const Size(780, 844)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: RepaintBoundary(
+          key: settloGoldenSurfaceKey,
+          child: SizedBox(
+            width: 780,
+            height: 844,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 390,
+                  height: 844,
+                  child: Image.file(
+                    File('../docs/design/home-mock.png'),
+                    fit: BoxFit.fill,
+                    filterQuality: FilterQuality.high,
+                  ),
+                ),
+                SizedBox(
+                  width: 390,
+                  height: 844,
+                  child: MaterialApp(theme: SettloTheme.dark(), home: home),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(
+      find.byKey(settloGoldenSurfaceKey),
+      matchesGoldenFile('goldens/home_comparison_390x844_dark.png'),
+    );
+  });
 }

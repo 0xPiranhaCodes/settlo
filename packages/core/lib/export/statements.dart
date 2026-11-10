@@ -18,9 +18,8 @@ import 'package:settlo_core/supabase/loans.dart';
 import 'package:settlo_core/supabase/space_ledger.dart';
 import 'package:settlo_core/supabase/spaces.dart';
 
-/// The bundled font files a statement embeds (ADR 0006), so ₹ and Latin
-/// names render the same everywhere. Plain bytes, so they can be sent to
-/// the isolate that builds the PDF.
+/// The bundled Figtree font files a statement embeds, so ₹ and Latin names
+/// render the same everywhere. Plain bytes can be sent to the PDF isolate.
 typedef StatementFonts = ({ByteData regular, ByteData medium, ByteData serif});
 
 /// Loads [StatementFonts] from the app's asset bundle.
@@ -31,7 +30,7 @@ Future<StatementFonts> loadStatementFonts([AssetBundle? bundle]) async {
   return (
     regular: await font('Figtree-Regular.ttf'),
     medium: await font('Figtree-Medium.ttf'),
-    serif: await font('IBMPlexSerif-Medium.ttf'),
+    serif: await font('Figtree-Medium.ttf'),
   );
 }
 
