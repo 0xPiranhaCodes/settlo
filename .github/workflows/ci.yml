@@ -365,16 +365,33 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Compose affected Linux review evidence
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version-file: .fvmrc
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Regenerate app and core goldens
+        shell: bash
         run: |
-          python3 -m pip install Pillow==11.3.0
-          python3 scripts/compose-ui-evidence.py
+          set -euo pipefail
+          (
+            cd app
+            flutter test --update-goldens
+          )
+          (
+            cd packages/core
+            flutter test --update-goldens
+          )
 
       - name: Commit app and core goldens
         shell: bash
         run: |
           set -euo pipefail
-          git add docs/design/145/comparisons docs/design/145/pixel-deltas.md
           git add app/test/goldens/*.png
           git add packages/core/test/theme/goldens/*.png
           git add packages/core/test/widgets/goldens/*.png
