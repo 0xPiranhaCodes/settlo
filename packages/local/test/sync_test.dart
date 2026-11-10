@@ -467,17 +467,39 @@ void main() {
     expect(server.calls.where((c) => c.$1 == 'add_expense'), isEmpty);
   });
 
+  test('a write queued 40 days offline, first sent today, replays', () async {
+    // Queued long ago and never sent: the server's key window has not begun.
+    await db.enqueue(
+      _me,
+      'k1',
+      'delete_expense',
+      deleteExpenseParams('e1', idempotencyKey: 'k1'),
+      clock.subtract(const Duration(days: 40)),
+    );
+    server.rpc = (_, _) => _offline;
+    await engine.sync();
+    server.rpc = (_, _) => null;
+    await engine.sync();
+    expect(server.calls, hasLength(2));
+    expect(await db.mutations(_me), isEmpty);
+    expect(notices, isEmpty);
+  });
+
   test(
-    'a sent edit older than the key window is dropped, not replayed',
+    'a write first sent 31 days ago is dropped, then the mirror refreshes',
     () async {
       server.rpc = (_, _) => _offline;
       await DriftSpaceLedgerRepository(engine)
           .deleteExpense('e1', idempotencyKey: 'k1');
-      clock = clock.add(const Duration(days: 30));
+      clock = clock.add(const Duration(days: 31));
       server.rpc = (_, _) => null;
+      var reads = 0;
+      server.onRead = () => reads++;
       await engine.sync();
       await pumpEventQueue();
       expect(server.calls, hasLength(1));
+      expect(await db.mutations(_me), isEmpty);
+      expect(reads, greaterThan(0));
       expect(
         notices.single,
         'Deleting that expense couldn’t be saved because it waited too long '
@@ -485,6 +507,17 @@ void main() {
       );
     },
   );
+
+  test('a retry keeps the first send as the start of the window', () async {
+    server.rpc = (_, _) => _offline;
+    await DriftSpaceLedgerRepository(engine)
+        .deleteExpense('e1', idempotencyKey: 'k1');
+    final first = clock;
+    clock = clock.add(const Duration(days: 2));
+    await engine.sync();
+    final m = (await db.mutations(_me)).single;
+    expect((m.attempts, m.firstAttemptAt), (2, first));
+  });
 
   test('a failed send retries by itself with backoff', () async {
     server.rpc = (_, _) => _offline;
@@ -555,6 +588,45 @@ void main() {
     await db.keepOnly(null);
     expect(await db.mirror(_me), isEmpty);
     expect(db.allTables, isEmpty);
+  });
+
+  test('a v1 queue upgrades in place, sent writes aged from enqueue', () async {
+    final v1 = LocalDb(
+      NativeDatabase.memory(
+        setup: (raw) => raw
+          ..execute(
+            'CREATE TABLE mirror (owner TEXT NOT NULL, source TEXT NOT NULL, '
+            'rows TEXT NOT NULL, PRIMARY KEY (owner, source))',
+          )
+          ..execute(
+            'CREATE TABLE pending_mutations ( '
+            'id INTEGER PRIMARY KEY AUTOINCREMENT, owner TEXT NOT NULL, '
+            'idempotency_key TEXT NOT NULL UNIQUE, kind TEXT NOT NULL, '
+            'payload TEXT NOT NULL, created_at INTEGER NOT NULL, '
+            'attempts INTEGER NOT NULL DEFAULT 0, last_error TEXT, '
+            "status TEXT NOT NULL DEFAULT 'pending')",
+          )
+          ..execute(
+            'CREATE TABLE local_ids (owner TEXT NOT NULL, '
+            'local_id TEXT NOT NULL, server_id TEXT NOT NULL, '
+            'PRIMARY KEY (owner, local_id))',
+          )
+          ..execute(
+            'INSERT INTO pending_mutations '
+            '(owner, idempotency_key, kind, payload, created_at, attempts) '
+            "VALUES ('$_me', 'k1', 'delete_expense', '{}', 1000, 0), "
+            "('$_me', 'k2', 'delete_expense', '{}', 2000, 3)",
+          )
+          ..execute('PRAGMA user_version = 1'),
+      ),
+    );
+    addTearDown(v1.close);
+    expect(
+      [for (final m in await v1.mutations(_me)) (m.key, m.firstAttemptAt)],
+      [('k1', null), ('k2', DateTime.fromMillisecondsSinceEpoch(2000))],
+    );
+    await v1.markAttempted(1, clock);
+    expect((await v1.mutations(_me)).first.firstAttemptAt, clock);
   });
 
   test('a ledger shows one space, categories largest first', () async {

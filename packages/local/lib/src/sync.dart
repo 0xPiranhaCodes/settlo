@@ -5,8 +5,9 @@ import 'package:settlo_local/src/db.dart';
 import 'package:settlo_local/src/overlay.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Writes whose keys the server forgets after 30 days (#70). A sent one is
-/// dropped a day early rather than risk applying twice.
+/// Writes whose keys the server forgets 30 days after first use (#70). One
+/// first sent longer ago is dropped a day early rather than risk applying
+/// twice.
 const _purgedKinds = {
   'update_expense',
   'delete_expense',
@@ -122,13 +123,14 @@ final class SyncEngine {
     for (final m in await _db.mutations(owner)) {
       if (_disposed) return false;
       if (m.applied) continue;
-      if (m.attempts > 0 &&
-          _purgedKinds.contains(m.kind) &&
-          now().difference(m.createdAt) > const Duration(days: 29)) {
+      if (m.firstAttemptAt case final first?
+          when _purgedKinds.contains(m.kind) &&
+              now().difference(first) > const Duration(days: 29)) {
         await _reject(m, const PostgrestException(message: '', code: 'stale'));
         continue;
       }
       try {
+        await _db.markAttempted(m.id, now());
         final result = await _client.rpc<Object?>(
           m.kind,
           params: _resolve(m.params, ids)! as Map<String, dynamic>,

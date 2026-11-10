@@ -117,6 +117,7 @@ Mutation _m(String kind, Map<String, dynamic> params, {String key = 'k'}) => (
   kind: kind,
   params: params,
   createdAt: _today,
+  firstAttemptAt: null,
   attempts: 0,
   applied: false,
 );

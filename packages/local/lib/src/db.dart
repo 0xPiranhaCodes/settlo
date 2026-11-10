@@ -6,13 +6,15 @@ import 'package:settlo_core/settlo_core.dart';
 
 /// A queued write (ADR 0004): the RPC `kind` with its exact `params`,
 /// sent with `key` on every attempt. `applied` means the server accepted
-/// it and the next refresh will drop it.
+/// it and the next refresh will drop it. `firstAttemptAt` is when it was
+/// first sent, which starts the server's key window.
 typedef Mutation = ({
   int id,
   String key,
   String kind,
   Map<String, dynamic> params,
   DateTime createdAt,
+  DateTime? firstAttemptAt,
   int attempts,
   bool applied,
 });
@@ -38,7 +40,7 @@ final class LocalDb extends GeneratedDatabase {
   // Upgrades: the mirror is disposable and may be dropped and refetched;
   // pending_mutations is user data and only takes additive `from < n` steps.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -58,13 +60,27 @@ final class LocalDb extends GeneratedDatabase {
         'created_at INTEGER NOT NULL, '
         'attempts INTEGER NOT NULL DEFAULT 0, '
         'last_error TEXT, '
-        "status TEXT NOT NULL DEFAULT 'pending')",
+        "status TEXT NOT NULL DEFAULT 'pending', "
+        'first_attempt_at INTEGER)',
       );
       await customStatement(
         'CREATE TABLE local_ids ( '
         'owner TEXT NOT NULL, local_id TEXT NOT NULL, '
         'server_id TEXT NOT NULL, PRIMARY KEY (owner, local_id))',
       );
+    },
+    onUpgrade: (_, from, _) async {
+      if (from < 2) {
+        await customStatement(
+          'ALTER TABLE pending_mutations ADD COLUMN first_attempt_at INTEGER',
+        );
+        // v1 kept no first send; created_at is never later, so a sent
+        // write ages out early rather than replaying a forgotten key.
+        await customStatement(
+          'UPDATE pending_mutations SET first_attempt_at = created_at '
+          'WHERE attempts > 0',
+        );
+      }
     },
   );
 
@@ -97,6 +113,10 @@ final class LocalDb extends GeneratedDatabase {
           createdAt: DateTime.fromMillisecondsSinceEpoch(
             r.read<int>('created_at'),
           ),
+          firstAttemptAt: switch (r.read<int?>('first_attempt_at')) {
+            final ms? => DateTime.fromMillisecondsSinceEpoch(ms),
+            null => null,
+          },
           attempts: r.read<int>('attempts'),
           applied: r.read<String>('status') == 'applied',
         ),
@@ -166,6 +186,14 @@ final class LocalDb extends GeneratedDatabase {
     ).get())
       r.read<String>('local_id'): r.read<String>('server_id'),
   };
+
+  /// Mutation [id] is about to be sent at [now]; only the first send
+  /// counts.
+  Future<void> markAttempted(int id, DateTime now) => customUpdate(
+    'UPDATE pending_mutations '
+    'SET first_attempt_at = COALESCE(first_attempt_at, ?) WHERE id = ?',
+    variables: [Variable(now.millisecondsSinceEpoch), Variable(id)],
+  );
 
   /// Mutation [id] could not reach the server; it stays queued.
   Future<void> markFailed(int id, String error) => customUpdate(
