@@ -17,6 +17,8 @@ for path in sorted(after.glob('*.png')):
     if not match:
         continue
     name, device, large, suffix = match.groups()
+    if name in {'home_comparison', 'golden_harness', 'auth_welcome_pressed'}:
+        continue
     theme = 'dark' if 'dark' in suffix else 'light' if 'light' in suffix else None
     if theme is None:
         continue

@@ -22,6 +22,8 @@ Future<void> _pump(
     ..viewPadding = FakeViewPadding(bottom: viewPadding)
     ..padding = FakeViewPadding(bottom: viewPadding);
   addTearDown(tester.view.reset);
+  tester.platformDispatcher.textScaleFactorTestValue = device.textScale;
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
   await tester.pumpWidget(
     MaterialApp(
       theme: SettloTheme.dark(),
@@ -34,7 +36,7 @@ double _barTop(WidgetTester tester) =>
     tester.getRect(find.byType(SGlassTabBar)).top;
 
 void main() {
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     for (final viewPadding in [0.0, 34.0, 48.0]) {
       final label = '${device.name}, device inset $viewPadding';
 

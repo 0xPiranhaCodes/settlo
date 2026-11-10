@@ -4,7 +4,7 @@ The shared screen edge is 20 logical pixels. The coordinator approved a single
 mock-fidelity exception: Welcome retains its 24px inset and warm action shadow.
 Colours, Figtree typography, routes, keys, providers and mutation guards stay intact.
 
-| Area | Findings | Planned refinement |
+| Area | Findings | Refinement |
 | --- | --- | --- |
 | Core | Independent press effects, heavy single floating shadow, no shared motion scale | Shared 150ms press / 200ms panel motion, Reduce Motion, layered floating shadow and minimum targets |
 | Welcome | Approved composition with custom action feedback | Preserve composition, name the inset exception, share motion vocabulary |
@@ -63,3 +63,20 @@ large navigation labels need a taller capsule.
 - Before renders use the unchanged base source at the recorded SHA with the
   current screenshot fixtures at 100%; only the new target assertion is omitted
   for the base. Head runs all assertions and the full 100%/200% matrix.
+
+
+## Reproducing the evidence
+
+Linux workflow run 42838601608 generated the before images, updated app/core
+goldens, and per-screen comparison sheets. The temporary workflow additions were
+removed after generation; this PR leaves `.github` identical to main. The scripts
+remain usable in a Linux checkout with Flutter dependencies installed:
+
+```sh
+scripts/capture-ui-baseline.sh b60a54cc5872a4aa15ca93d5a7d395e9447e3e7b
+(cd app && flutter test --update-goldens)
+python3 scripts/compose-ui-evidence.py  # Pillow 11.3.0
+```
+
+The comparison sheets show both viewports and themes, with before/after at 100%
+and the after view at 200%. Full-resolution source images remain beside the tests.
