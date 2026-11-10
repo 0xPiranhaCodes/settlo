@@ -32,7 +32,7 @@ env:
 jobs:
   db-push:
     name: Migrations
-    if: inputs.action == 'db-push'
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'db-push'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -54,12 +54,12 @@ jobs:
         run: supabase db push --dry-run
 
       - name: Apply migrations
-        if: inputs.apply
+        if: github.event_name == 'workflow_dispatch' && inputs.apply
         run: supabase db push --yes
 
   test-otp:
     name: Test OTP numbers
-    if: inputs.action != 'db-push'
+    if: github.event_name == 'workflow_dispatch' && inputs.action != 'db-push'
     runs-on: ubuntu-latest
     steps:
       - name: Patch hosted Auth config

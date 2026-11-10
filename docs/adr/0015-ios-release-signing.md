@@ -1,4 +1,4 @@
-# 0014 iOS release signing: cloud-managed, through the App Store Connect API key
+# 0015 iOS release signing: cloud-managed, through the App Store Connect API key
 
 ## Status
 Proposed (10 Nov 2026), with #110.

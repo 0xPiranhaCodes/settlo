@@ -26,7 +26,7 @@ The evidence above is bound to issue [#92](https://github.com/0xPiranhaCodes/set
 
 ## Internal builds (TestFlight)
 
-Signing is described in [ADR 0014](adr/0014-ios-release-signing.md), and the test-number sign-in in [the owner decision](decisions/2026-11-10-testflight-test-otp.md). Android (Play internal) is a stub job in the same workflow until a Play Console account exists.
+Signing is described in [ADR 0015](adr/0015-ios-release-signing.md), and the test-number sign-in in [the owner decision](decisions/2026-11-10-testflight-test-otp.md). Android (Play internal) is a stub job in the same workflow until a Play Console account exists.
 
 ### Cutting a build
 

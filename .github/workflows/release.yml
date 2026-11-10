@@ -85,7 +85,7 @@ jobs:
           trap 'rm -f "$key_path"' EXIT
           (umask 077 && printf '%s\n' "$ASC_KEY_P8" > "$key_path")
 
-          # Cloud-managed distribution signing (ADR 0014): no certificate or profile on the runner.
+          # Cloud-managed distribution signing (ADR 0015): no certificate or profile on the runner.
           plutil -create xml1 "$options"
           plutil -insert method -string app-store-connect "$options"
           plutil -insert destination -string upload "$options"
