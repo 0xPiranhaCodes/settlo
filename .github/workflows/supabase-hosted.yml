@@ -52,14 +52,14 @@ jobs:
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Show migration status
-        run: supabase migration list
+        run: supabase migration list --remote
 
       - name: Dry run
-        run: supabase db push --dry-run
+        run: supabase db push --remote --dry-run
 
       - name: Apply migrations
         if: github.event_name == 'workflow_dispatch' && inputs.apply
-        run: supabase db push --yes
+        run: supabase db push --remote --yes
 
   test-otp:
     name: Test OTP numbers
