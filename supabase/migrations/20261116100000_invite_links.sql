@@ -196,3 +196,114 @@ revoke execute on function public.issue_invite(public.invite_kind, uuid, uuid), 
 grant execute on function public.issue_invite(public.invite_kind, uuid, uuid), public.redeem_invite(text, uuid) to authenticated;
 revoke execute on function public.inspect_invite(text), public.decline_invite(text, uuid) from public;
 grant execute on function public.inspect_invite(text), public.decline_invite(text, uuid) to anon, authenticated;
+
+-- Extend the already-shipped activity feed with link-only decline metadata.
+-- The return type changes, so PostgreSQL requires dropping and recreating it.
+drop function public.activity_feed(timestamptz, bigint, int);
+create function public.activity_feed(
+  p_before_at timestamptz default null, p_before_id bigint default null, p_limit int default 30
+) returns table (
+  id bigint, created_at timestamptz, action text, kind text,
+  space_id uuid, space_name text, expense_id uuid, loan_id uuid, repayment_id uuid,
+  by_me boolean, actor_name text, counterparty text, description text, amount_minor bigint,
+  before_description text, before_amount_minor bigint, status text, my_side text,
+  link_only boolean
+)
+language sql stable security definer set search_path = '' as $$
+  with me as (
+    select public.verified_uid() as uid
+  ), cursor as (
+    select coalesce(p_before_at, 'infinity'::timestamptz) as at,
+           coalesce(p_before_id, 9223372036854775807) as id,
+           least(greatest(coalesce(p_limit, 30), 1), 100) as n
+  ), my_spaces as (
+    select m.space_id
+      from me, public.space_members m
+      join public.spaces s on s.id = m.space_id
+     where m.user_id = me.uid and m.left_at is null and m.accepted_at is not null and s.deleted_at is null
+  ), my_loans as (
+    select l.id from me, public.loans l where l.lender_id = me.uid and l.lender_accepted_at is not null
+    union
+    select l.id from me, public.loans l where l.borrower_id = me.uid and l.borrower_accepted_at is not null
+  ), page as (
+    select k.created_at, k.id
+      from (
+        select k.created_at, k.id
+          from my_spaces ms, cursor c
+          cross join lateral (
+            select a.created_at, a.id from public.activity a
+             where a.space_id = ms.space_id and (a.created_at, a.id) < (c.at, c.id)
+             order by a.created_at desc, a.id desc
+             limit c.n) k
+        union all
+        select k.created_at, k.id
+          from my_loans ml, cursor c
+          cross join lateral (
+            select a.created_at, a.id from public.activity a
+             where a.loan_id = ml.id and (a.created_at, a.id) < (c.at, c.id)
+             order by a.created_at desc, a.id desc
+             limit c.n) k
+      ) k
+     order by k.created_at desc, k.id desc
+     limit (select n from cursor)
+  )
+  select a.id, a.created_at, a.action,
+         case when coalesce((a.after ->> 'link_only')::boolean, false) then 'member'
+              when a.repayment_id is not null then 'repayment'
+              when a.loan_id is not null then 'loan'
+              when a.expense_id is null then 'member'
+              when e.is_settlement then 'settlement'
+              else 'expense' end,
+         a.space_id, s.name, a.expense_id, a.loan_id, a.repayment_id,
+         coalesce(a.actor_id = me.uid, false),
+         case when a.loan_id is not null then them.name
+              else (select coalesce(m.name, case when m.accepted_at is not null then p.name end, m.phone::text)
+                      from public.space_members m
+                      left join public.profiles p on p.id = m.user_id
+                     where m.space_id = a.space_id and m.user_id = a.actor_id
+                     order by m.left_at desc nulls first
+                     limit 1) end,
+         them.name,
+         case when coalesce((a.after ->> 'link_only')::boolean, false) then
+           coalesce((select m.name from public.space_members m
+                      where m.id = (a.after ->> 'member_id')::uuid),
+                    them.name, a.after ->> 'phone')
+         else coalesce(a.after ->> 'description', a.after ->> 'phone') end,
+         coalesce((a.after ->> 'amount_minor')::bigint, (a.after ->> 'principal_minor')::bigint),
+         case when a.action = 'edited' then a.before ->> 'description' end,
+         case when a.action = 'edited' then (a.before ->> 'amount_minor')::bigint end,
+         case when a.repayment_id is not null then r.status
+              when e.deleted_at is not null then 'deleted'
+              else e.settlement_status end,
+         case when a.repayment_id is not null then case when side.me_lender then 'in' else 'out' end
+              when e.is_settlement then (
+                select case when public.is_me(pm.user_id, pm.phone) then 'out'
+                            when public.is_me(sm.user_id, sm.phone) then 'in' end
+                  from public.expense_payers ep
+                  join public.space_members pm on pm.id = ep.member_id
+                  join public.expense_splits es on es.expense_id = ep.expense_id
+                  join public.space_members sm on sm.id = es.member_id
+                 where ep.expense_id = a.expense_id
+                 limit 1) end,
+         coalesce((a.after ->> 'link_only')::boolean, false)
+    from page
+    cross join me
+    join public.activity a on a.id = page.id
+    left join public.spaces s on s.id = a.space_id
+    left join public.expenses e on e.id = a.expense_id
+    left join public.loans l on l.id = a.loan_id
+    left join public.loan_repayments r on r.id = a.repayment_id
+    cross join lateral (select l.lender_id = me.uid as me_lender) side
+    left join lateral (
+      select coalesce(case when (case when side.me_lender then l.borrower_accepted_at else l.lender_accepted_at end)
+                                is not null then p.name end,
+                      case when side.me_lender then l.borrower_phone else l.lender_phone end::text) as name
+        from (select 1) one
+        left join public.profiles p on p.id = case when side.me_lender then l.borrower_id else l.lender_id end
+       where l.id is not null
+    ) them on true
+   order by a.created_at desc, a.id desc
+$$;
+
+revoke all on function public.activity_feed(timestamptz, bigint, int) from public, anon, authenticated;
+grant execute on function public.activity_feed(timestamptz, bigint, int) to authenticated;
