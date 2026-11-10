@@ -51,6 +51,8 @@ void main() {
     auth.session =
         container.read(sessionProvider.notifier) as FakeSessionNotifier;
 
+    await tester.ensureVisible(find.text('Continue with phone number'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Continue with phone number'));
     await tester.pumpAndSettle();
     await tester.enterText(

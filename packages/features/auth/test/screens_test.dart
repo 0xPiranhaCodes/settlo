@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +22,7 @@ Future<GoRouter> _pump(
   InvitesRepository? invites,
   Session? session,
   bool settle = true,
+  ValueChanged<Uri>? onRedirect,
 }) async {
   tester.view
     ..physicalSize = const Size(390, 844)
@@ -28,6 +30,10 @@ Future<GoRouter> _pump(
   addTearDown(tester.view.reset);
   final router = GoRouter(
     initialLocation: location,
+    redirect: (_, state) {
+      onRedirect?.call(state.uri);
+      return null;
+    },
     routes: [
       ...authRoutes,
       GoRoute(
@@ -179,21 +185,56 @@ void main() {
       await _pump(tester, auth, location: SettloRoutes.welcome);
 
       expect(find.bySemanticsLabel('Settlo'), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is AnnotatedRegion<SystemUiOverlayStyle> &&
+              widget.value == SystemUiOverlayStyle.light,
+        ),
+        findsOneWidget,
+      );
       semantics.dispose();
     });
 
-    testWidgets('marks the rows as examples and has one action', (
+    testWidgets('marks the cards as examples and has one guarded action', (
       tester,
     ) async {
-      final router = await _pump(tester, auth, location: SettloRoutes.welcome);
-      expect(find.text('example'), findsOneWidget);
+      final semantics = tester.ensureSemantics();
+      final redirects = <Uri>[];
+      final router = await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.welcome,
+        onRedirect: redirects.add,
+      );
+      redirects.clear();
+      expect(
+        find.bySemanticsLabel(
+          'Example: Rahul owes you 750 rupees. Flat 402, groceries, wifi.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(
+          'Example: Arjun repaid 25,000 rupees. 13 of 40, on schedule.',
+        ),
+        findsOneWidget,
+      );
       expect(find.byType(FilledButton), findsOneWidget);
       expect(find.byType(OutlinedButton), findsNothing);
       expect(find.byType(TextButton), findsNothing);
 
+      await tester.ensureVisible(find.text('Continue with phone number'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue with phone number'));
       await tester.tap(find.text('Continue with phone number'));
       await tester.pumpAndSettle();
       expect(router.state.uri.path, SettloRoutes.phone);
+      expect(
+        redirects.where((uri) => uri.path == SettloRoutes.phone),
+        hasLength(1),
+      );
+      semantics.dispose();
     });
   });
 

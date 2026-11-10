@@ -48,6 +48,27 @@ abstract final class SettloRadius {
   static const double pill = 999;
 }
 
+/// Measurements unique to the owner-approved welcome composition.
+///
+/// They live with the design-system tokens so the screen does not grow a
+/// second, private set of visual constants.
+abstract final class SettloWelcomeMetrics {
+  /// Circular portrait and letter-tile diameter.
+  static const double avatar = 52;
+
+  /// How far adjacent portraits overlap.
+  static const double avatarOverlap = 9;
+
+  /// Stroke around portraits, the letter tile and the add ring.
+  static const double avatarRing = 1.25;
+
+  /// Height of each illustrative ledger card at the default text scale.
+  static const double exampleCardHeight = 68;
+
+  /// Radius of the illustrative ledger cards.
+  static const double exampleCardRadius = 24;
+}
+
 /// Depth. Cards get no drop shadow: a hairline edge plus a 1px specular
 /// highlight along the top. Only floating chrome casts a shadow.
 abstract final class SettloElevation {

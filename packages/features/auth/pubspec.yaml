@@ -20,3 +20,9 @@ dev_dependencies:
     sdk: flutter
   http: ^1.6.0
   supabase_flutter: ^2.18.3
+
+flutter:
+  assets:
+    - assets/welcome/avatar_arjun.webp
+    - assets/welcome/avatar_friend.webp
+    - assets/welcome/avatar_rahul.webp

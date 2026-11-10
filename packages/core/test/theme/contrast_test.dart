@@ -49,8 +49,8 @@ void main() {
       });
 
       test('covers every text token on every content surface', () {
-        // 8 text colours x 3 surfaces, plus 4 special pairs.
-        expect(colors.textPairs, hasLength(28));
+        // 8 text colours x 3 surfaces, plus 5 special pairs.
+        expect(colors.textPairs, hasLength(29));
       });
     });
   }
