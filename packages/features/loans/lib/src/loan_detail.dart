@@ -149,6 +149,7 @@ class _Hero extends StatelessWidget {
       child: Column(
         children: [
           SResponsiveRow(
+            threshold: 1.3,
             children: [
               LoanRing(loan.progress),
               const SizedBox(width: SettloSpacing.x3),
@@ -157,6 +158,7 @@ class _Hero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SResponsiveRow(
+                      threshold: 1.3,
                       children: [
                         ExcludeSemantics(
                           child: SAvatar(loan.counterparty, size: 24),
@@ -166,8 +168,8 @@ class _Hero extends StatelessWidget {
                           child: Text(
                             loan.counterparty,
                             maxLines:
-                                MediaQuery.textScalerOf(context).scale(1) >= 1.5
-                                ? null
+                                MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                                ? 2
                                 : 1,
                             overflow: TextOverflow.ellipsis,
                             style: SettloTypography.body(color: c.textPrimary),
@@ -175,10 +177,12 @@ class _Hero extends StatelessWidget {
                         ),
                         Flexible(
                           child: Text(
-                            ' · since ${monthYear(loan.startOn)}',
+                            MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                                ? 'since ${monthYear(loan.startOn)}'
+                                : ' · since ${monthYear(loan.startOn)}',
                             maxLines:
-                                MediaQuery.textScalerOf(context).scale(1) >= 1.5
-                                ? null
+                                MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                                ? 2
                                 : 1,
                             overflow: TextOverflow.ellipsis,
                             style: small,
@@ -214,6 +218,7 @@ class _Hero extends StatelessWidget {
           const SizedBox(height: SettloSpacing.x3),
           IntrinsicHeight(
             child: SResponsiveRow(
+              threshold: 1.3,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 for (final (i, tile) in _tiles().indexed) ...[
@@ -390,6 +395,7 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
                   minHeight: SettloSpacing.minTouchTarget,
                 ),
                 child: SResponsiveRow(
+                  threshold: 1.3,
                   children: [
                     SizedBox(
                       width: MediaQuery.textScalerOf(context).scale(1) >= 1.5

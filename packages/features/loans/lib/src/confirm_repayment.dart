@@ -190,8 +190,9 @@ class _Receipt extends StatelessWidget {
               children: [
                 _Row(
                   'Loan',
-                  '${loan.counterparty} · '
-                      '${formatInr(loan.principal)}',
+                  MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                      ? '${loan.counterparty}\n${formatInr(loan.principal)}'
+                      : '${loan.counterparty} · ${formatInr(loan.principal)}',
                   spoken:
                       '${loan.counterparty}, '
                       '${spokenInr(loan.principal)}',

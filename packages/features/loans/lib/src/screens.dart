@@ -118,6 +118,7 @@ class _LoanCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SResponsiveRow(
+              threshold: 1.3,
               children: [
                 ExcludeSemantics(child: SAvatar(loan.counterparty)),
                 const SizedBox(width: SettloSpacing.x2),
@@ -128,8 +129,8 @@ class _LoanCard extends StatelessWidget {
                       Text(
                         '${loan.counterparty} · interest free',
                         maxLines:
-                            MediaQuery.textScalerOf(context).scale(1) >= 1.5
-                            ? null
+                            MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                            ? 2
                             : 1,
                         overflow: TextOverflow.ellipsis,
                         style: SettloTypography.headline(color: c.textPrimary),
@@ -137,8 +138,8 @@ class _LoanCard extends StatelessWidget {
                       Text(
                         _detail,
                         maxLines:
-                            MediaQuery.textScalerOf(context).scale(1) >= 1.5
-                            ? null
+                            MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                            ? 2
                             : 1,
                         overflow: TextOverflow.ellipsis,
                         style: SettloTypography.subheadline(
