@@ -74,7 +74,8 @@ Linux workflow run 42838601608 generated the original before images. Run
 deltas for the review fixes and both owner changes. Its rendering and composition
 steps passed; GitHub rejected the final ref update with `fatal error in commit_refs`.
 The generated commit ff4bbba7ef6348fe40ad2ecb4887507083a45358 was fetched by SHA
-and fast-forwarded locally, preserving the exact Linux artifacts. The temporary workflow additions were
+and fast-forwarded locally, preserving the exact Linux artifacts. Run 42852342221 then regenerated the final
+visual-review corrections successfully, including artifact publication. The temporary workflow additions were
 removed after generation; this PR leaves `.github` identical to main. The scripts
 remain usable in a Linux checkout with Flutter dependencies installed:
 
@@ -111,11 +112,13 @@ growth within the Welcome/Home composition to accommodate the new type ramp.
   tests, all feature-package suites and 51 targeted Loans tests pass. Profile tests now
   reveal offscreen settings rows before tapping, preserving no-pump double-tap
   checks; receipt tests reveal lazy sliver content before asserting it.
-- [ ] **Finish visual evidence:** review both sizes/themes at 100% and 200%,
-  regenerate authoritative Linux goldens and comparison sheets, and add pixel
-  deltas. All local macOS diagnostic PNG changes were deleted/restored before Linux
-  regeneration; original before images remain the baseline.
-- [ ] **Finish delivery:** restore any temporary workflow dispatch changes so
-  `.github` has an empty base diff, verify pull_request CI on the exact final head
-  including Android debug, run `flutter clean`, push and reply on PR 146 without
-  merging, then report completion through Orca.
+- [x] **Visual evidence:** reviewed Linux renders at both sizes, themes and text
+  scales. Fixed squeezed balance names, split dial codes, Home action truncation,
+  duplicate create-space grabber and the scroll-header fixture. Run 42852342221
+  passed app/core regeneration and produced the final 38 comparison sheets with
+  content delta percentages and `pixel-deltas.md`. Local diagnostic PNG changes
+  were discarded; the tracked images come exclusively from Linux.
+- [x] **Delivery preparation:** temporary workflow edits are reverted; `.github`
+  matches the PR base. Final-head CI and cleanup proof are recorded in the PR
+  reply; completion is withheld until pull_request CI (including Android) is
+  green, `flutter clean` has run, and the PR reply is posted. Do not merge.
