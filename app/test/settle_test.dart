@@ -184,8 +184,8 @@ void main() {
     // Opening SettlePay for Kabir again offers nothing to pay.
     unawaited(h.router.push(SettloRoutes.settlePayTo('s2', 'm5')));
     await tester.pumpAndSettle();
-    // The list stays beneath; the new sheet shows the same waiting row.
-    expect(find.text('Waiting for Kabir to confirm'), findsNWidgets(2));
+    // Native pushed pages keep the previous route offstage.
+    expect(find.text('Waiting for Kabir to confirm'), findsOneWidget);
     expect(find.textContaining('via UPI'), findsNothing);
     expect(find.text('I already paid in cash'), findsNothing);
     h.router.pop();

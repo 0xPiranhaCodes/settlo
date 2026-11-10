@@ -149,7 +149,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final text = SettloTypography.figtree(13, color: c.textSecondary);
+    final text = SettloTypography.subheadline(color: c.textSecondary);
     Widget note(String s) => Text(s, textAlign: TextAlign.center, style: text);
     final ask = _youPay
         ? 'Did you pay ${_other.name} $_amount?'
@@ -183,7 +183,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
             Text(
               ask,
               textAlign: TextAlign.center,
-              style: SettloTypography.figtree(17, color: c.textPrimary),
+              style: SettloTypography.headline(color: c.textPrimary),
             )
           else if (_youPay)
             _Info(
@@ -218,7 +218,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
             Text(
               error,
               textAlign: TextAlign.center,
-              style: SettloTypography.figtree(13, color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.textPrimary),
             ),
           ],
         ],
@@ -306,7 +306,7 @@ class _Parties extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: SettloTypography.figtree(13, color: c.textPrimary),
+            style: SettloTypography.subheadline(color: c.textPrimary),
           ),
         ],
       ),
@@ -345,10 +345,7 @@ class _Info extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return Text(
-      text,
-      style: SettloTypography.figtree(14, color: c.textSecondary),
-    );
+    return Text(text, style: SettloTypography.body(color: c.textSecondary));
   }
 }
 
@@ -407,16 +404,14 @@ class _Option extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: SettloTypography.figtree(
-                    15,
-                    weight: FontWeight.w500,
+                  style: SettloTypography.headline(
                     color: onTap == null ? c.textSecondary : c.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: SettloTypography.figtree(12, color: c.textSecondary),
+                  style: SettloTypography.footnote(color: c.textSecondary),
                 ),
               ],
             ),
