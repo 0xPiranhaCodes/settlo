@@ -9,11 +9,11 @@ def assert(value, label)
   raise "Assertion failed: #{label}" unless value
 end
 
-def expect_error(label)
+def expect_error(label, message: nil)
   yield
   raise "Expected failure: #{label}"
-rescue TestFlightExternal::Error
-  # Expected; never print exception data or fixture credentials.
+rescue TestFlightExternal::Error => e
+  assert(e.message.include?(message), label) if message
 end
 
 # Entirely synthetic credentials generated in memory; no production secrets are read.
@@ -30,7 +30,9 @@ app = resource.call('apps', 'app')
 build = resource.call('builds', 'build', 'processingState' => 'VALID', 'expired' => false)
 group = resource.call('betaGroups', 'group', 'name' => 'Family Testers', 'isInternalGroup' => false)
 review = resource.call('betaAppReviewDetails', 'review', TestFlightExternal::Distributor::CONTACTS.keys.to_h { |k| [k, 'existing-contact'] })
-app_locales, build_locales, groups, submissions, writes = [], [], [], [], []
+app_locales, build_locales, group_builds, submissions, writes = [], [], [], [], []
+app_present = true
+submission_conflict = false
 external_state = 'READY_FOR_BETA_SUBMISSION'
 group_present = true
 transport = lambda do |uri, req|
@@ -39,7 +41,7 @@ transport = lambda do |uri, req|
   path = uri.path
   if req.method == 'GET'
     result = case path
-             when '/v1/apps' then [app]
+             when '/v1/apps' then app_present ? [app] : []
              when '/v1/builds'
                assert(URI.decode_www_form(uri.query).to_h['filter[preReleaseVersion.platform]'] == 'IOS', 'iOS filter')
                [build]
@@ -52,7 +54,12 @@ transport = lambda do |uri, req|
              when '/v1/apps/app/betaAppReviewDetail' then review
              when '/v1/apps/app/betaAppLocalizations' then app_locales
              when '/v1/builds/build/betaBuildLocalizations' then build_locales
-             when '/v1/builds/build/betaGroups' then groups
+             when '/v1/betaGroups/group/relationships/builds'
+               if uri.query
+                 group_builds
+               else
+                 return Struct.new(:code, :body).new('200', JSON.generate(data: [], links: { next: TestFlightExternal::Client::ORIGIN + path + '?page=2' }))
+               end
              when '/v1/betaAppReviewSubmissions' then submissions
              when '/v1/builds/build/buildBetaDetail' then resource.call('buildBetaDetails', 'beta', 'externalBuildState' => external_state)
              else raise 'Unexpected mock GET'
@@ -70,9 +77,11 @@ transport = lambda do |uri, req|
                row
              when '/v1/betaAppLocalizations/locale', '/v1/betaBuildLocalizations/build-locale', '/v1/betaAppReviewDetails/review' then data
              when '/v1/betaGroups/group/relationships/builds'
-               groups << group
+               assert(data == [{ 'type' => 'builds', 'id' => 'build' }], 'documented membership linkage')
+               group_builds << { 'type' => 'builds', 'id' => 'build' }
                return Struct.new(:code, :body).new('204', '')
              when '/v1/betaAppReviewSubmissions'
+               return Struct.new(:code, :body).new('409', "echo #{phone} #{otp}") if submission_conflict
                row = resource.call('betaAppReviewSubmissions', 'submission', 'betaReviewState' => 'WAITING_FOR_REVIEW')
                submissions << row
                row
@@ -104,10 +113,26 @@ submissions.clear
 external_state = 'READY_FOR_BETA_TESTING'
 run.call
 assert(writes.count { |m, _, _| m == 'POST' } == 4, 'approved external state without submission not resubmitted')
-external_state = 'BETA_REJECTED'
-run.call
-assert(writes.count { |m, _, _| m == 'POST' } == 5, 'rejected build can be resubmitted')
 before = writes.length
+%w[BETA_REJECTED EXPIRED PROCESSING_EXCEPTION NOT_APPLICABLE MISSING_EXPORT_COMPLIANCE IN_EXPORT_COMPLIANCE_REVIEW PROCESSING UNKNOWN].each do |state|
+  external_state = state
+  expect_error('blocked external state', message: state == 'BETA_REJECTED' ? 'will not resubmit' : 'current external state') { run.call }
+  assert(writes.length == before, 'blocked external state cannot mutate metadata or submit')
+end
+external_state = 'READY_FOR_BETA_SUBMISSION'
+submissions << resource.call('betaAppReviewSubmissions', 'rejected', 'betaReviewState' => 'REJECTED')
+expect_error('rejected submission', message: 'will not resubmit') { run.call }
+submissions.clear
+assert(writes.length == before, 'rejected submission cannot mutate metadata')
+app_present = false
+expect_error('missing app') { run.call }
+app_present = true
+build['attributes']['processingState'] = 'PROCESSING'
+expect_error('build not VALID') { run.call }
+build['attributes']['processingState'] = 'VALID'
+build['attributes']['expired'] = true
+expect_error('expired build') { run.call }
+build['attributes']['expired'] = false
 group_present = false
 expect_error('missing group') { run.call }
 group_present = true
@@ -121,12 +146,29 @@ assert(writes.length == before, 'preflight failures do not mutate ASC')
 run.call(settings.merge(TestFlightExternal::Distributor::CONTACTS.values.to_h { |k| [k, 'secret-contact'] }))
 assert(writes.find_all { |_, path, _| path == '/v1/betaAppReviewDetails/review' }.last.last['attributes']['contactEmail'] == 'secret-contact', 'optional contact overrides')
 
+# Simulate a race after successful preflight: the submission POST conflicts.
+submissions.clear
+submission_conflict = true
+before = writes.length
+expect_error('submission conflict', message: 'HTTP 409 conflict') do
+  run.call(settings.merge(TestFlightExternal::Distributor::CONTACTS.values.to_h { |k| [k, 'secret-contact'] }))
+end
+assert(writes.drop(before).count { |_, path, _| path == '/v1/betaAppReviewSubmissions' } == 1, '409 is not blindly retried')
+assert(submissions.empty?, '409 cannot report a successful submission')
+
 bad = TestFlightExternal::Client.new(env: settings, transport: ->(*) { Struct.new(:code, :body).new('422', "echo #{phone} #{otp}") })
 begin
   bad.request(:patch, '/v1/betaAppReviewDetails/review', data: {})
   raise 'Expected HTTP failure'
 rescue TestFlightExternal::Error => e
   assert(e.message.include?('422') && !e.message.include?(phone) && !e.message.include?(otp), 'HTTP failure redacted')
+end
+conflict = TestFlightExternal::Client.new(env: settings, transport: ->(*) { Struct.new(:code, :body).new('409', "echo #{phone} #{otp}") })
+begin
+  conflict.request(:post, '/v1/betaAppReviewSubmissions', data: {})
+  raise 'Expected conflict'
+rescue TestFlightExternal::Error => e
+  assert(e.message.include?('409 conflict') && !e.message.include?(phone) && !e.message.include?(otp), '409 detail is actionable and redacted')
 end
 expect_error('pagination origin guard') { client.list('https://example.com/v1/apps') }
 # Check that the actual JWT is ES256 with a raw 64-byte signature and short lifetime.

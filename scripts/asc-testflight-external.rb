@@ -43,6 +43,7 @@ module TestFlightExternal
       req.body = JSON.generate(data: data) if data
       response = @transport.call(uri, req)
       # Never print bodies: Apple may echo demo credentials or review notes in errors.
+      raise Error, 'App Store Connect HTTP 409 conflict; state changed or a submission already exists; inspect App Store Connect privately before rerunning' if response.code.to_i == 409
       raise Error, "App Store Connect HTTP #{response.code.to_i}; inspect App Store Connect privately" unless response.code.to_i.between?(200, 299)
       response.code.to_i == 204 ? {} : JSON.parse(response.body)
     end
@@ -136,6 +137,23 @@ module TestFlightExternal
       effective = detail.fetch('attributes', {}).merge(contacts)
       raise Error, 'Set all four review contact fields in App Store Connect or production ASC_REVIEW_CONTACT_* secrets' unless CONTACTS.keys.all? { |field| !effective[field].to_s.strip.empty? }
 
+      # Complete all remote preflight reads before changing shared app metadata.
+      submissions = @client.list('/v1/betaAppReviewSubmissions', 'filter[build]' => build_id)
+      beta = @client.request(:get, "/v1/builds/#{build_id}/buildBetaDetail").fetch('data')
+      external_state = beta.dig('attributes', 'externalBuildState')
+      if external_state == 'BETA_REJECTED' || submissions.any? { |row| row.dig('attributes', 'betaReviewState') == 'REJECTED' }
+        raise Error, 'Beta review rejected; resolve the rejection in App Store Connect and upload a new build; this workflow will not resubmit a rejected build'
+      end
+      unless (EXTERNAL_READY + ['READY_FOR_BETA_SUBMISSION']).include?(external_state)
+        raise Error, 'Build cannot be submitted or distributed in its current external state; resolve processing/export compliance or upload a new build if expired or terminal'
+      end
+      unless submissions.all? { |row| SUBMITTED.include?(row.dig('attributes', 'betaReviewState')) }
+        raise Error, 'Unexpected beta review state; inspect App Store Connect before rerunning'
+      end
+      submitted = submissions.find { |row| SUBMITTED.include?(row.dig('attributes', 'betaReviewState')) }
+      state = submitted ? submitted.dig('attributes', 'betaReviewState') : external_state
+      group_builds = @client.list("/v1/betaGroups/#{group.fetch('id')}/relationships/builds")
+
       upsert('betaAppLocalizations', @client.list("/v1/apps/#{app_id}/betaAppLocalizations"), {
         description: 'Split expenses with flatmates, track personal loans, and record repayments with Settlo.',
         feedbackEmail: 'settlo@hellojosh.studio', marketingUrl: 'https://0xpiranhacodes.github.io/settlo/',
@@ -149,24 +167,14 @@ module TestFlightExternal
       })
       upsert('betaBuildLocalizations', @client.list("/v1/builds/#{build_id}/betaBuildLocalizations"),
              { whatsNew: what }, 'build', 'builds', build_id)
-      groups = @client.list("/v1/builds/#{build_id}/betaGroups")
-      unless groups.any? { |row| row['id'] == group['id'] }
+      unless group_builds.any? { |row| row['id'] == build_id }
         @client.request(:post, "/v1/betaGroups/#{group.fetch('id')}/relationships/builds", data: [{ type: 'builds', id: build_id }])
       end
-      submissions = @client.list('/v1/betaAppReviewSubmissions', 'filter[build]' => build_id)
-      submitted = submissions.find { |row| SUBMITTED.include?(row.dig('attributes', 'betaReviewState')) }
-      if submitted
-        state = submitted.dig('attributes', 'betaReviewState')
-      else
-        beta = @client.request(:get, "/v1/builds/#{build_id}/buildBetaDetail").fetch('data')
-        state = beta.dig('attributes', 'externalBuildState')
-        unless EXTERNAL_READY.include?(state)
-          raise Error, 'Build is not ready for beta submission; inspect its review/export compliance state in App Store Connect' unless %w[READY_FOR_BETA_SUBMISSION BETA_REJECTED].include?(state)
-          submission = @client.request(:post, '/v1/betaAppReviewSubmissions', data: {
-            type: 'betaAppReviewSubmissions', relationships: { build: { data: { type: 'builds', id: build_id } } }
-          }).fetch('data')
-          state = submission.dig('attributes', 'betaReviewState')
-        end
+      if state == 'READY_FOR_BETA_SUBMISSION'
+        submission = @client.request(:post, '/v1/betaAppReviewSubmissions', data: {
+          type: 'betaAppReviewSubmissions', relationships: { build: { data: { type: 'builds', id: build_id } } }
+        }).fetch('data')
+        state = submission.dig('attributes', 'betaReviewState')
       end
       allowed = SUBMITTED + EXTERNAL_READY + ['REJECTED']
       raise Error, 'Unexpected beta review state; inspect App Store Connect' unless allowed.include?(state)
