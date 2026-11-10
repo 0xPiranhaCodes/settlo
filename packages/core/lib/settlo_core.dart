@@ -26,6 +26,7 @@ export 'theme/tokens.dart';
 export 'theme/typography.dart';
 export 'widgets/amount_sheet.dart';
 export 'widgets/avatar.dart';
+export 'widgets/bell.dart';
 export 'widgets/buttons.dart';
 export 'widgets/chips.dart';
 export 'widgets/glass_tab_bar.dart';

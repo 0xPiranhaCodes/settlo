@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(118);
+select plan(120);
 
 -- Rows a statement touched, run as the current role so RLS filtering is visible.
 create function pg_temp.affected(q text) returns int language plpgsql as $$
@@ -479,6 +479,14 @@ select pg_temp.tagged(is((select count(*)::int from public.expenses), 0, 'expens
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000008001", "role": "authenticated"}';
 select throws_ok($$update public.loans set closed_at = now() where id = '00000000-0000-0000-0000-000000008501'$$,
   '42501', null, 'loans: lender A cannot close L1 directly');
+
+-- activity_seen (#109): the cursor behind the bell is the caller's own.
+select public.mark_activity_seen(now());
+select pg_temp.tagged(is((select count(*)::int from public.activity_seen), 1,
+  'activity_seen: A reads their own cursor [+activity_seen_select]'));
+set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000008002", "role": "authenticated"}';
+select pg_temp.tagged(is((select count(*)::int from public.activity_seen), 0,
+  'activity_seen: B does not read A''s cursor [-activity_seen_select]'));
 reset role;
 
 select pg_temp.tagged(is(

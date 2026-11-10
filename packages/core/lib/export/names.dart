@@ -79,6 +79,7 @@ bool isPhoneLike(String name) =>
 /// UTR, which they need to reconcile. Anything else around or between the
 /// digits, even an invisible character, and the usual rules apply.
 String redactPhones(String text, {bool keepUtr = false}) {
+  // shortcut: lookalike digits and marks aren't folded here; the server does.
   final runes = text.runes.toList();
   if (keepUtr &&
       _utr.hasMatch(_normalise(runes, keepInvisible: true).text.trim())) {

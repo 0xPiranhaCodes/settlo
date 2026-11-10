@@ -47,21 +47,51 @@ final FutureProvider<List<PendingAnswer>> needsYouProvider =
       return ref.watch(activityRepositoryProvider).needsYou();
     });
 
+/// Your spaces, one filter chip each.
+final FutureProvider<List<SpaceSummary>> activitySpacesProvider =
+    FutureProvider.autoDispose<List<SpaceSummary>>((ref) {
+      ref
+        ..watch(ledgerRevisionProvider)
+        ..watch(sessionProvider.select((s) => s?.user.id));
+      return ref.watch(spacesRepositoryProvider).load();
+    });
+
+/// Which part of the feed [activityFeedProvider] reads.
+final NotifierProvider<ActivityFilterController, ActivityFilter>
+activityFilterProvider = NotifierProvider.autoDispose(
+  ActivityFilterController.new,
+);
+
+/// The chosen filter chip; [allActivity] to start with.
+class ActivityFilterController extends Notifier<ActivityFilter> {
+  @override
+  ActivityFilter build() => allActivity;
+
+  /// Reads the feed through [filter] from its first page.
+  void show(ActivityFilter filter) {
+    if (filter != state) state = filter;
+  }
+}
+
 /// The feed loaded so far, newest first.
 @immutable
 final class ActivityFeed {
-  /// [entries], and whether older ones remain.
-  const new(this.entries, {required this.hasMore});
+  /// [entries] under [filter], and whether older ones remain.
+  const new(this.entries, {required this.hasMore, required this.filter});
 
   /// Loaded entries, newest first.
   final List<ActivityEntry> entries;
+
+  /// The filter they were read through. While another filter loads, the
+  /// last feed is still here, so the screen checks this before showing it.
+  final ActivityFilter filter;
 
   /// Whether a full page came back last time, so there may be older ones.
   final bool hasMore;
 }
 
 /// The feed, a page at a time; starts over whenever
-/// [ledgerRevisionProvider] is bumped.
+/// [ledgerRevisionProvider] is bumped or [activityFilterProvider] changes.
 final AsyncNotifierProvider<ActivityFeedController, ActivityFeed>
 activityFeedProvider = AsyncNotifierProvider.autoDispose(
   ActivityFeedController.new,
@@ -75,10 +105,15 @@ class ActivityFeedController extends AsyncNotifier<ActivityFeed> {
   @override
   Future<ActivityFeed> build() async {
     ref.watch(ledgerRevisionProvider);
+    final filter = ref.watch(activityFilterProvider);
     final page = await ref
         .watch(activityRepositoryProvider)
-        .feed(limit: activityPageSize);
-    return ActivityFeed(page, hasMore: page.length == activityPageSize);
+        .feed(limit: activityPageSize, filter: filter);
+    return ActivityFeed(
+      page,
+      hasMore: page.length == activityPageSize,
+      filter: filter,
+    );
   }
 
   /// Appends the page after the last entry, once at a time.
@@ -91,14 +126,19 @@ class ActivityFeedController extends AsyncNotifier<ActivityFeed> {
     try {
       final page = await ref
           .read(activityRepositoryProvider)
-          .feed(before: feed.entries.last, limit: activityPageSize);
+          .feed(
+            before: feed.entries.last,
+            limit: activityPageSize,
+            filter: feed.filter,
+          );
       // A reload started meanwhile replaces the feed; drop this page.
       if (!ref.mounted || !identical(state.value, feed)) return;
       state = AsyncData(
-        ActivityFeed([
-          ...feed.entries,
-          ...page,
-        ], hasMore: page.length == activityPageSize),
+        ActivityFeed(
+          [...feed.entries, ...page],
+          hasMore: page.length == activityPageSize,
+          filter: feed.filter,
+        ),
       );
     } on Exception {
       // Pulling down reloads; the next scroll to the end tries again.

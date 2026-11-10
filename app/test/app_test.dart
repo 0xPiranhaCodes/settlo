@@ -14,6 +14,7 @@ import 'package:settlo_settle/settlo_settle.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
+import 'support/fake_activity.dart';
 import 'support/fake_session.dart';
 
 GoRouter _router(WidgetTester tester) =>
@@ -64,6 +65,59 @@ void main() {
     _session(tester).signOut();
     await tester.pumpAndSettle();
     expect(_router(tester).state.uri.path, SettloRoutes.welcome);
+  });
+
+  testWidgets('the bell counts what is new until Activity is opened, on '
+      'every open (#109)', (tester) async {
+    // Last open on 3 Nov at 22:00: two entries of other people's since.
+    final activity = FakeActivityRepository(seenAt: DateTime(2026, 11, 3, 22));
+    await tester.pumpWidget(fakeSessionApp(fakeSession, activity: activity));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Notifications, 2 new'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Notifications, 2 new'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ActivityScreen), findsOneWidget);
+    // Activity says what was new; opening it marked that seen.
+    expect(find.byTooltip('Notifications, 2 new'), findsOneWidget);
+    expect(activity.seenAt, activityFeed.first.at);
+
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Notifications'), findsOneWidget);
+
+    // Something lands while Activity is a hidden tab: it waits for the
+    // next open, though the tab was never rebuilt.
+    activity.entries.insert(
+      0,
+      ActivityEntry(
+        id: 7,
+        at: DateTime(2026, 11, 9, 12),
+        kind: ActivityKind.expense,
+        action: ActivityAction.created,
+        byYou: false,
+        actor: 'Rahul',
+        spaceId: 's1',
+        spaceName: 'Flat 402',
+        description: 'Milk',
+        amount: const Paise.rupees(60),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(HomeScreen)),
+    );
+    container.read(ledgerRevisionProvider.notifier).bump();
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Notifications, 1 new'), findsOneWidget);
+    expect(activity.seenAt, activityFeed.first.at);
+
+    await tester.tap(find.text('Activity'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Notifications, 1 new'), findsOneWidget);
+    expect(activity.seenAt, DateTime(2026, 11, 9, 12));
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Notifications'), findsOneWidget);
   });
 
   testWidgets('tabs switch branches and keep each branch stack', (

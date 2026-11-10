@@ -59,6 +59,30 @@ void main() {
     expect(value, isTrue);
   });
 
+  testWidgets('the bell shows a count only when something is new', (
+    tester,
+  ) async {
+    var taps = 0;
+    await _pump(tester, SBell(unread: 0, onPressed: () => taps++));
+    expect(find.byTooltip('Notifications'), findsOneWidget);
+    expect(find.text('0'), findsNothing);
+    expect(
+      tester.getSize(find.byType(IconButton)),
+      const Size.square(SettloSpacing.minTouchTarget),
+    );
+
+    await _pump(tester, SBell(unread: 3, onPressed: () => taps++));
+    expect(find.text('3'), findsOneWidget);
+    // The count is drawn over the button, but the tap is the button's.
+    await tester.tap(find.text('3'), warnIfMissed: false);
+    await tester.tap(find.byTooltip('Notifications, 3 new'));
+    expect(taps, 2);
+
+    await _pump(tester, SBell(unread: 100, onPressed: () {}));
+    expect(find.text('99+'), findsOneWidget);
+    expect(find.byTooltip('Notifications, 99+ new'), findsOneWidget);
+  });
+
   testWidgets('a segmented control reports the tapped value', (tester) async {
     int? value;
     await _pump(

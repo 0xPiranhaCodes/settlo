@@ -18,7 +18,8 @@ String dateKey(DateTime d) =>
 /// a new space's, loan's or repayment's id is its key, as their RPCs make
 /// it.
 ///
-/// The activity feed is the server's history and is left as mirrored.
+/// The activity feed is the server's history and is left as mirrored, apart
+/// from your own queued 'Question this' notes and what you have seen.
 Tables applyQueue(
   Tables t,
   List<Mutation> queue, {
@@ -414,6 +415,26 @@ Tables applyQueue(
             l['${side}_id'] = null;
           }
         }
+      case 'mark_activity_seen':
+        // The cursor only moves forward, as on the server.
+        final seen = rows('activity_seen');
+        final at = params['p_at'] as String;
+        if (seenAtFromRows(seen)?.isBefore(DateTime.parse(at)) ?? true) {
+          seen
+            ..clear()
+            ..add({'seen_at': at});
+        }
+      case 'question_activity':
+        final row = rows('activity_feed')
+            .where((r) => r['id'] == params['p_activity_id'])
+            .firstOrNull;
+        if (row == null) continue;
+        row['questions'] = [
+          for (final q
+              in (row['questions'] as List<dynamic>? ?? const []).cast<_Row>())
+            if (q['by_me'] != true) q,
+          {'by_me': true, 'name': null, 'note': params['p_note']},
+        ];
     }
   }
   return t;

@@ -635,6 +635,11 @@ void main() {
         'Declining that invite',
         'it was already answered or withdrawn',
       ),
+      (
+        says('question_activity', '42501'),
+        'Your question about that edit',
+        'you can’t question that edit any more',
+      ),
     ]) {
       expect(said, '$what couldn’t be saved because $why.');
     }
@@ -710,6 +715,272 @@ void main() {
       offline();
       expect(await activity.feed(limit: 30, before: last), isEmpty);
     });
+  });
+
+  group('activity filters, unread and questions (#109)', () {
+    // Made when used: going offline replaces the engine.
+    DriftActivityRepository activity() => DriftActivityRepository(
+      engine,
+      SupabaseActivityRepository(server.client),
+      now: () => clock,
+    );
+
+    // Someone else's row on [day] of November: even ids in space s1, odd
+    // ids on loan l1.
+    Map<String, Object?> row(int id, {int day = 1, bool byMe = false}) => {
+      ..._activity(id),
+      'created_at': '2026-11-${'$day'.padLeft(2, '0')}T00:00:00+00:00',
+      'by_me': byMe,
+      if (id.isEven) 'space_id': 's1' else 'loan_id': 'l1',
+      if (id.isOdd) 'kind': 'loan',
+    };
+    const flat = (spaceId: 's1', loansOnly: false);
+    const loansOnly = (spaceId: null, loansOnly: true);
+
+    test('filters the mirror offline, by the same cursor', () async {
+      server.tables['rpc/activity_feed'] = [
+        for (var id = 6; id > 0; id--) row(id),
+      ];
+      await engine.sync();
+      server
+        ..readStatus = 503
+        ..calls.clear()
+        ..rpc = (_, _) => _offline;
+
+      final first = await activity().feed(limit: 2, filter: flat);
+      expect([for (final e in first) e.id], [6, 4]);
+      final second = await activity().feed(
+        limit: 2,
+        before: first.last,
+        filter: flat,
+      );
+      expect([for (final e in second) e.id], [2]);
+      expect(
+        [
+          for (final e in await activity().feed(limit: 9, filter: loansOnly))
+            e.id,
+        ],
+        [5, 3, 1],
+      );
+      // The mirror held the whole feed: nothing asked the server.
+      expect(server.calls, isEmpty);
+    });
+
+    test(
+      'asks the server, with the filter, past what the mirror keeps',
+      () async {
+        server.tables['rpc/activity_feed'] = [
+          for (var id = 200; id > 200 - mirroredActivity; id--)
+            {...row(id), 'loan_id': null, 'kind': 'expense'},
+        ];
+        await engine.sync();
+        server.calls.clear();
+
+        // The newest 30 of the mirror's 50 Flat rows make a page by themselves.
+        final top = await activity().feed(limit: 30, filter: flat);
+        expect((top.first.id, top.last.id), (200, 142));
+        expect(server.calls, isEmpty);
+
+        // 20 are left, so the server is asked for the page, filter and all.
+        server.rpc = (fn, body) => [row(8)];
+        final older = await activity().feed(
+          limit: 30,
+          before: top.last,
+          filter: flat,
+        );
+        expect([for (final e in older) e.id], [8]);
+        expect(server.calls.single.$1, 'activity_feed');
+        expect(server.calls.single.$2, {
+          'p_limit': 30,
+          'p_space_id': 's1',
+          'p_before_at': '2026-11-01T00:00:00.000Z',
+          'p_before_id': 142,
+        });
+
+        // A full mirror with no loan rows cannot say there are none.
+        server
+          ..calls.clear()
+          ..rpc = (fn, body) => [row(7)];
+        final loanRows = await activity().feed(limit: 30, filter: loansOnly);
+        expect([for (final e in loanRows) e.id], [7]);
+        expect(server.calls.single.$2, {'p_limit': 30, 'p_loans_only': true});
+
+        // Offline, a filtered feed ends where the mirror does.
+        offline();
+        final rest = await activity().feed(
+          limit: 30,
+          before: top.last,
+          filter: flat,
+        );
+        expect((rest.length, rest.first.id, rest.last.id), (20, 140, 102));
+      },
+    );
+
+    test('unread counts from the mirror; seeing it works offline and '
+        'reaches the server later', () async {
+      server
+        ..tables['rpc/activity_feed'] = [
+          row(4, day: 4, byMe: true),
+          row(3, day: 3),
+          row(2, day: 2),
+          row(1),
+        ]
+        ..tables['activity_seen'] = [
+          {'seen_at': '2026-11-01T12:00:00+00:00'},
+        ];
+      await engine.sync();
+      // Yours never counts, nor what you saw.
+      expect(await activity().unread(), 2);
+
+      offline();
+      await activity().markSeen();
+      expect(await activity().unread(), 0);
+      // Nothing of the user's is unsent, so signing out does not ask.
+      expect(await engine.unsent(), 0);
+      // Seeing the same feed again queues nothing more.
+      await activity().markSeen();
+      expect(await db.mutations(_me), hasLength(1));
+
+      await online((fn, body) {
+        server.tables['activity_seen'] = [
+          {'seen_at': body['p_at']},
+        ];
+        return null;
+      });
+      await engine.sync();
+      expect(server.calls.single.$1, 'mark_activity_seen');
+      expect(server.calls.single.$2, {'p_at': '2026-11-04T00:00:00.000Z'});
+      expect(await db.mutations(_me), isEmpty);
+      expect(await activity().unread(), 0);
+
+      // The count follows the server's cursor once it is mirrored.
+      server.tables['activity_seen'] = [
+        {'seen_at': '2026-11-02T12:00:00+00:00'},
+      ];
+      await engine.sync();
+      expect(await activity().unread(), 1);
+    });
+
+    test('before anything was seen, all of the mirror counts; a refused '
+        "'seen' is dropped without a word", () async {
+      server.tables['rpc/activity_feed'] = [row(2, day: 2), row(1)];
+      await engine.sync();
+      expect(await activity().unread(), 2);
+
+      offline();
+      await activity().markSeen();
+      await online((_, _) => const Refuse('42501'));
+      await engine.sync();
+      await pumpEventQueue();
+      expect(await db.mutations(_me), isEmpty);
+      expect(notices, isEmpty);
+      expect(await activity().unread(), 2);
+
+      // With nothing in the feed there is nothing to see.
+      server
+        ..calls.clear()
+        ..tables['rpc/activity_feed'] = [];
+      await engine.sync();
+      await activity().markSeen();
+      expect(server.calls, isEmpty);
+    });
+
+    test('a question asked offline shows on its row, redacted, and '
+        'replays', () async {
+      server.tables['rpc/activity_feed'] = [
+        {
+          ...row(2),
+          'action': 'edited',
+          'questions': [
+            {'by_me': false, 'name': 'Priya', 'note': 'Call ९८००० ००००९?'},
+          ],
+        },
+        row(1),
+      ];
+      await engine.sync();
+      final [edit, _] = await activity().feed(limit: 9);
+      // Whatever the server stored, a number is never shown.
+      expect(edit.questions.single, (
+        byYou: false,
+        name: 'Priya',
+        note: 'Call ••••?',
+        at: null,
+      ));
+      expect(edit.canQuestion, isTrue);
+
+      offline();
+      await activity().question(edit, '  Why? Ask 98000 00009  ');
+      final [asked, other] = await activity().feed(limit: 9);
+      expect(asked.questions, [
+        (byYou: false, name: 'Priya', note: 'Call ••••?', at: null),
+        (byYou: true, name: null, note: 'Why? Ask ••••', at: null),
+      ]);
+      expect(asked.canQuestion, isFalse);
+      expect(other.questions, isEmpty);
+
+      await online((_, _) => null);
+      await engine.sync();
+      expect(server.calls.single.$1, 'question_activity');
+      expect(server.calls.single.$2, {
+        'p_activity_id': 2,
+        'p_note': 'Why? Ask ••••',
+      });
+    });
+
+    test('a question about your edit is unread for you alone, until '
+        'seen', () async {
+      Map<String, Object?> edit({required bool byMe}) => {
+        ...row(2, day: 2, byMe: byMe),
+        'action': 'edited',
+        'questions': [
+          {
+            'by_me': false,
+            'name': 'Priya',
+            'note': 'Why?',
+            'created_at': '2026-11-05T00:00:00+00:00',
+          },
+        ],
+      };
+      server
+        ..tables['rpc/activity_feed'] = [edit(byMe: true), row(1)]
+        ..tables['activity_seen'] = [
+          {'seen_at': '2026-11-03T00:00:00+00:00'},
+        ];
+      await engine.sync();
+      // Both entries were seen; the question came after.
+      expect(await activity().unread(), 1);
+
+      // The same question on someone else's edit is not yours to answer.
+      server.tables['rpc/activity_feed'] = [edit(byMe: false), row(1)];
+      await engine.sync();
+      expect(await activity().unread(), 0);
+
+      server.tables['rpc/activity_feed'] = [edit(byMe: true), row(1)];
+      await engine.sync();
+      offline();
+      await activity().markSeen();
+      expect(await activity().unread(), 0);
+      // Seen up to the question, not just the newest entry.
+      expect((await db.mutations(_me)).single.params, {
+        'p_at': '2026-11-05T00:00:00.000Z',
+      });
+    });
+
+    test(
+      'a question about a row the mirror no longer has changes nothing',
+      () async {
+        offline();
+        await activity().question(
+          activityFromRows([
+            {..._activity(99), 'action': 'edited', 'by_me': false},
+          ]).single,
+          'Why?',
+        );
+        expect([
+          for (final e in await activity().feed(limit: 9)) e.questions,
+        ], everyElement(isEmpty));
+      },
+    );
   });
 
   group('a read cut at max_rows', () {

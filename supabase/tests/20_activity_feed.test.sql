@@ -44,9 +44,9 @@ $$;
 grant execute on all functions in schema pg_temp to public;
 
 -- Hardening.
-select ok(not has_function_privilege('anon', 'public.activity_feed(timestamptz, bigint, int)', 'execute')
+select ok(not has_function_privilege('anon', 'public.activity_feed(timestamptz, bigint, int, uuid, boolean)', 'execute')
           and not has_table_privilege('anon', 'public.needs_you', 'select')
-          and has_function_privilege('authenticated', 'public.activity_feed(timestamptz, bigint, int)', 'execute')
+          and has_function_privilege('authenticated', 'public.activity_feed(timestamptz, bigint, int, uuid, boolean)', 'execute')
           and has_table_privilege('authenticated', 'public.needs_you', 'select'),
   'activity_feed and needs_you are for authenticated only');
 select ok(not has_table_privilege('authenticated', 'public.needs_you', 'insert')
@@ -55,7 +55,7 @@ select ok(not has_table_privilege('authenticated', 'public.needs_you', 'insert')
 select ok((select coalesce(c.reloptions @> array['security_invoker=true'], false)
              from pg_class c where c.oid = 'public.needs_you'::regclass)
           and (select p.prosecdef and p.provolatile = 's' and p.proconfig @> array['search_path=""']
-                 from pg_proc p where p.oid = 'public.activity_feed(timestamptz, bigint, int)'::regprocedure),
+                 from pg_proc p where p.oid = 'public.activity_feed(timestamptz, bigint, int, uuid, boolean)'::regprocedure),
   'needs_you reads as the caller; activity_feed is a stable definer with a fixed search_path');
 
 set local role anon;
