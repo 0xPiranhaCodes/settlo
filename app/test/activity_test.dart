@@ -9,6 +9,7 @@ import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_activity.dart';
+import 'support/fake_session.dart';
 import 'support/fake_space_ledger.dart';
 import 'support/fake_spaces.dart';
 
@@ -31,6 +32,7 @@ Future<GoRouter> _pump(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
         activityRepositoryProvider.overrideWithValue(activity),
         activityNowProvider.overrideWithValue(DateTime(2026, 11, 9, 18)),
         spacesRepositoryProvider.overrideWithValue(

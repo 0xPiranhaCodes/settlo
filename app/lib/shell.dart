@@ -24,6 +24,7 @@ class SettloShell extends StatelessWidget {
     required this.currentIndex,
     required this.onTabSelected,
     required this.child,
+    this.flatChrome = false,
     super.key,
   });
 
@@ -35,6 +36,9 @@ class SettloShell extends StatelessWidget {
 
   /// The current tab's screen.
   final Widget child;
+
+  /// Draw the tab bar's flat 92% surface instead of glass (n32).
+  final bool flatChrome;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +67,7 @@ class SettloShell extends StatelessWidget {
               tabs: _tabs,
               currentIndex: currentIndex,
               onTap: onTabSelected,
+              lowEndBlur: flatChrome,
             ),
           ),
         ],

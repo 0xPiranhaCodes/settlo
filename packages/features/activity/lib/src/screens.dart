@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_activity/src/activity_provider.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 
 const _months = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', //
@@ -36,6 +37,19 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
 
   /// Answering is open; another tap must not open a second one.
   bool _opening = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ask to post the ongoing notification here, where a settle-up is
+    // waiting for you, never at launch. Android asks at most once.
+    var asked = false;
+    ref.listenManual(needsYouProvider, (_, next) {
+      if (asked || settleUpActivityFor(next.value ?? const []) == null) return;
+      asked = true;
+      unawaited(ref.read(liveActivitiesProvider).requestPermission());
+    }, fireImmediately: true);
+  }
 
   Future<void> _refresh() async {
     ref
