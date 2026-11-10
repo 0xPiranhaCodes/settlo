@@ -199,6 +199,20 @@ void main() {
     testWidgets('marks the cards as examples and has one guarded action', (
       tester,
     ) async {
+      final haptics = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'HapticFeedback.vibrate') haptics.add(call);
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
       final semantics = tester.ensureSemantics();
       final redirects = <Uri>[];
       final router = await _pump(
@@ -234,7 +248,71 @@ void main() {
         redirects.where((uri) => uri.path == SettloRoutes.phone),
         hasLength(1),
       );
+      expect(haptics, hasLength(1));
+      expect(haptics.single.arguments, 'HapticFeedbackType.lightImpact');
       semantics.dispose();
+    });
+
+    testWidgets('press scales the group and nudges the arrow', (tester) async {
+      await _pump(tester, auth, location: SettloRoutes.welcome);
+      await tester.ensureVisible(find.text('Continue with phone number'));
+      await tester.pumpAndSettle();
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(FilledButton)),
+      );
+      addTearDown(gesture.up);
+      await tester.pump(SettloWelcomeMetrics.actionPressDuration);
+
+      final scale = tester.widget<AnimatedScale>(
+        find.byKey(const ValueKey('welcome-action-scale')),
+      );
+      final arrow = tester.widget<AnimatedSlide>(
+        find.byKey(const ValueKey('welcome-action-arrow')),
+      );
+      expect(scale.scale, SettloWelcomeMetrics.actionPressedScale);
+      expect(arrow.offset.dx, greaterThan(0));
+      expect(
+        tester
+            .widget<Text>(find.text('Continue with phone number'))
+            .style
+            ?.fontWeight,
+        FontWeight.w600,
+      );
+    });
+
+    testWidgets('Reduce Motion disables the press transform', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      await _pump(tester, auth, location: SettloRoutes.welcome);
+      await tester.ensureVisible(find.text('Continue with phone number'));
+      await tester.pumpAndSettle();
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(FilledButton)),
+      );
+      addTearDown(gesture.up);
+      await tester.pump();
+
+      expect(
+        tester
+            .widget<AnimatedScale>(
+              find.byKey(const ValueKey('welcome-action-scale')),
+            )
+            .scale,
+        1,
+      );
+      expect(
+        tester
+            .widget<AnimatedSlide>(
+              find.byKey(const ValueKey('welcome-action-arrow')),
+            )
+            .offset,
+        Offset.zero,
+      );
     });
   });
 

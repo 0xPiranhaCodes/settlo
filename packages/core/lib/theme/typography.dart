@@ -16,7 +16,7 @@ abstract final class SettloTypography {
   /// Bundled amount family; pair with `package: 'settlo_core'`.
   static const String serifFamily = 'IBM Plex Serif';
 
-  /// Figtree at [size] and [weight] (400 or 500), tabular figures.
+  /// Figtree at [size] and [weight] (400, 500 or 600), tabular figures.
   static TextStyle figtree(
     double size, {
     FontWeight weight = FontWeight.w400,

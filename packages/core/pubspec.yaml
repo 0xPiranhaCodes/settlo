@@ -31,6 +31,8 @@ flutter:
         - asset: assets/fonts/Figtree-Regular.ttf
         - asset: assets/fonts/Figtree-Medium.ttf
           weight: 500
+        - asset: assets/fonts/Figtree-SemiBold.ttf
+          weight: 600
     - family: IBM Plex Serif
       fonts:
         - asset: assets/fonts/IBMPlexSerif-Medium.ttf

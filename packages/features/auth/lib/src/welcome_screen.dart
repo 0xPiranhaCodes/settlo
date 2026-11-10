@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     // guard must flip synchronously before navigation.
     if (_busy) return;
     _busy = true;
+    unawaited(HapticFeedback.lightImpact());
     context.go(SettloRoutes.phone);
   }
 
@@ -118,26 +120,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 ),
                                 const Spacer(),
                                 const SizedBox(height: SettloSpacing.x4),
-                                Theme(
-                                  data: Theme.of(context).copyWith(
-                                    filledButtonTheme: FilledButtonThemeData(
-                                      style: Theme.of(context)
-                                          .filledButtonTheme
-                                          .style
-                                          ?.copyWith(
-                                            backgroundColor:
-                                                WidgetStatePropertyAll<Color>(
-                                                  colors.welcomeAction,
-                                                ),
-                                          ),
-                                    ),
-                                  ),
-                                  child: AuthButton(
-                                    label: 'Continue with phone number',
-                                    arrow: true,
-                                    onPressed: _continue,
-                                  ),
-                                ),
+                                _WelcomeActionButton(onPressed: _continue),
                                 const SizedBox(height: 14),
                                 Text(
                                   'No email. No password. Your number is your '
@@ -160,6 +143,154 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _WelcomeActionButton extends StatefulWidget {
+  const new({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  State<_WelcomeActionButton> createState() => _WelcomeActionButtonState();
+}
+
+class _WelcomeActionButtonState extends State<_WelcomeActionButton> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SettloColors.of(context);
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final pressed = _pressed && !reduceMotion;
+    final duration = reduceMotion
+        ? Duration.zero
+        : SettloWelcomeMetrics.actionPressDuration;
+
+    return SizedBox(
+      height: 56,
+      child: AnimatedScale(
+        key: const ValueKey('welcome-action-scale'),
+        scale: pressed ? SettloWelcomeMetrics.actionPressedScale : 1,
+        duration: duration,
+        curve: Curves.easeOutCubic,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(
+              Radius.circular(SettloRadius.button),
+            ),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [colors.welcomeActionTop, colors.welcomeActionBottom],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: colors.welcomeActionShadow,
+                offset: const Offset(
+                  0,
+                  SettloWelcomeMetrics.actionShadowOffset,
+                ),
+                blurRadius: SettloWelcomeMetrics.actionShadowBlur,
+              ),
+            ],
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Listener(
+                onPointerDown: (_) => _setPressed(true),
+                onPointerUp: (_) => _setPressed(false),
+                onPointerCancel: (_) => _setPressed(false),
+                child: FilledButton(
+                  onPressed: widget.onPressed,
+                  style:
+                      FilledButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: SettloColors.dark.onAction,
+                        shadowColor: Colors.transparent,
+                        disabledBackgroundColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SettloSpacing.x2,
+                        ),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(SettloRadius.button),
+                          ),
+                        ),
+                      ).copyWith(
+                        overlayColor: const WidgetStatePropertyAll(
+                          Colors.transparent,
+                        ),
+                      ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Continue with phone number',
+                          overflow: TextOverflow.ellipsis,
+                          style: SettloTypography.figtree(
+                            15,
+                            weight: FontWeight.w600,
+                            color: SettloColors.dark.onAction,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: SettloSpacing.x1),
+                      AnimatedSlide(
+                        key: const ValueKey('welcome-action-arrow'),
+                        offset: Offset(
+                          pressed
+                              ? SettloWelcomeMetrics.actionArrowNudge / 18
+                              : 0,
+                          0,
+                        ),
+                        duration: duration,
+                        curve: Curves.easeOutCubic,
+                        child: const AuthIcon(
+                          AuthGlyph.arrow,
+                          color: Color(0xFF0A0B0D),
+                          size: 18,
+                          stroke: 1.9,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                left: SettloSpacing.x2,
+                right: SettloSpacing.x2,
+                child: IgnorePointer(
+                  child: Container(
+                    height: SettloElevation.hairline,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                        SettloElevation.hairline,
+                      ),
+                      gradient: LinearGradient(
+                        colors: [
+                          colors.welcomeActionHighlight.withValues(alpha: 0),
+                          colors.welcomeActionHighlight,
+                          colors.welcomeActionHighlight.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
