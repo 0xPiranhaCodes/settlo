@@ -1,13 +1,13 @@
 # Issue #140 verification
 
-Local static-site verification, 10 November 2026. This is pre-deployment evidence, not a claim about production Pages performance.
+Refreshed after rebasing onto merged main `0f610060b640b23f0a7a7b73f7783a140e70680b` (#142 and #143), 10 November 2026. Lighthouse capture: `2026-11-10T13:54:50.828Z`. This is pre-deployment evidence, not a claim about production Pages performance.
 
 - **Mobile Lighthouse 13.6.0:** Performance 100, Accessibility 100, Best Practices 100, SEO 100. Default mobile simulated throttling: 150ms RTT, 1,638.4Kbps throughput, 4× CPU slowdown. [HTML report](lighthouse-mobile.report.html), [raw JSON](lighthouse-mobile.report.json).
 - **Screenshots:** [360px landing](landing-360.png), [1440px landing](landing-1440.png), [360px privacy](privacy-360.png), [360px support](support-360.png). Inspected for wrapping, hierarchy and full screen imagery.
-- **Browser:** fresh headless Chrome, Playwright ephemeral context, JavaScript disabled, reduced motion enabled. All three pages at 360 and 1440: no horizontal overflow and no third-party requests. FAQ opens without JavaScript; all six visible questions/answers match JSON-LD exactly. Privacy/support body bytes match base `ca9ee2c84aac85feb4ec742c6b535faf83c9e9ac`. [Results](browser.json).
+- **Browser:** fresh headless Chrome, Playwright ephemeral context, JavaScript disabled, reduced motion enabled. All three pages at 360 and 1440: no horizontal overflow and no third-party requests. FAQ opens without JavaScript; all six visible questions/answers match JSON-LD exactly. Privacy/support body bytes match base `0f610060b640b23f0a7a7b73f7783a140e70680b`. [Results](browser.json).
 - **HTML:** html-validate 11.21.0 standard preset, all three documents, zero errors/warnings. [Result](html-validation.txt).
 - **Structured data:** submitted the exact landing HTML to `https://validator.schema.org/validate`; two objects (SoftwareApplication and FAQPage), zero errors and zero warnings. [Full response](structured-data.json). No ratings, reviews, offers or invented price. Schema validity does not promise a search rich result.
-- **Imagery:** [source manifest](../../../site/images/sources.json), PR #142 home commit `b66bbb68b64e38286caea04ce06b2db4202fa18c`. Social image is 1200×630. [Regeneration instructions](../../brand.md#regenerating-imagery).
+- **Imagery:** [source manifest](../../../site/images/sources.json), merged main commit after PRs #142 and #143: `0f610060b640b23f0a7a7b73f7783a140e70680b`. Social image is 1200×630. [Regeneration instructions](../../brand.md#regenerating-imagery).
 
 ## Reproduce
 
@@ -23,7 +23,7 @@ CHROME_PATH='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' /tmp/
 curl -sS https://validator.schema.org/validate --data-urlencode html@site/index.html --data 'options='
 ```
 
-Set `CHROME_PATH` for a different local Chrome installation. The verification script defaults to Chrome's macOS path. The policy-byte comparison deliberately pins this change's base, so update it when incorporating the separately owned policy revision from #143.
+Set `CHROME_PATH` for a different local Chrome installation. The verification script defaults to Chrome's macOS path. The policy-byte comparison pins merged main after #143, including its operator footers and updated deletion policy.
 
 ## Deployment boundary
 

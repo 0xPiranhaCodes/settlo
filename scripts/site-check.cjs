@@ -13,7 +13,7 @@ const fs = require("fs");
     const file = `site/${slug}/index.html`;
     const before = execFileSync(
       "git",
-      ["show", `ca9ee2c84aac85feb4ec742c6b535faf83c9e9ac:${file}`],
+      ["show", `0f610060b640b23f0a7a7b73f7783a140e70680b:${file}`],
       { env: { ...process.env, GIT_CONFIG_COUNT: "0" }, encoding: "utf8" },
     );
     const current = fs.readFileSync(file, "utf8");

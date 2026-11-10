@@ -11,8 +11,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--home-ref', default='b66bbb68b64e38286caea04ce06b2db4202fa18c',
-                    help='Git ref containing PR #142 home goldens; fetch before running')
+parser.add_argument('--home-ref', default='0f610060b640b23f0a7a7b73f7783a140e70680b',
+                    help='Git ref containing merged home goldens; fetch before running')
 args = parser.parse_args()
 env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_CONFIG_')}
 out = ROOT / 'site/images'

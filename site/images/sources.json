@@ -1,5 +1,5 @@
 {
-  "home_commit": "b66bbb68b64e38286caea04ce06b2db4202fa18c",
+  "home_commit": "0f610060b640b23f0a7a7b73f7783a140e70680b",
   "sources": {
     "welcome": {
       "path": "app/test/goldens/auth_welcome_390x844_dark.png",
@@ -11,7 +11,7 @@
     },
     "home": {
       "path": "app/test/goldens/home_main_390x844_dark.png",
-      "sha256": "e60faece36f793ca3c7b0b21aa5d7699202f816bb9d4237ebf4593cf98104859",
+      "sha256": "4aba3b40024dcd44b2d79c4da548abc28fd03fab252316d07e21d9b66c42097b",
       "size": [
         390,
         844

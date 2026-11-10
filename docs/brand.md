@@ -52,15 +52,15 @@ Use one script for both real app images, the S mark, provenance manifest and 120
 ```sh
 python3 -m venv /tmp/settlo-images
 /tmp/settlo-images/bin/pip install Pillow==13.0.0
-git fetch origin pull/142/head:refs/remotes/origin/pr-142
-/tmp/settlo-images/bin/python scripts/site-images.py --home-ref origin/pr-142
+git fetch origin main
+/tmp/settlo-images/bin/python scripts/site-images.py --home-ref origin/main
 ```
 
-The script defaults to the reviewed PR #142 snapshot `b66bbb68b64e38286caea04ce06b2db4202fa18c`. Pass an updated fetched ref when that PR changes, or `--home-ref HEAD` after it merges. Welcome comes from this checkout's `auth_welcome_390x844_dark.png`; Home comes from the specified ref's `home_main_390x844_dark.png`. `site/images/sources.json` records the resolved commit, original dimensions and source hashes. The screenshots keep their full content; conversion to WebP does not reconstruct or retouch the UI. The social card uses bundled Figtree and the same home screen. Review both viewport screenshots after regeneration.
+The script defaults to the merged main snapshot after PRs #142 and #143, `0f610060b640b23f0a7a7b73f7783a140e70680b`. Pass an updated fetched main ref when the app goldens change. Welcome comes from this checkout's `auth_welcome_390x844_dark.png`; Home comes from the specified ref's `home_main_390x844_dark.png`. `site/images/sources.json` records the resolved commit, original dimensions and source hashes. The screenshots keep their full content; conversion to WebP does not reconstruct or retouch the UI. The social card uses bundled Figtree and the same home screen. Review both viewport screenshots after regeneration.
 
 ## Claim evidence
 
-Read against the implementation at landing-page base `ca9ee2c84aac85feb4ec742c6b535faf83c9e9ac`:
+Read against the implementation at landing-page base `0f610060b640b23f0a7a7b73f7783a140e70680b`:
 
 | Claim | Source |
 | --- | --- |
@@ -75,4 +75,4 @@ Read against the implementation at landing-page base `ca9ee2c84aac85feb4ec742c6b
 | In-app Profile › Delete account takes effect at once and cannot be undone; email settlo@hellojosh.studio if unable to sign in; shared records remain with the other people | `packages/features/profile/lib/src/screens.dart` `_deleteAccount`; `packages/features/profile/lib/src/profile_repository.dart` → `delete_account`; `docs/api.md` account deletion; email fallback wording aligned with PR #143 |
 | iPhone TestFlight beta; Android later; operator/contact | Issue #140 and owner assignment; no unsupported public installation link |
 
-Privacy/support policy wording belongs to PR #143. This change only adjusts their document metadata; shared CSS restyles the content without rewriting it.
+Privacy/support policy wording is preserved from merged PR #143. This change only adjusts their document metadata; shared CSS restyles the content without rewriting it.
