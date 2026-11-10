@@ -125,11 +125,12 @@ jobs:
 
           # The response repeats the Auth config and an error may echo the submitted list, so the
           # body is discarded: this public log gets the status and a fixed message only.
-          status="$(curl -sS -o /dev/null -w '%{http_code}' -X PATCH \
+          # The token (as a curl config on a pipe) and the body (on stdin) stay out of curl's argv.
+          status="$(printf '%s' "$body" | curl -sS -o /dev/null -w '%{http_code}' -X PATCH \
+            --config <(printf 'header = "Authorization: Bearer %s"\n' "$SUPABASE_ACCESS_TOKEN") \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth" \
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             -H 'Content-Type: application/json' \
-            --data "$body")"
+            --data-binary @-)"
           echo "Management API answered $status"
           if [[ "$status" != 2* ]]; then
             echo "::error::The Auth config was not changed. Check the token's access and the format of HOSTED_TEST_OTP."

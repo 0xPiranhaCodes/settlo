@@ -4,6 +4,8 @@
 # Needs SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF (set-secrets also MSG91_AUTH_KEY,
 # MSG91_TEMPLATE_ID, MSG91_SENDER_ID). Management API bodies can hold the Auth config and secrets,
 # so they go to a temp file that is parsed with jq and never printed.
+# Off before anything expands a secret: an inherited `bash -x` would trace it ahead of ::add-mask::.
+{ set +x; } 2>/dev/null
 set -euo pipefail
 
 : "${SUPABASE_ACCESS_TOKEN:?}" "${SUPABASE_PROJECT_REF:?}"
@@ -19,14 +21,18 @@ mask() {
   if [[ "${GITHUB_ACTIONS:-}" == true ]]; then echo "::add-mask::$1"; fi
 }
 
+token_header() { printf 'header = "Authorization: Bearer %s"\n' "$SUPABASE_ACCESS_TOKEN"; }
+
+# Lowercase hex SHA-256 of $1, the digest GET /secrets reports instead of a secret's value.
+sha256() { printf '%s' "$1" | openssl dgst -sha256 | awk '{print $NF}'; }
+
 # api METHOD PATH [JSON]: prints only the status; returns 1 on a non-2xx answer.
 api() {
   local status
-  local args=(-sS -o "$body_file" -w '%{http_code}' -X "$1" "$api_base$2"
-    -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN")
+  local args=(-sS -o "$body_file" -w '%{http_code}' -X "$1" "$api_base$2")
   [[ $# -lt 3 ]] || args+=(-H 'Content-Type: application/json' --data-binary @-)
-  # The JSON goes through stdin so secrets never reach curl's argv.
-  status="$(printf '%s' "${3:-}" | curl "${args[@]}")" || status=000
+  # The token (as a curl config on a pipe) and the JSON (on stdin) never reach curl's argv.
+  status="$(printf '%s' "${3:-}" | curl --config <(token_header) "${args[@]}")" || status=000
   echo "Management API $1 $2 answered $status"
   [[ "$status" == 2* ]]
 }
@@ -60,7 +66,7 @@ set_secrets() {
     hook_send_sms_enabled: false,
     hook_send_sms_uri: $uri,
     hook_send_sms_secrets: env.HOOK_SECRET
-  }')" || die "The function secrets are set but the hook config is not; re-run set-sms-secrets."
+  }')" || die "The function secrets were rotated but the hook secret was not, so they differ and enable-sms-hook will refuse. The hook stays disabled; re-run set-sms-secrets."
   echo "Function secrets and the hook URI and secret are set; the hook stays disabled."
 }
 
@@ -69,13 +75,17 @@ enable() {
   jq -e '.status == "ACTIVE"' "$body_file" >/dev/null || die "send-sms is deployed but not ACTIVE."
 
   api GET /secrets || die "Could not list the function secrets."
-  local missing
+  local missing fn_digest
   missing="$(jq -r --argjson want "$fn_secrets" '$want - [.[].name] | join(" ")' "$body_file")"
   [[ -z "$missing" ]] || die "Function secrets missing: $missing. Run set-sms-secrets."
+  fn_digest="$(jq -r '.[] | select(.name == "SEND_SMS_HOOK_SECRET").value // "" | ascii_downcase' "$body_file")"
 
   api GET /config/auth || die "Could not read the hosted Auth config."
   jq -e --arg uri "$fn_uri" '.hook_send_sms_uri == $uri and (.hook_send_sms_secrets // "") != ""' \
     "$body_file" >/dev/null || die "The hook URI or secret is not set. Run set-sms-secrets."
+  # A partial set-secrets leaves the two sides different, and every signed SMS request then fails.
+  [[ "$(sha256 "$(jq -r .hook_send_sms_secrets "$body_file")")" == "$fn_digest" ]] ||
+    die "The function's SEND_SMS_HOOK_SECRET differs from the Auth hook secret. Run set-sms-secrets."
 
   api PATCH /config/auth '{"external_phone_enabled": true, "hook_send_sms_enabled": true}' ||
     die "The hook was not enabled."
