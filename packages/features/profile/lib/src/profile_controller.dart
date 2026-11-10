@@ -36,6 +36,17 @@ class ProfileController extends AsyncNotifier<ProfileData> {
 
   /// Deletes the account and signs out; the session listener navigates,
   /// and the offline mirror and queue are wiped as on any sign-out.
-  Future<void> deleteAccount() =>
-      ref.read(profileRepositoryProvider).deleteAccount();
+  ///
+  /// Syncing stops first, so no queued write is sent once the deletion
+  /// starts; it resumes, queue intact, if the account could not be deleted.
+  Future<void> deleteAccount() async {
+    final unsent = ref.read(unsentChangesProvider);
+    await unsent?.stop();
+    try {
+      await ref.read(profileRepositoryProvider).deleteAccount();
+    } on Object {
+      unsent?.resume();
+      rethrow;
+    }
+  }
 }

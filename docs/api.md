@@ -517,7 +517,12 @@ nothing. Until that token expires it reads nothing. The client should drop its s
 (`signOut(scope: local)`); a server sign-out has no user to act on.
 
 The auth row is locked first, so a concurrent verification of the same user either commits before
-the deletion (which then releases what it linked) or finds no user. The number signing up again is a
+the deletion (which then releases what it linked) or finds no user. The same lock is the write
+barrier: every write by the `authenticated` role (each mutating RPC, and direct table writes) first
+takes a key-share lock on the caller's auth row. A write that started before the deletion commits
+first and stays as history. One that arrives during or after it is refused with `42501`, hint
+`account_deleted`, so nothing is written in a deleted account's name. A write and a deletion that
+each hold a row the other needs can deadlock (`40P01`); both are safe to retry. The number signing up again is a
 new user: it is linked only to rows nobody had accepted, as pending claims.
 
 ```

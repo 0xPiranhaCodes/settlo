@@ -26,6 +26,9 @@ final class _ProfileRepository implements ProfileRepository {
   bool get signedOut => signOuts > 0;
   int deletions = 0;
   Object? deleteError;
+
+  /// Sync stops and resumes, and deletion attempts, in order.
+  final log = <String>[];
   Object? loadError;
   Object? updateError;
   Object? signOutError;
@@ -44,6 +47,7 @@ final class _ProfileRepository implements ProfileRepository {
 
   @override
   Future<void> deleteAccount() async {
+    log.add('delete');
     if (deleteError case final error?) _throw(error);
     deletions++;
   }
@@ -425,6 +429,8 @@ void main() {
                 // A drain that fails must not surface anywhere.
                 throw StateError('offline');
               },
+              stop: () async => profile.log.add('stop'),
+              resume: () => profile.log.add('resume'),
             )),
           ],
           child: MaterialApp(
@@ -526,6 +532,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(profile.deletions, 1);
+      expect(profile.log, [
+        'stop',
+        'delete',
+      ], reason: 'syncing stops before the server is asked, and stays stopped');
       expect(profile.signOuts, 0, reason: 'the repository drops the session');
       expect(find.byType(ProfileScreen), findsOneWidget);
     });
@@ -579,6 +589,11 @@ void main() {
         findsOneWidget,
       );
       expect(find.textContaining('private'), findsNothing);
+      expect(profile.log, [
+        'stop',
+        'delete',
+        'resume',
+      ], reason: 'the account stays, so syncing starts again');
 
       profile.deleteError = null;
       await tester.tap(find.text('Delete account'));

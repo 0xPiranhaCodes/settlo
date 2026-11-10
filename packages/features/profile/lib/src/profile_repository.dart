@@ -31,6 +31,8 @@ abstract interface class ProfileRepository {
   Future<void> signOut();
 
   /// Deletes the account through `delete_account`, then drops the session.
+  /// Retries when no answer comes back, and counts a session the server no
+  /// longer accepts as deleted.
   Future<void> deleteAccount();
 }
 
@@ -46,7 +48,18 @@ final class ProfileInputException implements Exception {
 /// [ProfileRepository] backed by the interim online Supabase client.
 final class SupabaseProfileRepository implements ProfileRepository {
   /// Reads and writes [userId] through [client].
-  const new(this.client, {required this.userId});
+  const new(
+    this.client, {
+    required this.userId,
+    this.deleteWait = const Duration(seconds: 15),
+    this.deleteRetryIn = const Duration(seconds: 1),
+  });
+
+  /// How long [deleteAccount] waits for each answer.
+  final Duration deleteWait;
+
+  /// The pause before [deleteAccount] asks again.
+  final Duration deleteRetryIn;
 
   /// Supabase client.
   final SupabaseClient client;
@@ -92,7 +105,30 @@ final class SupabaseProfileRepository implements ProfileRepository {
 
   @override
   Future<void> deleteAccount() async {
-    await client.rpc<void>('delete_account');
+    // A lost answer says nothing about whether the server deleted the
+    // account. `delete_account` is idempotent, so ask again; three tries,
+    // then the caller offers the retry.
+    for (var attempt = 1; ; attempt++) {
+      try {
+        await client.rpc<void>('delete_account').timeout(deleteWait);
+        break;
+      } on PostgrestException catch (error) {
+        // The server no longer accepts this session (an invalid or expired
+        // token, or no user in it): there is nothing left to delete with it.
+        final code = error.code ?? '';
+        if (!code.startsWith('PGRST30') && code != '42501') rethrow;
+        break;
+      } on AuthRetryableFetchException {
+        if (attempt == 3) rethrow;
+      } on AuthException {
+        // The session could not be refreshed: the user is already gone.
+        break;
+      } on Object {
+        // No answer: a timeout or a dropped connection.
+        if (attempt == 3) rethrow;
+      }
+      await Future<void>.delayed(deleteRetryIn);
+    }
     // This drops the local session first, then tells a server that has no
     // such user any more; that second half failing means nothing.
     try {
