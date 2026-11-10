@@ -1,0 +1,532 @@
+{
+  "isRendered": false,
+  "tripleGroups": [
+    {
+      "ownerSet": {},
+      "nodes": [
+        {
+          "types": [
+            {
+              "pred": "itemtype",
+              "value": "SoftwareApplication",
+              "errors": [],
+              "begin": 2087,
+              "end": 2108
+            }
+          ],
+          "typeGroup": "SoftwareApplication",
+          "errors": [],
+          "properties": [
+            {
+              "pred": "name",
+              "value": "Settlo",
+              "errors": [],
+              "begin": 2116,
+              "end": 2124
+            },
+            {
+              "pred": "url",
+              "value": "https://0xpiranhacodes.github.io/settlo/",
+              "errors": [],
+              "begin": 2131,
+              "end": 2173
+            },
+            {
+              "pred": "description",
+              "value": "Split expenses with flatmates, track money lent to friends and settle up via UPI. Available as an iPhone TestFlight beta; Android later.",
+              "errors": [],
+              "begin": 2188,
+              "end": 2326
+            },
+            {
+              "pred": "applicationCategory",
+              "value": "FinanceApplication",
+              "errors": [],
+              "begin": 2349,
+              "end": 2369
+            },
+            {
+              "pred": "operatingSystem",
+              "value": "iOS",
+              "errors": [],
+              "begin": 2388,
+              "end": 2393
+            },
+            {
+              "pred": "inLanguage",
+              "value": "en-IN",
+              "errors": [],
+              "begin": 2407,
+              "end": 2414
+            },
+            {
+              "pred": "image",
+              "value": "https://0xpiranhacodes.github.io/settlo/images/social.png",
+              "errors": [],
+              "begin": 2423,
+              "end": 2482
+            }
+          ],
+          "nodeProperties": [
+            {
+              "pred": "publisher",
+              "target": {
+                "types": [
+                  {
+                    "pred": "itemtype",
+                    "value": "Organization",
+                    "errors": [],
+                    "begin": 2504,
+                    "end": 2518
+                  }
+                ],
+                "typeGroup": "Organization",
+                "errors": [],
+                "properties": [
+                  {
+                    "pred": "name",
+                    "value": "JOSH Studio",
+                    "errors": [],
+                    "begin": 2526,
+                    "end": 2539
+                  },
+                  {
+                    "pred": "email",
+                    "value": "settlo@hellojosh.studio",
+                    "errors": [],
+                    "begin": 2548,
+                    "end": 2573
+                  }
+                ],
+                "nodeProperties": [],
+                "numErrors": 0,
+                "numWarnings": 0
+              },
+              "errors": [],
+              "begin": 2495,
+              "end": 2574
+            }
+          ],
+          "numErrors": 0,
+          "numWarnings": 0
+        }
+      ],
+      "numNodesWithError": 0,
+      "numNodesWithWarning": 0,
+      "numErrors": 0,
+      "numWarnings": 0,
+      "type": "SoftwareApplication"
+    },
+    {
+      "ownerSet": {},
+      "nodes": [
+        {
+          "types": [
+            {
+              "pred": "itemtype",
+              "value": "FAQPage",
+              "errors": [],
+              "begin": 2663,
+              "end": 2672
+            }
+          ],
+          "typeGroup": "FAQPage",
+          "errors": [],
+          "properties": [],
+          "nodeProperties": [
+            {
+              "pred": "mainEntity",
+              "target": {
+                "types": [
+                  {
+                    "pred": "itemtype",
+                    "value": "Question",
+                    "errors": [],
+                    "begin": 2696,
+                    "end": 2706
+                  }
+                ],
+                "typeGroup": "Question",
+                "errors": [],
+                "properties": [
+                  {
+                    "pred": "name",
+                    "value": "Can I use Settlo on my phone?",
+                    "errors": [],
+                    "begin": 2714,
+                    "end": 2745
+                  }
+                ],
+                "nodeProperties": [
+                  {
+                    "pred": "acceptedAnswer",
+                    "target": {
+                      "types": [
+                        {
+                          "pred": "itemtype",
+                          "value": "Answer",
+                          "errors": [],
+                          "begin": 2772,
+                          "end": 2780
+                        }
+                      ],
+                      "typeGroup": "Answer",
+                      "errors": [],
+                      "properties": [
+                        {
+                          "pred": "text",
+                          "value": "Settlo is an iPhone TestFlight beta. Email us to ask about beta access. Android is planned for later; there is no public App Store or Google Play release yet.",
+                          "errors": [],
+                          "begin": 2788,
+                          "end": 2948
+                        }
+                      ],
+                      "nodeProperties": [],
+                      "numErrors": 0,
+                      "numWarnings": 0
+                    },
+                    "errors": [],
+                    "begin": 2763,
+                    "end": 2949
+                  }
+                ],
+                "numErrors": 0,
+                "numWarnings": 0
+              },
+              "errors": [],
+              "begin": 2687,
+              "end": 2950
+            },
+            {
+              "pred": "mainEntity",
+              "target": {
+                "types": [
+                  {
+                    "pred": "itemtype",
+                    "value": "Question",
+                    "errors": [],
+                    "begin": 2960,
+                    "end": 2970
+                  }
+                ],
+                "typeGroup": "Question",
+                "errors": [],
+                "properties": [
+                  {
+                    "pred": "name",
+                    "value": "How do I split expenses with flatmates?",
+                    "errors": [],
+                    "begin": 2978,
+                    "end": 3019
+                  }
+                ],
+                "nodeProperties": [
+                  {
+                    "pred": "acceptedAnswer",
+                    "target": {
+                      "types": [
+                        {
+                          "pred": "itemtype",
+                          "value": "Answer",
+                          "errors": [],
+                          "begin": 3046,
+                          "end": 3054
+                        }
+                      ],
+                      "typeGroup": "Answer",
+                      "errors": [],
+                      "properties": [
+                        {
+                          "pred": "text",
+                          "value": "Create a space for your flat, add people by phone number, and record who paid. Split expenses equally or use exact amounts, percentages or shares. Settlo keeps the balances together.",
+                          "errors": [],
+                          "begin": 3062,
+                          "end": 3246
+                        }
+                      ],
+                      "nodeProperties": [],
+                      "numErrors": 0,
+                      "numWarnings": 0
+                    },
+                    "errors": [],
+                    "begin": 3037,
+                    "end": 3247
+                  }
+                ],
+                "numErrors": 0,
+                "numWarnings": 0
+              },
+              "errors": [],
+              "begin": 2951,
+              "end": 3248
+            },
+            {
+              "pred": "mainEntity",
+              "target": {
+                "types": [
+                  {
+                    "pred": "itemtype",
+                    "value": "Question",
+                    "errors": [],
+                    "begin": 3258,
+                    "end": 3268
+                  }
+                ],
+                "typeGroup": "Question",
+                "errors": [],
+                "properties": [
+                  {
+                    "pred": "name",
+                    "value": "Can I track money lent to friends?",
+                    "errors": [],
+                    "begin": 3276,
+                    "end": 3312
+                  }
+                ],
+                "nodeProperties": [
+                  {
+                    "pred": "acceptedAnswer",
+                    "target": {
+                      "types": [
+                        {
+                          "pred": "itemtype",
+                          "value": "Answer",
+                          "errors": [],
+                          "begin": 3339,
+                          "end": 3347
+                        }
+                      ],
+                      "typeGroup": "Answer",
+                      "errors": [],
+                      "properties": [
+                        {
+                          "pred": "text",
+                          "value": "Yes. Record a loan between two people and track repayments separately from shared expenses. A repayment counts only after the other person confirms it.",
+                          "errors": [],
+                          "begin": 3355,
+                          "end": 3508
+                        }
+                      ],
+                      "nodeProperties": [],
+                      "numErrors": 0,
+                      "numWarnings": 0
+                    },
+                    "errors": [],
+                    "begin": 3330,
+                    "end": 3509
+                  }
+                ],
+                "numErrors": 0,
+                "numWarnings": 0
+              },
+              "errors": [],
+              "begin": 3249,
+              "end": 3510
+            },
+            {
+              "pred": "mainEntity",
+              "target": {
+                "types": [
+                  {
+                    "pred": "itemtype",
+                    "value": "Question",
+                    "errors": [],
+                    "begin": 3520,
+                    "end": 3530
+                  }
+                ],
+                "typeGroup": "Question",
+                "errors": [],
+                "properties": [
+                  {
+                    "pred": "name",
+                    "value": "Does Settlo make the UPI payment?",
+                    "errors": [],
+                    "begin": 3538,
+                    "end": 3573
+                  }
+                ],
+                "nodeProperties": [
+                  {
+                    "pred": "acceptedAnswer",
+                    "target": {
+                      "types": [
+                        {
+                          "pred": "itemtype",
+                          "value": "Answer",
+                          "errors": [],
+                          "begin": 3600,
+                          "end": 3608
+                        }
+                      ],
+                      "typeGroup": "Answer",
+                      "errors": [],
+                      "properties": [
+                        {
+                          "pred": "text",
+                          "value": "No. Settlo opens your UPI app with the amount and payee details filled in. You approve the payment there, record it in Settlo, and the other person confirms. Settlo cannot see whether a payment went through.",
+                          "errors": [],
+                          "begin": 3616,
+                          "end": 3825
+                        }
+                      ],
+                      "nodeProperties": [],
+                      "numErrors": 0,
+                      "numWarnings": 0
+                    },
+                    "errors": [],
+                    "begin": 3591,
+                    "end": 3826
+                  }
+                ],
+                "numErrors": 0,
+                "numWarnings": 0
+              },
+              "errors": [],
+              "begin": 3511,
+              "end": 3827
+            },
+            {
+              "pred": "mainEntity",
+              "target": {
+                "types": [
+                  {
+                    "pred": "itemtype",
+                    "value": "Question",
+                    "errors": [],
+                    "begin": 3837,
+                    "end": 3847
+                  }
+                ],
+                "typeGroup": "Question",
+                "errors": [],
+                "properties": [
+                  {
+                    "pred": "name",
+                    "value": "What happens when I am offline?",
+                    "errors": [],
+                    "begin": 3855,
+                    "end": 3888
+                  }
+                ],
+                "nodeProperties": [
+                  {
+                    "pred": "acceptedAnswer",
+                    "target": {
+                      "types": [
+                        {
+                          "pred": "itemtype",
+                          "value": "Answer",
+                          "errors": [],
+                          "begin": 3915,
+                          "end": 3923
+                        }
+                      ],
+                      "typeGroup": "Answer",
+                      "errors": [],
+                      "properties": [
+                        {
+                          "pred": "text",
+                          "value": "Your saved records stay available on your phone. Changes made offline are queued and sent when you reconnect. Sign in online first, and let pending changes sync before signing out.",
+                          "errors": [],
+                          "begin": 3931,
+                          "end": 4113
+                        }
+                      ],
+                      "nodeProperties": [],
+                      "numErrors": 0,
+                      "numWarnings": 0
+                    },
+                    "errors": [],
+                    "begin": 3906,
+                    "end": 4114
+                  }
+                ],
+                "numErrors": 0,
+                "numWarnings": 0
+              },
+              "errors": [],
+              "begin": 3828,
+              "end": 4115
+            },
+            {
+              "pred": "mainEntity",
+              "target": {
+                "types": [
+                  {
+                    "pred": "itemtype",
+                    "value": "Question",
+                    "errors": [],
+                    "begin": 4125,
+                    "end": 4135
+                  }
+                ],
+                "typeGroup": "Question",
+                "errors": [],
+                "properties": [
+                  {
+                    "pred": "name",
+                    "value": "Can I delete my account?",
+                    "errors": [],
+                    "begin": 4143,
+                    "end": 4169
+                  }
+                ],
+                "nodeProperties": [
+                  {
+                    "pred": "acceptedAnswer",
+                    "target": {
+                      "types": [
+                        {
+                          "pred": "itemtype",
+                          "value": "Answer",
+                          "errors": [],
+                          "begin": 4196,
+                          "end": 4204
+                        }
+                      ],
+                      "typeGroup": "Answer",
+                      "errors": [],
+                      "properties": [
+                        {
+                          "pred": "text",
+                          "value": "Yes. In the app, open Profile and choose Delete account. It happens at once and cannot be undone. If you can\u2019t sign in, email settlo@hellojosh.studio. Your profile and sign-in are removed; shared expenses, loans and their history stay in the other people\u2019s records.",
+                          "errors": [],
+                          "begin": 4212,
+                          "end": 4483
+                        }
+                      ],
+                      "nodeProperties": [],
+                      "numErrors": 0,
+                      "numWarnings": 0
+                    },
+                    "errors": [],
+                    "begin": 4187,
+                    "end": 4484
+                  }
+                ],
+                "numErrors": 0,
+                "numWarnings": 0
+              },
+              "errors": [],
+              "begin": 4116,
+              "end": 4485
+            }
+          ],
+          "numErrors": 0,
+          "numWarnings": 0
+        }
+      ],
+      "numNodesWithError": 0,
+      "numNodesWithWarning": 0,
+      "numErrors": 0,
+      "numWarnings": 0,
+      "type": "FAQPage"
+    }
+  ],
+  "numObjects": 2,
+  "html": "<!doctype html>\n<html lang=\"en-IN\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"color-scheme\" content=\"dark\">\n<meta name=\"theme-color\" content=\"#0a0b0d\">\n<title>Settlo \u2014 Split expenses with flatmates &amp; track loans</title>\n<meta name=\"description\" content=\"Split expenses with flatmates, track money lent to friends and settle up via UPI. Settlo for India: iPhone TestFlight beta, with Android coming later.\">\n<link rel=\"canonical\" href=\"https://0xpiranhacodes.github.io/settlo/\">\n<meta property=\"og:type\" content=\"website\">\n<meta property=\"og:locale\" content=\"en_IN\">\n<meta property=\"og:site_name\" content=\"Settlo\">\n<meta property=\"og:title\" content=\"Good friends. Clear balances. \u2014 Settlo\">\n<meta property=\"og:description\" content=\"Split expenses with flatmates, track money lent to friends and settle up via UPI. iPhone TestFlight beta. Android later.\">\n<meta property=\"og:url\" content=\"https://0xpiranhacodes.github.io/settlo/\">\n<meta property=\"og:image\" content=\"https://0xpiranhacodes.github.io/settlo/images/social.png\">\n<meta property=\"og:image:width\" content=\"1200\">\n<meta property=\"og:image:height\" content=\"630\">\n<meta property=\"og:image:alt\" content=\"Settlo: Good friends. Clear balances. Alongside the app\u2019s home screen with sample balances.\">\n<meta name=\"twitter:card\" content=\"summary_large_image\">\n<meta name=\"twitter:title\" content=\"Good friends. Clear balances. \u2014 Settlo\">\n<meta name=\"twitter:description\" content=\"Shared expenses, personal loans and UPI settle-up for India. iPhone TestFlight beta. Android later.\">\n<meta name=\"twitter:image\" content=\"https://0xpiranhacodes.github.io/settlo/images/social.png\">\n<meta name=\"twitter:image:alt\" content=\"Settlo home screen showing sample shared expenses and loan balances.\">\n<link rel=\"icon\" type=\"image/png\" href=\"images/mark.png\">\n<link rel=\"preload\" href=\"fonts/Figtree-Regular.ttf\" as=\"font\" type=\"font/ttf\" crossorigin>\n<link rel=\"stylesheet\" href=\"site.css\">\n<script type=\"application/ld+json\">\n{\"@context\":\"https://schema.org\",\"@type\":\"SoftwareApplication\",\"name\":\"Settlo\",\"url\":\"https://0xpiranhacodes.github.io/settlo/\",\"description\":\"Split expenses with flatmates, track money lent to friends and settle up via UPI. Available as an iPhone TestFlight beta; Android later.\",\"applicationCategory\":\"FinanceApplication\",\"operatingSystem\":\"iOS\",\"inLanguage\":\"en-IN\",\"image\":\"https://0xpiranhacodes.github.io/settlo/images/social.png\",\"publisher\":{\"@type\":\"Organization\",\"name\":\"JOSH Studio\",\"email\":\"settlo@hellojosh.studio\"}}\n</script>\n<script type=\"application/ld+json\">\n{\"@context\":\"https://schema.org\",\"@type\":\"FAQPage\",\"mainEntity\":[{\"@type\":\"Question\",\"name\":\"Can I use Settlo on my phone?\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Settlo is an iPhone TestFlight beta. Email us to ask about beta access. Android is planned for later; there is no public App Store or Google Play release yet.\"}},{\"@type\":\"Question\",\"name\":\"How do I split expenses with flatmates?\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Create a space for your flat, add people by phone number, and record who paid. Split expenses equally or use exact amounts, percentages or shares. Settlo keeps the balances together.\"}},{\"@type\":\"Question\",\"name\":\"Can I track money lent to friends?\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Yes. Record a loan between two people and track repayments separately from shared expenses. A repayment counts only after the other person confirms it.\"}},{\"@type\":\"Question\",\"name\":\"Does Settlo make the UPI payment?\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"No. Settlo opens your UPI app with the amount and payee details filled in. You approve the payment there, record it in Settlo, and the other person confirms. Settlo cannot see whether a payment went through.\"}},{\"@type\":\"Question\",\"name\":\"What happens when I am offline?\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Your saved records stay available on your phone. Changes made offline are queued and sent when you reconnect. Sign in online first, and let pending changes sync before signing out.\"}},{\"@type\":\"Question\",\"name\":\"Can I delete my account?\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Yes. In the app, open Profile and choose Delete account. It happens at once and cannot be undone. If you can\u2019t sign in, email settlo@hellojosh.studio. Your profile and sign-in are removed; shared expenses, loans and their history stay in the other people\u2019s records.\"}}]}\n</script>\n</head>\n<body class=\"landing\">\n<a class=\"skip\" href=\"#main\">Skip to content</a>\n<header>\n  <a class=\"wordmark\" href=\"./\" aria-current=\"page\"><img src=\"images/mark.png\" width=\"36\" height=\"36\" alt=\"\">settlo</a>\n  <nav aria-label=\"Site\"><a href=\"#how-it-works\">How it works</a><a href=\"support/\">Support</a></nav>\n</header>\n<main id=\"main\">\n<section class=\"hero\" aria-labelledby=\"hero-title\">\n  <div class=\"hero-copy\">\n    <p class=\"eyebrow\">MADE FOR YOUR PEOPLE</p>\n    <h1 id=\"hero-title\">Good friends.<br>Clear balances.</h1>\n    <p class=\"intro\">Split expenses with flatmates. Track money lent to friends. Keep the money clear, and the friendship easy.</p>\n    <a class=\"button\" href=\"mailto:settlo@hellojosh.studio?subject=Settlo%20TestFlight%20beta\">Email us for beta access</a>\n    <p class=\"availability\">iPhone \u00b7 TestFlight beta <span>Android later.</span></p>\n  </div>\n  <figure class=\"hero-visual\">\n    <div class=\"orbit\" aria-hidden=\"true\"></div>\n    <div class=\"phone\"><img src=\"images/home.webp\" width=\"390\" height=\"844\" alt=\"Settlo home: sample balances for money owed to you and money you owe, with spaces and loans together.\" fetchpriority=\"high\"></div>\n    <figcaption>One place for who owes whom.<br>Real beta screen \u00b7 illustrative balances</figcaption>\n  </figure>\n</section>\n<div class=\"principles\"><span>Rupees, down to the paisa.</span><span>Your UPI app. Your payment.</span><span>No ads. No tracking.</span></div>\n<section class=\"section\" id=\"how-it-works\" aria-labelledby=\"how-title\">\n  <div class=\"section-heading\"><p class=\"eyebrow\">A LITTLE CLARITY GOES A LONG WAY</p><h2 id=\"how-title\">From \u201cI\u2019ll pay\u201d<br>to all settled.</h2><p>Rent, groceries, a weekend away, or a friend who needs a hand. Give every shared rupee a place.</p></div>\n  <ol class=\"steps\">\n    <li><span class=\"step-number\">01</span><h3>Make room for everyone.</h3><p>Create a space for your flat or trip. Add people by phone number and split expenses equally or your own way.</p></li>\n    <li><span class=\"step-number\">02</span><h3>Keep a loan a loan.</h3><p>Record money lent or borrowed between two people. Follow the repayments without mixing them into the grocery bill.</p></li>\n    <li><span class=\"step-number\">03</span><h3>Settle up via UPI.</h3><p>Open your UPI app with the amount filled in. Pay there, then record it in Settlo. Paid in cash? Record that too.</p></li>\n    <li><span class=\"step-number\">04</span><h3>Settled means both agree.</h3><p>A recorded payment stays pending until the other person confirms it.</p></li>\n  </ol>\n</section>\n<section class=\"section everyday\" aria-labelledby=\"everyday-title\">\n  <figure class=\"welcome-visual\"><div class=\"phone\"><img src=\"images/welcome.webp\" width=\"390\" height=\"844\" loading=\"lazy\" alt=\"Settlo welcome screen with the gold S mark, fictional friends and illustrative shared-expense cards.\"></div><figcaption>The app\u2019s welcome screen. Example people and amounts.</figcaption></figure>\n  <div><p class=\"eyebrow\">BUILT AROUND REAL LIFE</p><h2 id=\"everyday-title\">Less keeping tabs.<br>More living together.</h2>\n    <div class=\"feature\"><h3>Patchy signal? Keep going.</h3><p>Saved records stay on your phone. Add changes offline; they sync when you\u2019re back online.</p></div>\n    <div class=\"feature\"><h3>A nudge, right on your iPhone.</h3><p>When a friend says they\u2019ve paid you, a Live Activity on the Lock Screen and Dynamic Island waits for your confirmation (supported iPhones).</p></div>\n    <div class=\"feature\"><h3>A record you can take with you.</h3><p>Export a space as CSV and a summary PDF, or download a loan statement. Made on your phone, shared where you choose.</p></div>\n    <div class=\"feature\"><h3>A phone number is enough to invite.</h3><p>Add someone by their number. They verify it and choose whether to accept. No address-book upload.</p></div>\n  </div>\n</section>\n<section class=\"section privacy-section\" aria-labelledby=\"privacy-title\">\n  <div><p class=\"eyebrow\">PERSONAL MONEY. PERSONAL DATA.</p><h2 id=\"privacy-title\">Shared with your people.<br>Handled with care.</h2><a class=\"text-link\" href=\"privacy/\">Read the privacy policy <span aria-hidden=\"true\">\u2197</span></a></div>\n  <div class=\"privacy-points\"><div><h3>Stored in Mumbai, India.</h3><p>Account and shared data are hosted in Supabase\u2019s Mumbai region.</p></div><div><h3>Your contacts stay yours.</h3><p>Settlo doesn\u2019t read or upload your address book. No ads, analytics or tracking.</p></div><div><h3>You can leave.</h3><p>Delete your account from Profile at any time. Can\u2019t sign in? Email <a href=\"mailto:settlo@hellojosh.studio\">settlo@hellojosh.studio</a>. Shared expenses and loans stay in the other people\u2019s records; the policy explains what stays.</p></div></div>\n</section>\n<section class=\"section faq\" aria-labelledby=\"faq-title\">\n  <div><p class=\"eyebrow\">BEFORE YOU GET STARTED</p><h2 id=\"faq-title\">A few good questions.</h2></div>\n  <div class=\"questions\">\n    <details><summary>Can I use Settlo on my phone?</summary><p>Settlo is an iPhone TestFlight beta. Email us to ask about beta access. Android is planned for later; there is no public App Store or Google Play release yet.</p></details>\n    <details><summary>How do I split expenses with flatmates?</summary><p>Create a space for your flat, add people by phone number, and record who paid. Split expenses equally or use exact amounts, percentages or shares. Settlo keeps the balances together.</p></details>\n    <details><summary>Can I track money lent to friends?</summary><p>Yes. Record a loan between two people and track repayments separately from shared expenses. A repayment counts only after the other person confirms it.</p></details>\n    <details><summary>Does Settlo make the UPI payment?</summary><p>No. Settlo opens your UPI app with the amount and payee details filled in. You approve the payment there, record it in Settlo, and the other person confirms. Settlo cannot see whether a payment went through.</p></details>\n    <details><summary>What happens when I am offline?</summary><p>Your saved records stay available on your phone. Changes made offline are queued and sent when you reconnect. Sign in online first, and let pending changes sync before signing out.</p></details>\n    <details><summary>Can I delete my account?</summary><p>Yes. In the app, open Profile and choose Delete account. It happens at once and cannot be undone. If you can\u2019t sign in, email settlo@hellojosh.studio. Your profile and sign-in are removed; shared expenses, loans and their history stay in the other people\u2019s records.</p></details>\n  </div>\n</section>\n<section class=\"closing\" aria-labelledby=\"closing-title\"><p class=\"eyebrow\">A CLEARER WAY TO SHARE</p><h2 id=\"closing-title\">Make money the easy part.</h2><a class=\"button\" href=\"mailto:settlo@hellojosh.studio?subject=Settlo%20TestFlight%20beta\">Email us for beta access</a><p class=\"availability\">iPhone \u00b7 TestFlight beta. Android later.</p></section>\n</main>\n<footer>\n  <p class=\"footer-brand\">settlo <span>By JOSH Studio</span></p>\n  <p><a href=\"privacy/\">Privacy policy</a> \u00b7 <a href=\"support/\">Support</a> \u00b7 <a href=\"mailto:settlo@hellojosh.studio\">settlo@hellojosh.studio</a></p>\n  <p>Settlo is operated by JOSH Studio.</p>\n  <p>Set in Figtree, used under the <a href=\"fonts/Figtree-OFL.txt\">SIL Open Font License</a>.</p>\n</footer>\n</body>\n</html>",
+  "errors": [],
+  "totalNumErrors": 0,
+  "totalNumWarnings": 0
+}

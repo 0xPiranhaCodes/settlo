@@ -1,0 +1,38 @@
+[
+  {
+    "width": 360,
+    "path": "",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "path": "privacy/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "path": "support/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "path": "",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "path": "privacy/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "path": "support/",
+    "overflow": false,
+    "jsDisabled": true
+  }
+]
