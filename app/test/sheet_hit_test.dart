@@ -3,13 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo/shell.dart';
+import 'package:settlo_activity/settlo_activity.dart';
+import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_loans/settlo_loans.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
+import 'support/fake_activity.dart';
 import 'support/fake_home.dart';
+import 'support/fake_loans.dart';
+import 'support/fake_phone_auth.dart';
 import 'support/fake_profile.dart';
 import 'support/fake_session.dart';
 import 'support/fake_space_ledger.dart';
@@ -31,64 +37,93 @@ Future<void> _pump(
   ThemeData? theme,
 }) async {
   await loadSettloFonts();
-  tester.view
-    ..physicalSize = device.size
-    ..devicePixelRatio = 1
-    ..viewPadding = const FakeViewPadding(bottom: _homeIndicator)
-    ..padding = const FakeViewPadding(bottom: _homeIndicator);
-  addTearDown(tester.view.reset);
-  tester.platformDispatcher.textScaleFactorTestValue = device.textScale;
-  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-  final router = GoRouter(
-    initialLocation: location,
-    routes: [
-      StatefulShellRoute.indexedStack(
-        builder: (_, _, shell) => SettloShell(
-          currentIndex: shell.currentIndex,
-          onTabSelected: shell.goBranch,
-          child: shell,
+  final previousShadows = debugDisableShadows;
+  debugDisableShadows = false;
+  try {
+    tester.view
+      ..physicalSize = device.size
+      ..devicePixelRatio = 1
+      ..viewPadding = const FakeViewPadding(bottom: _homeIndicator)
+      ..padding = const FakeViewPadding(bottom: _homeIndicator);
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = device.textScale;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final router = GoRouter(
+      initialLocation: location,
+      routes: [
+        ...authRoutes,
+        ...loansRoutes,
+        StatefulShellRoute.indexedStack(
+          builder: (_, _, shell) => SettloShell(
+            currentIndex: shell.currentIndex,
+            onTabSelected: shell.goBranch,
+            child: shell,
+          ),
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                homeTabRoute(routes: [profileRoute]),
+              ],
+            ),
+            StatefulShellBranch(routes: [spacesTabRoute]),
+            StatefulShellBranch(routes: [loansTabRoute]),
+            StatefulShellBranch(routes: [activityTabRoute]),
+          ],
         ),
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              homeTabRoute(routes: [profileRoute]),
-            ],
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: settloGoldenSurfaceKey,
+        child: ProviderScope(
+          overrides: [
+            phoneAuthProvider.overrideWithValue(FakePhoneAuth()),
+            loansRepositoryProvider.overrideWithValue(
+              FakeLoansRepository(loansList()),
+            ),
+            indiaTodayProvider.overrideWithValue(DateTime(2026, 11, 9)),
+            activityRepositoryProvider.overrideWithValue(
+              FakeActivityRepository(),
+            ),
+            activityNowProvider.overrideWithValue(DateTime(2026, 11, 9, 18)),
+            unsentChangesProvider.overrideWithValue((
+              count: () async => 2,
+              drain: () async {},
+              stop: () async {},
+              resume: () {},
+            )),
+            sessionProvider.overrideWith(
+              () => FakeSessionNotifier(fakeSession),
+            ),
+            homeRepositoryProvider.overrideWithValue(
+              FakeHomeRepository(homeMain),
+            ),
+            profileRepositoryProvider.overrideWithValue(
+              FakeProfileRepository(),
+            ),
+            themeModeRepositoryProvider.overrideWithValue(
+              FakeThemeModeRepository(),
+            ),
+            spacesRepositoryProvider.overrideWithValue(
+              FakeSpacesRepository(spacesList),
+            ),
+            spaceLedgerRepositoryProvider.overrideWithValue(
+              FakeSpaceLedgerRepository(),
+            ),
+          ],
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            theme: theme ?? SettloTheme.dark(),
+            routerConfig: router,
           ),
-          StatefulShellBranch(routes: [spacesTabRoute]),
-        ],
-      ),
-    ],
-  );
-  addTearDown(router.dispose);
-  await tester.pumpWidget(
-    RepaintBoundary(
-      key: settloGoldenSurfaceKey,
-      child: ProviderScope(
-        overrides: [
-          sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
-          homeRepositoryProvider.overrideWithValue(
-            FakeHomeRepository(homeMain),
-          ),
-          profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
-          themeModeRepositoryProvider.overrideWithValue(
-            FakeThemeModeRepository(),
-          ),
-          spacesRepositoryProvider.overrideWithValue(
-            FakeSpacesRepository(spacesList),
-          ),
-          spaceLedgerRepositoryProvider.overrideWithValue(
-            FakeSpaceLedgerRepository(),
-          ),
-        ],
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          theme: theme ?? SettloTheme.dark(),
-          routerConfig: router,
         ),
       ),
-    ),
-  );
-  await tester.pumpAndSettle();
+    );
+    await tester.pumpAndSettle();
+  } finally {
+    debugDisableShadows = previousShadows;
+  }
 }
 
 /// Raises the keyboard: it covers the home indicator, so the view's
@@ -101,13 +136,29 @@ Future<void> _raiseKeyboard(WidgetTester tester) async {
 }
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
-  if (finder.evaluate().isEmpty) {
-    await tester.scrollUntilVisible(finder, 200);
+  final previousShadows = debugDisableShadows;
+  debugDisableShadows = false;
+  try {
+    if (finder.evaluate().isEmpty) {
+      await tester.scrollUntilVisible(
+        finder,
+        200,
+        scrollable: find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget is Scrollable &&
+                  widget.axisDirection == AxisDirection.down,
+            )
+            .first,
+      );
+    }
+    await tester.ensureVisible(finder);
+    await tester.pumpAndSettle();
+    await tester.tap(finder);
+    await tester.pumpAndSettle();
+  } finally {
+    debugDisableShadows = previousShadows;
   }
-  await tester.ensureVisible(finder);
-  await tester.pumpAndSettle();
-  await tester.tap(finder);
-  await tester.pumpAndSettle();
 }
 
 /// Each sheet: where it opens, how, and its primary action.
@@ -148,6 +199,28 @@ void main() {
       for (final (name, location, open) in [
         for (final sheet in _sheets) (sheet.name, sheet.location, sheet.open),
         ('export', SettloRoutes.profile, find.text('Export')),
+        ('sign out unsent', SettloRoutes.profile, find.text('Sign out')),
+        (
+          'country picker',
+          SettloRoutes.phone,
+          find.byKey(const ValueKey('country-chip')),
+        ),
+        (
+          'question edit',
+          SettloRoutes.activity,
+          find.text('Rahul edited Wifi · Airtel'),
+        ),
+        (
+          'record repayment',
+          SettloRoutes.loan('l1'),
+          find.text('Record repayment'),
+        ),
+        ('loan dispute', SettloRoutes.loan('l1'), find.text("Didn't get it")),
+        (
+          'confirmation dispute',
+          SettloRoutes.confirmRepayment('r3'),
+          find.text("Didn't receive this"),
+        ),
         ('delete account', SettloRoutes.profile, find.text('Delete account')),
       ]) {
         testWidgets('$name ${device.name} $themeName panel golden', (
@@ -156,6 +229,8 @@ void main() {
           await _pump(tester, device, location, theme: theme);
           await _tap(tester, open);
           expectSettloTapTargets(tester);
+          expectNoMidWordBreaks(tester);
+          expectSettloTypeMinimum(tester);
           await expectLater(
             find.byKey(settloGoldenSurfaceKey),
             matchesGoldenFile(
@@ -205,7 +280,16 @@ void main() {
 
     expect(find.text('Save'), findsNothing);
     // The header scrolled out of the lazy list when the row was brought up.
-    await tester.drag(find.byType(ListView), const Offset(0, 600));
+    final scroll = tester.state<ScrollableState>(
+      find
+          .byWidgetPredicate(
+            (widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down,
+          )
+          .first,
+    );
+    scroll.position.jumpTo(0);
     await tester.pumpAndSettle();
     expect(find.text('Asha'), findsOne);
   });

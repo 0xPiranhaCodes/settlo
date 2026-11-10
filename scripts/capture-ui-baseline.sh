@@ -7,8 +7,8 @@ base_sha="$(git rev-parse --verify "${1:?base commit required}^{commit}")"
 root="$(git rev-parse --show-toplevel)"
 baseline="$(mktemp -d /tmp/settlo-ui-baseline.XXXXXX)"
 rmdir "$baseline"
+trap 'if [ -d "$baseline" ]; then git worktree remove --force "$baseline"; fi' EXIT
 git worktree add --detach "$baseline" "$base_sha"
-trap 'git worktree remove --force "$baseline"' EXIT
 cp "$root"/app/test/*_golden_test.dart "$baseline/app/test/"
 cp "$root/app/test/sheet_hit_test.dart" "$baseline/app/test/"
 cp "$root/packages/test_support/lib/golden.dart" "$baseline/packages/test_support/lib/golden.dart"
@@ -22,6 +22,8 @@ s = re.sub(r'static const accessible = <GoldenDevice>\[.*?\n  \];',
            'static const accessible = all;', s, flags=re.S)
 s = s[:s.index('/// Walks each screen')] + '''// The base predates the 44px audit; head still runs the complete assertion.
 void expectSettloTapTargets(WidgetTester tester) {}
+void expectNoMidWordBreaks(WidgetTester tester) {}
+void expectSettloTypeMinimum(WidgetTester tester) {}
 '''
 p.write_text(s)
 PY
