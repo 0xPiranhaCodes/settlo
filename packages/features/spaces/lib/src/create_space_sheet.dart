@@ -185,16 +185,12 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
                       children: [
                         Text(
                           m.name,
-                          style: SettloTypography.figtree(
-                            14,
-                            color: c.textPrimary,
-                          ),
+                          style: SettloTypography.body(color: c.textPrimary),
                         ),
                         if (m.name != m.phone)
                           Text(
                             groupPhone(m.phone),
-                            style: SettloTypography.figtree(
-                              12,
+                            style: SettloTypography.footnote(
                               color: c.textSecondary,
                             ),
                           ),
@@ -216,7 +212,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
           Text(
             "They don't need the app yet. They see the space when they "
             'verify their number.',
-            style: SettloTypography.figtree(13, color: c.textSecondary),
+            style: SettloTypography.subheadline(color: c.textSecondary),
           ),
           const SizedBox(height: SettloSpacing.x2),
           TextField(
@@ -247,7 +243,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
             gap,
             Text(
               error,
-              style: SettloTypography.figtree(13, color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.textPrimary),
             ),
           ],
           const SizedBox(height: SettloSpacing.x3),

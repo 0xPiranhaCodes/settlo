@@ -35,14 +35,13 @@ class SpaceEmptyView extends StatelessWidget {
         if (!m.joined) m.name,
     ];
     final month = space.month ?? DateTime.now();
-    final caption = SettloTypography.figtree(
-      13,
-      color: c.textSecondary,
-    ).copyWith(height: 1.5);
+    final caption = SettloTypography.subheadline(color: c.textSecondary)
+        .copyWith(height: 1.5);
     return Scaffold(
       body: DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0, height: 1.2),
-        child: ListView(
+        child: SettloScrollScaffold(
+          title: 'Space',
           padding: EdgeInsets.fromLTRB(
             SettloSpacing.screenMargin,
             math.max(media.padding.top, 44) + 16,
@@ -103,11 +102,11 @@ class SpaceEmptyView extends StatelessWidget {
             ),
             const SizedBox(height: SettloSpacing.x2),
             SCard(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+              padding: const EdgeInsets.all(SettloSpacing.screenMargin),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
+                  SResponsiveRow(
                     children: [
                       Expanded(child: Text('MEMBERS', style: sectionLabel(c))),
                       Text(
@@ -125,7 +124,7 @@ class SpaceEmptyView extends StatelessWidget {
             ),
             const SizedBox(height: SettloSpacing.x2),
             SCard(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+              padding: const EdgeInsets.all(SettloSpacing.screenMargin),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -196,11 +195,7 @@ class SpaceHeader extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: SettloTypography.figtree(
-              15,
-              weight: FontWeight.w500,
-              color: c.textPrimary,
-            ),
+            style: SettloTypography.headline(color: c.textPrimary),
           ),
         ),
         SizedBox(
@@ -233,11 +228,7 @@ class SpaceHeader extends StatelessWidget {
   }
 }
 
-BoxDecoration? _divider(SettloColors c, {required bool on}) => on
-    ? BoxDecoration(
-        border: Border(bottom: BorderSide(color: c.hairline)),
-      )
-    : null;
+BoxDecoration? _divider(SettloColors c, {required bool on}) => null;
 
 class _MemberRow extends StatelessWidget {
   const new(this.member, {required this.divider});
@@ -265,15 +256,12 @@ class _MemberRow extends StatelessWidget {
                     m.isYou ? 'You' : m.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SettloTypography.figtree(14, color: c.textPrimary),
+                    style: SettloTypography.body(color: c.textPrimary),
                   ),
                   if (!m.joined)
                     Text(
                       '${maskPhone(m.phone)} · not joined yet',
-                      style: SettloTypography.figtree(
-                        12,
-                        color: c.textSecondary,
-                      ),
+                      style: SettloTypography.footnote(color: c.textSecondary),
                     ),
                 ],
               ),
@@ -287,10 +275,8 @@ class _MemberRow extends StatelessWidget {
                 ),
                 child: Text(
                   'admin',
-                  style: SettloTypography.figtree(
-                    11,
-                    color: c.textSecondary,
-                  ).copyWith(height: 1.3),
+                  style: SettloTypography.caption1(color: c.textSecondary)
+                      .copyWith(height: 1.3),
                 ),
               ),
           ],
@@ -332,7 +318,7 @@ class _SetUpRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: SettloTypography.figtree(14, color: c.textPrimary),
+                  style: SettloTypography.body(color: c.textPrimary),
                 ),
               ),
               SpacesIcon(SpacesGlyph.chevron, color: c.textMuted, size: 18),

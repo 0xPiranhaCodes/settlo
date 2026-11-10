@@ -131,88 +131,87 @@ class SpaceDetailView extends ConsumerWidget {
     return Scaffold(
       body: DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0, height: 1.2),
-        child: RefreshIndicator(
+        child: SettloScrollScaffold(
+          title: 'Space',
           onRefresh: () async {
             ref.invalidate(spacesProvider);
             await ref.read(spaceLedgerProvider(space.id).notifier).reload();
           },
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              SettloSpacing.screenMargin,
-              math.max(media.padding.top, 44) + 16,
-              SettloSpacing.screenMargin,
-              media.padding.bottom + SettloSpacing.x2,
-            ),
-            children: [
-              SpaceHeader(space),
-              const SizedBox(height: SettloSpacing.x3),
-              if (tab == SpaceTab.expenses) ...[
-                _Hero(space, loaded),
-                const SizedBox(height: SettloSpacing.x2),
-                // The canvas pads these 16, not Material's 24, so both
-                // labels fit side by side at 360.
-                Theme(
-                  data: _compactButtons(Theme.of(context)),
-                  child: Flex(
-                    direction: largeText ? Axis.vertical : Axis.horizontal,
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: largeText
-                        ? CrossAxisAlignment.stretch
-                        : CrossAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        fit: largeText ? FlexFit.loose : FlexFit.tight,
-                        child: SPrimaryButton(
-                          label: 'Add expense',
-                          icon: SpacesIcon(
-                            SpacesGlyph.plus,
-                            color: c.onAction,
-                            size: 18,
-                            stroke: 1.9,
-                          ),
-                          onPressed: () =>
-                              context.push(SettloRoutes.addExpenseIn(space.id)),
-                        ),
-                      ),
-                      SizedBox(
-                        width: SettloSpacing.x2,
-                        height: largeText ? SettloSpacing.x2 : 0,
-                      ),
-                      Flexible(
-                        fit: largeText ? FlexFit.loose : FlexFit.tight,
-                        child: SSecondaryButton(
-                          label: 'Settle up',
-                          onPressed: () =>
-                              context.push(SettloRoutes.settleWith(space.id)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: SettloSpacing.x3),
-              ],
-              _Tabs(space: space, tab: tab),
+          padding: EdgeInsets.fromLTRB(
+            SettloSpacing.screenMargin,
+            math.max(media.padding.top, 44) + 16,
+            SettloSpacing.screenMargin,
+            media.padding.bottom + SettloSpacing.x2,
+          ),
+          children: [
+            SpaceHeader(space),
+            const SizedBox(height: SettloSpacing.x3),
+            if (tab == SpaceTab.expenses) ...[
+              _Hero(space, loaded),
               const SizedBox(height: SettloSpacing.x2),
-              if (loaded == null)
-                Text(
-                  ledger.hasError
-                      ? "We couldn't load this space. Pull down to try again."
-                      : '',
-                  style: SettloTypography.figtree(13, color: c.textSecondary),
-                )
-              else if (tab == SpaceTab.expenses)
-                _ExpenseList(space, loaded)
-              else ...[
-                _FairnessCard(space, loaded),
+              // The canvas pads these 16, not Material's 24, so both
+              // labels fit side by side at 360.
+              Theme(
+                data: _compactButtons(Theme.of(context)),
+                child: Flex(
+                  direction: largeText ? Axis.vertical : Axis.horizontal,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: largeText
+                      ? CrossAxisAlignment.stretch
+                      : CrossAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      fit: largeText ? FlexFit.loose : FlexFit.tight,
+                      child: SPrimaryButton(
+                        label: 'Add expense',
+                        icon: SpacesIcon(
+                          SpacesGlyph.plus,
+                          color: c.onAction,
+                          size: 18,
+                          stroke: 1.9,
+                        ),
+                        onPressed: () =>
+                            context.push(SettloRoutes.addExpenseIn(space.id)),
+                      ),
+                    ),
+                    SizedBox(
+                      width: SettloSpacing.x2,
+                      height: largeText ? SettloSpacing.x2 : 0,
+                    ),
+                    Flexible(
+                      fit: largeText ? FlexFit.loose : FlexFit.tight,
+                      child: SSecondaryButton(
+                        label: 'Settle up',
+                        onPressed: () =>
+                            context.push(SettloRoutes.settleWith(space.id)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: SettloSpacing.x3),
+            ],
+            _Tabs(space: space, tab: tab),
+            const SizedBox(height: SettloSpacing.x2),
+            if (loaded == null)
+              Text(
+                ledger.hasError
+                    ? "We couldn't load this space. Pull down to try again."
+                    : '',
+                style: SettloTypography.subheadline(color: c.textSecondary),
+              )
+            else if (tab == SpaceTab.expenses)
+              _ExpenseList(space, loaded)
+            else ...[
+              _FairnessCard(space, loaded),
+              const SizedBox(height: SettloSpacing.x2),
+              _SettleCard(space),
+              if (loaded.categories.isNotEmpty) ...[
                 const SizedBox(height: SettloSpacing.x2),
-                _SettleCard(space),
-                if (loaded.categories.isNotEmpty) ...[
-                  const SizedBox(height: SettloSpacing.x2),
-                  _CategoriesCard(loaded),
-                ],
+                _CategoriesCard(loaded),
               ],
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -255,10 +254,10 @@ class _Hero extends StatelessWidget {
       }
     }
     final monthName = _months[month.month - 1];
-    final small = SettloTypography.figtree(11, color: c.textSecondary);
+    final small = SettloTypography.caption1(color: c.textSecondary);
     return SCard(
       hero: true,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(SettloSpacing.x3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -308,10 +307,7 @@ class _Hero extends StatelessWidget {
                   children: [
                     Text(
                       monthName,
-                      style: SettloTypography.figtree(
-                        12,
-                        color: c.textSecondary,
-                      ),
+                      style: SettloTypography.footnote(color: c.textSecondary),
                     ),
                     const SizedBox(height: 4),
                     MoneyText(space.monthTotal, size: 17),
@@ -445,16 +441,20 @@ class _Tabs extends StatelessWidget {
                                 SettloRadius.compact,
                               ),
                             ),
-                            child: Text(
-                              label,
-                              style: SettloTypography.figtree(
-                                13,
-                                weight: selected
-                                    ? FontWeight.w500
-                                    : FontWeight.w400,
-                                color: selected
-                                    ? c.textPrimary
-                                    : c.textSecondary,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                label,
+                                maxLines: 1,
+                                style: SettloTypography.subheadline(
+                                  weight: selected
+                                      ? FontWeight.w500
+                                      : FontWeight.w400,
+                                  color: selected
+                                      ? c.textPrimary
+                                      : c.textSecondary,
+                                ),
                               ),
                             ),
                           ),
@@ -506,7 +506,7 @@ class _ExpenseList extends StatelessWidget {
               header: true,
               child: Text(
                 _dayLabel(day, ledger.today),
-                style: SettloTypography.figtree(12, color: c.textSecondary),
+                style: SettloTypography.footnote(color: c.textSecondary),
               ),
             ),
           ),
@@ -576,11 +576,6 @@ class _ExpenseRow extends StatelessWidget {
         minHeight: SettloSpacing.minTouchTarget,
       ),
       padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
-      decoration: divider
-          ? BoxDecoration(
-              border: Border(bottom: BorderSide(color: c.hairline)),
-            )
-          : null,
       child: Row(
         children: [
           SAvatar(payer?.name ?? e.description, size: 36),
@@ -593,14 +588,14 @@ class _ExpenseRow extends StatelessWidget {
                   e.description,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SettloTypography.figtree(15, color: c.textPrimary),
+                  style: SettloTypography.headline(color: c.textPrimary),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   detail,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SettloTypography.figtree(12, color: c.textSecondary),
+                  style: SettloTypography.footnote(color: c.textSecondary),
                 ),
               ],
             ),
@@ -672,7 +667,7 @@ class _FairnessCard extends StatelessWidget {
     return RepaintBoundary(
       key: fairnessCardKey,
       child: SCard(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+        padding: const EdgeInsets.all(SettloSpacing.screenMargin),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -697,7 +692,7 @@ class _FairnessCard extends StatelessWidget {
             if (total == 0)
               Text(
                 'Nothing spent in $month yet.',
-                style: SettloTypography.figtree(13, color: c.textSecondary),
+                style: SettloTypography.subheadline(color: c.textSecondary),
               )
             else ...[
               for (final (i, (m, f)) in rows.indexed)
@@ -713,10 +708,8 @@ class _FairnessCard extends StatelessWidget {
                 'The ${dark ? 'white' : 'dark'} tick is the fair share. A bar '
                 'past it means that person '
                 'carried the $group this month.',
-                style: SettloTypography.figtree(
-                  12,
-                  color: c.textSecondary,
-                ).copyWith(height: 1.5),
+                style: SettloTypography.footnote(color: c.textSecondary)
+                    .copyWith(height: 1.5),
               ),
             ],
           ],
@@ -780,11 +773,6 @@ class FairShareBar extends StatelessWidget {
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
-        decoration: divider
-            ? BoxDecoration(
-                border: Border(bottom: BorderSide(color: c.hairline)),
-              )
-            : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -795,7 +783,7 @@ class FairShareBar extends StatelessWidget {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SettloTypography.figtree(14, color: c.textPrimary),
+                    style: SettloTypography.body(color: c.textPrimary),
                   ),
                 ),
                 Text(
@@ -880,11 +868,11 @@ class _SettleCard extends StatelessWidget {
     final payments = space.payments;
     final waiting = space.pendingFromYou;
     return SCard(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+      padding: const EdgeInsets.all(SettloSpacing.screenMargin),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          SResponsiveRow(
             children: [
               Expanded(
                 child: Text('SIMPLEST WAY TO SETTLE', style: sectionLabel(c)),
@@ -904,7 +892,7 @@ class _SettleCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 'Everyone is settled up.',
-                style: SettloTypography.figtree(13, color: c.textSecondary),
+                style: SettloTypography.subheadline(color: c.textSecondary),
               ),
             ),
           for (final (i, p) in payments.indexed)
@@ -972,11 +960,6 @@ class _PaymentRow extends StatelessWidget {
         minHeight: SettloSpacing.minTouchTarget,
       ),
       padding: const EdgeInsets.symmetric(vertical: 6),
-      decoration: divider
-          ? BoxDecoration(
-              border: Border(bottom: BorderSide(color: c.hairline)),
-            )
-          : null,
       child: Row(
         children: [
           SAvatar(other.name, size: 32),
@@ -990,7 +973,7 @@ class _PaymentRow extends StatelessWidget {
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: SettloTypography.figtree(14, color: c.textPrimary),
+                      style: SettloTypography.body(color: c.textPrimary),
                     ),
                   ),
                   MoneyText(
@@ -1015,10 +998,7 @@ class _PaymentRow extends StatelessWidget {
                 backgroundColor: c.action.withValues(alpha: 0.14),
                 foregroundColor: c.action,
                 shape: const StadiumBorder(),
-                textStyle: SettloTypography.figtree(
-                  13,
-                  weight: FontWeight.w500,
-                ),
+                textStyle: SettloTypography.subheadline(),
               ),
               child: Text(text),
             ),
@@ -1041,21 +1021,16 @@ class _CategoriesCard extends StatelessWidget {
     final month = _months[ledger.month.month - 1].substring(0, 3);
     final rows = ledger.categories;
     return SCard(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+      padding: const EdgeInsets.all(SettloSpacing.screenMargin),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('BY CATEGORY · ${month.toUpperCase()}', style: sectionLabel(c)),
           const SizedBox(height: 4),
-          for (final (i, r) in rows.indexed)
+          for (final r in rows)
             MergeSemantics(
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
-                decoration: i < rows.length - 1
-                    ? BoxDecoration(
-                        border: Border(bottom: BorderSide(color: c.hairline)),
-                      )
-                    : null,
                 child: Row(
                   children: [
                     Expanded(
@@ -1066,18 +1041,12 @@ class _CategoriesCard extends StatelessWidget {
                         },
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: SettloTypography.figtree(
-                          14,
-                          color: c.textPrimary,
-                        ),
+                        style: SettloTypography.body(color: c.textPrimary),
                       ),
                     ),
                     Text(
                       r.count == 1 ? '1 expense · ' : '${r.count} expenses · ',
-                      style: SettloTypography.figtree(
-                        12,
-                        color: c.textSecondary,
-                      ),
+                      style: SettloTypography.footnote(color: c.textSecondary),
                     ),
                     MoneyText(r.total, size: 14),
                   ],
@@ -1249,7 +1218,7 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
             const SizedBox(height: SettloSpacing.x2),
             Text(
               error,
-              style: SettloTypography.figtree(13, color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.textPrimary),
             ),
           ],
           const SizedBox(height: SettloSpacing.x2),
@@ -1391,7 +1360,7 @@ class _ConfirmSettlementSheetState
                       '${widget.payer} before confirming. Confirming is '
                       'final and updates both ledgers.',
             textAlign: TextAlign.center,
-            style: SettloTypography.figtree(13, color: c.textSecondary),
+            style: SettloTypography.subheadline(color: c.textSecondary),
           ),
           if (_disputing) ...[
             const SizedBox(height: SettloSpacing.x2),
@@ -1408,7 +1377,7 @@ class _ConfirmSettlementSheetState
             Text(
               error,
               textAlign: TextAlign.center,
-              style: SettloTypography.figtree(13, color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.textPrimary),
             ),
           ],
         ],

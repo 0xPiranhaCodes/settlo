@@ -81,7 +81,7 @@ class _State extends ConsumerState<ConfirmSettlementScreen> {
                   : 'This settle-up was already answered, or is no longer '
                         'yours to confirm.',
               textAlign: TextAlign.center,
-              style: SettloTypography.figtree(13, color: c.textSecondary),
+              style: SettloTypography.subheadline(color: c.textSecondary),
             ),
           ),
         },
