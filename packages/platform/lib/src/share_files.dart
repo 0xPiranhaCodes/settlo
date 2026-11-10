@@ -18,8 +18,9 @@ Future<void> clearExports(Directory dir) async {
   if (dir.existsSync()) await dir.delete(recursive: true);
 }
 
-/// Empties the exports folder left by the last run. Called at app start;
-/// a failure is ignored, since the next export empties it again.
+/// Empties the exports folder left by the last run. Awaited at app start,
+/// before any share can be active; a failure is ignored, since each export
+/// deletes its own folder anyway.
 Future<void> clearExportsAtStart() async {
   try {
     await clearExports(await exportsDirectory());
@@ -34,25 +35,25 @@ final exportsDirectoryProvider = Provider<Future<Directory> Function()>(
 );
 
 /// Opens the system share sheet with files, anchored on iPad to the global
-/// rect of the control that asked. False when the user dismissed it.
+/// rect of the control that asked. Completes when the sheet closes.
 /// Tests override this.
 final shareFilesProvider =
-    Provider<Future<bool> Function(List<SharedFile>, Rect origin)>(
-      (ref) => (files, origin) async {
-        final result = await SharePlus.instance.share(
-          ShareParams(
-            files: [for (final f in files) XFile(f.path, mimeType: f.mimeType)],
-            sharePositionOrigin: origin,
+    Provider<Future<void> Function(List<SharedFile>, Rect origin)>(
+      (ref) =>
+          (files, origin) => SharePlus.instance.share(
+            ShareParams(
+              files: [
+                for (final f in files) XFile(f.path, mimeType: f.mimeType),
+              ],
+              sharePositionOrigin: origin,
+            ),
           ),
-        );
-        return result.status != ShareResultStatus.dismissed;
-      },
     );
 
-/// Makes an export and shares it: empties the exports folder, lets `write`
-/// fill it, and shares the files it returns. A dismissed share deletes them
-/// at once. A completed share keeps them until the next export or app
-/// start, because the receiving app may still be reading them.
+/// Makes an export and shares it: `write` fills a new folder of its own,
+/// `exports/<random>/`, and the files it returns are shared. The folder is
+/// deleted when the share completes, is dismissed or fails. Another export
+/// started meanwhile gets its own folder, so it never touches these files.
 final shareExportProvider =
     Provider<
       Future<void> Function(
@@ -63,14 +64,13 @@ final shareExportProvider =
       final directory = ref.watch(exportsDirectoryProvider);
       final share = ref.watch(shareFilesProvider);
       return (write, origin) async {
-        final dir = await directory();
-        await clearExports(dir);
-        await dir.create(recursive: true);
+        final root = await directory();
+        await root.create(recursive: true);
+        final dir = await root.createTemp('share-');
         try {
-          if (!await share(await write(dir), origin)) await clearExports(dir);
-        } on Object {
+          await share(await write(dir), origin);
+        } finally {
           await clearExports(dir);
-          rethrow;
         }
       };
     });

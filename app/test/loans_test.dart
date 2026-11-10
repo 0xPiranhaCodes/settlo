@@ -32,11 +32,10 @@ Completer<void>? _sharing;
 /// While set, the share sheet stays open until it completes.
 Completer<void>? _sheetOpen;
 
-Future<bool> _share(List<SharedFile> files, Rect origin) async {
+Future<void> _share(List<SharedFile> files, Rect origin) async {
   _shared.add([for (final f in files) (f, File(f.path).readAsBytesSync())]);
   _sharing?.complete();
   await _sheetOpen?.future;
-  return true;
 }
 
 Future<bool> _open(Uri uri) async {
@@ -440,7 +439,9 @@ void main() {
       expect(
         file.path,
         matches(
-          RegExp(r'/exports/settlo-loan-statement-\d{4}-\d\d-\d\d\.pdf$'),
+          RegExp(
+            r'/exports/share-[^/]+/settlo-loan-statement-\d{4}-\d\d-\d\d\.pdf$',
+          ),
         ),
       );
       expect(file.mimeType, 'application/pdf');

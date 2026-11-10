@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart' show Bidi;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:settlo_core/export/csv.dart';
@@ -216,7 +217,8 @@ Statement loanStatement(
                 _day(r.paidOn),
                 [
                   r.method?.label ?? 'Repayment',
-                  if (r.reference case final ref?) redactPhones(ref),
+                  if (r.reference case final ref?)
+                    redactPhones(ref, keepUtr: true),
                 ].join(' · '),
                 if (r.recordedByYou) 'You' else them,
                 switch (r.status) {
@@ -357,8 +359,14 @@ Statement spaceSummary(
 
 /// Text the PDF fonts cannot draw, such as a name in Devanagari, drawn by
 /// Flutter's text engine (which shapes complex scripts) as a PNG, with its
-/// size in points at a 10pt font.
-typedef StatementImage = ({Uint8List png, double width, double height});
+/// size and the depth of its alphabetic baseline from the top, in points at
+/// a 10pt font.
+typedef StatementImage = ({
+  Uint8List png,
+  double width,
+  double height,
+  double baseline,
+});
 
 /// What a statement shows when a text's image could not be drawn.
 const unsupportedScriptPlaceholder = 'Name in another script';
@@ -404,52 +412,65 @@ bool _covered(String text, Map<int, int> glyphs) =>
     text.runes.every((r) => r <= 0x20 || glyphs.containsKey(r));
 
 /// Draws each of [texts] with Flutter's text engine in the PDF's ink, at
-/// 10pt and four times that resolution. Runs on the UI isolate, so it is
-/// only for the few strings the fonts cannot cover. A text that fails to
-/// draw is left out, and the PDF shows [unsupportedScriptPlaceholder].
+/// 10pt and four times that resolution, right to left where the text is
+/// mostly in a right-to-left script such as Urdu. Runs on the UI isolate,
+/// so it is only for the few strings the fonts cannot cover. A text that
+/// fails to draw is left out, and the PDF shows
+/// [unsupportedScriptPlaceholder]. Tests pass [draw] to force a failure.
 Future<Map<String, StatementImage>> renderTextImages(
-  Iterable<String> texts,
-) async {
-  const scale = 4.0;
+  Iterable<String> texts, {
+  @visibleForTesting Future<StatementImage> Function(String text) draw = _draw,
+}) async {
   final images = <String, StatementImage>{};
   for (final text in texts) {
     try {
-      final painter = TextPainter(
-        text: TextSpan(
-          text: text,
-          style: const TextStyle(
-            fontFamily: 'Figtree',
-            package: 'settlo_core',
-            // Tests register it (as packages/settlo_core/…); on device it is
-            // absent and the platform's fallback fonts draw the script.
-            fontFamilyFallback: ['Noto Sans Devanagari'],
-            fontSize: 10,
-            color: Color(0xFF1B1B18),
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      final w = painter.width;
-      final h = painter.height;
-      final recorder = ui.PictureRecorder();
-      painter
-        ..paint(Canvas(recorder)..scale(scale), Offset.zero)
-        ..dispose();
-      final picture = recorder.endRecording();
-      final image = await picture.toImage(
-        (w * scale).ceil(),
-        (h * scale).ceil(),
-      );
-      picture.dispose();
-      final png = await image.toByteData(format: ui.ImageByteFormat.png);
-      image.dispose();
-      if (png == null || w == 0) continue;
-      images[text] = (png: png.buffer.asUint8List(), width: w, height: h);
+      final image = await draw(text);
+      if (image.width > 0) images[text] = image;
     } on Object {
       continue;
     }
   }
   return images;
+}
+
+Future<StatementImage> _draw(String text) async {
+  const scale = 4.0;
+  final painter = TextPainter(
+    text: TextSpan(
+      text: text,
+      style: const TextStyle(
+        fontFamily: 'Figtree',
+        package: 'settlo_core',
+        // Tests register these (as packages/settlo_core/…); on device they
+        // are absent and the platform's fallback fonts draw the script.
+        fontFamilyFallback: ['Noto Sans Devanagari', 'Noto Naskh Arabic'],
+        fontSize: 10,
+        color: Color(0xFF1B1B18),
+      ),
+    ),
+    textDirection: Bidi.detectRtlDirectionality(text)
+        ? TextDirection.rtl
+        : TextDirection.ltr,
+  )..layout();
+  final (w, h) = (painter.width, painter.height);
+  final baseline = painter.computeDistanceToActualBaseline(
+    TextBaseline.alphabetic,
+  );
+  final recorder = ui.PictureRecorder();
+  painter
+    ..paint(Canvas(recorder)..scale(scale), Offset.zero)
+    ..dispose();
+  final picture = recorder.endRecording();
+  final image = await picture.toImage((w * scale).ceil(), (h * scale).ceil());
+  picture.dispose();
+  final png = await image.toByteData(format: ui.ImageByteFormat.png);
+  image.dispose();
+  return (
+    png: png!.buffer.asUint8List(),
+    width: w,
+    height: h,
+    baseline: baseline,
+  );
 }
 
 /// Writes [statement] as a PDF to [file] on a background isolate, so a
@@ -709,13 +730,22 @@ final class _Styles {
     : regular = pw.Font.ttf(fonts.regular),
       medium = pw.Font.ttf(fonts.medium),
       serif = pw.Font.ttf(fonts.serif),
-      _glyphs = TtfParser(fonts.regular).charToGlyphIndexMap;
+      _glyphs = TtfParser(fonts.regular).charToGlyphIndexMap,
+      _ascent = _ascentPerEm(fonts.regular);
 
   final pw.Font regular;
   final pw.Font medium;
   final pw.Font serif;
   final Map<String, StatementImage> images;
   final Map<int, int> _glyphs;
+
+  /// Figtree's baseline depth below the top of a line, per point of size.
+  final double _ascent;
+
+  static double _ascentPerEm(ByteData font) {
+    final ttf = TtfParser(font);
+    return ttf.ascent / ttf.unitsPerEm;
+  }
 
   /// [value] in [style], or its image when the fonts cannot draw it.
   pw.Widget text(
@@ -734,11 +764,17 @@ final class _Styles {
         textAlign: align,
       );
     }
-    final k = (style.fontSize ?? 10) / 10;
-    return pw.Image(
-      pw.MemoryImage(image.png),
-      width: image.width * k,
-      height: image.height * k,
+    final size = style.fontSize ?? 10;
+    final k = size / 10;
+    // Lift (or drop) the image so its baseline sits on the row's text
+    // baseline; PDF y points up.
+    return pw.Transform.translate(
+      offset: PdfPoint(0, image.baseline * k - _ascent * size),
+      child: pw.Image(
+        pw.MemoryImage(image.png),
+        width: image.width * k,
+        height: image.height * k,
+      ),
     );
   }
 

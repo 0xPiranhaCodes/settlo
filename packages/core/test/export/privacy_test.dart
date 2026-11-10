@@ -8,11 +8,19 @@ import 'fixtures.dart';
 final _at = DateTime.utc(2026, 11, 10, 9, 34);
 
 /// The number every adversarial field carries, in the forms people type.
-const _forms = ['+91 98000 00009', '+919800000009', '98000-00009'];
+const _forms = [
+  '+91 98000 00009',
+  '+919800000009',
+  '98000-00009',
+  '०९८०००००००९', // Devanagari digits, with the trunk 0
+  '+९१ ९८००० ००००९',
+];
 
-/// Every digit of it, however it was spaced.
-bool _leaks(String text) =>
-    text.replaceAll(RegExp(r'[\s-]'), '').contains('9800000009');
+/// Every digit of it, in either script, however it was spaced.
+bool _leaks(String text) {
+  final digits = text.replaceAll(RegExp(r'[\s-]'), '');
+  return digits.contains('9800000009') || digits.contains('९८०००००००९');
+}
 
 SpaceSummary _flatNamed({String? space, String? label}) {
   final f = flat();
@@ -86,6 +94,42 @@ void main() {
       redactPhones('₹10,00,000 on 2026-11-05, ref 12345'),
       '₹10,00,000 on 2026-11-05, ref 12345',
     );
+  });
+
+  test('a phone is exactly 10 digits, with +91, 91 or 0, at digit '
+      'boundaries', () {
+    for (final kept in [
+      '19800000009', // 11 digits, no trunk prefix
+      '980000000', // 9 digits
+      'Ref 4321 8812 0099 1234',
+    ]) {
+      expect(redactPhones(kept), kept);
+    }
+    expect(redactPhones('0 98000 00009'), '••••');
+    // Runes outside the BMP keep the text around the number intact.
+    expect(redactPhones('🎉 Riya 98000 00009 🎉'), '🎉 Riya •••• 🎉');
+    expect(redactPhones('91-98000-00009'), '••••');
+    // A single space or hyphen is a boundary too, so two numbers a space
+    // apart are both found.
+    expect(redactPhones('9800000009 9800000010'), '•••• ••••');
+  });
+
+  test('a counterparty known only by Devanagari digits is not printed', () {
+    final s = loanStatement(
+      _loan(counterparty: '+९१ ९८००० ००००९'),
+      generatedAt: _at,
+    );
+    expect(_leaks(_pdfText(s)), isFalse);
+    expect(_pdfText(s), contains('The other party'));
+  });
+
+  test("a 12-digit UTR is kept: it is the payer's to reconcile", () {
+    for (final utr in ['432188120099', '4321 8812 0099', '९१२३४५६७८९०१']) {
+      final s = loanStatement(_loan(reference: utr), generatedAt: _at);
+      expect(_pdfText(s), contains('UPI · $utr'));
+    }
+    // Only as the reference; anywhere else it is just digits, kept too.
+    expect(redactPhones('432188120099'), '432188120099');
   });
 
   for (final n in _forms) {
@@ -171,7 +215,7 @@ void main() {
       );
       final images = {
         for (final t in textsOutsideFonts(summary, fonts))
-          t: (png: png, width: 30.0, height: 12.0),
+          t: (png: png, width: 30.0, height: 12.0, baseline: 9.0),
       };
       final withImages = latin1.decode(
         await statementPdf(summary, fonts: fonts, images: images),

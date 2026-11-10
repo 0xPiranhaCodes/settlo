@@ -151,3 +151,46 @@ int pdfPages(Uint8List pdf) => int.parse(
   RegExp(r'/Type\s*/Pages\b[^>]*?/Count\s+(\d+)')
       .firstMatch(latin1.decode(pdf))![1]!,
 );
+
+/// Each word a PDF prints, in order, read through every font's ToUnicode
+/// map (the pdf package writes text as per-font glyph codes, word by word).
+/// Every map is tried, so the text from one font reads true and the rest is
+/// noise; enough to find a phrase.
+String pdfWords(Uint8List pdf) {
+  final streams = [
+    for (final m in RegExp(
+      r'stream\r?\n(.*?)endstream',
+      dotAll: true,
+    ).allMatches(latin1.decode(pdf)))
+      ?_inflate(m[1]!),
+  ];
+  final maps = [
+    for (final s in streams.where((s) => s.contains('begincmap')))
+      {
+        for (final m in RegExp('<([0-9A-F]{4})> <([0-9A-F]{4})>').allMatches(s))
+          m[1]!: String.fromCharCode(int.parse(m[2]!, radix: 16)),
+      },
+  ];
+  final words = [
+    for (final s in streams)
+      for (final m in RegExp(r'\[<([0-9a-f]*)>\]TJ').allMatches(s)) m[1]!,
+  ];
+  return [
+    for (final map in maps)
+      [
+        for (final w in words)
+          [
+            for (var i = 0; i + 4 <= w.length; i += 4)
+              map[w.substring(i, i + 4).toUpperCase()] ?? '?',
+          ].join(),
+      ].join(' '),
+  ].join('\n');
+}
+
+String? _inflate(String data) {
+  try {
+    return latin1.decode(zlib.decode(latin1.encode(data)));
+  } on Object {
+    return null;
+  }
+}

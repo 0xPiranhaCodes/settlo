@@ -449,7 +449,6 @@ void main() {
             ]);
             sharing.complete();
             await sheet.future;
-            return true;
           }),
           exportsDirectoryProvider.overrideWithValue(() async => exports),
         ],
@@ -478,13 +477,22 @@ void main() {
     await tester.pump();
     expect(find.text('Preparing…'), findsOneWidget);
     sheet.complete();
+    // Its folder is deleted with real file work once the sheet closes.
+    while (find.text('Preparing…').evaluate().isNotEmpty) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
     await tester.pumpAndSettle();
 
     expect(shared, hasLength(1));
     final [(csv, csvBytes), (pdf, pdfBytes)] = shared.single;
     expect(
       csv.path,
-      matches(RegExp(r'/exports/settlo-flat-4b-expenses-[\d-]{10}\.csv$')),
+      matches(
+        RegExp(r'/exports/share-[^/]+/settlo-flat-4b-expenses-[\d-]{10}\.csv$'),
+      ),
     );
     expect(csv.mimeType, 'text/csv');
     final text = utf8.decode(csvBytes);
@@ -493,7 +501,9 @@ void main() {
     expect(text, isNot(contains('98765')));
     expect(
       pdf.path,
-      matches(RegExp(r'/exports/settlo-flat-4b-summary-[\d-]{10}\.pdf$')),
+      matches(
+        RegExp(r'/exports/share-[^/]+/settlo-flat-4b-summary-[\d-]{10}\.pdf$'),
+      ),
     );
     expect(String.fromCharCodes(pdfBytes.take(5)), '%PDF-');
     expect(find.text('CSV and PDF'), findsOneWidget);
@@ -518,7 +528,7 @@ void main() {
             spaceLedgerRepositoryProvider.overrideWithValue(
               _LedgerRepository(fail: fail),
             ),
-            shareFilesProvider.overrideWithValue((_, _) async => true),
+            shareFilesProvider.overrideWithValue((_, _) async {}),
             exportsDirectoryProvider.overrideWithValue(() async => exports),
           ],
           child: MaterialApp(

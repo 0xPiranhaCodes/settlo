@@ -110,7 +110,7 @@ void main() {
         [
           [
             '6 Nov 2026',
-            'UPI · ••••',
+            'UPI · 4321 8812 0099',
             'Arjun',
             'Awaiting you',
             const Inr(Paise(2500050)),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
@@ -8,12 +9,11 @@ import 'package:share_plus_platform_interface/share_plus_platform_interface.dart
 
 final class _Platform extends SharePlatform {
   final shared = <ShareParams>[];
-  ShareResultStatus status = ShareResultStatus.success;
 
   @override
   Future<ShareResult> share(ShareParams params) async {
     shared.add(params);
-    return ShareResult('', status);
+    return const ShareResult('', ShareResultStatus.success);
   }
 }
 
@@ -26,7 +26,9 @@ void main() {
   late Directory exports;
   late ProviderContainer container;
   late List<List<SharedFile>> shared;
-  late bool completes;
+
+  /// While set, the share sheet stays open until it completes.
+  Completer<void>? sheet;
 
   setUp(() async {
     platform.shared.clear();
@@ -35,13 +37,13 @@ void main() {
     );
     addTearDown(() => exports.parent.delete(recursive: true));
     shared = [];
-    completes = true;
+    sheet = null;
     container = ProviderContainer(
       overrides: [
         exportsDirectoryProvider.overrideWithValue(() async => exports),
         shareFilesProvider.overrideWithValue((files, _) async {
           shared.add(files);
-          return completes;
+          await sheet?.future;
         }),
       ],
     );
@@ -55,39 +57,45 @@ void main() {
         return [(path: file.path, mimeType: 'application/pdf')];
       }, _origin);
 
-  List<String> left() => exports.existsSync()
-      ? [for (final f in exports.listSync()) f.uri.pathSegments.last]
-      : [];
-
   test('the share sheet gets the files, their types and the origin', () async {
     final share = ProviderContainer().read(shareFilesProvider);
     const file = (path: '/tmp/a.csv', mimeType: 'text/csv');
 
-    expect(await share([file], _origin), isTrue);
+    await share([file], _origin);
     final params = platform.shared.single;
     expect(params.files!.single.path, '/tmp/a.csv');
     expect(params.files!.single.mimeType, 'text/csv');
     expect(params.sharePositionOrigin, _origin);
-
-    platform.status = ShareResultStatus.dismissed;
-    expect(await share([file], _origin), isFalse);
-    platform.status = ShareResultStatus.success;
   });
 
-  test('a completed share keeps its files until the next export', () async {
-    await export('first.pdf');
-    expect(shared.single.single.path, '${exports.path}/first.pdf');
-    expect(left(), ['first.pdf']);
+  test(
+    'each export gets its own folder, deleted when its share ends',
+    () async {
+      await export('a.pdf');
+      final [(:path, mimeType: _)] = shared.single;
+      expect(path, matches(RegExp('^${exports.path}/share-[^/]+/a.pdf\$')));
+      expect(File(path).existsSync(), isFalse);
+      expect(exports.listSync(), isEmpty);
+    },
+  );
 
-    await export('second.pdf');
-    expect(left(), ['second.pdf']);
-  });
+  test("a second export while the first share is open leaves the first's "
+      'files alone', () async {
+    final a = sheet = Completer<void>();
+    final first = export('a.pdf');
+    await pumpEventQueue();
+    final aFile = File(shared.single.single.path);
+    expect(aFile.existsSync(), isTrue);
 
-  test('a cancelled share deletes its files at once', () async {
-    completes = false;
-    await export('first.pdf');
-    expect(shared, hasLength(1));
-    expect(exports.existsSync(), isFalse);
+    sheet = null;
+    await export('b.pdf');
+    expect(File(shared.last.single.path).existsSync(), isFalse);
+    expect(aFile.existsSync(), isTrue, reason: 'A is still being read');
+
+    a.complete();
+    await first;
+    expect(aFile.existsSync(), isFalse);
+    expect(exports.listSync(), isEmpty);
   });
 
   test('a failed export leaves nothing behind', () async {
@@ -98,12 +106,12 @@ void main() {
       }, _origin),
       throwsStateError,
     );
-    expect(exports.existsSync(), isFalse);
+    expect(exports.listSync(), isEmpty);
     expect(shared, isEmpty);
   });
 
   test('app start clears what the last run left', () async {
-    await export('old.pdf');
+    await Directory('${exports.path}/share-old').create(recursive: true);
     await clearExports(exports);
     expect(exports.existsSync(), isFalse);
     // Again, with nothing there.
