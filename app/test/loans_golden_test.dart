@@ -14,7 +14,7 @@ void main() {
     ('list', const LoanScreen()),
     ('detail', const LoanDetailScreen(loanId: 'l1')),
   ]) {
-    for (final device in SettloGoldenDevices.all) {
+    for (final device in SettloGoldenDevices.accessible) {
       for (final (themeName, theme) in [
         ('dark', SettloTheme.dark()),
         ('light', SettloTheme.light()),
@@ -58,7 +58,7 @@ void main() {
     }
   }
 
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     for (final (themeName, theme) in [
       ('dark', SettloTheme.dark()),
       ('light', SettloTheme.light()),

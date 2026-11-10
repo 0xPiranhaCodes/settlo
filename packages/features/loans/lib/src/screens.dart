@@ -57,7 +57,7 @@ class LoanScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: SettloSpacing.x3),
             if (list == null)
               Text(
                 loans.hasError
@@ -78,7 +78,7 @@ class LoanScreen extends ConsumerWidget {
                         color: c.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: SettloSpacing.x1),
                     Text(
                       'Lent or borrowed a larger sum? Record it once and '
                       'both of you track every repayment.',
@@ -87,7 +87,7 @@ class LoanScreen extends ConsumerWidget {
                         color: c.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: SettloSpacing.x3),
                     SPrimaryButton(
                       label: 'Record a loan',
                       onPressed: () => context.push(SettloRoutes.newLoan),
@@ -97,7 +97,7 @@ class LoanScreen extends ConsumerWidget {
               )
             else
               for (final (i, l) in list.indexed) ...[
-                if (i > 0) const SizedBox(height: 12),
+                if (i > 0) const SizedBox(height: SettloSpacing.x2),
                 _LoanCard(l),
               ],
           ],
@@ -139,7 +139,7 @@ class _LoanCard extends StatelessWidget {
             Row(
               children: [
                 ExcludeSemantics(child: SAvatar(loan.counterparty)),
-                const SizedBox(width: 12),
+                const SizedBox(width: SettloSpacing.x2),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +165,7 @@ class _LoanCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: SettloSpacing.x2),
                 MoneyText(
                   loan.outstanding,
                   tone: switch (loan) {
@@ -176,7 +176,7 @@ class _LoanCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: SettloSpacing.x2),
             ClipRRect(
               borderRadius: BorderRadius.circular(2),
               child: LinearProgressIndicator(
@@ -187,7 +187,7 @@ class _LoanCard extends StatelessWidget {
               ),
             ),
             if (waiting > 0) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Text(
                 waiting == 1
                     ? '1 repayment to confirm'

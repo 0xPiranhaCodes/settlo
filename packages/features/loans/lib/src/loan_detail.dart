@@ -71,10 +71,10 @@ class LoanDetailScreen extends ConsumerWidget {
                 StatementButton(loan, yourName: data.yourName),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: SettloSpacing.x3),
             _Hero(loan, today: data.today),
             if (!loan.closed) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               SPrimaryButton(
                 label: 'Record repayment',
                 icon: LoanGlyph(
@@ -86,20 +86,24 @@ class LoanDetailScreen extends ConsumerWidget {
                 onPressed: () => showRecordRepaymentSheet(context, loan),
               ),
             ],
-            const SizedBox(height: 18),
-            Row(
+            const SizedBox(height: SettloSpacing.x3),
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              spacing: SettloSpacing.x2,
+              runSpacing: SettloSpacing.x1,
               children: [
                 Text('REPAYMENTS', style: _label(c)),
-                const Spacer(),
                 Text('BOTH OF YOU SEE THIS', style: _label(c)),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: SettloSpacing.x2),
             SCard(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               child: loan.repayments.isEmpty
                   ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: SettloSpacing.x2,
+                      ),
                       child: Text(
                         loan.youLent
                             ? 'Nothing repaid yet. Record a repayment when '
@@ -155,7 +159,7 @@ class _Hero extends StatelessWidget {
           Row(
             children: [
               LoanRing(loan.progress),
-              const SizedBox(width: 18),
+              const SizedBox(width: SettloSpacing.x3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +191,7 @@ class _Hero extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: SettloSpacing.x2),
                     Text(
                       loan.youLent ? 'Outstanding' : 'You owe',
                       style: small,
@@ -212,7 +216,7 @@ class _Hero extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: SettloSpacing.x3),
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -280,7 +284,10 @@ class _Tile extends StatelessWidget {
       label: '$label, ${spoken ?? value}, $detail',
       excludeSemantics: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: SettloSpacing.x2,
+        ),
         decoration: BoxDecoration(
           color: c.surfaceRaised,
           borderRadius: BorderRadius.circular(SettloRadius.button),
@@ -371,7 +378,7 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
     final text = SettloTypography.figtree(14, color: c.textPrimary);
     final small = SettloTypography.figtree(13, color: c.textSecondary);
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
       decoration: BoxDecoration(
         border: widget.divider
             ? Border(bottom: BorderSide(color: c.hairline))
@@ -383,7 +390,7 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
           Semantics(
             button: r.awaitsYou,
             label: r.awaitsYou ? 'Review repayment' : null,
-            child: InkWell(
+            child: SPressable(
               onTap: r.awaitsYou
                   ? () => context.push(SettloRoutes.confirmRepayment(r.id))
                   : null,
@@ -397,7 +404,7 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
                       width: 44,
                       child: Text(dayMonth(r.paidOn), style: small),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: SettloSpacing.x2),
                     Expanded(
                       child: switch (r.status) {
                         RepaymentStatus.confirmed => Text(
@@ -421,7 +428,7 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
                         ),
                       },
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: SettloSpacing.x2),
                     MoneyText(
                       r.amount,
                       tone: r.status == RepaymentStatus.disputed
@@ -665,7 +672,7 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: SettloSpacing.x1),
             Text(
               "Tell ${widget.counterparty} what's wrong. It won't count, and "
               "this can't be undone; they can record a corrected one.",
@@ -693,7 +700,7 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
               ),
             ),
             if (widget.decision.error case final error?) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Text(
                 error,
                 style: SettloTypography.figtree(13, color: c.textPrimary),
@@ -708,7 +715,7 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
                   : 'Mark as not paid',
               onPressed: widget.decision.busy || reason.isEmpty ? null : _send,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: SettloSpacing.x2),
             SSecondaryButton(
               label: 'Cancel',
               onPressed: widget.decision.busy ? null : widget.onClose,

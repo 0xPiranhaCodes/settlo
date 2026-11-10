@@ -671,6 +671,7 @@ void main() {
             )
             .first,
       );
+      await tester.pumpAndSettle();
       final toggle = tester.widget<Switch>(find.byType(Switch));
       expect((toggle.value, toggle.onChanged), (false, null));
       expect(

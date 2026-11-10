@@ -171,7 +171,7 @@ class _Receipt extends StatelessWidget {
                   child: Column(
                     children: [
                       SAvatar(loan.counterparty, size: 72),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: SettloSpacing.x2),
                       Text(
                         summary,
                         style: SettloTypography.figtree(
@@ -185,7 +185,7 @@ class _Receipt extends StatelessWidget {
                         excludeSemantics: true,
                         child: MoneyText(repayment.amount, size: 52),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: SettloSpacing.x1),
                       Text(
                         'on $paidOn · $method$referenceText',
                         textAlign: TextAlign.center,
@@ -198,7 +198,7 @@ class _Receipt extends StatelessWidget {
                       SCard(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
-                          vertical: 12,
+                          vertical: SettloSpacing.x2,
                         ),
                         child: Column(
                           children: [
@@ -230,9 +230,8 @@ class _Receipt extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: SettloSpacing.x2),
                       SCard(
-                        padding: const EdgeInsets.all(16),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -241,7 +240,7 @@ class _Receipt extends StatelessWidget {
                               size: 20,
                               color: c.textSecondary,
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: SettloSpacing.x2),
                             Expanded(
                               child: Text(
                                 guidance,
@@ -255,7 +254,7 @@ class _Receipt extends StatelessWidget {
                         ),
                       ),
                       if (overpayment) ...[
-                        const SizedBox(height: 10),
+                        const SizedBox(height: SettloSpacing.x2),
                         Text(
                           'This is more than is left on the loan. Confirming '
                           'will be refused.',
@@ -267,7 +266,7 @@ class _Receipt extends StatelessWidget {
                         ),
                       ],
                       if (decision.error case final error?) ...[
-                        const SizedBox(height: 10),
+                        const SizedBox(height: SettloSpacing.x2),
                         Text(
                           error,
                           textAlign: TextAlign.center,
@@ -282,7 +281,7 @@ class _Receipt extends StatelessWidget {
                 ),
               ),
               if (canAct) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: SettloSpacing.x2),
                 SizedBox(
                   width: double.infinity,
                   child: SPrimaryButton(
@@ -302,7 +301,7 @@ class _Receipt extends StatelessWidget {
                         : decision.confirm,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: SettloSpacing.x2),
                 SizedBox(
                   width: double.infinity,
                   child: SSecondaryButton(
@@ -357,7 +356,7 @@ class _Row extends StatelessWidget {
               label,
               style: SettloTypography.figtree(14, color: c.textSecondary),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
               child: Text(
                 value,

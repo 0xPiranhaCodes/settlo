@@ -11,7 +11,7 @@ import 'support/fake_session.dart';
 /// New loan filled in as on the NewLoan artboard (n21): you lent Arjun
 /// Mehta ₹10 lakh at ₹25,000 a month from March, so it ends Jul 2029.
 void main() {
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     for (final (themeName, theme) in [
       ('dark', SettloTheme.dark()),
       ('light', SettloTheme.light()),
@@ -41,10 +41,16 @@ void main() {
             await tester.enterText(fields.at(0), '10,00,000');
             await tester.enterText(fields.at(1), '98200 11223');
             await tester.enterText(fields.at(2), 'Arjun Mehta');
+            await tester.ensureVisible(find.text('Add person'));
             await tester.tap(find.text('Add person'));
             await tester.pump();
             await tester.enterText(find.byType(TextField).last, '25,000');
             FocusManager.instance.primaryFocus?.unfocus();
+            await tester.drag(
+              find.byType(Scrollable).first,
+              const Offset(0, 2000),
+            );
+            await tester.pumpAndSettle();
           },
         );
 
