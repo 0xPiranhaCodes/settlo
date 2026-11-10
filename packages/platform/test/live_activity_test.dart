@@ -82,6 +82,19 @@ void main() {
       );
     });
 
+    test('never shows a number for the payer', () {
+      for (final number in ['919876543210', '+91 98765 43210', '98765-43210']) {
+        expect(
+          settleUpActivityFor([_settleUp('s1', late, payer: number)])!.payer,
+          'A flatmate',
+        );
+      }
+      expect(
+        settleUpActivityFor([_settleUp('s1', late, payer: 'Flat 2B')])!.payer,
+        'Flat 2B',
+      );
+    });
+
     test('sends the native side formatted, ready-to-draw fields', () {
       expect(settleUpActivityFor([_settleUp('s1', late)])!.toChannel(), {
         'id': 's1',

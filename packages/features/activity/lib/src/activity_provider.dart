@@ -7,17 +7,18 @@ import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_platform/settlo_platform.dart';
 
 /// Mirrors the newest settle-up awaiting you into the Live Activity (iOS)
-/// or ongoing notification (Android), and ends it once nothing waits or
-/// you sign out. No push in v1: it follows [needsYouProvider], which
-/// reloads after your own answers and whenever the app comes back.
+/// or ongoing notification (Android), and ends it once nothing waits, you
+/// sign out or another user signs in. No push in v1: it follows
+/// [needsYouProvider], which reloads after your own answers and whenever
+/// the app comes back.
 final Provider<void> liveActivitySyncProvider = Provider.autoDispose<void>((
   ref,
 ) {
   final activities = ref.watch(liveActivitiesProvider);
-  if (ref.watch(sessionProvider) == null) {
-    unawaited(activities.show(null));
-    return;
-  }
+  // A new user (or none) ends the last one's activity before anything else
+  // shows, so A's settle-up never sits on B's lock screen.
+  unawaited(activities.show(null));
+  if (ref.watch(sessionProvider.select((s) => s?.user.id)) == null) return;
   final lifecycle = AppLifecycleListener(
     onResume: () => ref.invalidate(needsYouProvider),
   );
@@ -35,10 +36,14 @@ final Provider<void> liveActivitySyncProvider = Provider.autoDispose<void>((
 const activityPageSize = 30;
 
 /// What waits for your answer, reloaded whenever [ledgerRevisionProvider]
-/// is bumped, such as by a confirmed settle-up or repayment.
+/// is bumped, such as by a confirmed settle-up or repayment, and whenever
+/// the signed-in user changes.
 final FutureProvider<List<PendingAnswer>> needsYouProvider =
     FutureProvider.autoDispose<List<PendingAnswer>>((ref) {
-      ref.watch(ledgerRevisionProvider);
+      ref
+        ..watch(ledgerRevisionProvider)
+        // Another user's answers are never served from this cache.
+        ..watch(sessionProvider.select((s) => s?.user.id));
       return ref.watch(activityRepositoryProvider).needsYou();
     });
 

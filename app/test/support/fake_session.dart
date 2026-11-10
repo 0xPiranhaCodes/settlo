@@ -41,6 +41,10 @@ class FakeSessionNotifier extends SessionNotifier {
   /// Signs in as [fakeSession], as an auth state change would.
   void signIn() => state = fakeSession;
 
+  /// Signs in as someone else without signing out first.
+  // ignore: use_setters_to_change_properties, reads as an auth event.
+  void switchTo(Session session) => state = session;
+
   /// Signs out, as an auth state change would.
   void signOut() => state = null;
 }

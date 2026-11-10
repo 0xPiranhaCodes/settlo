@@ -80,11 +80,17 @@ SettleUpActivity? settleUpActivityFor(Iterable<PendingAnswer> pending) {
     id: newest.id,
     spaceId: newest.spaceId!,
     spaceName: newest.spaceName ?? '',
-    payer: newest.counterparty,
+    payer: _phoneLike.hasMatch(newest.counterparty)
+        ? 'A flatmate'
+        : newest.counterparty,
     amount: newest.amount,
     recordedAt: newest.recordedAt,
   );
 }
+
+// `needs_you.counterparty` falls back to the payer's number, which must
+// never reach the lock screen or a notification.
+final _phoneLike = RegExp(r'^\+?[\d\s-]{6,}$');
 
 /// Starts, updates and ends the one Live Activity (iOS) or ongoing
 /// notification (Android). Driven from app state; no push in v1.

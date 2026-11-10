@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_platform/settlo_platform.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show Session, User;
 
 import 'support/fake_activity.dart';
 import 'support/fake_session.dart';
@@ -55,9 +56,10 @@ void main() {
     container.listen(liveActivitySyncProvider, (_, _) {});
     await _settle();
     expect(native.shown, [
+      null,
       settleUpActivityFor([rahulSettleUpAnswer]),
     ]);
-    expect(native.shown.single!.payer, 'Rahul');
+    expect(native.shown.last!.payer, 'Rahul');
 
     // Confirmed: the ledger moves on and only the repayment is left.
     activity.pending.remove(rahulSettleUpAnswer);
@@ -85,6 +87,32 @@ void main() {
     (container.read(sessionProvider.notifier) as FakeSessionNotifier).signOut();
     await _settle();
     expect(native.shown.last, isNull);
+  });
+
+  test("another user signing in ends the last one's activity", () async {
+    container.listen(liveActivitySyncProvider, (_, _) {});
+    await _settle();
+    expect(native.shown.last!.payer, 'Rahul');
+
+    // B has nothing waiting; A's cached answers must not be re-shown.
+    native.shown.clear();
+    activity.pending.clear();
+    (container.read(sessionProvider.notifier) as FakeSessionNotifier).switchTo(
+      Session(
+        accessToken: 'b-access-token',
+        tokenType: 'bearer',
+        user: const User(
+          id: '00000000-0000-0000-0000-000000000002',
+          appMetadata: {},
+          userMetadata: {},
+          aud: 'authenticated',
+          createdAt: '2026-11-10T00:00:00Z',
+        ),
+      ),
+    );
+    await _settle();
+    expect(native.shown, isNotEmpty);
+    expect(native.shown, everyElement(isNull));
   });
 
   testWidgets('asks to notify on Activity with a settle-up, once', (
