@@ -58,6 +58,33 @@ gh workflow run "Supabase hosted" -f action=set-test-otp
 
 The numbers lapse 60 days after the last run, and a `supabase config push` removes them; re-run the workflow in either case.
 
+### External TestFlight (Family Testers)
+
+After the workflow PR is reviewed and merged, the manager can run **TestFlight external** (`testflight-external.yml`) from `main`. Select `build_number: 6` for v0.1.0-rc6, `group: Family Testers`, and public `what_to_test` text describing the intended checks. For later candidates, use the actual uploaded build number, which need not match the rc suffix. This workflow configures an existing build; it does not build or upload an IPA, and it does not change the existing Release jobs.
+
+Before running:
+
+- Confirm the iOS build is processed (`VALID`), unexpired, and ready for external review; resolve export compliance in App Store Connect if required.
+- Create the named **external** group in App Store Connect and add the intended testers. The workflow fails if the group is missing or internal.
+- Use the existing `production` environment App Store Connect secrets (`APP_STORE_CONNECT_API_KEY_P8`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`). Store `HOSTED_TEST_OTP` in **production** too, using the same value configured on the hosted project; do not introduce repository-level credentials for this workflow. Its format is `number=code,number=code` (country code without `+`, six-digit code). The first pair becomes the review account. Ensure it is still active on the hosted project.
+- Fill in Beta App Review Information's four contact fields in App Store Connect, or provide optional **production** secrets `ASC_REVIEW_CONTACT_FIRST_NAME`, `ASC_REVIEW_CONTACT_LAST_NAME`, `ASC_REVIEW_CONTACT_PHONE`, and `ASC_REVIEW_CONTACT_EMAIL`. Omitted secrets preserve existing fields; incomplete contacts fail before mutations.
+
+The workflow upserts en-US app metadata and What to Test, updates the demo account and review notes in memory, adds group membership if absent, then submits only when review is needed. It masks the number, its sign-in variants and OTP before requests; request/response bodies and credentials are never logged or saved as artifacts. Do not put credentials in workflow inputs. Runs are serialized across all builds because app metadata is shared. Rerun the same inputs after fixing a failure: existing localizations, membership, and pending/approved submissions are reused. HTTP failures report only a status code; inspect details privately in App Store Connect.
+
+A successful run prints the beta review/external state. `WAITING_FOR_REVIEW` or `IN_REVIEW` is submission evidence, not proof testers can install. After Apple approves, the manager must confirm the build is available to **Family Testers** in App Store Connect, notify testers if needed, and verify installation/sign-in from an external tester's TestFlight account. This PR does not perform that live acceptance step.
+
+Local verification (synthetic in-memory data, no network or production secrets):
+
+```sh
+ruby -c scripts/asc-testflight-external.rb
+ruby -c scripts/test/asc-testflight-external-test.rb
+ruby scripts/test/asc-testflight-external-test.rb
+# If installed:
+actionlint .github/workflows/testflight-external.yml
+```
+
+API references: Apple's [beta app localization attributes](https://developer.apple.com/documentation/appstoreconnectapi/betaapplocalizationupdaterequest/data-data.dictionary/attributes-data.dictionary), [review submissions](https://developer.apple.com/documentation/appstoreconnectapi/get-v1-betaappreviewsubmissions), and [external build states](https://developer.apple.com/documentation/appstoreconnectapi/externalbetastate).
+
 ### First TestFlight checklist
 
 - [ ] A fresh install from TestFlight signs in with a test number against the hosted project.
