@@ -206,6 +206,40 @@ void main() {
       (await db.customSelect('SELECT COUNT(*) AS n FROM $table').getSingle())
           .read<int>('n');
 
+  test(
+    'stopping before the account is deleted: the replay in flight writes '
+    'nothing, nothing more is sent, and resuming sends the kept queue',
+    () async {
+      final (held, replay) = await heldReplay();
+      final stopped = container.read(syncEngineProvider)!;
+      final unsent = container.read(unsentChangesProvider)!;
+      final generation = db.session;
+
+      await unsent.stop();
+      expect(db.session, isNot(generation), reason: 'a new session generation');
+      held.complete('k1');
+      await replay;
+      final sent = server.calls.length;
+      await stopped.sync();
+      await pumpEventQueue();
+      expect(
+        server.calls,
+        hasLength(sent),
+        reason: 'a stopped engine is silent',
+      );
+      expect(await db.localIds(_me), isEmpty, reason: 'the late answer');
+      expect(await db.unsent(_me), 1, reason: 'the queue is kept');
+
+      // The deletion failed and the account stays.
+      server.rpc = (_, _) => 'k1';
+      unsent.resume();
+      final resumed = container.read(syncEngineProvider)!;
+      expect(resumed, isNot(same(stopped)));
+      await resumed.sync();
+      expect(await db.unsent(_me), 0);
+    },
+  );
+
   test('a replay answered after signing out writes nothing', () async {
     final (held, replay) = await heldReplay();
     (container.read(sessionProvider.notifier) as _Session).signOut();

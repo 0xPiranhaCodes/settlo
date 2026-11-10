@@ -282,6 +282,12 @@ class _AccountCard extends ConsumerWidget {
           'Your ledgers stay safely recorded',
           onTap: () => _signOut(context, ref),
         ),
+        _SettingRowData(
+          ProfileGlyph.trash,
+          'Delete account',
+          'Remove your profile and sign-in for good',
+          onTap: () => _deleteAccount(context, ref),
+        ),
       ],
     );
   }
@@ -291,8 +297,8 @@ class _AccountCard extends ConsumerWidget {
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
     final profile = ref.read(profileProvider.notifier);
     // Not widget state: a second tap in the same frame must see it.
-    if (profile.signingOut) return;
-    profile.signingOut = true;
+    if (profile.leaving) return;
+    profile.leaving = true;
     try {
       final unsent = ref.read(unsentChangesProvider);
       final count = await unsent?.count() ?? 0;
@@ -300,7 +306,15 @@ class _AccountCard extends ConsumerWidget {
         if (!context.mounted) return;
         final leave = await showSettloSheet<bool>(
           context: context,
-          builder: (_) => _UnsentSheet(count, drain: unsent.drain),
+          builder: (_) => _LeaveSheet(
+            title: 'You have ${_changes(count)}',
+            body:
+                "They haven't reached the server yet. Signing out now "
+                'deletes them from this phone.',
+            keep: 'Keep',
+            leave: 'Sign out anyway',
+            onKeep: unsent.drain,
+          ),
         );
         if (leave != true) return;
       }
@@ -311,24 +325,74 @@ class _AccountCard extends ConsumerWidget {
         const SnackBar(content: Text("We couldn't sign you out. Try again.")),
       );
     } finally {
-      profile.signingOut = false;
+      profile.leaving = false;
+    }
+  }
+
+  /// Deletes the account after a confirmation that says what goes and what
+  /// stays, and that unsent changes go too, as when signing out.
+  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
+    final profile = ref.read(profileProvider.notifier);
+    // Shared with sign-out: only one way of leaving runs at a time.
+    if (profile.leaving) return;
+    profile.leaving = true;
+    try {
+      final count = await ref.read(unsentChangesProvider)?.count() ?? 0;
+      if (!context.mounted) return;
+      final delete = await showSettloSheet<bool>(
+        context: context,
+        builder: (_) => _LeaveSheet(
+          title: 'Delete your account?',
+          body:
+              'This removes your name, UPI ID, phone number and friends '
+              'list, and signs you out. Expenses, loans and settle-ups you '
+              "share stay in the other people's records. "
+              '${count > 0 ? 'Your ${_changes(count)} will be lost. ' : ''}'
+              "This can't be undone.",
+          keep: 'Keep my account',
+          leave: 'Delete account',
+        ),
+      );
+      if (delete != true) return;
+      await profile.deleteAccount();
+    } on Object {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("We couldn't delete your account. Try again."),
+        ),
+      );
+    } finally {
+      profile.leaving = false;
     }
   }
 }
 
-/// Asks before a sign-out that would delete [count] unsent changes.
-/// Pops true to sign out anyway; Keep tries to send them and stays.
-class _UnsentSheet extends StatefulWidget {
-  const new(this.count, {required this.drain});
+String _changes(int count) =>
+    count == 1 ? '1 unsent change' : '$count unsent changes';
 
-  final int count;
-  final Future<void> Function() drain;
+/// Asks before signing out with unsent changes, or deleting the account.
+/// Pops true to leave; the keep button stays and runs [onKeep].
+class _LeaveSheet extends StatefulWidget {
+  const new({
+    required this.title,
+    required this.body,
+    required this.keep,
+    required this.leave,
+    this.onKeep,
+  });
+
+  final String title;
+  final String body;
+  final String keep;
+  final String leave;
+  final Future<void> Function()? onKeep;
 
   @override
-  State<_UnsentSheet> createState() => _UnsentSheetState();
+  State<_LeaveSheet> createState() => _LeaveSheetState();
 }
 
-class _UnsentSheetState extends State<_UnsentSheet> {
+class _LeaveSheetState extends State<_LeaveSheet> {
   bool _busy = false;
 
   void _close({required bool leave}) {
@@ -336,16 +400,13 @@ class _UnsentSheetState extends State<_UnsentSheet> {
     if (_busy) return;
     _busy = true;
     // Sent in the background; nothing here waits for the network.
-    if (!leave) unawaited(widget.drain().catchError((_) {}));
+    if (!leave) unawaited(widget.onKeep?.call().catchError((_) {}));
     Navigator.of(context).pop(leave);
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
-    final changes = widget.count == 1
-        ? '1 unsent change'
-        : '${widget.count} unsent changes';
     return SafeArea(
       top: false,
       minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -354,7 +415,7 @@ class _UnsentSheetState extends State<_UnsentSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'You have $changes',
+            widget.title,
             style: SettloTypography.figtree(
               20,
               weight: FontWeight.w500,
@@ -363,8 +424,7 @@ class _UnsentSheetState extends State<_UnsentSheet> {
           ),
           const SizedBox(height: 8),
           Text(
-            "They haven't reached the server yet. Signing out now deletes "
-            'them from this phone.',
+            widget.body,
             style: SettloTypography.figtree(
               14,
               color: colors.textSecondary,
@@ -374,7 +434,7 @@ class _UnsentSheetState extends State<_UnsentSheet> {
           SizedBox(
             width: double.infinity,
             child: SPrimaryButton(
-              label: 'Keep',
+              label: widget.keep,
               onPressed: () => _close(leave: false),
             ),
           ),
@@ -382,7 +442,7 @@ class _UnsentSheetState extends State<_UnsentSheet> {
           SizedBox(
             width: double.infinity,
             child: SSecondaryButton(
-              label: 'Sign out anyway',
+              label: widget.leave,
               onPressed: () => _close(leave: true),
             ),
           ),

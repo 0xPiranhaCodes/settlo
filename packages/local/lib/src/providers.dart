@@ -84,6 +84,17 @@ final List<Override> offlineRepositories = [
   ),
   unsentChangesProvider.overrideWith((ref) {
     final sync = ref.watch(syncEngineProvider);
-    return sync == null ? null : (count: sync.unsent, drain: sync.sync);
+    if (sync == null) return null;
+    return (
+      count: sync.unsent,
+      drain: sync.sync,
+      // Keeping only the owner's rows deletes nothing of theirs; it is the
+      // new session generation that makes a late answer write nothing.
+      stop: () {
+        sync.dispose();
+        return ref.read(localDbProvider).keepOnly(sync.owner);
+      },
+      resume: () => ref.invalidate(syncEngineProvider),
+    );
   }),
 ];

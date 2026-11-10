@@ -47,10 +47,14 @@ class LedgerRevision extends Notifier<int> {
 }
 
 /// Writes made on this phone that the server has not taken yet (ADR 0004):
-/// how many, and a way to try sending them now.
+/// how many, and a way to try sending them now. `stop` ends syncing without
+/// dropping them, so nothing more is sent or written (before the account
+/// is deleted); `resume` starts it again when the account stays.
 typedef UnsentChanges = ({
   Future<int> Function() count,
   Future<void> Function() drain,
+  Future<void> Function() stop,
+  void Function() resume,
 });
 
 /// The signed-in user's [UnsentChanges]; null when nothing queues writes,

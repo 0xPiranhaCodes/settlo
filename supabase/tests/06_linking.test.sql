@@ -440,27 +440,24 @@ select is((select count(*)::int from public.spaces), 0, 'the deleted account rea
 reset role;
 select results_eq(
   $$select name, upi_id, phone::text, deleted_at is not null from public.profiles where id = '00000000-0000-0000-0000-00000000f002'$$,
-  $$values (null::text, null::text, null::text, true)$$,
-  'account deletion keeps a tombstone profile with name, UPI id and phone cleared');
-select is((select phone from auth.users where id = '00000000-0000-0000-0000-00000000f002'),
-  null, 'account deletion releases the number from the auth identity');
+  $$values ('Deleted user', null::text, null::text, true)$$,
+  'account deletion keeps a tombstone profile named Deleted user, with UPI id and phone cleared');
+select is((select count(*)::int from auth.users where id = '00000000-0000-0000-0000-00000000f002'),
+  0, 'account deletion deletes the auth user, which releases the number (#74)');
 select is((select user_id from public.space_members where id = '00000000-0000-0000-0000-00000000f212'),
   null, 'account deletion releases pending claims');
 select throws_ok($$update public.profiles set phone = null where id = '00000000-0000-0000-0000-00000000f001'$$,
   '23514', null, 'only a deleted profile may have no phone');
 
--- Deletion is terminal: N's old session confirms another number, and still reads nothing.
-update auth.users set phone = '919000000016', phone_confirmed_at = clock_timestamp()
- where id = '00000000-0000-0000-0000-00000000f002';
+-- Deletion is terminal: N's old token outlives the auth user, and still reads nothing.
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000f002", "role": "authenticated"}';
 select is((select count(*)::int from public.spaces) + (select count(*)::int from public.loans)
           + (select count(*)::int from public.profiles), 0,
-  'a deleted account that confirms a phone again reads none of its old history');
+  'a deleted account''s old token reads none of its history');
 reset role;
 select is((select phone from public.profiles where id = '00000000-0000-0000-0000-00000000f002'),
-  null, 'the tombstone is not revived by a later confirmation');
-update auth.users set phone = null, phone_confirmed_at = null where id = '00000000-0000-0000-0000-00000000f002';
+  null, 'the tombstone keeps no phone');
 
 -- N2 gets the recycled number and verifies it.
 select lives_ok(

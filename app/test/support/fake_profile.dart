@@ -23,6 +23,9 @@ final class FakeProfileRepository implements ProfileRepository {
   Future<void> signOut() async {}
 
   @override
+  Future<void> deleteAccount() async {}
+
+  @override
   Future<void> update({required String name, required String? upiId}) async {
     data = ProfileData(name: name, phone: data.phone, upiId: upiId);
   }

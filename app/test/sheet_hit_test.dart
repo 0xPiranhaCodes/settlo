@@ -165,6 +165,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Save'), findsNothing);
+    // The header scrolled out of the lazy list when the row was brought up.
+    await tester.drag(find.byType(ListView), const Offset(0, 600));
+    await tester.pumpAndSettle();
     expect(find.text('Asha'), findsOne);
   });
 }

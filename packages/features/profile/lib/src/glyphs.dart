@@ -32,6 +32,9 @@ enum ProfileGlyph {
   /// Sign-out door and arrow.
   logout,
 
+  /// Delete-account bin.
+  trash,
+
   /// Forward disclosure arrow.
   chevron,
 
@@ -178,6 +181,18 @@ class _ProfileGlyphPainter extends CustomPainter {
         ..lineTo(13, 16)
         ..moveTo(8, 12)
         ..lineTo(17, 12),
+    ProfileGlyph.trash =>
+      Path()
+        ..moveTo(4, 7)
+        ..lineTo(20, 7)
+        ..moveTo(9, 7)
+        ..lineTo(9, 4)
+        ..lineTo(15, 4)
+        ..lineTo(15, 7)
+        ..moveTo(6, 7)
+        ..lineTo(7, 20)
+        ..lineTo(17, 20)
+        ..lineTo(18, 7),
     ProfileGlyph.chevron =>
       Path()
         ..moveTo(9, 6)
