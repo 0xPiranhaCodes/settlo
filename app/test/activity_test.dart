@@ -556,6 +556,8 @@ void main() {
       final activity = FakeActivityRepository();
       await _pump(tester, activity);
 
+      await tester.ensureVisible(find.text('Rahul edited Wifi · Airtel'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Rahul edited Wifi · Airtel'));
       await tester.pumpAndSettle();
       expect(find.text('Question this edit'), findsOneWidget);
@@ -603,6 +605,8 @@ void main() {
       final activity = FakeActivityRepository()..questionFails = true;
       await _pump(tester, activity);
 
+      await tester.ensureVisible(find.text('Rahul edited Wifi · Airtel'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Rahul edited Wifi · Airtel'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Why?');

@@ -57,7 +57,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               children: [
                 _Header(data?.name),
-                const SizedBox(height: SettloSpacing.x3),
+                // The shared header already reserves the mock's 24px gap.
                 ...switch (data) {
                   null => [
                     _NetCard.muted(
