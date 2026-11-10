@@ -1,35 +1,59 @@
 import 'package:settlo_core/supabase/spaces.dart';
 
-final _phoneLike = RegExp(r'^\+?[\d\s()-]{6,}$');
+final _phoneLike = RegExp(r'^\(?\+?[\d\s().-]{6,}$');
 
-/// A run of digits, each pair split by at most one space or hyphen.
-final _digitRun = RegExp(r'\+?\d(?:[ -]?\d)*');
+/// What may sit between a phone's digits once [_normalise]d: up to two
+/// spaces, dashes, dots or parentheses, as in `(+91) 98000.00009`.
+const _sep = r'[ .()\-]{0,2}';
 
-/// An Indian phone number inside a [_digitRun]: 10 digits, optionally led by
-/// `+91`, `91` or `0`, with no digit directly before or after.
-final _phone = RegExp(r'(?<!\d)(?:(?:\+91|91|0)[ -]?)?\d(?:[ -]?\d){9}(?!\d)');
+/// An Indian phone number: 10 digits, optionally led by `+91`, `91` or `0`
+/// (itself optionally in parentheses), with no digit directly before or
+/// after.
+final _phone = RegExp(
+  '(?<!\\d)\\(?(?:(?:\\+91|91|0)$_sep)?\\d(?:$_sep\\d){9}(?!\\d)',
+);
 
 /// A UPI transaction reference (UTR): exactly 12 contiguous digits.
 final _utr = RegExp(r'^\d{12}$');
 
 final _decimalDigit = RegExp(r'^\p{Nd}$', unicode: true);
+final _invisible = RegExp(r'^\p{Cf}$', unicode: true);
+final _space = RegExp(r'^\p{Zs}$', unicode: true);
+final _dash = RegExp(r'^\p{Pd}$', unicode: true);
 
 bool _isDigit(int rune) => _decimalDigit.hasMatch(String.fromCharCode(rune));
 
-/// [runes] with one character each: every Unicode decimal digit (such
-/// as Devanagari `९`) as its ASCII digit, and any rune outside the BMP as
-/// U+FFFD, so an index in it is an index into [runes].
-String _ascii(List<int> runes) => String.fromCharCodes([
-  for (final r in runes)
-    if (r < 0x80)
-      r
-    else if (_isDigit(r))
-      0x30 + _digitValue(r)
-    else if (r > 0xFFFF)
-      0xFFFD
-    else
-      r,
-]);
+/// [runes] for matching, one character per kept rune, with `at[i]` the index
+/// in [runes] of character `i`. Every Unicode decimal digit (such as
+/// Devanagari `९`) becomes its ASCII digit, every space (such as a
+/// no-break space) a space, and every dash a hyphen. Invisible format
+/// characters (zero-width spaces and joiners, bidi marks) are dropped, so
+/// they cannot split a number; with [keepInvisible] they stay, as a
+/// non-digit, so a UTR check sees them. Runes outside the BMP become
+/// U+FFFD, so each is one character.
+({String text, List<int> at}) _normalise(
+  List<int> runes, {
+  bool keepInvisible = false,
+}) {
+  final chars = <int>[];
+  final at = <int>[];
+  for (final (i, r) in runes.indexed) {
+    final c = r < 0x80 ? r : _unicode(r, keepInvisible: keepInvisible);
+    if (c == null) continue;
+    chars.add(c);
+    at.add(i);
+  }
+  return (text: String.fromCharCodes(chars), at: at);
+}
+
+int? _unicode(int rune, {required bool keepInvisible}) {
+  final char = String.fromCharCode(rune);
+  if (_invisible.hasMatch(char)) return keepInvisible ? 0xFFFD : null;
+  if (_isDigit(rune)) return 0x30 + _digitValue(rune);
+  if (_space.hasMatch(char)) return 0x20;
+  if (_dash.hasMatch(char)) return 0x2D;
+  return rune > 0xFFFF ? 0xFFFD : rune;
+}
 
 /// Unicode encodes each script's digits as one or more contiguous runs of
 /// 0-9, so a digit's value is its distance from the start of its run, mod 10.
@@ -42,33 +66,34 @@ int _digitValue(int rune) {
 }
 
 /// Whether [name] is really a phone number, as shown for someone who has
-/// no label or profile name yet, in any script's digits.
+/// no label or profile name yet, in any script's digits and separators.
 bool isPhoneLike(String name) =>
-    _phoneLike.hasMatch(_ascii(name.runes.toList()).trim());
+    _phoneLike.hasMatch(_normalise(name.runes.toList()).text.trim());
 
-/// [text] with every Indian phone number (in any script's digits)
-/// replaced by `••••`. Every name and free-text field an export writes goes
-/// through this; amounts and dates are built by the export itself and never
-/// do. With [keepUtr], a [text] that is nothing but 12 contiguous digits
-/// (after trimming) is kept: as a repayment's whole reference it is the
-/// payer's UTR, which they need to reconcile. Anything else around or
-/// between the digits, and the usual rules apply.
+/// [text] with every Indian phone number (in any script's digits, split by
+/// any spaces, dashes, dots, parentheses or invisible characters) replaced
+/// by `••••`. Every name and free-text field an export writes goes through
+/// this; amounts and dates are built by the export itself and never do.
+/// With [keepUtr], a [text] that is nothing but 12 contiguous digits (after
+/// trimming) is kept: as a repayment's whole reference it is the payer's
+/// UTR, which they need to reconcile. Anything else around or between the
+/// digits, even an invisible character, and the usual rules apply.
 String redactPhones(String text, {bool keepUtr = false}) {
   final runes = text.runes.toList();
-  final ascii = _ascii(runes);
-  if (keepUtr && _utr.hasMatch(ascii.trim())) return text;
-  final out = StringBuffer();
-  var at = 0;
-  for (final run in _digitRun.allMatches(ascii)) {
-    final digits = run[0]!;
-    for (final phone in _phone.allMatches(digits)) {
-      out
-        ..write(String.fromCharCodes(runes, at, run.start + phone.start))
-        ..write('••••');
-      at = run.start + phone.end;
-    }
+  if (keepUtr &&
+      _utr.hasMatch(_normalise(runes, keepInvisible: true).text.trim())) {
+    return text;
   }
-  return (out..write(String.fromCharCodes(runes, at))).toString();
+  final (text: normal, :at) = _normalise(runes);
+  final out = StringBuffer();
+  var next = 0;
+  for (final phone in _phone.allMatches(normal)) {
+    out
+      ..write(String.fromCharCodes(runes, next, at[phone.start]))
+      ..write('••••');
+    next = at[phone.end - 1] + 1;
+  }
+  return (out..write(String.fromCharCodes(runes, next))).toString();
 }
 
 /// Display names for an export by `space_members.id`. Exports leave the

@@ -14,11 +14,18 @@ const _forms = [
   '98000-00009',
   '०९८०००००००९', // Devanagari digits, with the trunk 0
   '+९१ ९८००० ००००९',
+  '+91\u00A098000\u00A000009', // no-break spaces
+  '91\u200B98000\u200B00009', // zero-width spaces
+  '98000\u201300009', // en dash
+  '(+91) 98000.00009',
 ];
 
 /// Every digit of it, in either script, however it was spaced.
 bool _leaks(String text) {
-  final digits = text.replaceAll(RegExp(r'[\s-]'), '');
+  final digits = text.replaceAll(
+    RegExp(r'[\s\p{Pd}\p{Cf}.()]', unicode: true),
+    '',
+  );
   return digits.contains('9800000009') || digits.contains('९८०००००००९');
 }
 
@@ -128,6 +135,29 @@ void main() {
     for (final utr in ['432188120099', ' 919800000009 ', '९१२३४५६७८९०१']) {
       final s = loanStatement(_loan(reference: utr), generatedAt: _at);
       expect(_pdfText(s), contains('UPI · $utr'), reason: utr);
+    }
+  });
+
+  test('a UTR with an invisible character inside is not contiguous', () {
+    for (final reference in ['9198\u200B00000009', '919800\u2060000009']) {
+      final s = loanStatement(_loan(reference: reference), generatedAt: _at);
+      expect(_leaks(_pdfText(s)), isFalse, reason: reference);
+      expect(_pdfText(s), contains('UPI · ••••'), reason: reference);
+    }
+    // No-break spaces around a whole UTR are trimmed like spaces.
+    final s = loanStatement(
+      _loan(reference: '\u00A0432188120099\u00A0'),
+      generatedAt: _at,
+    );
+    expect(_pdfText(s), contains('432188120099'));
+  });
+
+  test('a counterparty that is only a number with Unicode separators is '
+      'not printed', () {
+    for (final n in ['+91\u00A098000\u00A000009', '(+91) 98000.00009']) {
+      final s = loanStatement(_loan(counterparty: n), generatedAt: _at);
+      expect(_leaks(_pdfText(s)), isFalse, reason: n);
+      expect(_pdfText(s), contains('The other party'), reason: n);
     }
   });
 
