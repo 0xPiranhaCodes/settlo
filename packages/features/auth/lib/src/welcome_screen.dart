@@ -414,16 +414,52 @@ class _WelcomeBackgroundPainter extends CustomPainter {
     final bounds = Offset.zero & size;
     final hot = Color.lerp(gold, highlight, 0.96)!;
     final topShader = LinearGradient(
-      colors: [gold.withValues(alpha: 0.08), hot, gold.withValues(alpha: 0.06)],
-      stops: const [0.3, 0.66, 1],
+      colors: [
+        gold.withValues(alpha: 0.18),
+        gold.withValues(alpha: 0.35),
+        gold,
+        hot,
+        gold,
+        gold.withValues(alpha: 0.36),
+        gold.withValues(alpha: 0),
+      ],
+      stops: const [0, 0.5, 0.6, 0.66, 0.72, 0.82, 0.95],
+    ).createShader(bounds);
+    final topHotShader = LinearGradient(
+      colors: [hot.withValues(alpha: 0), hot, hot.withValues(alpha: 0)],
+      stops: const [0.61, 0.66, 0.71],
     ).createShader(bounds);
     final bottomShader = LinearGradient(
-      colors: [gold.withValues(alpha: 0.22), hot, gold.withValues(alpha: 0)],
-      stops: const [0, 0.12, 0.52],
+      colors: [
+        gold.withValues(alpha: 0.3),
+        gold,
+        hot,
+        gold,
+        gold.withValues(alpha: 0.25),
+        gold.withValues(alpha: 0),
+      ],
+      stops: const [0, 0.045, 0.075, 0.105, 0.2, 0.245],
+    ).createShader(bounds);
+    final bottomHotShader = LinearGradient(
+      colors: [hot.withValues(alpha: 0), hot, hot.withValues(alpha: 0)],
+      stops: const [0.045, 0.075, 0.105],
     ).createShader(bounds);
 
-    void drawGlowingArc(Path path, Shader shader) {
+    void drawGlowingArc(Path path, Shader shader, Shader hotShader) {
       canvas
+        ..drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.5
+            ..strokeCap = StrokeCap.round
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.8)
+            ..colorFilter = const ColorFilter.mode(
+              Color(0x3DFFFFFF),
+              BlendMode.modulate,
+            )
+            ..shader = shader,
+        )
         ..drawPath(
           path,
           Paint()
@@ -431,20 +467,32 @@ class _WelcomeBackgroundPainter extends CustomPainter {
             ..strokeWidth = 5.5
             ..strokeCap = StrokeCap.round
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.2)
+            ..colorFilter = const ColorFilter.mode(
+              Color(0xCCFFFFFF),
+              BlendMode.modulate,
+            )
+            ..shader = hotShader,
+        )
+        ..drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1
+            ..strokeCap = StrokeCap.round
             ..shader = shader,
         )
         ..drawPath(
           path,
           Paint()
             ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.5
+            ..strokeWidth = 2
             ..strokeCap = StrokeCap.round
-            ..shader = shader,
+            ..shader = hotShader,
         );
     }
 
-    drawGlowingArc(topArc, topShader);
-    drawGlowingArc(bottomArc, bottomShader);
+    drawGlowingArc(topArc, topShader, topHotShader);
+    drawGlowingArc(bottomArc, bottomShader, bottomHotShader);
   }
 
   @override
