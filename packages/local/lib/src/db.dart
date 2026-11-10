@@ -40,7 +40,7 @@ final class LocalDb extends GeneratedDatabase {
   // Upgrades: the mirror is disposable and may be dropped and refetched;
   // pending_mutations is user data and only takes additive `from < n` steps.
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -81,6 +81,9 @@ final class LocalDb extends GeneratedDatabase {
           'WHERE attempts > 0',
         );
       }
+      // v3 mirrors more columns (loans) and sources (activity); the next
+      // sync refetches them.
+      if (from < 3) await customStatement('DELETE FROM mirror');
     },
   );
 
@@ -121,6 +124,16 @@ final class LocalDb extends GeneratedDatabase {
           applied: r.read<String>('status') == 'applied',
         ),
     ];
+  }
+
+  /// How many of [owner]'s queued writes the server has not accepted.
+  Future<int> unsent(String owner) async {
+    final row = await customSelect(
+      'SELECT COUNT(*) AS n FROM pending_mutations '
+      "WHERE owner = ? AND status = 'pending'",
+      variables: [Variable(owner)],
+    ).getSingle();
+    return row.read<int>('n');
   }
 
   /// Queues [kind] with [params] under [key]. Queuing the same key and

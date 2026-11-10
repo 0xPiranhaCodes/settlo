@@ -207,16 +207,29 @@ final class HomeData {
 
 /// Home's reads and the claim decisions. Features use this rather than the
 /// Supabase client (ADR 0007); tests fake it.
+///
+/// Each decision takes an idempotency key made once per button and reused
+/// on every retry of it, so a dropped connection never answers twice.
 abstract interface class HomeRepository {
   /// Loads Home for the signed-in user.
   Future<HomeData> load();
 
   /// Accepts [claim]; it then counts in balances.
-  Future<void> acceptClaim(Claim claim);
+  Future<void> acceptClaim(Claim claim, {required String idempotencyKey});
 
   /// 'This isn't me': unlinks the number from [claim] for good.
-  Future<void> rejectClaim(Claim claim);
+  Future<void> rejectClaim(Claim claim, {required String idempotencyKey});
 }
+
+/// `accept_claim` / `reject_claim` parameters for [claim] (docs/api.md).
+Map<String, Object?> claimParams(
+  Claim claim, {
+  required String idempotencyKey,
+}) => {
+  'p_kind': claim.kind.wire,
+  'p_id': claim.id,
+  'p_idempotency_key': idempotencyKey,
+};
 
 typedef _Row = Map<String, dynamic>;
 
@@ -450,13 +463,18 @@ final class SupabaseHomeRepository implements HomeRepository {
   }
 
   @override
-  Future<void> acceptClaim(Claim claim) => _claim('accept_claim', claim);
+  Future<void> acceptClaim(Claim claim, {required String idempotencyKey}) =>
+      _db.rpc<void>(
+        'accept_claim',
+        params: claimParams(claim, idempotencyKey: idempotencyKey),
+      );
 
   @override
-  Future<void> rejectClaim(Claim claim) => _claim('reject_claim', claim);
-
-  Future<void> _claim(String rpc, Claim claim) =>
-      _db.rpc<void>(rpc, params: {'p_kind': claim.kind.wire, 'p_id': claim.id});
+  Future<void> rejectClaim(Claim claim, {required String idempotencyKey}) =>
+      _db.rpc<void>(
+        'reject_claim',
+        params: claimParams(claim, idempotencyKey: idempotencyKey),
+      );
 }
 
 /// Home's data for the signed-in user through [supabaseClientProvider];

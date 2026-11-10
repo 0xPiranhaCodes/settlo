@@ -86,6 +86,14 @@ void main() {
       isA<DriftExpensesRepository>(),
     );
     expect(
+      container.read(loansRepositoryProvider),
+      isA<DriftLoansRepository>(),
+    );
+    expect(
+      container.read(activityRepositoryProvider),
+      isA<DriftActivityRepository>(),
+    );
+    expect(
       container.read(spaceLedgerRepositoryProvider),
       isA<DriftSpaceLedgerRepository>(),
     );
@@ -140,6 +148,31 @@ void main() {
     await engine.sync();
     expect(container.read(ledgerRevisionProvider), revision + 2);
   });
+
+  test(
+    'unsent changes are counted and can be sent before signing out',
+    () async {
+      final engine = container.read(syncEngineProvider)!;
+      await engine.sync();
+      server.rpc = (_, _) => const Refuse(null, status: 503);
+      await db.enqueue(_me, 'k1', 'delete_expense', const {
+        'p_expense_id': 'e1',
+        'p_idempotency_key': 'k1',
+      }, DateTime(2026));
+      final unsent = container.read(unsentChangesProvider)!;
+      expect(await unsent.count(), 1);
+
+      server.rpc = (_, _) => null;
+      await unsent.drain();
+      expect(server.calls.last.$1, 'delete_expense');
+      expect(await unsent.count(), 0);
+
+      // Signed out, nothing is queued and nothing asks.
+      (container.read(sessionProvider.notifier) as _Session).signOut();
+      expect(container.read(unsentChangesProvider), isNull);
+    await pumpEventQueue();
+    },
+  );
 
   test('signing out deletes everything and stops syncing', () async {
     await container.read(syncEngineProvider)!.sync();

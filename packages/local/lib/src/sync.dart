@@ -13,7 +13,25 @@ const _purgedKinds = {
   'delete_expense',
   'confirm_settlement',
   'dispute_settlement',
+  'confirm_repayment',
+  'dispute_repayment',
+  'accept_claim',
+  'reject_claim',
 };
+
+const _loanKinds = {
+  'create_loan',
+  'record_repayment',
+  'confirm_repayment',
+  'dispute_repayment',
+};
+
+/// PostgREST's `max_rows` (supabase/config.toml): a read that returns
+/// this many rows may have been cut short.
+const mirrorPageSize = 1000;
+
+/// How many feed entries the mirror keeps: `activity_feed`'s largest page.
+const mirroredActivity = 100;
 
 /// Replays one signed-in user's queue and refreshes their mirror
 /// (ADR 0004; design on #53).
@@ -31,6 +49,7 @@ final class SyncEngine {
     this.onChanged,
     this.now = DateTime.now,
     this.submitWait = const Duration(seconds: 5),
+    this.pageSize = mirrorPageSize,
   });
 
   final LocalDb _db;
@@ -48,6 +67,9 @@ final class SyncEngine {
   /// How long [submit] waits for the server before leaving the write
   /// queued.
   final Duration submitWait;
+
+  /// The server's row cap per read; see [fetchMirror].
+  final int pageSize;
 
   final _notices = StreamController<String>.broadcast();
   final _waiting = <String, Completer<String?>>{};
@@ -76,6 +98,10 @@ final class SyncEngine {
       today: today,
     );
   }
+
+  /// How many queued writes the server has not taken yet. Signing out
+  /// deletes them.
+  Future<int> unsent() => _db.unsent(owner);
 
   /// Queues [kind] with [params] under [key] and returns the server's id,
   /// or `local:<key>` when the server has not answered within
@@ -211,13 +237,14 @@ final class SyncEngine {
         (_, 'settlement_pending') => const SettlementPending(),
         (_, 'settlement_changed') => const SettlementChanged(),
         ('22023', _) when kind == 'add_expense' => const ExpenseRejected(),
+        _ when _loanKinds.contains(kind) => loanRefusal(e),
         _ => e,
       };
 
   Future<void> _refresh() async {
     final Tables tables;
     try {
-      tables = await fetchMirror(_client, now());
+      tables = await fetchMirror(_client, now(), pageSize: pageSize);
     } on Exception {
       _retryIn(const Duration(seconds: 2));
       return;
@@ -252,8 +279,17 @@ String rejection(Mutation m, PostgrestException e) {
     'create_space' => 'The space “${p['p_name']}”',
     'confirm_settlement' => 'Your confirmation of that settle-up',
     'dispute_settlement' => 'Your dispute of that settle-up',
+    'create_loan' =>
+      'Your loan of ${formatInr(Paise(p['principal_minor'] as int))}',
+    'record_repayment' =>
+      'Your repayment of ${formatInr(Paise(p['amount_minor'] as int))}',
+    'confirm_repayment' => 'Your confirmation of that repayment',
+    'dispute_repayment' => 'Your dispute of that repayment',
+    'accept_claim' => 'Accepting that invite',
+    'reject_claim' => 'Declining that invite',
     _ => 'A change',
   };
+  final loan = _loanKinds.contains(m.kind);
   final why = switch ((e.code, e.hint)) {
     ('stale', _) => 'it waited too long to reach the server',
     ('orphan', _) => 'it depended on a change that wasn’t saved',
@@ -262,82 +298,222 @@ String rejection(Mutation m, PostgrestException e) {
     (_, 'settlement_pending') => 'a settle-up between you is already waiting',
     (_, 'settlement_changed') => 'the settle-up changed since you saw it',
     (_, 'settlement_final') => 'the settle-up was already answered',
+    (_, 'overpayment') => 'it is more than is left on the loan',
+    (_, 'loan_closed') => 'the loan is already fully repaid',
+    (_, 'not_pending') => 'the repayment was already answered',
+    ('42501', _) when m.kind.endsWith('_claim') =>
+      'it was already answered or withdrawn',
+    ('42501', _) when loan => 'you can’t change this loan any more',
     ('42501', _) => 'you can’t change this space any more',
+    _ when loan => 'the details didn’t match the loan',
     _ => 'the details didn’t match the space',
   };
   return '$what couldn’t be saved because $why. '
       'We’ve undone it on this phone.';
 }
 
+/// One mirrored table or view: its rows, how they are ordered (the last
+/// column makes the order total, so pages never overlap), and whether it
+/// has a `space_id` to page by.
+typedef _Source = ({
+  PostgrestFilterBuilder<PostgrestList> Function() select,
+  List<(String, {bool ascending})> order,
+  bool bySpace,
+});
+
 /// Every row the offline repositories read, as RLS lets the caller see
 /// them, with this month's views as of [today].
-// shortcut: PostgREST caps a read at max_rows (1000), so a user with more
-// live expenses across their spaces sees the newest 1000; page by space
-// when one gets there.
-Future<Tables> fetchMirror(SupabaseClient db, DateTime today) async {
+///
+/// PostgREST cuts a read at `max_rows`, so a source that comes back
+/// [pageSize] long is read again in full: space by space when it has a
+/// `space_id`, and a page at a time within each.
+// shortcut: pages are separate requests, so a row written between two of
+// them can be missed or repeated until the next refresh; move to keyset
+// pages if that shows.
+Future<Tables> fetchMirror(
+  SupabaseClient db,
+  DateTime today, {
+  int pageSize = mirrorPageSize,
+}) async {
   final month = dateKey(DateTime(today.year, today.month));
-  final sources = <String, Future<List<Map<String, dynamic>>>>{
-    'space_members': db
-        .from('space_members')
-        .select(
-          'id, space_id, user_id, name, phone, role, accepted_at, left_at, '
-          'created_at, spaces(name, kind, created_by, deleted_at)',
-        )
-        .order('created_at'),
-    'space_member_balances': db
-        .from('space_member_balances')
-        .select('space_id, member_id, paid_minor, balance_minor'),
-    'space_monthly_fairness': db
-        .from('space_monthly_fairness')
-        .select(
-          'space_id, month, member_id, paid_minor, fair_share_minor, '
-          'month_total_minor',
-        )
-        .eq('month', month),
-    'space_monthly_categories': db
-        .from('space_monthly_categories')
-        .select('space_id, month, category, total_minor, expense_count')
-        .eq('month', month),
-    'pending_settlements': db
-        .from('pending_settlements')
-        .select(
-          'expense_id, space_id, payer_member_id, payee_member_id, '
-          'amount_minor',
-        ),
-    'expenses': db
-        .from('expenses')
-        .select(
-          'id, space_id, description, category, amount_minor, spent_on, '
-          'is_settlement, settlement_status, dispute_reason, created_by, '
-          'deleted_at, '
-          'expense_payers(member_id, amount_minor), '
-          'expense_splits(member_id, split_type, amount_minor, shares, '
-          'percent_bp, space_members(created_at))',
-        )
-        .isFilter('deleted_at', null)
-        .order('spent_on', ascending: false)
-        .order('created_at', ascending: false),
-    'profiles': db.from('profiles').select('id, name, phone, upi_id'),
-    'loans': db
-        .from('loans')
-        .select(
-          'id, lender_id, borrower_id, lender_phone, borrower_phone, '
-          'lender_accepted_at, borrower_accepted_at, created_by, closed_at',
-        )
-        .order('created_at'),
-    'loan_summaries': db
-        .from('loan_summaries')
-        .select(
-          'loan_id, principal_minor, outstanding_minor, installment_minor, '
-          'installments_total, installments_paid, next_due_on',
-        ),
-    'loan_repayments': db
-        .from('loan_repayments')
-        .select('id, loan_id, amount_minor, recorded_by, status')
-        .eq('status', 'pending')
-        .order('paid_on', ascending: false)
-        .order('created_at', ascending: false),
+  final sources = <String, _Source>{
+    'space_members': (
+      select: () => db
+          .from('space_members')
+          .select(
+            'id, space_id, user_id, name, phone, role, accepted_at, left_at, '
+            'created_at, spaces(name, kind, created_by, deleted_at)',
+          ),
+      order: [('created_at', ascending: true), ('id', ascending: true)],
+      bySpace: true,
+    ),
+    'space_member_balances': (
+      select: () => db
+          .from('space_member_balances')
+          .select('space_id, member_id, paid_minor, balance_minor'),
+      order: [('member_id', ascending: true)],
+      bySpace: true,
+    ),
+    'space_monthly_fairness': (
+      select: () => db
+          .from('space_monthly_fairness')
+          .select(
+            'space_id, month, member_id, paid_minor, fair_share_minor, '
+            'month_total_minor',
+          )
+          .eq('month', month),
+      order: [('member_id', ascending: true)],
+      bySpace: true,
+    ),
+    'space_monthly_categories': (
+      select: () => db
+          .from('space_monthly_categories')
+          .select('space_id, month, category, total_minor, expense_count')
+          .eq('month', month),
+      order: [('space_id', ascending: true), ('category', ascending: true)],
+      bySpace: true,
+    ),
+    'pending_settlements': (
+      select: () => db
+          .from('pending_settlements')
+          .select(
+            'expense_id, space_id, payer_member_id, payee_member_id, '
+            'amount_minor',
+          ),
+      order: [('expense_id', ascending: true)],
+      bySpace: true,
+    ),
+    'expenses': (
+      select: () => db
+          .from('expenses')
+          .select(
+            'id, space_id, description, category, amount_minor, spent_on, '
+            'is_settlement, settlement_status, dispute_reason, created_by, '
+            'created_at, deleted_at, '
+            'expense_payers(member_id, amount_minor), '
+            'expense_splits(member_id, split_type, amount_minor, shares, '
+            'percent_bp, space_members(created_at))',
+          )
+          .isFilter('deleted_at', null),
+      order: [
+        ('spent_on', ascending: false),
+        ('created_at', ascending: false),
+        ('id', ascending: true),
+      ],
+      bySpace: true,
+    ),
+    'profiles': (
+      select: () => db.from('profiles').select('id, name, phone, upi_id'),
+      order: [('id', ascending: true)],
+      bySpace: false,
+    ),
+    'loans': (
+      select: () => db
+          .from('loans')
+          .select(
+            'id, lender_id, borrower_id, lender_phone, borrower_phone, '
+            'lender_accepted_at, borrower_accepted_at, created_by, closed_at',
+          ),
+      order: [('created_at', ascending: true), ('id', ascending: true)],
+      bySpace: false,
+    ),
+    'loan_summaries': (
+      select: () => db
+          .from('loan_summaries')
+          .select(
+            'loan_id, principal_minor, repaid_minor, outstanding_minor, '
+            'installment_minor, due_day, start_on, closed_at, '
+            'installments_total, installments_paid, next_due_on, ends_on, '
+            'on_track',
+          ),
+      order: [('loan_id', ascending: true)],
+      bySpace: false,
+    ),
+    'loan_repayments': (
+      select: () => db
+          .from('loan_repayments')
+          .select(
+            'id, loan_id, amount_minor, paid_on, method, reference, '
+            'recorded_by, status, dispute_reason',
+          ),
+      order: [
+        ('paid_on', ascending: false),
+        ('created_at', ascending: false),
+        ('id', ascending: true),
+      ],
+      bySpace: false,
+    ),
+    'needs_you': (
+      select: () => db
+          .from('needs_you')
+          .select(
+            'kind, id, space_id, space_name, loan_id, counterparty, '
+            'amount_minor, paid_on, created_at',
+          ),
+      order: [('created_at', ascending: false), ('id', ascending: true)],
+      bySpace: false,
+    ),
   };
-  final rows = await Future.wait(sources.values);
-  return Map.fromIterables(sources.keys, rows);
+
+  PostgrestTransformBuilder<PostgrestList> query(_Source s, [String? space]) {
+    PostgrestTransformBuilder<PostgrestList> q = space == null
+        ? s.select()
+        : s.select().eq('space_id', space);
+    for (final (column, :ascending) in s.order) {
+      q = q.order(column, ascending: ascending);
+    }
+    return q;
+  }
+
+  // Every row of [q], starting from its first page if already read.
+  Future<PostgrestList> pages(
+    PostgrestTransformBuilder<PostgrestList> Function() q, [
+    PostgrestList? first,
+  ]) async {
+    final rows = [...?first];
+    var last = first?.length ?? pageSize;
+    while (last >= pageSize) {
+      final page = await q().range(rows.length, rows.length + pageSize - 1);
+      rows.addAll(page);
+      last = page.length;
+    }
+    return rows;
+  }
+
+  Future<PostgrestList> read(_Source s) async {
+    final first = await query(s);
+    if (first.length < pageSize) return first;
+    if (!s.bySpace) return await pages(() => query(s), first);
+    final spaces = await pages(
+      () => db.from('spaces').select('id').order('id'),
+    );
+    final rows = [
+      for (final part in await Future.wait([
+        for (final space in spaces)
+          pages(() => query(s, space['id'] as String)),
+      ]))
+        ...part,
+    ];
+    // Back into the order one read would have given.
+    return rows..sort((a, b) {
+      for (final (column, :ascending) in s.order) {
+        final by = '${a[column]}'.compareTo('${b[column]}');
+        if (by != 0) return ascending ? by : -by;
+      }
+      return 0;
+    });
+  }
+
+  final rows = await Future.wait([
+    for (final s in sources.values) read(s),
+    // A read-only function, so a GET: nothing here is a write.
+    db
+        .rpc<List<dynamic>>(
+          'activity_feed',
+          params: {'p_limit': mirroredActivity},
+          get: true,
+        )
+        .then((rows) => rows.cast<Map<String, dynamic>>()),
+  ]);
+  return Map.fromIterables([...sources.keys, 'activity_feed'], rows);
 }
