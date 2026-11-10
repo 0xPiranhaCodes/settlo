@@ -114,17 +114,6 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: c.surfaceHighest,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: SettloSpacing.x2),
           Row(
             children: [
               Transform.translate(

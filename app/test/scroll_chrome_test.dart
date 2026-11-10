@@ -16,7 +16,7 @@ Widget _page(
   controller: controller,
   onRefresh: refresh,
   children: [
-    Text(title, style: SettloTypography.largeTitle()),
+    SettloNavigationHeader(title: title),
     for (var i = 0; i < 24; i++)
       Padding(
         padding: const EdgeInsets.only(bottom: 24),

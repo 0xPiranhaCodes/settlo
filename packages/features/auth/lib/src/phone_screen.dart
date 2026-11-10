@@ -235,12 +235,17 @@ class _CountrySheet extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                             horizontal: SettloSpacing.screenMargin,
                           ),
-                          child: Row(
+                          child: SResponsiveRow(
                             children: [
                               SizedBox(
-                                width: 76,
+                                width:
+                                    MediaQuery.textScalerOf(context).scale(1) >=
+                                        1.5
+                                    ? null
+                                    : 76,
                                 child: Text(
                                   country.label,
+                                  maxLines: 1,
                                   style: SettloTypography.headline(
                                     color: c.textPrimary,
                                   ),

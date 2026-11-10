@@ -776,7 +776,7 @@ class FairShareBar extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
+            SResponsiveRow(
               children: [
                 Expanded(
                   child: Text(

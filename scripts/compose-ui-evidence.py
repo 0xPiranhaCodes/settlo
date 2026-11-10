@@ -3,7 +3,7 @@
 from collections import defaultdict
 from pathlib import Path
 import re
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 root = Path(__file__).resolve().parent.parent
 before = root / 'docs/design/145/before'
@@ -39,6 +39,14 @@ for name, variants in groups.items():
         ]):
             x, y = col * 400, row * 900
             draw.text((x + 8, y + 6), f'{label} · {device} · {theme}', fill='#1b1b18', font=font)
+            if col == 1 and (before / current.name).exists():
+                old = Image.open(before / current.name).convert('RGB')
+                new = Image.open(current).convert('RGB')
+                if old.size == new.size:
+                    box = (0, 0, new.width, max(1, new.height - 120))
+                    pixels = list(ImageChops.difference(old.crop(box), new.crop(box)).getdata())
+                    fraction = sum(max(pixel) > 8 for pixel in pixels) / len(pixels)
+                    draw.text((x + 8, y + 870), f'Content changed: {fraction:.1%}', fill='#1b1b18', font=font)
             if path is not None and path.exists():
                 im = Image.open(path).convert('RGB')
                 sheet.paste(im, (x + (400 - im.width) // 2, y + 40))
@@ -48,7 +56,6 @@ for name, variants in groups.items():
 print(f'Composed {len(groups)} review sheets from Linux artifacts.')
 
 # Compare content above the navigation region, ignoring small raster noise.
-from PIL import ImageChops
 lines = ['# Linux pixel deltas', '',
          'Baseline: b60a54cc5872a4aa15ca93d5a7d395e9447e3e7b. '
          'Generated from Linux PNGs; RGB channel delta >8 counts as changed. '

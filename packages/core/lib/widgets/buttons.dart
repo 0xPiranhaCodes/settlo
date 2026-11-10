@@ -28,6 +28,11 @@ class SPrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) => SPressFeedback(
     enabled: onPressed != null,
     child: FilledButton(
+      style: icon == null
+          ? null
+          : FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
       onPressed: onPressed,
       child: _ButtonLabel(label: label, icon: icon),
     ),
