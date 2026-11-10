@@ -120,8 +120,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     _show(allActivity);
     _scroll.animateTo(
       0,
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : SettloMotion.panel,
+      curve: SettloMotion.curve,
     );
   }
 
@@ -183,7 +185,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               color: c.textPrimary,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: SettloSpacing.x1),
           Text(
             body,
             style: SettloTypography.figtree(14, color: c.textSecondary),
@@ -209,7 +211,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
           SBell(unread: _newSinceOpen, onPressed: _showNewest),
         ],
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: SettloSpacing.x2),
       // One row, as on the canvas; it scrolls once the spaces outgrow it.
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -242,7 +244,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
           ],
         ),
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: SettloSpacing.x2),
       if (pending.isNotEmpty) ...[
         _NeedsYouCard(pending, onReview: _review),
         const SizedBox(height: 8),
@@ -366,14 +368,13 @@ class _NeedsYouCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     return SCard(
-      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final (i, a) in pending.indexed) ...[
             if (i > 0)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
                 child: Divider(height: 1, thickness: 1, color: c.hairline),
               ),
             _PendingRow(a, onReview: () => onReview(a)),
@@ -407,7 +408,7 @@ class _PendingRow extends StatelessWidget {
         Row(
           children: [
             SAvatar(a.counterparty, size: 36),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
               child: Semantics(
                 label: '${title(spokenInr(a.amount))}, $detail',
@@ -501,7 +502,7 @@ class ActivityPreview extends ConsumerWidget {
     final c = SettloColors.of(context);
     final shown = entries.take(3).toList();
     return SCard(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -558,7 +559,7 @@ class _EntryRow extends StatelessWidget {
       constraints: const BoxConstraints(
         minHeight: SettloSpacing.minTouchTarget,
       ),
-      padding: const EdgeInsets.symmetric(vertical: 13),
+      padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
       decoration: divider
           ? BoxDecoration(
               border: Border(bottom: BorderSide(color: c.hairline)),
@@ -573,7 +574,7 @@ class _EntryRow extends StatelessWidget {
               ActivityKind.repayment => e.counterparty ?? _who(e),
               _ => e.actor ?? _who(e),
             }, size: 36),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -703,7 +704,7 @@ class _QuestionSheetState extends ConsumerState<_QuestionSheet> {
                 color: c.textPrimary,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: SettloSpacing.x1),
             Text(
               'Ask $editor about the change to '
               '${e.description ?? 'this expense'}. Everyone in '
@@ -728,7 +729,7 @@ class _QuestionSheetState extends ConsumerState<_QuestionSheet> {
               ),
             ),
             if (_failed) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Text(
                 "We couldn't send that. Try again.",
                 style: SettloTypography.figtree(13, color: c.textPrimary),

@@ -40,7 +40,7 @@ final List<ActivityEntry> _questioned = [
 /// after two entries arrived, counted on the bell, then narrowed to Flat
 /// 402, with a member's question under Rahul's edit.
 void main() {
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     for (final (name, theme, activity) in [
       ('dark', SettloTheme.dark(), FakeActivityRepository.new),
       ('light', SettloTheme.light(), FakeActivityRepository.new),
