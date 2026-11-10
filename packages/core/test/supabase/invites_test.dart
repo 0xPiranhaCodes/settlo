@@ -10,6 +10,8 @@ void main() {
   test('builds the custom-scheme fallback until a host is configured', () {
     expect(inviteHttpsHost, isEmpty);
     expect(inviteLink('abc').toString(), 'settlo://join/abc');
+    expect(isInviteToken('a' * 64), isTrue);
+    expect(isInviteToken('A' * 64), isFalse);
   });
 
   group('Supabase adapter', () {
@@ -44,7 +46,14 @@ void main() {
             case 'issue_invite':
               request.response.write(jsonEncode('issued-token'));
             default:
-              if (body['p_token'] == 'wrong') {
+              final hint = switch (body['p_token']) {
+                'wrong' => 'wrong_phone',
+                'rate' => 'invite_rate_limited',
+                'target' => 'invite_target_limit',
+                'expired' => 'invite_unavailable',
+                _ => null,
+              };
+              if (hint != null) {
                 request.response
                   ..statusCode = HttpStatus.forbidden
                   ..write(
@@ -52,7 +61,7 @@ void main() {
                       'code': '42501',
                       'message': 'wrong phone',
                       'details': null,
-                      'hint': 'wrong_phone',
+                      'hint': hint,
                     }),
                   );
               } else {
@@ -120,18 +129,24 @@ void main() {
     });
 
     test('maps stable server hints to privacy-safe failures', () async {
-      expect(
-        () =>
-            SupabaseInvitesRepository(client)
-                .redeem('wrong', idempotencyKey: 'key'),
-        throwsA(
-          isA<InviteException>().having(
-            (error) => error.failure,
-            'failure',
-            InviteFailure.wrongPhone,
+      for (final (token, failure) in [
+        ('wrong', InviteFailure.wrongPhone),
+        ('rate', InviteFailure.rateLimited),
+        ('target', InviteFailure.targetLimit),
+        ('expired', InviteFailure.unavailable),
+      ]) {
+        await expectLater(
+          SupabaseInvitesRepository(client)
+              .redeem(token, idempotencyKey: 'key'),
+          throwsA(
+            isA<InviteException>().having(
+              (error) => error.failure,
+              'failure',
+              failure,
+            ),
           ),
-        ),
-      );
+        );
+      }
     });
   });
 

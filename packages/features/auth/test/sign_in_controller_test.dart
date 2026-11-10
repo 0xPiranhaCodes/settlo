@@ -176,6 +176,17 @@ void main() {
       },
     );
 
+    test('rate-limited redemption stays available for a later retry', () async {
+      invites.inviteFailure = InviteFailure.rateLimited;
+      container
+          .read(pendingInviteTokenProvider.notifier)
+          .remember('capability', idempotencyKey: 'stable-key');
+      await controller().verifyCode('123456');
+
+      expect(state().error, SignInError.rateLimited);
+      expect(container.read(pendingInviteTokenProvider)?.token, 'capability');
+    });
+
     test('resends to the number the code went to', () async {
       controller().updateNumber('9999999999');
       expect(await controller().resendCode(), isTrue);
