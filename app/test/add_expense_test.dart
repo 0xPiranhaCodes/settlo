@@ -459,7 +459,10 @@ void main() {
         );
         await _tap(tester, find.bySemanticsLabel('Multiple payers'));
         await _tap(tester, _mode(mode));
-        await tester.drag(find.byType(ListView), const Offset(0, -2000));
+        await tester.drag(
+          find.byType(CustomScrollView),
+          const Offset(0, -2000),
+        );
         await tester.pumpAndSettle();
       });
     }

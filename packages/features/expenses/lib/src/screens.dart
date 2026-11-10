@@ -125,7 +125,8 @@ class _Frame extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: ListView(
+        child: SettloScrollScaffold(
+          title: 'Add expense',
           padding: const EdgeInsets.fromLTRB(
             SettloSpacing.screenMargin,
             20,
@@ -162,8 +163,7 @@ class _Frame extends StatelessWidget {
             if (label case final label?) ...[
               Text(
                 label,
-                style: SettloTypography.figtree(
-                  12,
+                style: SettloTypography.footnote(
                   letterSpacing: 0.3,
                   color: c.textSecondary,
                 ),
@@ -174,7 +174,7 @@ class _Frame extends StatelessWidget {
             if (message case final message?) ...[
               Text(
                 message,
-                style: SettloTypography.figtree(15, color: c.textPrimary),
+                style: SettloTypography.headline(color: c.textPrimary),
               ),
               const SizedBox(height: SettloSpacing.x3),
             ],
@@ -204,26 +204,19 @@ class _SpaceRow extends StatelessWidget {
             minHeight: SettloSpacing.minTouchTarget,
           ),
           padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: c.hairline)),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 space.name,
-                style: SettloTypography.figtree(
-                  15,
-                  weight: FontWeight.w500,
-                  color: c.textPrimary,
-                ),
+                style: SettloTypography.headline(color: c.textPrimary),
               ),
               if (others.isNotEmpty)
                 Text(
                   others.join(', '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SettloTypography.figtree(13, color: c.textSecondary),
+                  style: SettloTypography.subheadline(color: c.textSecondary),
                 ),
             ],
           ),

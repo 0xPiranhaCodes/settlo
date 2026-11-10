@@ -245,7 +245,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
         payersProblem == null &&
         splits != null;
     final label = _sectionLabel(c);
-    final note = SettloTypography.figtree(12, color: c.textMuted);
+    final note = SettloTypography.footnote(color: c.textMuted);
 
     return SAmountSheet(
       title: 'New expense · ${widget.space.name}',
@@ -285,9 +285,12 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
             label: 'What for',
             child: TextField(
               controller: _description,
+              minLines: 1,
+              maxLines: 3,
+              textInputAction: TextInputAction.next,
               textCapitalization: TextCapitalization.sentences,
               onChanged: (_) => setState(() {}),
-              style: SettloTypography.figtree(15, color: c.textPrimary),
+              style: SettloTypography.body(color: c.textPrimary),
               decoration: const InputDecoration(
                 hintText: 'What for',
                 contentPadding: EdgeInsets.symmetric(
@@ -412,7 +415,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
                 error,
-                style: SettloTypography.figtree(13, color: c.textPrimary),
+                style: SettloTypography.subheadline(color: c.textPrimary),
               ),
             ),
           SizedBox(
@@ -498,7 +501,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
 
 /// Small-caps section labels: 12, tracked, secondary.
 TextStyle _sectionLabel(SettloColors c) =>
-    SettloTypography.figtree(12, letterSpacing: 0.3, color: c.textSecondary);
+    SettloTypography.footnote(letterSpacing: 0.3, color: c.textSecondary);
 
 /// A split or payer row: at least 44 high, hairline below unless last.
 class _Line extends StatelessWidget {
@@ -532,10 +535,7 @@ class _Name extends StatelessWidget {
     name,
     maxLines: 1,
     overflow: TextOverflow.ellipsis,
-    style: SettloTypography.figtree(
-      14,
-      color: SettloColors.of(context).textPrimary,
-    ),
+    style: SettloTypography.body(color: SettloColors.of(context).textPrimary),
   );
 }
 
@@ -567,9 +567,7 @@ class _Input extends StatelessWidget {
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [formatter],
         onChanged: (_) => onChanged(),
-        style: SettloTypography.figtree(
-          14,
-          weight: FontWeight.w500,
+        style: SettloTypography.body(
           color: SettloColors.of(context).textPrimary,
         ),
         decoration: InputDecoration(
@@ -629,8 +627,7 @@ class _Option extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: SettloTypography.figtree(
-                label == '+' ? 16 : 14,
+              style: SettloTypography.callout(
                 weight: selected ? FontWeight.w500 : FontWeight.w400,
                 color: selected ? c.background : c.textPrimary,
               ),
