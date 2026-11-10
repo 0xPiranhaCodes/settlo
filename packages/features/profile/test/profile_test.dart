@@ -384,7 +384,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(profile.saved, (name: 'Asha K', upiId: 'asha.k@okaxis'));
 
-    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Appearance'));
     await tester.pumpAndSettle();
@@ -471,7 +471,7 @@ void main() {
     await tester.pumpAndSettle();
 
     profile.signOutError = StateError('private');
-    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
@@ -510,7 +510,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.drag(find.byType(ListView), const Offset(0, -700));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
       await tester.pumpAndSettle();
     }
 
@@ -694,7 +694,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Appearance'));
     await tester.pumpAndSettle();
@@ -740,7 +740,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Export'));
     await tester.pumpAndSettle();
@@ -819,7 +819,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.drag(find.byType(ListView), const Offset(0, -700));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Export'));
       await tester.pumpAndSettle();

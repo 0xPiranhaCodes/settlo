@@ -76,7 +76,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
     final spaces = ref.watch(exportSpacesProvider);
-    final small = SettloTypography.figtree(13, color: colors.textSecondary);
+    final small = SettloTypography.subheadline(color: colors.textSecondary);
     return SafeArea(
       top: false,
       minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -86,11 +86,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
         children: [
           Text(
             'Export',
-            style: SettloTypography.figtree(
-              20,
-              weight: FontWeight.w500,
-              color: colors.textPrimary,
-            ),
+            style: SettloTypography.title3(color: colors.textPrimary),
           ),
           const SizedBox(height: SettloSpacing.x1),
           Text(
@@ -111,21 +107,26 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                 children: [
                   for (final space in list)
                     Builder(
-                      builder: (row) => ListTile(
-                        minTileHeight: 52,
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(space.name),
-                        subtitle: Text(
-                          _busy == space.id ? 'Preparing…' : 'CSV and PDF',
+                      builder: (row) => SPressable(
+                        onTap: _busy != null
+                            ? null
+                            : () async {
+                                final box =
+                                    row.findRenderObject()! as RenderBox;
+                                await _export(
+                                  space,
+                                  box.localToGlobal(Offset.zero) & box.size,
+                                );
+                              },
+                        child: ListTile(
+                          minTileHeight: 52,
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(space.name),
+                          subtitle: Text(
+                            _busy == space.id ? 'Preparing…' : 'CSV and PDF',
+                          ),
+                          enabled: _busy == null,
                         ),
-                        enabled: _busy == null,
-                        onTap: () async {
-                          final box = row.findRenderObject()! as RenderBox;
-                          await _export(
-                            space,
-                            box.localToGlobal(Offset.zero) & box.size,
-                          );
-                        },
                       ),
                     ),
                 ],
@@ -144,7 +145,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
             const SizedBox(height: 8),
             Text(
               error,
-              style: SettloTypography.figtree(13, color: colors.textPrimary),
+              style: SettloTypography.subheadline(color: colors.textPrimary),
             ),
           ],
         ],
