@@ -55,7 +55,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   SafeArea(
                     child: LayoutBuilder(
                       builder: (context, constraints) => SingleChildScrollView(
-                        padding: const EdgeInsets.all(SettloSpacing.x3),
+                        padding: const EdgeInsets.all(
+                          SettloWelcomeMetrics.screenMargin,
+                        ),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
                             minHeight: math.max(
@@ -176,7 +178,7 @@ class _WelcomeActionButtonState extends State<_WelcomeActionButton> {
         : SettloWelcomeMetrics.actionPressDuration;
 
     return SizedBox(
-      height: 56,
+      height: MediaQuery.textScalerOf(context).scale(56),
       child: AnimatedScale(
         key: const ValueKey('welcome-action-scale'),
         scale: pressed ? SettloWelcomeMetrics.actionPressedScale : 1,
@@ -237,7 +239,6 @@ class _WelcomeActionButtonState extends State<_WelcomeActionButton> {
                       Flexible(
                         child: Text(
                           'Continue with phone number',
-                          overflow: TextOverflow.ellipsis,
                           style: SettloTypography.figtree(
                             15,
                             weight: FontWeight.w600,

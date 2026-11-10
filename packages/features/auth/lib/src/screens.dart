@@ -153,9 +153,9 @@ class _JoinContent extends StatelessWidget {
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.fromLTRB(
-          24,
-          math.max(media.padding.top, 44) + 26,
-          24,
+          SettloSpacing.screenMargin,
+          math.max(media.padding.top, 44) + SettloSpacing.x3,
+          SettloSpacing.screenMargin,
           media.padding.bottom + 14,
         ),
         child: LayoutBuilder(
@@ -194,7 +194,7 @@ class _JoinContent extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 22),
+                    const SizedBox(height: SettloSpacing.x3),
                     Semantics(
                       header: true,
                       child: Text(
@@ -208,7 +208,7 @@ class _JoinContent extends StatelessWidget {
                         ).copyWith(height: 1.15),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: SettloSpacing.x2),
                     Text(
                       space
                           ? 'A shared ledger. Everyone sees what is '
@@ -233,7 +233,7 @@ class _JoinContent extends StatelessWidget {
                       ),
                     ),
                     if (error case final message?) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: SettloSpacing.x2),
                       Text(
                         message,
                         textAlign: TextAlign.center,
@@ -249,7 +249,7 @@ class _JoinContent extends StatelessWidget {
                       arrow: true,
                       onPressed: busy ? null : onJoin,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: SettloSpacing.x2),
                     SSecondaryButton(
                       label: "This isn't me",
                       onPressed: busy ? null : onDecline,

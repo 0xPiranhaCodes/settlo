@@ -28,7 +28,7 @@ final class _Invites implements InvitesRepository {
 }
 
 void main() {
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     for (final (themeName, theme) in [
       ('dark', SettloTheme.dark()),
       ('light', SettloTheme.light()),

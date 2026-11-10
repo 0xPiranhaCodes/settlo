@@ -84,11 +84,10 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
         ),
         const SizedBox(height: SettloSpacing.x1),
         SCard(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
           child: Row(
             children: [
               _CountryChip(country: state.country, onTap: _pickCountry),
-              const SizedBox(width: 12),
+              const SizedBox(width: SettloSpacing.x2),
               Expanded(
                 child: TextField(
                   key: const ValueKey('phone-number'),
@@ -136,7 +135,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AuthIcon(AuthGlyph.message, color: c.textSecondary, size: 16),
-              const SizedBox(width: 10),
+              const SizedBox(width: SettloSpacing.x2),
               Expanded(
                 child: Text(
                   "We'll text a 6-digit code. Standard SMS rates may apply.",
@@ -171,10 +170,10 @@ class _CountryChip extends StatelessWidget {
       button: true,
       label: 'Country code ${country.name} +${country.dialCode}. Change',
       excludeSemantics: true,
-      child: InkWell(
+      child: SPressable(
         key: const ValueKey('country-chip'),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(SettloRadius.iconTile),
+        ringRadius: BorderRadius.circular(SettloRadius.iconTile),
         child: Container(
           constraints: const BoxConstraints(
             minHeight: SettloSpacing.minTouchTarget,
@@ -223,7 +222,7 @@ class _CountrySheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
             child: Text(
               'Country code',
               style: SettloTypography.figtree(
@@ -241,12 +240,14 @@ class _CountrySheet extends StatelessWidget {
                 for (final country in Country.all)
                   Semantics(
                     selected: country == selected,
-                    child: InkWell(
+                    child: SPressable(
                       onTap: () => Navigator.of(context).pop(country),
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(minHeight: 52),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: SettloSpacing.screenMargin,
+                          ),
                           child: Row(
                             children: [
                               SizedBox(

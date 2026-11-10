@@ -97,7 +97,14 @@ void main() {
       await pump(tester, screen, error: error);
       final button = tester.getRect(find.byType(FilledButton));
       expect(button.bottom, lessThanOrEqualTo(800 - 24));
-      expect(button.width, 360 - 48);
+      expect(
+        button.width,
+        360 -
+            2 *
+                (screen is WelcomeScreen
+                    ? SettloWelcomeMetrics.screenMargin
+                    : SettloSpacing.screenMargin),
+      );
     }
   });
 

@@ -131,7 +131,7 @@ class AuthPage extends StatelessWidget {
     this.top,
     this.topInset = 16,
     this.bottom,
-    this.bottomInset = 28,
+    this.bottomInset = SettloSpacing.x4,
     super.key,
   });
 
@@ -142,7 +142,7 @@ class AuthPage extends StatelessWidget {
   /// larger) and [top].
   final double topInset;
 
-  /// The page body, 24px from each side.
+  /// The page body, 20px from each side.
   final List<Widget> content;
 
   /// The primary action at the foot.
@@ -174,7 +174,7 @@ class AuthPage extends StatelessWidget {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: SettloSpacing.x3,
+                          horizontal: SettloSpacing.screenMargin,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -214,23 +214,20 @@ class StepHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Semantics(
-            button: true,
+          SPressable(
             label: 'Back',
-            child: InkWell(
-              onTap: () => goBack(context),
-              customBorder: const CircleBorder(),
-              child: Container(
-                width: SettloSpacing.minTouchTarget,
-                height: SettloSpacing.minTouchTarget,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: c.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: c.hairline),
-                ),
-                child: AuthIcon(AuthGlyph.back, color: c.textPrimary, size: 22),
+            onTap: () => goBack(context),
+            ringRadius: BorderRadius.circular(SettloRadius.pill),
+            child: Container(
+              width: SettloSpacing.minTouchTarget,
+              height: SettloSpacing.minTouchTarget,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: c.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: c.hairline),
               ),
+              child: AuthIcon(AuthGlyph.back, color: c.textPrimary, size: 22),
             ),
           ),
           Text(
@@ -273,8 +270,8 @@ class AuthButton extends StatelessWidget {
   final bool arrow;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 56,
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: 56),
     child: SPrimaryButton(
       label: label,
       onPressed: onPressed,
@@ -300,7 +297,7 @@ class StepTitle extends StatelessWidget {
   const new({
     required this.title,
     required this.subtitle,
-    this.gap = 10,
+    this.gap = SettloSpacing.x2,
     super.key,
   });
 
