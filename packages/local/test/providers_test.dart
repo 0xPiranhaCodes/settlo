@@ -1,0 +1,162 @@
+import 'dart:io';
+
+import 'package:drift/native.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_local/settlo_local.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'fake_server.dart';
+
+const _me = 'u-me';
+
+final class _Session extends SessionNotifier {
+  @override
+  Session? build() => Session(
+    accessToken: 'token',
+    tokenType: 'bearer',
+    user: const User(
+      id: _me,
+      appMetadata: {},
+      userMetadata: {},
+      aud: 'authenticated',
+      createdAt: '2026-11-01T00:00:00Z',
+    ),
+  );
+
+  void signOut() => state = null;
+}
+
+void main() {
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  // The test binding fakes HTTP; these tests talk to a loopback server.
+  HttpOverrides.global = null;
+
+  late FakeServer server;
+  late LocalDb db;
+  late ProviderContainer container;
+  late int reads;
+
+  setUp(() async {
+    reads = 0;
+    server = FakeServer()..onRead = () => reads++;
+    await server.start();
+    server.tables['profiles'] = [
+      {'id': _me, 'name': 'Asha', 'phone': '+919000000001'},
+    ];
+    db = LocalDb(NativeDatabase.memory());
+    await db.enqueue(
+      'u-before',
+      'k0',
+      'delete_expense',
+      const {},
+      DateTime(2026),
+    );
+    container = ProviderContainer(
+      overrides: [
+        localDbProvider.overrideWithValue(db),
+        supabaseClientProvider.overrideWithValue(server.client),
+        sessionProvider.overrideWith(_Session.new),
+        ...offlineRepositories,
+      ],
+    );
+  });
+
+  tearDown(() async {
+    container.dispose();
+    await db.close();
+    await server.stop();
+  });
+
+  test('the signed-in user syncs on start, with the mirror behind every '
+      'repository', () async {
+    final engine = container.read(syncEngineProvider)!;
+    await engine.sync();
+    expect(await db.mutations('u-before'), isEmpty);
+    expect(container.read(ledgerRevisionProvider), greaterThan(0));
+    expect(container.read(homeRepositoryProvider), isA<DriftHomeRepository>());
+    expect(
+      container.read(spacesRepositoryProvider),
+      isA<DriftSpacesRepository>(),
+    );
+    expect(
+      container.read(expensesRepositoryProvider),
+      isA<DriftExpensesRepository>(),
+    );
+    expect(
+      container.read(spaceLedgerRepositoryProvider),
+      isA<DriftSpaceLedgerRepository>(),
+    );
+    expect((await container.read(homeRepositoryProvider).load()).name, 'Asha');
+  });
+
+  test('a refusal reaches the notices', () async {
+    final notices = <String>[];
+    container.listen(
+      syncNoticesProvider,
+      (_, next) => notices.add(next.requireValue),
+    );
+    final engine = container.read(syncEngineProvider)!;
+    server.rpc = (_, _) => const Refuse(null, status: 503);
+    await container
+        .read(spaceLedgerRepositoryProvider)
+        .deleteExpense('e1', idempotencyKey: 'k1');
+    server.rpc = (_, _) => const Refuse('22023', hint: 'departed_member');
+    await engine.sync();
+    await pumpEventQueue();
+    expect(
+      notices.single,
+      'Deleting that expense couldn’t be saved because someone in it has '
+      'left the space. We’ve undone it on this phone.',
+    );
+  });
+
+  test('coming back to the app syncs', () async {
+    final engine = container.read(syncEngineProvider)!;
+    await engine.sync();
+    final before = reads;
+    binding
+      ..handleAppLifecycleStateChanged(AppLifecycleState.inactive)
+      ..handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await engine.sync();
+    expect(reads, greaterThan(before));
+  });
+
+  test('a write made online elsewhere refreshes the mirror', () async {
+    final engine = container.read(syncEngineProvider)!;
+    await engine.sync();
+    final revision = container.read(ledgerRevisionProvider);
+    server.tables['profiles']!.first['name'] = 'Asha K';
+    container.read(ledgerRevisionProvider.notifier).bump();
+    await engine.sync();
+    expect(
+      (await container.read(homeRepositoryProvider).load()).name,
+      'Asha K',
+    );
+    // One bump from the write, one back from the changed mirror, and no
+    // more: an unchanged refresh does not bump.
+    await engine.sync();
+    expect(container.read(ledgerRevisionProvider), revision + 2);
+  });
+
+  test('signing out deletes everything and stops syncing', () async {
+    await container.read(syncEngineProvider)!.sync();
+    expect(await db.mirror(_me), isNotEmpty);
+    (container.read(sessionProvider.notifier) as _Session).signOut();
+    expect(container.read(syncEngineProvider), isNull);
+    await pumpEventQueue();
+    expect(await db.mirror(_me), isEmpty);
+    expect(
+      () => container.read(homeRepositoryProvider),
+      throwsA(predicate((e) => '$e'.contains('needs a signed-in user'))),
+    );
+    expect(
+      await container
+          .read(syncNoticesProvider.future)
+          .timeout(Duration.zero, onTimeout: () => 'none'),
+      'none',
+    );
+  });
+}

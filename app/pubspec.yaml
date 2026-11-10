@@ -25,6 +25,8 @@ dependencies:
     path: ../packages/features/expenses
   settlo_loans:
     path: ../packages/features/loans
+  settlo_local:
+    path: ../packages/local
   settlo_profile:
     path: ../packages/features/profile
   settlo_settle:

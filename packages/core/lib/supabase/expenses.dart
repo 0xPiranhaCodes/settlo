@@ -70,6 +70,40 @@ final class SettlementPending implements Exception {
   const new();
 }
 
+/// The `add_expense` params for [e] (docs/api.md).
+Map<String, Object?> addExpenseParams(
+  NewExpense e, {
+  required String idempotencyKey,
+}) => {
+  'p': {
+    'idempotency_key': idempotencyKey,
+    'space_id': e.spaceId,
+    'description': e.description,
+    'category': ?e.category,
+    'amount_minor': e.amount.value,
+    // Omitted for today, so a replay after midnight still matches.
+    if (e.spentOn case final d?)
+      'spent_on':
+          '${d.year}-${d.month.toString().padLeft(2, '0')}-'
+          '${d.day.toString().padLeft(2, '0')}',
+    'split_type': e.splitType.name,
+    if (e.isSettlement) 'is_settlement': true,
+    'payers': [
+      for (final MapEntry(:key, :value) in e.payers.entries)
+        {'member_id': key, 'amount_minor': value.value},
+    ],
+    'splits': [
+      for (final s in e.splits)
+        {
+          'member_id': s.memberId,
+          'amount_minor': s.amount.value,
+          'percent_bp': ?s.percentBp,
+          'shares': ?s.shares,
+        },
+    ],
+  },
+};
+
 /// [ExpensesRepository] over the `add_expense` RPC (docs/api.md).
 final class SupabaseExpensesRepository implements ExpensesRepository {
   /// Writes through [_db].
@@ -82,39 +116,10 @@ final class SupabaseExpensesRepository implements ExpensesRepository {
     NewExpense expense, {
     required String idempotencyKey,
   }) async {
-    final e = expense;
     try {
       return await _db.rpc<String>(
         'add_expense',
-        params: {
-          'p': {
-            'idempotency_key': idempotencyKey,
-            'space_id': e.spaceId,
-            'description': e.description,
-            'category': ?e.category,
-            'amount_minor': e.amount.value,
-            // Omitted for today, so a replay after midnight still matches.
-            if (e.spentOn case final d?)
-              'spent_on':
-                  '${d.year}-${d.month.toString().padLeft(2, '0')}-'
-                  '${d.day.toString().padLeft(2, '0')}',
-            'split_type': e.splitType.name,
-            if (e.isSettlement) 'is_settlement': true,
-            'payers': [
-              for (final MapEntry(:key, :value) in e.payers.entries)
-                {'member_id': key, 'amount_minor': value.value},
-            ],
-            'splits': [
-              for (final s in e.splits)
-                {
-                  'member_id': s.memberId,
-                  'amount_minor': s.amount.value,
-                  'percent_bp': ?s.percentBp,
-                  'shares': ?s.shares,
-                },
-            ],
-          },
-        },
+        params: addExpenseParams(expense, idempotencyKey: idempotencyKey),
       );
     } on PostgrestException catch (error) {
       switch (error.code) {
