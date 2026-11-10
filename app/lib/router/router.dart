@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,11 +34,67 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: signedIn,
     redirect: (_, state) =>
         authRedirect(signedIn: signedIn.value, location: state.matchedLocation),
+    onException: (_, state, router) {
+      final join = invitePathForUri(state.uri);
+      router.go(
+        join ?? (signedIn.value ? SettloRoutes.home : SettloRoutes.welcome),
+      );
+    },
     routes: _routes(flatChrome: ref.read(flatChromeProvider)),
   );
-  ref.onDispose(router.dispose);
+  final links = ref.read(deepLinkSourceProvider);
+  void openInvite(Uri uri) {
+    final path = invitePathForUri(uri);
+    if (path != null) router.go(path);
+  }
+
+  unawaited(
+    links.initial.then((uri) {
+      if (uri != null) openInvite(uri);
+    }),
+  );
+  final linkSubscription = links.changes.listen(openInvite);
+  ref
+    ..onDispose(linkSubscription.cancel)
+    ..onDispose(router.dispose);
   return router;
 });
+
+/// Turns the custom-scheme shape delivered by iOS/Android into the route
+/// shared with the future HTTPS link. Other URIs are not invite links.
+String? invitePathForUri(Uri uri) {
+  if (uri.scheme != 'settlo' || uri.host != 'join') return null;
+  final segments = uri.pathSegments.where((part) => part.isNotEmpty).toList();
+  return segments.length == 1 && isInviteToken(segments.single)
+      ? SettloRoutes.join(segments.single)
+      : null;
+}
+
+/// Cold- and warm-start links delivered by the host platforms.
+abstract interface class DeepLinkSource {
+  /// The link that launched the process, if any.
+  Future<Uri?> get initial;
+
+  /// Links delivered while the process is already alive.
+  Stream<Uri> get changes;
+}
+
+final class _PlatformDeepLinks implements DeepLinkSource {
+  new(this._links);
+
+  final AppLinks _links;
+
+  @override
+  Future<Uri?> get initial => _links.getInitialLink();
+
+  @override
+  Stream<Uri> get changes => _links.uriLinkStream;
+}
+
+/// The platform link source; tests override it for cold and warm delivery.
+final deepLinkSourceProvider = Provider<DeepLinkSource>(
+  (_) => _PlatformDeepLinks(AppLinks()),
+);
 
 final _rootKey = GlobalKey<NavigatorState>();
 

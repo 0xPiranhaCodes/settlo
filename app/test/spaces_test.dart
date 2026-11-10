@@ -9,6 +9,7 @@ import 'package:settlo/main.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_loans/settlo_loans.dart' show openUrlProvider;
 import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
@@ -26,6 +27,8 @@ Future<GoRouter> _pump(
   String initialLocation = SettloRoutes.spaces,
   GoldenDevice device = SettloGoldenDevices.canvas390,
   FakeSpaceLedgerRepository? ledger,
+  InvitesRepository? invites,
+  Future<bool> Function(Uri)? openUrl,
 }) async {
   await loadSettloFonts();
   tester.view
@@ -81,6 +84,10 @@ Future<GoRouter> _pump(
       overrides: [
         sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
         spacesRepositoryProvider.overrideWithValue(repository),
+        invitesRepositoryProvider.overrideWithValue(
+          invites ?? FakeInvitesRepository(),
+        ),
+        if (openUrl != null) openUrlProvider.overrideWithValue(openUrl),
         spaceLedgerRepositoryProvider.overrideWithValue(
           ledger ?? FakeSpaceLedgerRepository(),
         ),
@@ -93,6 +100,21 @@ Future<GoRouter> _pump(
   );
   await tester.pumpAndSettle();
   return router;
+}
+
+final class _SpaceInvites extends FakeInvitesRepository {
+  String? memberId;
+  final keys = <String>[];
+
+  @override
+  Future<String> issueSpace(
+    String memberId, {
+    required String idempotencyKey,
+  }) async {
+    this.memberId = memberId;
+    keys.add(idempotencyKey);
+    return 'space-token-${keys.length}';
+  }
 }
 
 Future<void> _openSheet(WidgetTester tester) async {
@@ -215,6 +237,50 @@ void main() {
           '₹1,200 in Goa trip is recorded against +91\u00A0•••\u00A02210',
         ),
         findsOne,
+      );
+    });
+
+    testWidgets('pending member card shares a token link without an amount', (
+      tester,
+    ) async {
+      final invites = _SpaceInvites();
+      final opened = <Uri>[];
+      await _pump(
+        tester,
+        FakeSpacesRepository(spacesList),
+        invites: invites,
+        openUrl: (uri) async {
+          opened.add(uri);
+          return true;
+        },
+      );
+
+      final invite = find
+          .ancestor(
+            of: find.text("Kabir hasn't joined yet"),
+            matching: find.byType(InkWell),
+          )
+          .first;
+      await tester.ensureVisible(invite);
+      await tester.tap(invite);
+      await tester.pumpAndSettle();
+
+      expect(invites.memberId, isNotNull);
+      expect(opened.single.host, 'wa.me');
+      expect(
+        opened.single.queryParameters['text'],
+        contains('settlo://join/space-token-1'),
+      );
+      expect(opened.single.queryParameters['text'], isNot(contains('₹')));
+      expect(opened.single.queryParameters['text'], isNot(contains('1,200')));
+
+      await tester.tap(invite);
+      await tester.pumpAndSettle();
+      expect(invites.keys, hasLength(2));
+      expect(invites.keys[1], isNot(invites.keys[0]));
+      expect(
+        opened.last.queryParameters['text'],
+        contains('settlo://join/space-token-2'),
       );
     });
 

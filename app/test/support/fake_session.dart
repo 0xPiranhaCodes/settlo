@@ -58,6 +58,7 @@ Widget fakeSessionApp(
   ThemeModeRepository? themeModeRepository,
   HomeRepository? home,
   LoansRepository? loans,
+  InvitesRepository? invites,
   List<Override> overrides = const [],
 }) => ProviderScope(
   overrides: [
@@ -77,9 +78,40 @@ Widget fakeSessionApp(
     ),
     profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
     activityRepositoryProvider.overrideWithValue(FakeActivityRepository()),
+    invitesRepositoryProvider.overrideWithValue(
+      invites ?? FakeInvitesRepository(),
+    ),
     themeModeRepositoryProvider.overrideWithValue(
       themeModeRepository ?? FakeThemeModeRepository(themeMode),
     ),
   ],
   child: const SettloApp(),
 );
+
+class FakeInvitesRepository implements InvitesRepository {
+  @override
+  Future<InvitePreview?> inspect(String token) async => const InvitePreview(
+    kind: 'space',
+    inviterName: 'Satheesh',
+    subjectName: 'Flat 402',
+    maskedPhone: '+91 981•••••44',
+  );
+
+  @override
+  Future<String> issueSpace(
+    String memberId, {
+    required String idempotencyKey,
+  }) async => 'space-token';
+
+  @override
+  Future<String> issueLoan(
+    String loanId, {
+    required String idempotencyKey,
+  }) async => 'loan-token';
+
+  @override
+  Future<void> redeem(String token, {required String idempotencyKey}) async {}
+
+  @override
+  Future<void> decline(String token, {required String idempotencyKey}) async {}
+}

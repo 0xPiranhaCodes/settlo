@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo/router/router.dart';
 import 'package:settlo_activity/settlo_activity.dart';
+import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_local/settlo_local.dart';
 import 'package:settlo_platform/settlo_platform.dart';
@@ -49,7 +50,16 @@ class SettloApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Keeps the Live Activity / ongoing notification in step with the app.
-    ref.watch(liveActivitySyncProvider);
+    ref
+      ..watch(liveActivitySyncProvider)
+      ..listen(inviteSignInNoticeProvider, (_, next) {
+        if (next == null) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _messenger.currentState?.showSnackBar(
+            SnackBar(content: Text(next.message)),
+          );
+        });
+      });
     return MaterialApp.router(
       title: 'Settlo',
       debugShowCheckedModeBanner: false,

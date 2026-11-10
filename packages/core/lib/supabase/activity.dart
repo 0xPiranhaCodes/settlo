@@ -89,6 +89,7 @@ final class ActivityEntry {
     this.beforeAmount,
     this.status,
     this.toYou,
+    this.linkOnly = false,
   });
 
   /// `activity.id`; with [at], the feed's cursor.
@@ -139,6 +140,9 @@ final class ActivityEntry {
   /// For a settle-up or repayment you are part of: whether the money came
   /// to you (true) or went from you (false).
   final bool? toYou;
+
+  /// This row records that a bearer declined only one link, not the invite.
+  final bool linkOnly;
 
   /// The amount's colour: mint in your favour, coral against you, once it
   /// counts. Disputed or deleted money is grey; everything else, such as
@@ -260,6 +264,7 @@ final class SupabaseActivityRepository implements ActivityRepository {
             'out' => false,
             _ => null,
           },
+          linkOnly: r['link_only'] as bool? ?? false,
         ),
     ];
   }

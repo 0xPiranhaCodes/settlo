@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_spaces/src/create_space_sheet.dart';
 import 'package:settlo_spaces/src/glyphs.dart';
 import 'package:settlo_spaces/src/spaces_controller.dart';
@@ -318,49 +319,105 @@ class _PaidBar extends StatelessWidget {
   }
 }
 
-class _PendingCard extends StatelessWidget {
+class _PendingCard extends ConsumerStatefulWidget {
   const new({required this.space, required this.member});
 
   final SpaceSummary space;
   final SpaceMember member;
 
   @override
+  ConsumerState<_PendingCard> createState() => _PendingCardState();
+}
+
+class _PendingCardState extends ConsumerState<_PendingCard> {
+  String _inviteKey = newIdempotencyKey();
+  bool _busy = false;
+
+  Future<void> _send() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final member = widget.member;
+    try {
+      final token = await ref
+          .read(invitesRepositoryProvider)
+          .issueSpace(member.id, idempotencyKey: _inviteKey);
+      // A successful issue is complete: the next share creates another live
+      // link. Only an ambiguous/failed issue retries the same key.
+      _inviteKey = newIdempotencyKey();
+      final opened = await ref.read(openUrlProvider)(
+        Uri.https('wa.me', '/${member.phone.substring(1)}', {
+          'text': spaceInviteText(
+            widget.space.you.name,
+            widget.space.name,
+            inviteLink(token),
+          ),
+        }),
+      );
+      if (!opened && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Couldn't open WhatsApp")));
+      }
+    } on Exception {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Couldn't create the invite")),
+        );
+      }
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
+    final space = widget.space;
+    final member = widget.member;
     final b = member.balance;
     final number = maskPhone(member.phone);
     String detail(String amount) => b.value == 0
         ? 'Added to ${space.name} as $number'
         : '$amount in ${space.name} is recorded against $number';
-    return SCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: MergeSemantics(
-        child: Row(
-          children: [
-            SAvatar(member.name, size: 36),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "${member.name} hasn't joined yet",
-                    style: SettloTypography.figtree(14, color: c.textPrimary),
-                  ),
-                  Text(
-                    detail(formatInr(Paise(b.value.abs()))),
-                    semanticsLabel: detail(spokenInr(Paise(b.value.abs()))),
-                    style: SettloTypography.figtree(
-                      12,
-                      color: c.textSecondary,
-                    ).copyWith(height: 1.3),
-                  ),
-                ],
+    return Semantics(
+      button: true,
+      label: 'Send ${member.name} an invite on WhatsApp',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(SettloRadius.card),
+        onTap: _busy ? null : _send,
+        child: SCard(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              SAvatar(member.name, size: 36),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "${member.name} hasn't joined yet",
+                      style: SettloTypography.figtree(14, color: c.textPrimary),
+                    ),
+                    Text(
+                      detail(formatInr(Paise(b.value.abs()))),
+                      semanticsLabel: detail(spokenInr(Paise(b.value.abs()))),
+                      style: SettloTypography.figtree(
+                        12,
+                        color: c.textSecondary,
+                      ).copyWith(height: 1.3),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+/// Fixed trust copy for a space capability; never includes balances.
+String spaceInviteText(String inviter, String space, Uri link) =>
+    'Hi, this is $inviter. I added you to $space on Settlo. Nothing is '
+    'shown until you verify this number. $link';

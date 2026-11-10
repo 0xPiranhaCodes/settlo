@@ -2,19 +2,75 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'fake_phone_auth.dart';
 
+final class _Invites implements InvitesRepository {
+  bool fail = false;
+  InviteFailure? inviteFailure;
+  final calls = <(String, String)>[];
+
+  @override
+  Future<void> redeem(String token, {required String idempotencyKey}) async {
+    calls.add((token, idempotencyKey));
+    final mapped = inviteFailure;
+    if (mapped != null) throw InviteException(mapped);
+    if (fail) throw Exception('offline');
+  }
+
+  @override
+  Future<void> decline(String token, {required String idempotencyKey}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<InvitePreview?> inspect(String token) => throw UnimplementedError();
+
+  @override
+  Future<String> issueLoan(String loanId, {required String idempotencyKey}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> issueSpace(
+    String memberId, {
+    required String idempotencyKey,
+  }) => throw UnimplementedError();
+}
+
+final _session = Session(
+  accessToken: 'test-access-token',
+  tokenType: 'bearer',
+  user: const User(
+    id: '00000000-0000-0000-0000-000000000001',
+    appMetadata: {},
+    userMetadata: {},
+    aud: 'authenticated',
+    createdAt: '2026-11-10T00:00:00Z',
+    phone: '919000000001',
+  ),
+);
+
+final class _Session extends SessionNotifier {
+  @override
+  Session? build() => _session;
+}
+
 void main() {
   late FakePhoneAuth auth;
+  late _Invites invites;
   late ProviderContainer container;
   SignInController controller() => container.read(signInProvider.notifier);
   SignInState state() => container.read(signInProvider);
 
   setUp(() {
     auth = FakePhoneAuth();
+    invites = _Invites();
     container = ProviderContainer(
-      overrides: [phoneAuthProvider.overrideWithValue(auth)],
+      overrides: [
+        phoneAuthProvider.overrideWithValue(auth),
+        invitesRepositoryProvider.overrideWithValue(invites),
+        sessionProvider.overrideWith(_Session.new),
+      ],
     )..listen(signInProvider, (_, _) {});
   });
   tearDown(() => container.dispose());
@@ -23,6 +79,13 @@ void main() {
     expect(state().country, Country.india);
     expect(state().national, '');
     expect(state().sentTo, isNull);
+  });
+
+  test('target-cap failures use unavailable copy', () {
+    expect(
+      signInErrorForInvite(InviteFailure.targetLimit),
+      SignInError.inviteUnavailable,
+    );
   });
 
   test('an invalid number is not sent', () async {
@@ -84,6 +147,71 @@ void main() {
       auth.failure = PhoneAuthFailure.rejected;
       await controller().verifyCode('000000');
       expect(state().error, SignInError.codeRejected);
+    });
+
+    test('redeems a pending invite with its original replay key', () async {
+      container
+          .read(pendingInviteTokenProvider.notifier)
+          .remember('capability', idempotencyKey: 'stable-key');
+      await controller().verifyCode('123456');
+
+      expect(invites.calls, [('capability', 'stable-key')]);
+      expect(container.read(pendingInviteTokenProvider), isNull);
+      expect(state().error, isNull);
+    });
+
+    test('keeps a pending invite when redemption needs a retry', () async {
+      invites.fail = true;
+      container
+          .read(pendingInviteTokenProvider.notifier)
+          .remember('capability', idempotencyKey: 'stable-key');
+      await controller().verifyCode('123456');
+
+      expect(state().error, SignInError.network);
+      expect(container.read(pendingInviteTokenProvider)?.token, 'capability');
+    });
+
+    test(
+      'wrong-phone invite gives plain copy and clears terminal state',
+      () async {
+        invites.inviteFailure = InviteFailure.wrongPhone;
+        container
+            .read(pendingInviteTokenProvider.notifier)
+            .remember('capability', idempotencyKey: 'stable-key');
+        await controller().verifyCode('123456');
+
+        expect(state().error, SignInError.inviteWrongPhone);
+        expect(
+          state().error?.message(Country.india),
+          contains('different number'),
+        );
+        expect(container.read(pendingInviteTokenProvider), isNull);
+      },
+    );
+
+    test(
+      'unavailable invite clears terminal state without a network error',
+      () async {
+        invites.inviteFailure = InviteFailure.unavailable;
+        container
+            .read(pendingInviteTokenProvider.notifier)
+            .remember('capability', idempotencyKey: 'stable-key');
+        await controller().verifyCode('123456');
+
+        expect(state().error, SignInError.inviteUnavailable);
+        expect(container.read(pendingInviteTokenProvider), isNull);
+      },
+    );
+
+    test('rate-limited redemption stays available for a later retry', () async {
+      invites.inviteFailure = InviteFailure.rateLimited;
+      container
+          .read(pendingInviteTokenProvider.notifier)
+          .remember('capability', idempotencyKey: 'stable-key');
+      await controller().verifyCode('123456');
+
+      expect(state().error, SignInError.rateLimited);
+      expect(container.read(pendingInviteTokenProvider)?.token, 'capability');
     });
 
     test('resends to the number the code went to', () async {

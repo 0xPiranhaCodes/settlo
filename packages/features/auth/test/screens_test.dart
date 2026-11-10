@@ -1,35 +1,142 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'fake_phone_auth.dart';
+
+const _inviteToken =
+    'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
 /// The sign-in routes with a fake [auth], starting at [location].
 Future<GoRouter> _pump(
   WidgetTester tester,
   FakePhoneAuth auth, {
   String location = SettloRoutes.phone,
+  InvitesRepository? invites,
+  Session? session,
+  bool settle = true,
 }) async {
   tester.view
     ..physicalSize = const Size(390, 844)
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-  final router = GoRouter(initialLocation: location, routes: authRoutes);
+  final router = GoRouter(
+    initialLocation: location,
+    routes: [
+      ...authRoutes,
+      GoRoute(
+        path: SettloRoutes.home,
+        builder: (_, _) => const Scaffold(body: Text('Home')),
+      ),
+    ],
+  );
   addTearDown(router.dispose);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [phoneAuthProvider.overrideWithValue(auth)],
+      overrides: [
+        phoneAuthProvider.overrideWithValue(auth),
+        sessionProvider.overrideWith(() => _Session(session)),
+        if (invites != null)
+          invitesRepositoryProvider.overrideWithValue(invites),
+      ],
       child: MaterialApp.router(
         theme: SettloTheme.dark(),
         routerConfig: router,
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+  }
   return router;
+}
+
+final class _Session extends SessionNotifier {
+  new(this.initial);
+
+  final Session? initial;
+
+  @override
+  Session? build() => initial;
+}
+
+final _signedIn = Session(
+  accessToken: 'token',
+  tokenType: 'bearer',
+  user: const User(
+    id: 'user',
+    appMetadata: {},
+    userMetadata: {},
+    aud: 'authenticated',
+    createdAt: '2026-11-10T00:00:00Z',
+    phone: '919100000002',
+  ),
+);
+
+final class _Invites implements InvitesRepository {
+  new({
+    this.preview = const InvitePreview(
+      kind: 'space',
+      inviterName: 'Asha',
+      subjectName: 'Flat 402',
+      maskedPhone: '+91910•••••02',
+    ),
+    this.previewFuture,
+    this.redeemError = false,
+    this.redeemFailure,
+    this.declineError = false,
+    this.redeemCompleter,
+  });
+
+  final InvitePreview? preview;
+  final Future<InvitePreview?>? previewFuture;
+  bool redeemError;
+  final InviteFailure? redeemFailure;
+  bool declineError;
+  final Completer<void>? redeemCompleter;
+  int redeems = 0;
+  int declines = 0;
+  final redeemKeys = <String>[];
+  final declineKeys = <String>[];
+
+  @override
+  Future<InvitePreview?> inspect(String token) =>
+      previewFuture ?? Future.value(preview);
+
+  @override
+  Future<void> redeem(String token, {required String idempotencyKey}) async {
+    redeems++;
+    redeemKeys.add(idempotencyKey);
+    if (redeemFailure case final failure?) throw InviteException(failure);
+    if (redeemError) throw Exception('redeem');
+    final completer = redeemCompleter;
+    if (completer != null) await completer.future;
+  }
+
+  @override
+  Future<void> decline(String token, {required String idempotencyKey}) async {
+    declines++;
+    declineKeys.add(idempotencyKey);
+    if (declineError) throw Exception('decline');
+  }
+
+  @override
+  Future<String> issueLoan(String loanId, {required String idempotencyKey}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> issueSpace(
+    String memberId, {
+    required String idempotencyKey,
+  }) => throw UnimplementedError();
 }
 
 final Finder _number = find.byKey(const ValueKey('phone-number'));
@@ -305,6 +412,173 @@ void main() {
     testWidgets('opened without a code, goes to the number', (tester) async {
       final router = await _pump(tester, auth, location: SettloRoutes.otp);
       expect(router.state.uri.path, SettloRoutes.phone);
+    });
+  });
+
+  group('Join', () {
+    testWidgets('shows minimal space copy and carries the invite to Phone', (
+      tester,
+    ) async {
+      final router = await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
+        invites: _Invites(),
+      );
+
+      expect(find.text('Asha added you to Flat 402'), findsOneWidget);
+      expect(find.text('+91910•••••02'), findsOneWidget);
+      expect(find.textContaining('₹'), findsNothing);
+      await tester.tap(find.text('Verify my number to see the ledger'));
+      await tester.pumpAndSettle();
+      expect(router.state.uri.path, SettloRoutes.phone);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PhoneScreen)),
+      );
+      expect(container.read(pendingInviteTokenProvider)?.token, _inviteToken);
+    });
+
+    testWidgets('renders loan trust copy and redeems for a signed-in target', (
+      tester,
+    ) async {
+      final invites = _Invites(
+        preview: const InvitePreview(
+          kind: 'loan',
+          inviterName: 'Asha',
+          subjectName: 'Loan with Asha',
+          maskedPhone: '+91910•••••02',
+        ),
+      );
+      final router = await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
+        invites: invites,
+        session: _signedIn,
+      );
+
+      expect(find.textContaining('No amount is shown'), findsOneWidget);
+      await tester.tap(find.text('Verify my number to see the ledger'));
+      await tester.pumpAndSettle();
+      expect(invites.redeems, 1);
+      expect(router.state.uri.path, SettloRoutes.home);
+    });
+
+    testWidgets('primary action has a same-frame double-tap guard', (
+      tester,
+    ) async {
+      final completer = Completer<void>();
+      final invites = _Invites(redeemCompleter: completer);
+      await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
+        invites: invites,
+        session: _signedIn,
+      );
+
+      final action = find.text('Verify my number to see the ledger');
+      await tester.tap(action);
+      await tester.tap(action);
+      expect(invites.redeems, 1);
+      completer.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets("This isn't me declines and failures stay explainable", (
+      tester,
+    ) async {
+      final invites = _Invites(declineError: true);
+      await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
+        invites: invites,
+      );
+
+      await tester.tap(find.text("This isn't me"));
+      await tester.pumpAndSettle();
+      expect(invites.declines, 1);
+      expect(find.textContaining("couldn't be declined"), findsOneWidget);
+
+      invites.declineError = false;
+      await tester.tap(find.text("This isn't me"));
+      await tester.pumpAndSettle();
+      expect(invites.declineKeys.toSet(), hasLength(1));
+    });
+
+    testWidgets('redeem failure and unavailable copy are safe', (tester) async {
+      await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
+        invites: _Invites(redeemError: true),
+        session: _signedIn,
+      );
+      await tester.tap(find.text('Verify my number to see the ledger'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining("couldn't reach Settlo"), findsOneWidget);
+
+      final invites = _Invites(redeemError: true);
+      await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
+        invites: invites,
+        session: _signedIn,
+      );
+      await tester.tap(find.text('Verify my number to see the ledger'));
+      await tester.pumpAndSettle();
+      invites.redeemError = false;
+      await tester.tap(find.text('Verify my number to see the ledger'));
+      await tester.pumpAndSettle();
+      expect(invites.redeemKeys.toSet(), hasLength(1));
+
+      await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
+        invites: _Invites(preview: null),
+      );
+      expect(find.text('This invite is no longer available.'), findsOneWidget);
+    });
+
+    testWidgets('signed-in Join explains a wrong-phone redemption', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
+        invites: _Invites(redeemFailure: InviteFailure.wrongPhone),
+        session: _signedIn,
+      );
+
+      await tester.tap(find.text('Verify my number to see the ledger'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('different number'), findsOneWidget);
+    });
+
+    testWidgets('waits for inspection and records a successful decline', (
+      tester,
+    ) async {
+      final preview = Completer<InvitePreview?>();
+      final invites = _Invites(previewFuture: preview.future);
+      final router = await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
+        invites: invites,
+        settle: false,
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      preview.complete(invites.preview);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text("This isn't me"));
+      await tester.pumpAndSettle();
+      expect(invites.declines, 1);
+      expect(router.state.uri.path, SettloRoutes.welcome);
     });
   });
 }

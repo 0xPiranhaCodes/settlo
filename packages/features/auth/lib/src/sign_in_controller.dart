@@ -24,7 +24,13 @@ enum SignInError {
   rateLimited,
 
   /// The server could not be reached.
-  network;
+  network,
+
+  /// The verified number is not the one this invite records.
+  inviteWrongPhone,
+
+  /// The invite expired, was withdrawn or was already used.
+  inviteUnavailable;
 
   /// What to tell the person, for numbers in [country]. Plain and warm,
   /// sentence case, no exclamation marks; never says whether the number
@@ -44,8 +50,46 @@ enum SignInError {
       "That's a lot of tries in a short time. Wait a minute, "
           'then try again.',
     network => "We couldn't reach Settlo. Check your connection and try again.",
+    inviteWrongPhone =>
+      'This invite was recorded against a different number. Ask the sender '
+          'to invite this number instead.',
+    inviteUnavailable =>
+      'This invite is no longer available. Ask the sender for a new link.',
   };
 }
+
+/// A sign-in result that must survive the auth route being disposed.
+@immutable
+final class SignInNotice {
+  /// Creates a notice shown by the app-level messenger.
+  const new(this.message);
+
+  /// Privacy-safe guidance for the signed-in person.
+  final String message;
+}
+
+/// Carries terminal invite errors across the OTP -> Home redirect.
+final inviteSignInNoticeProvider =
+    NotifierProvider<InviteSignInNotice, SignInNotice?>(InviteSignInNotice.new);
+
+/// Publishes invite results outside the auto-disposed sign-in screens.
+final class InviteSignInNotice extends Notifier<SignInNotice?> {
+  @override
+  SignInNotice? build() => null;
+
+  /// Publishes [error] as a new event, even if its copy matches the last one.
+  void show(SignInError error, Country country) {
+    state = SignInNotice(error.message(country));
+  }
+}
+
+/// Maps the stable invite contract to actionable auth copy.
+SignInError signInErrorForInvite(InviteFailure failure) => switch (failure) {
+  InviteFailure.wrongPhone => SignInError.inviteWrongPhone,
+  InviteFailure.rateLimited => SignInError.rateLimited,
+  InviteFailure.unavailable ||
+  InviteFailure.targetLimit => SignInError.inviteUnavailable,
+};
 
 /// Where the sign-in flow is: the number being entered, where the code
 /// went, whether a call is in flight and the last error.
@@ -141,12 +185,63 @@ class SignInController extends Notifier<SignInState> {
       state = state._next(error: SignInError.incompleteCode);
       return;
     }
+    // Verification changes the session and may dispose this auto-dispose
+    // controller before the invite request returns. Capture every dependency
+    // needed by the continuation while ref and state are still mounted.
+    final phoneAuth = ref.read(phoneAuthProvider);
+    final pendingInvite = ref.read(pendingInviteTokenProvider);
+    final invites = pendingInvite == null
+        ? null
+        : ref.read(invitesRepositoryProvider);
+    final pendingInviteNotifier = ref.read(pendingInviteTokenProvider.notifier);
+    final noticeNotifier = ref.read(inviteSignInNoticeProvider.notifier);
+    final sessionNotifier = pendingInvite == null
+        ? null
+        : ref.read(sessionProvider.notifier);
+    final country = state.country;
     state = state._next(busy: true);
-    final error = await _call(
-      () => ref.read(phoneAuthProvider).verifyCode(phone: phone, code: code),
-      rejected: SignInError.codeRejected,
-    );
-    if (ref.mounted) state = state._next(busy: false, error: error);
+    String? verifiedUserId;
+    final error = await _call(() async {
+      verifiedUserId = await phoneAuth.verifyCode(phone: phone, code: code);
+    }, rejected: SignInError.codeRejected);
+    var finalError = error;
+    if (error == null && pendingInvite != null) {
+      final redeemingUserId = verifiedUserId;
+      try {
+        await invites!.redeem(
+          pendingInvite.token,
+          idempotencyKey: pendingInvite.idempotencyKey,
+        );
+        if (_isAnotherUser(sessionNotifier!, redeemingUserId)) {
+          return;
+        }
+        pendingInviteNotifier.clear();
+      } on InviteException catch (inviteError) {
+        if (_isAnotherUser(sessionNotifier!, redeemingUserId)) {
+          return;
+        }
+        finalError = signInErrorForInvite(inviteError.failure);
+        noticeNotifier.show(finalError, country);
+        if (inviteError.failure
+            case InviteFailure.wrongPhone || InviteFailure.unavailable) {
+          pendingInviteNotifier.clear();
+        }
+      } on Exception {
+        if (_isAnotherUser(sessionNotifier!, redeemingUserId)) {
+          return;
+        }
+        finalError = SignInError.network;
+        noticeNotifier.show(finalError, country);
+      }
+    }
+    if (ref.mounted) state = state._next(busy: false, error: finalError);
+  }
+
+  static bool _isAnotherUser(SessionNotifier session, String? redeemingUserId) {
+    final currentUserId = session.userId;
+    return redeemingUserId != null &&
+        currentUserId != null &&
+        currentUserId != redeemingUserId;
   }
 
   Future<bool> _send(String phone) async {

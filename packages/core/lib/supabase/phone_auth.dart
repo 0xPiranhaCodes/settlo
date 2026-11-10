@@ -34,9 +34,9 @@ abstract interface class PhoneAuth {
   /// [PhoneAuthException].
   Future<void> sendCode(String phone);
 
-  /// Signs in with [code] sent to [phone]. On success the session changes
-  /// and [sessionProvider] follows. Throws [PhoneAuthException].
-  Future<void> verifyCode({required String phone, required String code});
+  /// Signs in with [code] sent to [phone] and returns the verified user id.
+  /// [sessionProvider] follows asynchronously. Throws [PhoneAuthException].
+  Future<String?> verifyCode({required String phone, required String code});
 }
 
 /// [PhoneAuth] through Supabase Auth.
@@ -54,14 +54,19 @@ final class SupabasePhoneAuth implements PhoneAuth {
       _guard(() => _auth.signInWithOtp(phone: phone));
 
   @override
-  Future<void> verifyCode({required String phone, required String code}) =>
-      _guard(
-        () => _auth.verifyOTP(phone: phone, token: code, type: OtpType.sms),
-      );
+  Future<String?> verifyCode({
+    required String phone,
+    required String code,
+  }) async {
+    final response = await _guard(
+      () => _auth.verifyOTP(phone: phone, token: code, type: OtpType.sms),
+    );
+    return response.user?.id ?? _auth.currentSession?.user.id;
+  }
 
-  static Future<void> _guard(Future<Object?> Function() call) async {
+  static Future<T> _guard<T>(Future<T> Function() call) async {
     try {
-      await call();
+      return await call();
     } on AuthRetryableFetchException {
       throw const PhoneAuthException(PhoneAuthFailure.network);
     } on AuthException catch (e) {

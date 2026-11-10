@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_auth/src/otp_screen.dart';
 import 'package:settlo_auth/src/phone_screen.dart';
@@ -21,6 +22,9 @@ final List<RouteBase> authRoutes = [
   ),
   GoRoute(
     path: SettloRoutes.joinPattern,
-    builder: (_, state) => JoinScreen(token: state.pathParameters['token']!),
+    builder: (_, state) {
+      final token = state.pathParameters['token']!;
+      return JoinScreen(key: ValueKey(token), token: token);
+    },
   ),
 ];

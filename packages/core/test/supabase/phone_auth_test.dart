@@ -37,7 +37,15 @@ class _FakeGoTrue extends Fake implements GoTrueClient {
   }) async {
     calls.add('verify $phone $token ${type.name}');
     if (error case final e?) throw e;
-    return AuthResponse();
+    return AuthResponse(
+      user: const User(
+        id: '00000000-0000-0000-0000-000000000001',
+        appMetadata: {},
+        userMetadata: {},
+        aud: 'authenticated',
+        createdAt: '2026-11-10T00:00:00Z',
+      ),
+    );
   }
 }
 
@@ -55,8 +63,12 @@ void main() {
   });
 
   test('verifies an SMS code', () async {
-    await auth.verifyCode(phone: '+919000000001', code: '123456');
+    final userId = await auth.verifyCode(
+      phone: '+919000000001',
+      code: '123456',
+    );
     expect(goTrue.calls, ['verify +919000000001 123456 sms']);
+    expect(userId, '00000000-0000-0000-0000-000000000001');
   });
 
   group('maps failures', () {
