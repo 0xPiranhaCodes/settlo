@@ -388,16 +388,10 @@ jobs:
             flutter test --update-goldens
           )
 
-      - name: Compose Linux review evidence
-        run: |
-          python3 -m pip install Pillow==11.3.0
-          python3 scripts/compose-ui-evidence.py
-
       - name: Commit app and core goldens
         shell: bash
         run: |
           set -euo pipefail
-          git add docs/design/145/comparisons docs/design/145/pixel-deltas.md
           git add app/test/goldens/*.png
           git add packages/core/test/theme/goldens/*.png
           git add packages/core/test/widgets/goldens/*.png

@@ -2,7 +2,8 @@
 
 The shared screen edge is 20 logical pixels. The coordinator approved a single
 mock-fidelity exception: Welcome retains its 24px inset and warm action shadow.
-Colours, Figtree typography, routes, keys, providers and mutation guards stay intact.
+Colours, the Figtree family, routes, keys, providers and mutation guards stay intact.
+The owner-approved global type ramp changes sizes and permits Home/Welcome to grow.
 
 | Area | Findings | Refinement |
 | --- | --- | --- |
@@ -48,14 +49,15 @@ raster frames above 20ms in a thirty-frame window; the decision stays stable for
 the bar's lifetime. Reduce Motion disables both sliding and press scale.
 Inactive icons/labels use existing primary text so contrast remains at least
 4.5:1 even over extreme backgrounds; tests cover tint, glow, and bronze endpoints.
-The shell retains content behind the bar and increases its bottom inset when
-large navigation labels need a taller capsule.
+The shell retains content behind the bar. At text scale 1.3 and above, navigation
+uses icons with semantic labels and long-press tooltips at the same capsule height.
 
 ## Accessibility refinements found during rendering
 
 - Fixed double-scaled rupee WidgetSpans, with a rendered-size regression test.
 - Fit complete money amounts to their available width; preserve spoken rupees.
-- Allow primary action labels to wrap instead of truncating confirmation amounts.
+- Keep normal action labels single-line with ellipsis; stack paired actions at
+  large text sizes and fit whole labels without mid-word breaks.
 - At 200% text, amount sheets use one scrolling form and schedule fields stack.
 - The widget-tree target audit runs from every screen golden and each panel
   capture, with a negative test proving a 24px control fails. Flutter's native
@@ -67,8 +69,12 @@ large navigation labels need a taller capsule.
 
 ## Reproducing the evidence
 
-Linux workflow run 42838601608 generated the before images, updated app/core
-goldens, and per-screen comparison sheets. The temporary workflow additions were
+Linux workflow run 42838601608 generated the original before images. Run
+42850893604 regenerated app/core goldens, 38 comparison sheets and content pixel
+deltas for the review fixes and both owner changes. Its rendering and composition
+steps passed; GitHub rejected the final ref update with `fatal error in commit_refs`.
+The generated commit ff4bbba7ef6348fe40ad2ecb4887507083a45358 was fetched by SHA
+and fast-forwarded locally, preserving the exact Linux artifacts. The temporary workflow additions were
 removed after generation; this PR leaves `.github` identical to main. The scripts
 remain usable in a Linux checkout with Flutter dependencies installed:
 
@@ -101,15 +107,14 @@ growth within the Welcome/Home composition to accommodate the new type ramp.
   chrome and covered status region, platform refresh/physics, per-tab positions,
   active-tab scroll-to-top, iOS status tap and swipe-back, drag keyboard dismissal,
   panel drag/fling dismissal, haptics, native routes, and Reduce Motion handling.
-- [ ] **Finish local verification:** latest core suite passed 370 tests and
-  targeted Home/Spaces/Activity/inset suite passed 137; full app run passed 644
-  with two receipt visibility failures whose test fixes still need rerunning.
-  Profile tests currently have nine failures under investigation after migration
-  to lazy slivers. Rerun affected/full suites and obtain clean root analyze.
+- [x] **Local verification:** root analyze is clean; all 646 app tests, 370 core
+  tests, all feature-package suites and 51 targeted Loans tests pass. Profile tests now
+  reveal offscreen settings rows before tapping, preserving no-pump double-tap
+  checks; receipt tests reveal lazy sliver content before asserting it.
 - [ ] **Finish visual evidence:** review both sizes/themes at 100% and 200%,
   regenerate authoritative Linux goldens and comparison sheets, and add pixel
-  deltas. Current local PNGs are macOS diagnostics and must not be committed as
-  Linux evidence; original before images remain the baseline.
+  deltas. All local macOS diagnostic PNG changes were deleted/restored before Linux
+  regeneration; original before images remain the baseline.
 - [ ] **Finish delivery:** restore any temporary workflow dispatch changes so
   `.github` has an empty base diff, verify pull_request CI on the exact final head
   including Android debug, run `flutter clean`, push and reply on PR 146 without
