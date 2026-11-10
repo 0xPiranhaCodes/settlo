@@ -88,8 +88,9 @@ summary:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  font-size: 27px;
-  letter-spacing: -1px;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   font-weight: 500;
   text-decoration: none;
   min-height: 44px;
@@ -198,9 +199,10 @@ footer a {
 }
 .footer-mark {
   color: var(--text);
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 500;
-  letter-spacing: -0.04em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   text-decoration: none;
 }
 .studio {
@@ -383,11 +385,14 @@ figcaption {
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 40px;
+  column-gap: 40px;
 }
-.trip-steps li {
-  display: flex;
-  flex-direction: column;
+/* Subgrid rows line up the three captions under screens and sketches of different heights. */
+.trip-steps > li {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  margin: 0;
 }
 .trip-steps p {
   margin: 28px 0 0;
@@ -399,40 +404,62 @@ figcaption {
   font-size: 19px;
   margin-bottom: 4px;
 }
-.handoff-card {
+/* Steps outside Settlo are typeset sketches, not app screens; captions say so. */
+.sketch {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
-  gap: 8px;
-  min-height: 320px;
-  border-radius: 40px;
-  position: relative;
-  overflow: hidden;
-  border: 1px dashed #d8b36a59;
+  margin: 0;
+}
+.sketch-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 28px;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 24px;
   color: var(--secondary);
   font-size: 15px;
 }
-/* The gold arc marks the moment the money leaves Settlo. */
-.handoff-card::before {
-  content: "";
-  position: absolute;
-  width: 280px;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: 1px solid #d8b36a40;
-  border-left-color: transparent;
-  border-bottom-color: transparent;
-  transform: rotate(-20deg);
+.sketch-label {
+  color: var(--text);
 }
-.handoff-card b {
+.sketch-amount {
   color: var(--welcome-gold);
-  font-size: clamp(56px, 5.5vw, 76px);
+  font-size: 48px;
   font-weight: 500;
   letter-spacing: -0.04em;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.sketch-note {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.sketch-steps {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--line);
+}
+.sketch-steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+.sketch-steps li::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+}
+.sketch-steps .done::before {
+  background: var(--gold);
 }
 
 /* Flat 402: copy leads, the balance screen sits low and to the right. */
@@ -459,26 +486,22 @@ figcaption {
   font-size: 16px;
 }
 
-/* The loan: two overlapping screens, then the story. */
+/* The loan: two screens side by side, staggered without overlap, then the story. */
 .loan {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 80px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 64px;
   align-items: center;
   padding: 80px 0 136px;
 }
 .loan-screens {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-}
-.loan-screens .screen:first-child {
-  grid-column: 1 / 9;
-  grid-row: 1;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
 }
 .loan-screens .screen:last-child {
-  grid-column: 6 / 13;
-  grid-row: 1;
-  margin-top: 160px;
+  margin-top: 96px;
 }
 .loan-copy p {
   font-size: 18px;
@@ -651,16 +674,22 @@ details[open] summary::after {
     scroll-snap-type: x mandatory;
     scroll-padding: 0 20px;
   }
-  .trip-steps li {
+  .trip-steps > li {
+    display: flex;
+    flex-direction: column;
     flex: 0 0 82%;
     scroll-snap-align: start;
   }
   .trip-steps:focus-visible {
     outline: 2px solid var(--welcome-gold);
   }
-  .handoff-card {
-    flex: 0 0 auto;
-    aspect-ratio: 390 / 844;
+  .loan-screens {
+    grid-template-columns: minmax(0, 390px);
+    justify-content: center;
+    gap: 40px;
+  }
+  .loan-screens .screen:last-child {
+    margin-top: 0;
   }
   .footer-top {
     grid-template-columns: 1fr;
@@ -672,7 +701,7 @@ details[open] summary::after {
 @media (max-width: 400px) {
   .wordmark {
     gap: 8px;
-    font-size: 24px;
+    font-size: 20px;
   }
   .wordmark img {
     width: 28px;

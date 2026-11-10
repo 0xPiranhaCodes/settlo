@@ -7,7 +7,8 @@
       "size": [
         390,
         844
-      ]
+      ],
+      "crop_rows": 662
     },
     "settle_pay": {
       "path": "app/test/goldens/settle_pay_390x844_dark.png",
@@ -15,15 +16,8 @@
       "size": [
         390,
         844
-      ]
-    },
-    "activity": {
-      "path": "app/test/goldens/activity_390x844_dark.png",
-      "sha256": "81b0cdc769c73917f72eacf38d9c6e303ec2bcb6b525c227e0e5b32c6daeb4ae",
-      "size": [
-        390,
-        844
-      ]
+      ],
+      "crop_rows": null
     },
     "spaces_balances": {
       "path": "app/test/goldens/spaces_balances_390x844_dark.png",
@@ -31,7 +25,8 @@
       "size": [
         390,
         844
-      ]
+      ],
+      "crop_rows": 754
     },
     "loans_detail": {
       "path": "app/test/goldens/loans_detail_390x844_dark.png",
@@ -39,7 +34,8 @@
       "size": [
         390,
         844
-      ]
+      ],
+      "crop_rows": 542
     },
     "confirm_repayment": {
       "path": "app/test/goldens/confirm_repayment_390x844_dark.png",
@@ -47,7 +43,8 @@
       "size": [
         390,
         844
-      ]
+      ],
+      "crop_rows": 787
     }
   }
 }

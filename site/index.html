@@ -36,7 +36,7 @@
 <body class="landing">
 <a class="skip" href="#main">Skip to content</a>
 <header>
-  <a class="wordmark" href="./" aria-current="page"><img src="images/mark.png" width="36" height="36" alt="">settlo</a>
+  <a class="wordmark" href="./" aria-current="page"><img src="images/mark.png" width="36" height="36" alt="">Settlo</a>
   <nav aria-label="Site"><a href="privacy/">Privacy</a><a href="support/">Support</a></nav>
 </header>
 <main id="main">
@@ -48,7 +48,7 @@
     <p class="availability">iPhone, TestFlight beta. Android later.</p>
   </div>
   <figure class="screen hero-screen">
-    <img src="images/home_main.webp" width="390" height="844" alt="Settlo Home: a net position of plus ₹6,74,200 across two spaces and one loan, with Flat 402 at plus ₹2,850 and Goa trip at minus ₹3,650." fetchpriority="high">
+    <img src="images/home_main.webp" width="390" height="686" alt="Settlo Home: a net position of plus ₹6,74,200 across two spaces and one loan, with Flat 402 at plus ₹2,850 and Goa trip at minus ₹3,650." fetchpriority="high">
     <figcaption>Home, as it looks in the beta. Names and amounts are examples.</figcaption>
   </figure>
 </section>
@@ -63,13 +63,31 @@
       <figure class="screen"><img src="images/settle_pay.webp" width="390" height="844" loading="lazy" alt="Settle up, Goa trip: you pay Kabir ₹3,650, which clears your balance in Goa trip. Buttons: Pay ₹3,650 via UPI, and I already paid in cash."></figure>
       <p><strong>You owe Kabir ₹3,650.</strong> Settle up works out the amount that clears your share of the trip.</p>
     </li>
-    <li class="handoff">
-      <div class="handoff-card" aria-hidden="true"><span>Your UPI app</span><b>₹3,650</b><span>to kabir@oksbi</span></div>
-      <p><strong>You pay in your UPI app.</strong> Settlo opens it with the amount and Kabir’s UPI ID filled in. You approve it there; Settlo never touches the money. Paid in cash? Record that instead.</p>
+    <li>
+      <figure class="sketch">
+        <div class="sketch-card">
+          <span class="sketch-label">Your UPI app</span>
+          <span class="sketch-amount">₹3,650</span>
+          <span>to kabir@oksbi</span>
+          <span class="sketch-note">Approve with your UPI PIN</span>
+        </div>
+        <figcaption>Illustration. Your own UPI app looks different.</figcaption>
+      </figure>
+      <p><strong>You pay Kabir in your UPI app.</strong> Settlo opens it with <span class="figure">₹3,650</span> and Kabir’s UPI ID filled in. You approve it there; Settlo never touches the money. Paid in cash? Record that instead.</p>
     </li>
     <li>
-      <figure class="screen"><img src="images/activity.webp" width="390" height="844" loading="lazy" alt="Activity: Arjun recorded a ₹25,000 repayment that needs your confirmation, and Kabir settled with you ₹1,200 for the Goa trip."></figure>
-      <p><strong>Kabir confirms the payment arrived.</strong> Until then it stays pending. Activity keeps the trail for everyone and shows what still needs you.</p>
+      <figure class="sketch">
+        <div class="sketch-card">
+          <span class="sketch-label">Goa trip · you paid Kabir</span>
+          <span class="sketch-amount">₹3,650</span>
+          <ol class="sketch-steps">
+            <li class="done">Recorded by you</li>
+            <li>Waiting for Kabir to confirm</li>
+          </ol>
+        </div>
+        <figcaption>Illustration of the pending settle-up.</figcaption>
+      </figure>
+      <p><strong>Kabir confirms the <span class="figure">₹3,650</span> arrived.</strong> Until then it stays pending. Once Kabir confirms, your Goa trip balance is clear, and Activity keeps the trail for everyone.</p>
     </li>
   </ol>
 </section>
@@ -81,13 +99,13 @@
     <p>Balances sets what each person paid against a fair share and gives the simplest way to settle. This month, Priya pays you <span class="figure">₹1,450</span> and Rahul pays you <span class="figure">₹1,400</span>.</p>
     <p class="aside">Add flatmates by phone number. They verify it and choose whether to join. Settlo never uploads your address book.</p>
   </div>
-  <figure class="screen"><img src="images/spaces_balances.webp" width="390" height="844" loading="lazy" alt="Flat 402 balances for November at ₹6,150 each: you paid ₹9,000, Rahul ₹5,400, Priya ₹4,050. Simplest way to settle: Priya pays you ₹1,450 and Rahul pays you ₹1,400."></figure>
+  <figure class="screen"><img src="images/spaces_balances.webp" width="390" height="778" loading="lazy" alt="Flat 402 balances for November at ₹6,150 each: you paid ₹9,000, Rahul ₹5,400, Priya ₹4,050. Simplest way to settle: Priya pays you ₹1,450 and Rahul pays you ₹1,400."></figure>
 </section>
 
 <section class="loan" aria-labelledby="loan-title">
   <div class="loan-screens">
-    <figure class="screen"><img src="images/loans_detail.webp" width="390" height="844" loading="lazy" alt="Loan with Arjun: ₹6,75,000 outstanding of ₹10,00,000, interest free, 32% repaid, ₹25,000 monthly instalments, next due 5 December."></figure>
-    <figure class="screen"><img src="images/confirm_repayment.webp" width="390" height="844" loading="lazy" alt="Confirm: Arjun says they paid you ₹25,000 on 5 October by UPI. Buttons: Confirm ₹25,000 received, and Didn’t receive this."></figure>
+    <figure class="screen"><img src="images/loans_detail.webp" width="390" height="566" loading="lazy" alt="Loan with Arjun: ₹6,75,000 outstanding of ₹10,00,000, interest free, 32% repaid, ₹25,000 monthly instalments, next due 5 December."></figure>
+    <figure class="screen"><img src="images/confirm_repayment.webp" width="390" height="811" loading="lazy" alt="Confirm: Arjun says they paid you ₹25,000 on 5 October by UPI. Button: Confirm ₹25,000 received."></figure>
   </div>
   <div class="loan-copy">
     <h2 id="loan-title"><span class="figure">₹10,00,000</span> to Arjun, back in instalments</h2>
@@ -125,7 +143,7 @@
 </main>
 <footer>
   <div class="footer-top">
-    <a class="footer-mark" href="./">settlo</a>
+    <a class="footer-mark" href="./">Settlo</a>
     <p>Shared expenses and personal loans, kept clear between people who know each other.</p>
     <a class="studio" href="https://hellojosh.studio">Made by JOSH Studio</a>
   </div>
