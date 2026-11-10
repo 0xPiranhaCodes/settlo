@@ -578,12 +578,12 @@ void main() {
     expect((await home().load()).claims, hasLength(2));
     expect((await loan('l1')).repaid.value, 0);
     await pumpEventQueue();
+    String late(String what) =>
+        '$what couldn’t be saved because it waited too long to reach the '
+        'server. We’ve undone it on this phone.';
     expect(notices, [
-      'Accepting that invite couldn’t be saved because it waited too long '
-          'to reach the server. We’ve undone it on this phone.',
-      'Your confirmation of that repayment couldn’t be saved because it '
-          'waited too long to reach the server. We’ve undone it on this '
-          'phone.',
+      late('Accepting that invite'),
+      late('Your confirmation of that repayment'),
     ]);
   });
 
@@ -604,30 +604,40 @@ void main() {
       }),
       PostgrestException(message: '', code: code, hint: hint),
     ).replaceFirst(' We’ve undone it on this phone.', '');
-    expect(
-      [
+    for (final (said, what, why) in [
+      (
         says('create_loan', '22023'),
+        'Your loan of ₹2,500',
+        'the details didn’t match the loan',
+      ),
+      (
         says('record_repayment', '22023', 'loan_closed'),
+        'Your repayment of ₹50',
+        'the loan is already fully repaid',
+      ),
+      (
         says('confirm_repayment', '22023', 'not_pending'),
+        'Your confirmation of that repayment',
+        'the repayment was already answered',
+      ),
+      (
         says('dispute_repayment', '42501', 'own_record'),
+        'Your dispute of that repayment',
+        'you can’t change this loan any more',
+      ),
+      (
         says('accept_claim', '42501'),
+        'Accepting that invite',
+        'it was already answered or withdrawn',
+      ),
+      (
         says('reject_claim', '42501'),
-      ],
-      [
-        'Your loan of ₹2,500 couldn’t be saved because the details didn’t '
-            'match the loan.',
-        'Your repayment of ₹50 couldn’t be saved because the loan is already '
-            'fully repaid.',
-        'Your confirmation of that repayment couldn’t be saved because the '
-            'repayment was already answered.',
-        'Your dispute of that repayment couldn’t be saved because you can’t '
-            'change this loan any more.',
-        'Accepting that invite couldn’t be saved because it was already '
-            'answered or withdrawn.',
-        'Declining that invite couldn’t be saved because it was already '
-            'answered or withdrawn.',
-      ],
-    );
+        'Declining that invite',
+        'it was already answered or withdrawn',
+      ),
+    ]) {
+      expect(said, '$what couldn’t be saved because $why.');
+    }
   });
 
   test('answering a settle-up or deleting it clears what waits', () async {

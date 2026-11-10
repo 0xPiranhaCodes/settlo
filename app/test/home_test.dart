@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -91,7 +93,9 @@ void main() {
       final c = container(repository);
       await c.read(homeProvider.future);
 
-      await c.read(homeProvider.notifier).accept(homeFound.claims.first);
+      await c
+          .read(homeProvider.notifier)
+          .accept(homeFound.claims.first, idempotencyKey: 'k1');
 
       final home = c.read(homeProvider).requireValue;
       expect(repository.calls, ['accept m1']);
@@ -104,7 +108,9 @@ void main() {
       final c = container(repository);
       await c.read(homeProvider.future);
 
-      await c.read(homeProvider.notifier).reject(homeFound.claims.last);
+      await c
+          .read(homeProvider.notifier)
+          .reject(homeFound.claims.last, idempotencyKey: 'k1');
 
       final home = c.read(homeProvider).requireValue;
       expect(repository.calls, ['reject l2']);
@@ -119,7 +125,9 @@ void main() {
       repository.failure = Exception('42501');
 
       await expectLater(
-        c.read(homeProvider.notifier).accept(homeFound.claims.first),
+        c
+            .read(homeProvider.notifier)
+            .accept(homeFound.claims.first, idempotencyKey: 'k1'),
         throwsException,
       );
       expect(c.read(homeProvider).requireValue.claims, hasLength(3));
@@ -180,6 +188,43 @@ void main() {
         ),
         findsOne,
       );
+    });
+
+    for (final button in ['Accept', "This isn't me"]) {
+      testWidgets('a no-pump double tap on "$button" answers once', (
+        tester,
+      ) async {
+        final repository = FakeHomeRepository(homeFound);
+        await _pump(tester, repository);
+
+        // No pump between the taps, and the first answer still in flight.
+        repository.gate = Completer();
+        await tester.tap(find.text(button).first);
+        await tester.tap(find.text(button).first, warnIfMissed: false);
+        repository.gate!.complete();
+        await tester.pumpAndSettle();
+
+        expect(repository.calls, hasLength(1));
+      });
+    }
+
+    testWidgets('a retry reuses its key; each button has its own', (
+      tester,
+    ) async {
+      final repository = FakeHomeRepository(homeFound);
+      await _pump(tester, repository);
+      repository.failure = Exception('offline');
+
+      await tester.tap(find.text('Accept').first);
+      await tester.pump();
+      await tester.tap(find.text('Accept').first);
+      await tester.pump();
+      await tester.tap(find.text("This isn't me").first);
+      await tester.pump();
+
+      final [first, retry, other] = repository.keys;
+      expect(retry, first);
+      expect(other, isNot(first));
     });
 
     testWidgets('a refused claim says so and keeps the claim', (tester) async {

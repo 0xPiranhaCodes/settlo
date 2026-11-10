@@ -170,7 +170,7 @@ void main() {
       // Signed out, nothing is queued and nothing asks.
       (container.read(sessionProvider.notifier) as _Session).signOut();
       expect(container.read(unsentChangesProvider), isNull);
-    await pumpEventQueue();
+      await pumpEventQueue();
     },
   );
 

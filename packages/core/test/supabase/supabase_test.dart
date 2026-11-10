@@ -56,6 +56,12 @@ void main() {
     });
   });
 
+  test('nothing queues writes until the offline store says so', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    expect(container.read(unsentChangesProvider), isNull);
+  });
+
   test('the client provider needs Supabase initialised', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);

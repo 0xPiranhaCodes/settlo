@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:settlo_core/settlo_core.dart';
 
 /// The number the canvas shows on HomeFound.
@@ -97,6 +99,12 @@ class FakeHomeRepository implements HomeRepository {
   /// Claim calls, as `accept <id>` or `reject <id>`.
   final calls = <String>[];
 
+  /// The idempotency key of each claim call, in order.
+  final keys = <String>[];
+
+  /// Holds every claim call open until completed, when set.
+  Completer<void>? gate;
+
   @override
   Future<HomeData> load() async {
     if (failure case final e?) throw e;
@@ -104,7 +112,12 @@ class FakeHomeRepository implements HomeRepository {
   }
 
   @override
-  Future<void> acceptClaim(Claim claim) async {
+  Future<void> acceptClaim(
+    Claim claim, {
+    required String idempotencyKey,
+  }) async {
+    keys.add(idempotencyKey);
+    await gate?.future;
     if (failure case final e?) throw e;
     calls.add('accept ${claim.id}');
     data = _without(
@@ -134,7 +147,12 @@ class FakeHomeRepository implements HomeRepository {
   }
 
   @override
-  Future<void> rejectClaim(Claim claim) async {
+  Future<void> rejectClaim(
+    Claim claim, {
+    required String idempotencyKey,
+  }) async {
+    keys.add(idempotencyKey);
+    await gate?.future;
     if (failure case final e?) throw e;
     calls.add('reject ${claim.id}');
     data = _without(claim);

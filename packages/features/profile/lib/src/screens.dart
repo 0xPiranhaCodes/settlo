@@ -289,9 +289,10 @@ class _AccountCard extends ConsumerWidget {
   /// Signs out, after asking first when changes made offline have not
   /// reached the server: signing out deletes them from this phone.
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
-    // Not state: a second tap in the same frame must see it.
-    if (_signingOut) return;
-    _signingOut = true;
+    final profile = ref.read(profileProvider.notifier);
+    // Not widget state: a second tap in the same frame must see it.
+    if (profile.signingOut) return;
+    profile.signingOut = true;
     try {
       final unsent = ref.read(unsentChangesProvider);
       final count = await unsent?.count() ?? 0;
@@ -303,19 +304,17 @@ class _AccountCard extends ConsumerWidget {
         );
         if (leave != true) return;
       }
-      await ref.read(profileProvider.notifier).signOut();
+      await profile.signOut();
     } on Object {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("We couldn't sign you out. Try again.")),
       );
     } finally {
-      _signingOut = false;
+      profile.signingOut = false;
     }
   }
 }
-
-var _signingOut = false;
 
 /// Asks before a sign-out that would delete [count] unsent changes.
 /// Pops true to sign out anyway; Keep tries to send them and stays.

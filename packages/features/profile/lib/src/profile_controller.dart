@@ -9,6 +9,10 @@ final profileProvider = AsyncNotifierProvider<ProfileController, ProfileData>(
 
 /// Loads and updates the signed-in user's profile.
 class ProfileController extends AsyncNotifier<ProfileData> {
+  /// Whether the sign-out row is already asking or signing out, so a
+  /// double tap starts one.
+  bool signingOut = false;
+
   @override
   Future<ProfileData> build() => ref.watch(profileRepositoryProvider).load();
 
