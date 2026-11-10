@@ -42,8 +42,9 @@ Source of truth: `packages/core/lib/theme/colors.dart`, `typography.dart`, `toke
 | spacing | 8, 16, 24, 32, 40, 48px | Rhythm; 4px optical half-step |
 | radius | 24px card / 16px button | Shared app and web shape language |
 | touch target | at least 44px | Navigation and actions |
+| wordmark | `SETTLO`, Figtree 500, tracked 0.08em | Header, footer and social card; the app's Home lockup (`packages/features/balances/lib/src/screens.dart`, `letterSpacing: 1.8`). Markup says “Settlo”; CSS uppercases it so screen readers say the name |
 
-The website extends the app type scale for readable marketing headings (34–76px) and body copy (16–21px). Gold arcs frame the product; they are not badges or status indicators. The existing S mark remains intact. No stock photography, decorative financial graphs or synthetic product screens. Near-black is intentional in both system themes, as on Welcome. Animation is unnecessary; reduced motion disables smooth scrolling. Native HTML disclosure elements work without JavaScript.
+The website extends the app type scale for readable marketing headings (34–76px) and body copy (16–21px). Gold arcs frame the product; they are not badges or status indicators. The existing S mark remains intact. No stock photography, decorative financial graphs or synthetic product screens. Steps that happen outside a captured app screen (the payment in the user's own UPI app, a settle-up awaiting confirmation) are typeset sketch cards in site styles, captioned as illustrations; they never imitate a named UPI app or Settlo's own UI. Near-black is intentional in both system themes, as on Welcome. Animation is unnecessary; reduced motion disables smooth scrolling and hover transitions. The landing page avoids eyebrow labels and slogan-with-full-stop headings; each section carries one real moment (the Goa trip, Flat 402, the loan to Arjun) shown with its app screen. Native HTML disclosure elements work without JavaScript.
 
 ## Regenerating imagery
 
@@ -53,10 +54,10 @@ Use one script for both real app images, the S mark, provenance manifest and 120
 python3 -m venv /tmp/settlo-images
 /tmp/settlo-images/bin/pip install Pillow==13.0.0
 git fetch origin main
-/tmp/settlo-images/bin/python scripts/site-images.py --home-ref origin/main
+/tmp/settlo-images/bin/python scripts/site-images.py --ref origin/main
 ```
 
-The script defaults to the merged main snapshot after PRs #142 and #143, `0f610060b640b23f0a7a7b73f7783a140e70680b`. Pass an updated fetched main ref when the app goldens change. Welcome comes from this checkout's `auth_welcome_390x844_dark.png`; Home comes from the specified ref's `home_main_390x844_dark.png`. `site/images/sources.json` records the resolved commit, original dimensions and source hashes. The screenshots keep their full content; conversion to WebP does not reconstruct or retouch the UI. The social card uses bundled Figtree and the same home screen. Review both viewport screenshots after regeneration.
+`--ref` defaults to `HEAD`. The script exports five real screens from `app/test/goldens/*_390x844_dark.png` (Home, Goa trip settle-up, Flat 402 balances, loan detail and repayment confirmation) as lossless WebP. The page shows them at their real 390px width or smaller, so text stays crisp. `site/images/sources.json` records the resolved commit, original dimensions, source hashes and crop row. Screens that continue below a floating navigation bar are cropped at a blank gap under the last whole card, then given 24px of the screen's own background so the rounded frame clips nothing; no row or line of text is cut. Nothing is reconstructed or retouched. Re-check the crop rows in the script whenever those goldens change. The social card uses bundled Figtree and the same Home screen. Review both viewport screenshots after regeneration.
 
 ## Claim evidence
 
@@ -75,4 +76,4 @@ Read against the implementation at landing-page base `0f610060b640b23f0a7a7b73f7
 | In-app Profile › Delete account takes effect at once and cannot be undone; email settlo@hellojosh.studio if unable to sign in; shared records remain with the other people | `packages/features/profile/lib/src/screens.dart` `_deleteAccount`; `packages/features/profile/lib/src/profile_repository.dart` → `delete_account`; `docs/api.md` account deletion; email fallback wording aligned with PR #143 |
 | iPhone TestFlight beta; Android later; operator/contact | Issue #140 and owner assignment; no unsupported public installation link |
 
-Privacy/support policy wording is preserved from merged PR #143. This change only adjusts their document metadata; shared CSS restyles the content without rewriting it.
+Privacy/support policy wording is preserved from merged PR #143. Their `<main>` stays byte-identical (checked by `scripts/site-check.cjs`); the shared header, footer and CSS restyle the pages without rewriting the policy.

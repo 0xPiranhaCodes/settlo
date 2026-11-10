@@ -12,7 +12,7 @@ Identity is the phone number. No email, no password. Spaces and loans can be cre
 Audience: Indian users, INR only in v1, UPI for settling (deep link `upi://pay` with amount and payee VPA prefilled, plus app chooser). WhatsApp is the primary share and reminder channel with SMS and in-app fallbacks.
 
 ## Brand and design
-- Name: Settlo. Mark: an S built from two interlocking halves (asset provided by owner). Wordmark: lowercase `settlo` in Figtree Medium, tight tracking.
+- Name: Settlo. Mark: an S built from two interlocking halves (asset provided by owner). Wordmark: spaced caps `SETTLO` in Figtree Medium, as on the app’s Home lockup (see docs/brand.md).
 - Dark-first. Background #0A0B0D; surfaces #15171A, #1E2126, #262A30; hairlines rgba(255,255,255,0.07); every card has a 1px top specular rgba(255,255,255,0.10). No gradients, no illustrations, no emoji.
 - Text: primary #F3F2EE, secondary #9B9D9A, muted #8A8D88.
 - Accent gold #D8B36A on #0A0B0D text. Gold means exactly one thing: a tappable primary action (and the focused OTP box). Never for progress, ticks, badges or status.

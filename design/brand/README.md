@@ -9,4 +9,4 @@ Owner-supplied S-mark (9 Nov 2026), 1254×1254 RGB, no alpha.
 | `mark-black-on-gold.png` | Alternate icon / marketing |
 | `mark-black-on-paper.png` | Light-theme contexts and store listing |
 
-Not used: an earlier green-S + capitalised "Settlo" lockup, which conflicts with the brand rules (green is reserved for money owed; wordmark is lowercase `settlo`). A vector (SVG) master is still wanted from the owner.
+Not used: an earlier green-S + capitalised "Settlo" lockup, which conflicts with the brand rules (green is reserved for money owed; the wordmark is spaced caps `SETTLO`, per docs/brand.md). A vector (SVG) master is still wanted from the owner.

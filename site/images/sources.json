@@ -1,21 +1,50 @@
 {
-  "home_commit": "0f610060b640b23f0a7a7b73f7783a140e70680b",
+  "commit": "cda882a27f8e4f622026575812de268ec27fe03b",
   "sources": {
-    "welcome": {
-      "path": "app/test/goldens/auth_welcome_390x844_dark.png",
-      "sha256": "724a344d536b549ab8cdd2f7e838f341899428a0da6259a8cb21209536cff9d7",
-      "size": [
-        390,
-        844
-      ]
-    },
-    "home": {
+    "home_main": {
       "path": "app/test/goldens/home_main_390x844_dark.png",
-      "sha256": "4aba3b40024dcd44b2d79c4da548abc28fd03fab252316d07e21d9b66c42097b",
+      "sha256": "6ba311dff25f02926c640533daea0a1f2f859ae306bbcf9d1d0490a8fbe05c98",
       "size": [
         390,
         844
-      ]
+      ],
+      "crop_rows": 662
+    },
+    "settle_pay": {
+      "path": "app/test/goldens/settle_pay_390x844_dark.png",
+      "sha256": "6e6a26552ca0340294d1f116368f6350888e430b4d62f07e46641c11a247ab44",
+      "size": [
+        390,
+        844
+      ],
+      "crop_rows": null
+    },
+    "spaces_balances": {
+      "path": "app/test/goldens/spaces_balances_390x844_dark.png",
+      "sha256": "ad04f5bf55f8ac1274c9fca9f5cb3c59314fdd72fdb0de2cdb8a5b3389e9544a",
+      "size": [
+        390,
+        844
+      ],
+      "crop_rows": 754
+    },
+    "loans_detail": {
+      "path": "app/test/goldens/loans_detail_390x844_dark.png",
+      "sha256": "c881b283224ff8204589bdb8ff45499541c2ac915919d9d0f0ced800432d523a",
+      "size": [
+        390,
+        844
+      ],
+      "crop_rows": 542
+    },
+    "confirm_repayment": {
+      "path": "app/test/goldens/confirm_repayment_390x844_dark.png",
+      "sha256": "477d4d425caca5db7ddf96b285cabc4248c3ae63dc66d15b845ac60d9d838331",
+      "size": [
+        390,
+        844
+      ],
+      "crop_rows": 787
     }
   }
 }
