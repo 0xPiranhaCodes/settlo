@@ -17,5 +17,6 @@ One file per decision: Context, Decision, Consequences, Status. Superseding an A
 | [0011](0011-url-launcher.md) | Opening UPI apps and WhatsApp: url_launcher, and the Android chooser | Proposed |
 | [0012](0012-offline-store.md) | Offline store: drift without codegen, opened by drift_flutter | Proposed |
 | [0013](0013-live-activity-and-ongoing-notification.md) | Live Activity and the Android ongoing notification: plugin-less, driven by app state | Proposed |
+| [0014](0014-statements-pdf-share.md) | Statements and exports: pdf on device, share_plus to share | Proposed |
 
 Owner-level process calls that are not architecture live in `docs/decisions/`.

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -22,6 +23,21 @@ var _canOpen = true;
 /// The Loan artboard's start: ₹10 lakh at ₹25,000 from March ends Jul 2029.
 final _today = DateTime(2026, 3, 5);
 
+/// Files handed to the share sheet, with their bytes; reset by [_pump].
+final _shared = <List<(SharedFile, List<int>)>>[];
+
+/// Completes when the share sheet opens; set by a test.
+Completer<void>? _sharing;
+
+/// While set, the share sheet stays open until it completes.
+Completer<void>? _sheetOpen;
+
+Future<void> _share(List<SharedFile> files, Rect origin) async {
+  _shared.add([for (final f in files) (f, File(f.path).readAsBytesSync())]);
+  _sharing?.complete();
+  await _sheetOpen?.future;
+}
+
 Future<bool> _open(Uri uri) async {
   _opened.add(uri);
   return _canOpen;
@@ -39,7 +55,11 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final repo = loans ?? FakeLoansRepository(loansList());
+  final temp = Directory.systemTemp.createTempSync('settlo');
+  addTearDown(() => temp.deleteSync(recursive: true));
+  final exports = Directory('${temp.path}/exports');
   _opened.clear();
+  _shared.clear();
   _canOpen = true;
   final router = GoRouter(
     initialLocation: location,
@@ -54,6 +74,8 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
         sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
         indiaTodayProvider.overrideWithValue(_today),
         openUrlProvider.overrideWithValue(_open),
+        shareFilesProvider.overrideWithValue(_share),
+        exportsDirectoryProvider.overrideWithValue(() async => exports),
       ],
       child: MaterialApp.router(
         theme: SettloTheme.dark(),
@@ -388,6 +410,42 @@ void main() {
       );
       await _tap(tester, find.byTooltip('Back'));
       expect(router.state.uri.toString(), SettloRoutes.loans);
+    });
+
+    testWidgets('download statement shares one PDF, even on a no-pump '
+        'double tap', (tester) async {
+      await _pump(tester, location: SettloRoutes.loan('l1'));
+      final download = find.byTooltip('Download statement');
+      expect(tester.getSize(download), const Size(44, 44));
+      _sharing = Completer<void>();
+      final sheet = _sheetOpen = Completer<void>();
+      addTearDown(() => _sheetOpen = null);
+
+      await tester.tap(download);
+      await tester.tap(download);
+      // Real file and isolate work, with pumps so its callbacks land.
+      while (!_sharing!.isCompleted) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
+      await tester.pump();
+      sheet.complete();
+      await tester.pumpAndSettle();
+
+      expect(_shared, hasLength(1));
+      final [(file, bytes)] = _shared.single;
+      expect(
+        file.path,
+        matches(
+          RegExp(
+            r'/exports/share-[^/]+/settlo-loan-statement-\d{4}-\d\d-\d\d\.pdf$',
+          ),
+        ),
+      );
+      expect(file.mimeType, 'application/pdf');
+      expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
     });
   });
 

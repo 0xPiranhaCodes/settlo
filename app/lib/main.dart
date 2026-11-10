@@ -11,6 +11,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Statements from the last run must not outlive it. Awaited, so it can
+  // never delete an export made after launch.
+  await clearExportsAtStart();
   final config = SupabaseConfig.fromEnvironment();
   await Supabase.initialize(url: config.url, publishableKey: config.anonKey);
   final flat = flatChromeProvider.overrideWithValue(await prefersFlatChrome());

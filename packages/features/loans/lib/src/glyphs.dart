@@ -23,6 +23,13 @@ class LoanGlyph extends StatelessWidget {
     [Offset(6, 9), Offset(12, 15), Offset(18, 9)],
   ];
 
+  /// Download (`M12 4v12m0 0l-4-4m4 4l4-4M5 20h14`).
+  static const download = [
+    [Offset(12, 4), Offset(12, 16)],
+    [Offset(8, 12), Offset(12, 16), Offset(16, 12)],
+    [Offset(5, 20), Offset(19, 20)],
+  ];
+
   /// Plus (`M12 5v14M5 12h14`).
   static const plus = [
     [Offset(12, 5), Offset(12, 19)],

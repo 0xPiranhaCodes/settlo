@@ -1,7 +1,12 @@
 /// The loans feature.
 library;
 
-export 'package:settlo_platform/settlo_platform.dart' show openUrlProvider;
+export 'package:settlo_platform/settlo_platform.dart'
+    show
+        SharedFile,
+        exportsDirectoryProvider,
+        openUrlProvider,
+        shareFilesProvider;
 
 export 'src/confirm_repayment.dart' show ConfirmRepaymentScreen;
 export 'src/loan_detail.dart' show LoanDetailScreen;
