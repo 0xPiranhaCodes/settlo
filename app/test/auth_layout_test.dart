@@ -84,11 +84,11 @@ void main() {
       child: const WelcomeScreen(),
     );
     final subtitle = find.textContaining('Flatmates, trips');
-    // Two 16px lines at line height 1.5; the canvas breaks after "your".
-    expect(tester.getSize(subtitle).height, 48);
+    // Two 15px lines at 1.5 line height, matching the owner's mock.
+    expect(tester.getSize(subtitle).height, 46);
     expect(
       tester.getRect(find.textContaining('Money between')).top,
-      closeTo(300, 6),
+      closeTo(190, 6),
     );
   });
 
@@ -99,5 +99,29 @@ void main() {
       expect(button.bottom, lessThanOrEqualTo(800 - 24));
       expect(button.width, 360 - 48);
     }
+  });
+
+  testWidgets('Welcome scrolls without overflow at 200% text scaling', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(360, 640)
+      ..devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(() {
+      tester.view.reset();
+      tester.platformDispatcher.clearTextScaleFactorTestValue();
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(theme: SettloTheme.light(), home: const WelcomeScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(find.text('Continue with phone number'));
+    await tester.pumpAndSettle();
+    expect(find.text('Continue with phone number'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

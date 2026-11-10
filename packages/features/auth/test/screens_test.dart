@@ -182,18 +182,34 @@ void main() {
       semantics.dispose();
     });
 
-    testWidgets('marks the rows as examples and has one action', (
+    testWidgets('marks the cards as examples and has one guarded action', (
       tester,
     ) async {
+      final semantics = tester.ensureSemantics();
       final router = await _pump(tester, auth, location: SettloRoutes.welcome);
-      expect(find.text('example'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(
+          'Example: Rahul owes you 750 rupees. Flat 402, groceries, wifi.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(
+          'Example: Arjun repaid 25,000 rupees. 13 of 40, on schedule.',
+        ),
+        findsOneWidget,
+      );
       expect(find.byType(FilledButton), findsOneWidget);
       expect(find.byType(OutlinedButton), findsNothing);
       expect(find.byType(TextButton), findsNothing);
 
+      await tester.ensureVisible(find.text('Continue with phone number'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue with phone number'));
       await tester.tap(find.text('Continue with phone number'));
       await tester.pumpAndSettle();
       expect(router.state.uri.path, SettloRoutes.phone);
+      semantics.dispose();
     });
   });
 
