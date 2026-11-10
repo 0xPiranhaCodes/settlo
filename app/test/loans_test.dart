@@ -50,6 +50,7 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
     ProviderScope(
       overrides: [
         loansRepositoryProvider.overrideWithValue(repo),
+        invitesRepositoryProvider.overrideWithValue(FakeInvitesRepository()),
         sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
         indiaTodayProvider.overrideWithValue(_today),
         openUrlProvider.overrideWithValue(_open),
@@ -447,9 +448,10 @@ void main() {
       expect(
         whatsApp.queryParameters['text'],
         'Hi, this is Sana. I recorded a loan between us on Settlo. You will '
-        'see it in Settlo once you verify this number.',
+        'see it in Settlo once you verify this number. '
+        'settlo://join/loan-token',
       );
-      expect(whatsApp.queryParameters['text'], isNot(matches(RegExp(r'\d'))));
+      expect(whatsApp.queryParameters['text'], isNot(contains('10,00,000')));
       expect(router.state.uri.toString(), SettloRoutes.loan(key));
       expect(find.byType(LoanDetailScreen), findsOne);
 
@@ -461,7 +463,8 @@ void main() {
     });
 
     // Whatever is typed as their name, the message is the same: nothing
-    // typed about them can carry an amount, terms or a link.
+    // typed about them can carry an amount or terms; only the server link is
+    // added.
     testWidgets('the WhatsApp text never carries the label typed', (
       tester,
     ) async {
@@ -483,15 +486,19 @@ void main() {
       }
       expect(texts.toSet(), hasLength(1));
       expect(texts.first, startsWith('Hi, this is Sana. '));
-      expect(texts.first, isNot(matches(RegExp(r'\d|https?:|₹'))));
+      expect(texts.first, endsWith('settlo://join/loan-token'));
+      expect(texts.first, isNot(contains('₹10,00,000')));
     });
 
     test('without a profile name the greeting is fixed', () {
       expect(
-        loanInviteText(null),
+        loanInviteText(null, Uri.parse('settlo://join/t')),
         startsWith('Hi. I recorded a loan between us on Settlo.'),
       );
-      expect(loanInviteText('  '), loanInviteText(null));
+      expect(
+        loanInviteText('  ', Uri.parse('settlo://join/t')),
+        loanInviteText(null, Uri.parse('settlo://join/t')),
+      );
     });
 
     testWidgets('borrowed with no monthly amount is flexible', (tester) async {

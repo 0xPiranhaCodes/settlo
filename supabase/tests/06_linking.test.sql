@@ -38,10 +38,11 @@ select is(
 select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p
     where p.pronamespace = 'public'::regnamespace and p.prosecdef
+      and p.proname not in ('inspect_invite', 'decline_invite')
       and (has_function_privilege('anon', p.oid, 'execute')
            or exists (select from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
                        where a.grantee = 0 and a.privilege_type = 'EXECUTE'))),
-  null, 'no security definer function in public is executable by anon or public');
+  null, 'no security definer except invite capabilities is executable by anon or public');
 select ok(
   has_function_privilege('authenticated', 'public.accept_claim(text, uuid)', 'execute')
   and has_function_privilege('authenticated', 'public.reject_claim(text, uuid)', 'execute')

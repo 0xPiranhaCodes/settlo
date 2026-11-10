@@ -146,7 +146,22 @@ class SignInController extends Notifier<SignInState> {
       () => ref.read(phoneAuthProvider).verifyCode(phone: phone, code: code),
       rejected: SignInError.codeRejected,
     );
-    if (ref.mounted) state = state._next(busy: false, error: error);
+    var finalError = error;
+    final pendingInvite = ref.read(pendingInviteTokenProvider);
+    if (error == null && pendingInvite != null) {
+      try {
+        await ref
+            .read(invitesRepositoryProvider)
+            .redeem(
+              pendingInvite.token,
+              idempotencyKey: pendingInvite.idempotencyKey,
+            );
+        ref.read(pendingInviteTokenProvider.notifier).clear();
+      } on Exception {
+        finalError = SignInError.network;
+      }
+    }
+    if (ref.mounted) state = state._next(busy: false, error: finalError);
   }
 
   Future<bool> _send(String phone) async {

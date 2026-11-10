@@ -11,6 +11,7 @@ export 'supabase/activity.dart';
 export 'supabase/config.dart';
 export 'supabase/expenses.dart';
 export 'supabase/home.dart';
+export 'supabase/invites.dart';
 export 'supabase/loans.dart';
 export 'supabase/phone_auth.dart';
 export 'supabase/providers.dart';

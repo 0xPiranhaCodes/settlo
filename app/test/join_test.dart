@@ -1,0 +1,155 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:settlo/main.dart';
+import 'package:settlo/router/router.dart';
+import 'package:settlo_auth/settlo_auth.dart';
+import 'package:settlo_core/settlo_core.dart';
+
+import 'support/fake_session.dart';
+
+final class _Invites implements InvitesRepository {
+  new({this.redeemCompleter});
+
+  final Completer<void>? redeemCompleter;
+  int redeemCalls = 0;
+  int declineCalls = 0;
+
+  @override
+  Future<InvitePreview?> inspect(String token) async => const InvitePreview(
+    kind: 'space',
+    inviterName: 'Satheesh',
+    subjectName: 'Flat 402',
+    maskedPhone: '+91 981•••••44',
+  );
+
+  @override
+  Future<void> redeem(String token, {required String idempotencyKey}) async {
+    redeemCalls++;
+    final completer = redeemCompleter;
+    if (completer != null) await completer.future;
+  }
+
+  @override
+  Future<void> decline(String token) async => declineCalls++;
+
+  @override
+  Future<String> issueLoan(String loanId, {required String idempotencyKey}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> issueSpace(
+    String memberId, {
+    required String idempotencyKey,
+  }) => throw UnimplementedError();
+}
+
+final class _Links implements DeepLinkSource {
+  new(this.initial, this.controller);
+
+  @override
+  final Future<Uri?> initial;
+  final StreamController<Uri> controller;
+
+  @override
+  Stream<Uri> get changes => controller.stream;
+}
+
+GoRouter _router(WidgetTester tester) =>
+    ProviderScope.containerOf(tester.element(find.byType(SettloApp)))
+        .read(routerProvider);
+
+Future<void> _pump(
+  WidgetTester tester,
+  _Invites invites, {
+  required bool signedIn,
+}) async {
+  tester.view
+    ..physicalSize = const Size(390, 844)
+    ..devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(
+    fakeSessionApp(signedIn ? fakeSession : null, invites: invites),
+  );
+  await tester.pumpAndSettle();
+  _router(tester).go(SettloRoutes.join('token'));
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  testWidgets('shows only Join trust copy before verification', (tester) async {
+    await _pump(tester, _Invites(), signedIn: false);
+
+    expect(find.text('Satheesh added you to Flat 402'), findsOneWidget);
+    expect(find.text('+91 981•••••44'), findsOneWidget);
+    expect(find.text('Recorded for'), findsOneWidget);
+    expect(find.textContaining('₹'), findsNothing);
+    expect(find.text("This isn't me"), findsOneWidget);
+  });
+
+  testWidgets("This isn't me records decline and exits", (tester) async {
+    final invites = _Invites();
+    await _pump(tester, invites, signedIn: false);
+
+    await tester.tap(find.text("This isn't me"));
+    await tester.pumpAndSettle();
+
+    expect(invites.declineCalls, 1);
+    expect(find.byType(WelcomeScreen), findsOneWidget);
+  });
+
+  testWidgets('primary action ignores a no-pump double tap', (tester) async {
+    final completer = Completer<void>();
+    final invites = _Invites(redeemCompleter: completer);
+    await _pump(tester, invites, signedIn: true);
+
+    final primary = find.text('Verify my number to see the ledger');
+    await tester.tap(primary);
+    await tester.tap(primary);
+    expect(invites.redeemCalls, 1);
+
+    completer.complete();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('custom-scheme invite routes on cold and warm delivery', (
+    tester,
+  ) async {
+    final controller = StreamController<Uri>();
+    addTearDown(controller.close);
+    final links = _Links(
+      Future.value(Uri.parse('settlo://join/cold-token')),
+      controller,
+    );
+    await tester.pumpWidget(
+      fakeSessionApp(
+        null,
+        invites: _Invites(),
+        overrides: [deepLinkSourceProvider.overrideWithValue(links)],
+      ),
+    );
+    await tester.pumpAndSettle();
+    final router = _router(tester);
+    expect(router.state.uri.path, SettloRoutes.join('cold-token'));
+    expect(find.byType(JoinScreen), findsOneWidget);
+
+    router.go(SettloRoutes.welcome);
+    await tester.pumpAndSettle();
+    controller.add(Uri.parse('settlo://join/warm-token'));
+    await tester.pumpAndSettle();
+    expect(router.state.uri.path, SettloRoutes.join('warm-token'));
+    expect(find.byType(JoinScreen), findsOneWidget);
+  });
+
+  test('normalizes only the supported custom-scheme shape', () {
+    expect(
+      invitePathForUri(Uri.parse('settlo://join/abc')),
+      SettloRoutes.join('abc'),
+    );
+    expect(invitePathForUri(Uri.parse('settlo://other/abc')), isNull);
+    expect(invitePathForUri(Uri.parse('https://example.com/join/abc')), isNull);
+  });
+}

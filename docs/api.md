@@ -173,6 +173,29 @@ GET /rest/v1/needs_you?order=created_at.desc
 
 ## Functions
 
+### Invite links (#104)
+
+`issue_invite(p_kind, p_subject_id, p_idempotency_key)` is authenticated-only. A verified,
+accepted space member may issue for a pending `space_members.id`; an accepted loan party may issue
+for the other pending side of a loan. It returns a server-generated 256-bit token. The token expires
+after 14 days, is single-use, and only its SHA-256 digest is stored. Same key and payload returns the
+same link; a changed payload is `PT409`.
+
+`inspect_invite(p_token)` is callable by `anon` and `authenticated`. A live token returns only
+`kind`, `inviter_name`, `subject_name`, and `masked_phone`; it never returns ids, membership,
+amounts, balances, loan terms, or an unmasked phone. Invalid, expired, used, and declined tokens
+return no row.
+
+`redeem_invite(p_token, p_idempotency_key)` requires the authenticated caller's currently verified
+phone to equal the invite target. It consumes the token and accepts the existing claim atomically.
+A same-key replay is a no-op; another use is refused. `decline_invite(p_token)` is capability-based
+so “This isn't me” works before sign-in: it consumes the token, rejects the claim, and records the
+existing privacy-safe rejection activity.
+
+The app currently shares `settlo://join/<token>`. `SETTLO_INVITE_HOST` is the single switch to build
+`https://<host>/join/<token>` after the owner supplies a verified domain; universal/app-link platform
+entitlements are deliberately deferred until then.
+
 ### `loan_summaries_as_of(p_as_of date)`
 Returns `loan_summaries` rows computed as of `p_as_of`. Security invoker (RLS applies);
 executable by `authenticated` only. Used by tests and for "what was due on" questions.

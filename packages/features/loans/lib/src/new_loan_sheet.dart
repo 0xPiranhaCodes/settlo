@@ -30,6 +30,7 @@ class NewLoanSheet extends ConsumerStatefulWidget {
 
 class _NewLoanState extends ConsumerState<NewLoanSheet> {
   final String _key = newIdempotencyKey();
+  final String _inviteKey = newIdempotencyKey();
   final _principal = TextEditingController();
   final _installment = TextEditingController();
   final _phone = TextEditingController();
@@ -102,10 +103,13 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
       final id = await ref
           .read(loansRepositoryProvider)
           .createLoan(loan, idempotencyKey: _key);
+      final token = await ref
+          .read(invitesRepositoryProvider)
+          .issueLoan(id, idempotencyKey: _inviteKey);
       ledger.bump();
       final opened = await open(
         Uri.https('wa.me', '/${loan.counterpartyPhone.substring(1)}', {
-          'text': loanInviteText(_yourName),
+          'text': loanInviteText(_yourName, inviteLink(token)),
         }),
       ).catchError((_) => false);
       router.go(SettloRoutes.loan(id));
@@ -588,15 +592,13 @@ class _Interest extends StatelessWidget {
   }
 }
 
-/// What WhatsApp is opened with: your profile name and fixed copy only.
-/// Nothing the user typed about the other person goes in, so no amount,
-/// terms or link can reach a number before it verifies (n43).
-// shortcut: no app link until store links exist; add one with them (M6).
-String loanInviteText(String? yourName) {
+/// What WhatsApp is opened with: fixed trust copy and the capability link.
+/// No amount or terms reach the number before it verifies (n43).
+String loanInviteText(String? yourName, Uri link) {
   final name = yourName?.trim() ?? '';
   return '${name.isEmpty ? 'Hi' : 'Hi, this is $name'}. I recorded a loan '
       'between us on Settlo. You will see it in Settlo once you verify this '
-      'number.';
+      'number. $link';
 }
 
 /// The schedule fields' padding, narrower than the theme's so three fit
