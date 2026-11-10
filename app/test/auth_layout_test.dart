@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_auth/settlo_auth.dart';
@@ -72,6 +73,36 @@ void main() {
       await pump(tester, screen, error: error, keyboard: 336);
       expect(find.byType(Scaffold), findsOneWidget);
     });
+  }
+
+  for (final device in [
+    SettloGoldenDevices.compact360,
+    SettloGoldenDevices.canvas390,
+  ]) {
+    testWidgets(
+      'Welcome keeps mock weights and two headline lines ${device.name}',
+      (tester) async {
+        await pumpSettloGolden(
+          tester,
+          device: device,
+          theme: SettloTheme.dark(),
+          child: const WelcomeScreen(),
+        );
+        final title = find.textContaining('Money between');
+        expect(tester.widget<Text>(title).style!.fontWeight, FontWeight.w400);
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.descendant(of: title, matching: find.byType(RichText)),
+        );
+        final boxes = paragraph.getBoxesForSelection(
+          const TextSelection(baseOffset: 0, extentOffset: 38),
+        );
+        expect(boxes.map((box) => box.top).toSet(), hasLength(2));
+        expect(
+          tester.widget<Text>(find.text('+')).style!.fontWeight,
+          FontWeight.w500,
+        );
+      },
+    );
   }
 
   testWidgets('the Welcome subtitle grows for the platform type ramp at 390', (

@@ -80,12 +80,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 ),
                                 Semantics(
                                   header: true,
-                                  child: Text(
-                                    'Money between friends,\nfinally settled.',
-                                    style: SettloTypography.largeTitle(
-                                      color: colors.textPrimary,
-                                    ).copyWith(height: 1.13),
-                                  ),
+                                  child: _WelcomeHeadline(colors: colors),
                                 ),
                                 const SizedBox(height: SettloSpacing.x2),
                                 Text(
@@ -339,8 +334,10 @@ class _AvatarStack extends StatelessWidget {
                 borderWidth: 1.75,
                 child: Text(
                   '+',
-                  style: SettloTypography.largeTitle(color: colors.action)
-                      .copyWith(height: 1),
+                  style: SettloTypography.largeTitle(
+                    color: colors.action,
+                    weight: FontWeight.w500,
+                  ).copyWith(height: 1),
                 ),
               ),
             ),
@@ -493,5 +490,33 @@ class _ExampleCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// The approved two-line headline keeps its regular weight. At default text
+/// size the two-line composition fits the phone width; accessibility
+/// sizes reflow naturally instead of being scaled back down.
+class _WelcomeHeadline extends StatelessWidget {
+  const new({required this.colors});
+  final SettloColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final regular = MediaQuery.textScalerOf(context).scale(1) <= 1;
+    final headline = Text(
+      'Money between friends,\nfinally settled.',
+      softWrap: !regular,
+      style: SettloTypography.largeTitle(
+        color: colors.textPrimary,
+        weight: FontWeight.w400,
+      ).copyWith(height: 1.13),
+    );
+    return regular
+        ? FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: headline,
+          )
+        : headline;
   }
 }
