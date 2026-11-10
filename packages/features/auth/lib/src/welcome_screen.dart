@@ -82,8 +82,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   header: true,
                                   child: Text(
                                     'Money between friends,\nfinally settled.',
-                                    style: SettloTypography.figtree(
-                                      31,
+                                    style: SettloTypography.largeTitle(
                                       color: colors.textPrimary,
                                     ).copyWith(height: 1.13),
                                   ),
@@ -93,8 +92,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   'Flatmates, trips, and the ₹10 lakh you lent '
                                   'your '
                                   'friend — one quiet ledger you both can see.',
-                                  style: SettloTypography.figtree(
-                                    15,
+                                  style: SettloTypography.body(
                                     color: colors.textSecondary,
                                   ).copyWith(height: 1.5),
                                 ),
@@ -128,8 +126,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   'No email. No password. Your number is your '
                                   'account.',
                                   textAlign: TextAlign.center,
-                                  style: SettloTypography.figtree(
-                                    12,
+                                  style: SettloTypography.footnote(
                                     color: colors.textMuted,
                                   ),
                                 ),
@@ -239,9 +236,7 @@ class _WelcomeActionButtonState extends State<_WelcomeActionButton> {
                       Flexible(
                         child: Text(
                           'Continue with phone number',
-                          style: SettloTypography.figtree(
-                            15,
-                            weight: FontWeight.w600,
+                          style: SettloTypography.headline(
                             color: SettloColors.dark.onAction,
                           ),
                         ),
@@ -329,10 +324,7 @@ class _AvatarStack extends StatelessWidget {
                 borderColor: colors.textSecondary,
                 child: Text(
                   'A',
-                  style: SettloTypography.figtree(
-                    20,
-                    color: colors.textPrimary,
-                  ),
+                  style: SettloTypography.title3(color: colors.textPrimary),
                 ),
               ),
             ),
@@ -347,11 +339,8 @@ class _AvatarStack extends StatelessWidget {
                 borderWidth: 1.75,
                 child: Text(
                   '+',
-                  style: SettloTypography.figtree(
-                    30,
-                    weight: FontWeight.w500,
-                    color: colors.action,
-                  ).copyWith(height: 1),
+                  style: SettloTypography.largeTitle(color: colors.action)
+                      .copyWith(height: 1),
                 ),
               ),
             ),
@@ -462,7 +451,7 @@ class _ExampleCard extends StatelessWidget {
               ),
               child: Text(
                 initial,
-                style: SettloTypography.figtree(14, color: colors.textPrimary),
+                style: SettloTypography.body(color: colors.textPrimary),
               ),
             ),
             const SizedBox(width: 14),
@@ -473,15 +462,11 @@ class _ExampleCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: SettloTypography.figtree(
-                      14,
-                      color: colors.textPrimary,
-                    ),
+                    style: SettloTypography.body(color: colors.textPrimary),
                   ),
                   Text(
                     detail,
-                    style: SettloTypography.figtree(
-                      12,
+                    style: SettloTypography.footnote(
                       color: colors.textSecondary,
                     ),
                   ),
@@ -489,8 +474,7 @@ class _ExampleCard extends StatelessWidget {
                     const SizedBox(height: SettloSpacing.half),
                     Text(
                       amount,
-                      style: SettloTypography.figtree(
-                        16,
+                      style: SettloTypography.callout(
                         color: colors.textPrimary,
                       ),
                     ),
@@ -502,7 +486,7 @@ class _ExampleCard extends StatelessWidget {
               const SizedBox(width: SettloSpacing.x1),
               Text(
                 amount,
-                style: SettloTypography.figtree(16, color: colors.textPrimary),
+                style: SettloTypography.callout(color: colors.textPrimary),
               ),
             ],
           ],

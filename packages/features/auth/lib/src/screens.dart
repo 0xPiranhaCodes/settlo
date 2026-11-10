@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -111,8 +109,7 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
           body: Center(
             child: Text(
               'This invite is no longer available.',
-              style: SettloTypography.figtree(
-                18,
+              style: SettloTypography.title3(
                 color: SettloColors.of(context).textPrimary,
               ),
             ),
@@ -151,126 +148,115 @@ class _JoinContent extends StatelessWidget {
     final media = MediaQuery.of(context);
     final space = invite.kind == 'space';
     return Scaffold(
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(
-          SettloSpacing.screenMargin,
-          math.max(media.padding.top, 44) + SettloSpacing.x3,
-          SettloSpacing.screenMargin,
-          media.padding.bottom + 14,
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: IntrinsicHeight(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Semantics(
-                      label: 'Settlo',
-                      child: Row(
-                        children: [
-                          const SettloMark(semanticsLabel: null),
-                          const SizedBox(width: 8),
-                          Text(
-                            'settlo',
-                            style: SettloTypography.figtree(
-                              22,
-                              weight: FontWeight.w500,
-                              letterSpacing: -0.6,
-                              color: c.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 36),
-                    Row(
-                      children: [
-                        SAvatar(invite.inviterName, size: 56),
-                        Transform.translate(
-                          offset: const Offset(-12, 0),
-                          child: SAvatar(space ? 'You' : 'Loan', size: 56),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: SettloSpacing.x3),
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        '${invite.inviterName} added you to '
-                        '${invite.subjectName}',
-                        style: SettloTypography.figtree(
-                          30,
-                          weight: FontWeight.w500,
-                          letterSpacing: -0.8,
-                          color: c.textPrimary,
-                        ).copyWith(height: 1.15),
-                      ),
-                    ),
-                    const SizedBox(height: SettloSpacing.x2),
-                    Text(
-                      space
-                          ? 'A shared ledger. Everyone sees what is '
-                                'recorded, and nothing is yours until you '
-                                'confirm it.'
-                          : 'A shared record between two people. No amount '
-                                'is shown until you verify the invited number.',
-                      style: SettloTypography.figtree(
-                        15,
-                        color: c.textSecondary,
-                      ).copyWith(height: 1.5),
-                    ),
-                    const SizedBox(height: 24),
-                    SCard(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      child: _FactRow(
-                        label: 'Recorded for',
-                        value: invite.maskedPhone,
-                      ),
-                    ),
-                    if (error case final message?) ...[
-                      const SizedBox(height: SettloSpacing.x2),
-                      Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: SettloTypography.figtree(
-                          13,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
+      body: SettloScrollScaffold(
+        title: 'Invitation',
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                0,
+                20,
+                media.padding.bottom + 24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 36),
+                  Row(
+                    children: [
+                      SAvatar(invite.inviterName, size: 56),
+                      Transform.translate(
+                        offset: const Offset(-12, 0),
+                        child: SAvatar(space ? 'You' : 'Loan', size: 56),
                       ),
                     ],
-                    const Spacer(),
-                    AuthButton(
-                      label: 'Verify my number to see the ledger',
-                      arrow: true,
-                      onPressed: busy ? null : onJoin,
+                  ),
+                  const SizedBox(height: SettloSpacing.x3),
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      '${invite.inviterName} added you to '
+                      '${invite.subjectName}',
+                      style: SettloTypography.largeTitle(
+                        letterSpacing: -0.8,
+                        color: c.textPrimary,
+                      ).copyWith(height: 1.15),
                     ),
+                  ),
+                  const SizedBox(height: SettloSpacing.x2),
+                  Text(
+                    space
+                        ? 'A shared ledger. Everyone sees what is '
+                              'recorded, and nothing is yours until you '
+                              'confirm it.'
+                        : 'A shared record between two people. No amount '
+                              'is shown until you verify the invited number.',
+                    style: SettloTypography.headline(color: c.textSecondary)
+                        .copyWith(height: 1.5),
+                  ),
+                  const SizedBox(height: 24),
+                  SCard(
+                    padding: const EdgeInsets.all(SettloSpacing.screenMargin),
+                    child: _FactRow(
+                      label: 'Recorded for',
+                      value: invite.maskedPhone,
+                    ),
+                  ),
+                  if (error case final message?) ...[
                     const SizedBox(height: SettloSpacing.x2),
-                    SSecondaryButton(
-                      label: "This isn't me",
-                      onPressed: busy ? null : onDecline,
-                    ),
-                    const SizedBox(height: 16),
                     Text(
-                      'Settlo is a shared record. It is not a lender, holds '
-                      'no money, and shows balances only to the people '
-                      'in them.',
+                      message,
                       textAlign: TextAlign.center,
-                      style: SettloTypography.figtree(
-                        12,
-                        color: c.textMuted,
-                      ).copyWith(height: 1.5),
+                      style: SettloTypography.subheadline(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ],
-                ),
+                  const Spacer(),
+                  AuthButton(
+                    label: 'Verify my number to see the ledger',
+                    arrow: true,
+                    onPressed: busy ? null : onJoin,
+                  ),
+                  const SizedBox(height: SettloSpacing.x2),
+                  SSecondaryButton(
+                    label: "This isn't me",
+                    onPressed: busy ? null : onDecline,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Settlo is a shared record. It is not a lender, holds '
+                    'no money, and shows balances only to the people '
+                    'in them.',
+                    textAlign: TextAlign.center,
+                    style: SettloTypography.footnote(color: c.textMuted)
+                        .copyWith(height: 1.5),
+                  ),
+                ],
               ),
             ),
           ),
-        ),
+        ],
+        children: [
+          Semantics(
+            label: 'Settlo',
+            child: Row(
+              children: [
+                const SettloMark(semanticsLabel: null),
+                const SizedBox(width: 8),
+                Text(
+                  'settlo',
+                  style: SettloTypography.title2(
+                    letterSpacing: -0.6,
+                    color: c.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -286,18 +272,15 @@ class _FactRow extends StatelessWidget {
     final c = SettloColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
+      child: SResponsiveRow(
         children: [
           Expanded(
             child: Text(
               label,
-              style: SettloTypography.figtree(14, color: c.textSecondary),
+              style: SettloTypography.body(color: c.textSecondary),
             ),
           ),
-          Text(
-            value,
-            style: SettloTypography.figtree(14, color: c.textPrimary),
-          ),
+          Text(value, style: SettloTypography.body(color: c.textPrimary)),
         ],
       ),
     );

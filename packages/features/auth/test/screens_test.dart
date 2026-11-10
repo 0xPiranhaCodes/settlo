@@ -327,15 +327,16 @@ void main() {
       expect(_texts(tester).where(flags.hasMatch), isEmpty);
     });
 
-    testWidgets('the number field is 26px and focused on arrival', (
-      tester,
-    ) async {
-      await _pump(tester, auth);
-      final field = tester.widget<TextField>(_number);
-      expect(field.style?.fontSize, 26);
-      expect(field.keyboardType, TextInputType.phone);
-      expect(tester.testTextInput.hasAnyClients, isTrue);
-    });
+    testWidgets(
+      'the number field uses the 17pt body role and focuses on arrival',
+      (tester) async {
+        await _pump(tester, auth);
+        final field = tester.widget<TextField>(_number);
+        expect(field.style?.fontSize, 17);
+        expect(field.keyboardType, TextInputType.phone);
+        expect(tester.testTextInput.hasAnyClients, isTrue);
+      },
+    );
 
     testWidgets('the country picker is reachable', (tester) async {
       await _pump(tester, auth);

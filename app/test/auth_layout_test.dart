@@ -74,7 +74,7 @@ void main() {
     });
   }
 
-  testWidgets('the Welcome subtitle wraps as the canvas does at 390', (
+  testWidgets('the Welcome subtitle grows for the platform type ramp at 390', (
     tester,
   ) async {
     await pumpSettloGolden(
@@ -84,8 +84,8 @@ void main() {
       child: const WelcomeScreen(),
     );
     final subtitle = find.textContaining('Flatmates, trips');
-    // Two 15px lines at 1.5 line height, matching the owner's mock.
-    expect(tester.getSize(subtitle).height, 46);
+    // The owner-approved 17pt ramp grows to three lines in the same grid.
+    expect(tester.getSize(subtitle).height, 78);
     expect(
       tester.getRect(find.textContaining('Money between')).top,
       closeTo(190, 6),

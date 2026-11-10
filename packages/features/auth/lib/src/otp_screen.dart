@@ -92,7 +92,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final state = ref.watch(signInProvider);
     final sentTo = state.sentTo;
     final error = state.error;
-    final caption = SettloTypography.figtree(13, color: c.textSecondary);
+    final caption = SettloTypography.subheadline(color: c.textSecondary);
     return AuthPage(
       top: const StepHeader(step: 2, of: 2),
       content: [
@@ -124,7 +124,6 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               _TextAction(
                 label: 'change',
                 semanticLabel: 'Change number',
-                size: 15,
                 onTap: () => StepHeader.goBack(context),
               ),
             ],
@@ -232,11 +231,7 @@ class _CodeBoxes extends StatelessWidget {
       ),
       child: Text(
         i < code.length ? code[i] : '',
-        style: SettloTypography.figtree(
-          26,
-          weight: FontWeight.w500,
-          color: c.textPrimary,
-        ),
+        style: SettloTypography.body(color: c.textPrimary),
       ),
     );
     // Boxes are 50 wide with at least 8 between, narrowing on small screens.
@@ -302,15 +297,9 @@ class _CodeBoxes extends StatelessWidget {
 
 /// An inline text action in the action colour, with a 44pt tall target.
 class _TextAction extends StatelessWidget {
-  const new({
-    required this.label,
-    required this.onTap,
-    this.semanticLabel,
-    this.size = 13,
-  });
+  const new({required this.label, required this.onTap, this.semanticLabel});
 
   final String label;
-  final double size;
   final String? semanticLabel;
   final VoidCallback? onTap;
 
@@ -336,8 +325,7 @@ class _TextAction extends StatelessWidget {
             heightFactor: 1,
             child: Text(
               label,
-              style: SettloTypography.figtree(
-                size,
+              style: SettloTypography.subheadline(
                 color: onTap == null ? c.textMuted : c.action,
               ),
             ),

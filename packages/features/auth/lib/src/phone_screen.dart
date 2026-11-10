@@ -76,8 +76,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
         const SizedBox(height: 36),
         Text(
           'MOBILE NUMBER',
-          style: SettloTypography.figtree(
-            12,
+          style: SettloTypography.footnote(
             letterSpacing: 0.3,
             color: c.textSecondary,
           ),
@@ -99,9 +98,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                   inputFormatters: [NationalNumberFormatter(state.country)],
                   onChanged: ref.read(signInProvider.notifier).updateNumber,
                   onSubmitted: (_) => _send(),
-                  style: SettloTypography.figtree(
-                    26,
-                    weight: FontWeight.w500,
+                  style: SettloTypography.body(
                     letterSpacing: 0.5,
                     color: c.textPrimary,
                   ),
@@ -115,9 +112,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                     hintText: state.country == Country.india
                         ? '98765 43210'
                         : 'Number',
-                    hintStyle: SettloTypography.figtree(
-                      26,
-                      weight: FontWeight.w500,
+                    hintStyle: SettloTypography.body(
                       letterSpacing: 0.5,
                       color: c.textMuted,
                     ),
@@ -139,7 +134,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
               Expanded(
                 child: Text(
                   "We'll text a 6-digit code. Standard SMS rates may apply.",
-                  style: SettloTypography.figtree(13, color: c.textSecondary),
+                  style: SettloTypography.subheadline(color: c.textSecondary),
                 ),
               ),
             ],
@@ -187,16 +182,12 @@ class _CountryChip extends StatelessWidget {
             children: [
               Text(
                 country.iso,
-                style: SettloTypography.figtree(20, color: c.textSecondary),
+                style: SettloTypography.body(color: c.textSecondary),
               ),
               const SizedBox(width: 6),
               Text(
                 '+${country.dialCode}',
-                style: SettloTypography.figtree(
-                  20,
-                  weight: FontWeight.w500,
-                  color: c.textPrimary,
-                ),
+                style: SettloTypography.body(color: c.textPrimary),
               ),
             ],
           ),
@@ -225,11 +216,7 @@ class _CountrySheet extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
             child: Text(
               'Country code',
-              style: SettloTypography.figtree(
-                17,
-                weight: FontWeight.w500,
-                color: c.textPrimary,
-              ),
+              style: SettloTypography.headline(color: c.textPrimary),
             ),
           ),
           Flexible(
@@ -254,9 +241,7 @@ class _CountrySheet extends StatelessWidget {
                                 width: 76,
                                 child: Text(
                                   country.label,
-                                  style: SettloTypography.figtree(
-                                    15,
-                                    weight: FontWeight.w500,
+                                  style: SettloTypography.headline(
                                     color: c.textPrimary,
                                   ),
                                 ),
@@ -264,8 +249,7 @@ class _CountrySheet extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   country.name,
-                                  style: SettloTypography.figtree(
-                                    15,
+                                  style: SettloTypography.headline(
                                     color: c.textSecondary,
                                   ),
                                 ),
@@ -273,8 +257,7 @@ class _CountrySheet extends StatelessWidget {
                               if (country == selected)
                                 Text(
                                   'Selected',
-                                  style: SettloTypography.figtree(
-                                    13,
+                                  style: SettloTypography.subheadline(
                                     color: c.textSecondary,
                                   ),
                                 ),
