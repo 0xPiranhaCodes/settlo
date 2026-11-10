@@ -31,7 +31,8 @@ create function public.activity_feed(
   id bigint, created_at timestamptz, action text, kind text,
   space_id uuid, space_name text, expense_id uuid, loan_id uuid, repayment_id uuid,
   by_me boolean, actor_name text, counterparty text, description text, amount_minor bigint,
-  before_description text, before_amount_minor bigint, status text, my_side text
+  before_description text, before_amount_minor bigint, status text, my_side text,
+  link_only boolean
 )
 language sql stable security definer set search_path = '' as $$
   with me as (
@@ -72,7 +73,8 @@ language sql stable security definer set search_path = '' as $$
      limit (select n from cursor)
   )
   select a.id, a.created_at, a.action,
-         case when a.repayment_id is not null then 'repayment'
+         case when coalesce((a.after ->> 'link_only')::boolean, false) then 'member'
+              when a.repayment_id is not null then 'repayment'
               when a.loan_id is not null then 'loan'
               when a.expense_id is null then 'member'
               when e.is_settlement then 'settlement'
@@ -87,8 +89,11 @@ language sql stable security definer set search_path = '' as $$
                      order by m.left_at desc nulls first
                      limit 1) end,
          them.name,
-         -- 'rejected' rows name the number that declined (the creator entered it).
-         coalesce(a.after ->> 'description', a.after ->> 'phone'),
+         case when coalesce((a.after ->> 'link_only')::boolean, false) then
+           coalesce((select m.name from public.space_members m
+                      where m.id = (a.after ->> 'member_id')::uuid),
+                    them.name, a.after ->> 'phone')
+         else coalesce(a.after ->> 'description', a.after ->> 'phone') end,
          coalesce((a.after ->> 'amount_minor')::bigint, (a.after ->> 'principal_minor')::bigint),
          case when a.action = 'edited' then a.before ->> 'description' end,
          case when a.action = 'edited' then (a.before ->> 'amount_minor')::bigint end,
@@ -104,7 +109,8 @@ language sql stable security definer set search_path = '' as $$
                   join public.expense_splits es on es.expense_id = ep.expense_id
                   join public.space_members sm on sm.id = es.member_id
                  where ep.expense_id = a.expense_id
-                 limit 1) end
+                 limit 1) end,
+         coalesce((a.after ->> 'link_only')::boolean, false)
     from page
     cross join me
     join public.activity a on a.id = page.id

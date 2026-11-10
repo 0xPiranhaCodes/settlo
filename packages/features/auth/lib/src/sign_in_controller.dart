@@ -58,6 +58,39 @@ enum SignInError {
   };
 }
 
+/// A sign-in result that must survive the auth route being disposed.
+@immutable
+final class SignInNotice {
+  /// Creates a notice shown by the app-level messenger.
+  const new(this.message);
+
+  /// Privacy-safe guidance for the signed-in person.
+  final String message;
+}
+
+/// Carries terminal invite errors across the OTP -> Home redirect.
+final inviteSignInNoticeProvider =
+    NotifierProvider<InviteSignInNotice, SignInNotice?>(InviteSignInNotice.new);
+
+/// Publishes invite results outside the auto-disposed sign-in screens.
+final class InviteSignInNotice extends Notifier<SignInNotice?> {
+  @override
+  SignInNotice? build() => null;
+
+  /// Publishes [error] as a new event, even if its copy matches the last one.
+  void show(SignInError error, Country country) {
+    state = SignInNotice(error.message(country));
+  }
+}
+
+/// Maps the stable invite contract to actionable auth copy.
+SignInError signInErrorForInvite(InviteFailure failure) => switch (failure) {
+  InviteFailure.wrongPhone => SignInError.inviteWrongPhone,
+  InviteFailure.rateLimited => SignInError.rateLimited,
+  InviteFailure.unavailable ||
+  InviteFailure.targetLimit => SignInError.inviteUnavailable,
+};
+
 /// Where the sign-in flow is: the number being entered, where the code
 /// went, whether a call is in flight and the last error.
 @immutable
@@ -169,18 +202,19 @@ class SignInController extends Notifier<SignInState> {
             );
         ref.read(pendingInviteTokenProvider.notifier).clear();
       } on InviteException catch (inviteError) {
-        finalError = switch (inviteError.failure) {
-          InviteFailure.wrongPhone => SignInError.inviteWrongPhone,
-          InviteFailure.rateLimited => SignInError.rateLimited,
-          InviteFailure.unavailable ||
-          InviteFailure.targetLimit => SignInError.inviteUnavailable,
-        };
+        finalError = signInErrorForInvite(inviteError.failure);
+        ref
+            .read(inviteSignInNoticeProvider.notifier)
+            .show(finalError, state.country);
         if (inviteError.failure
             case InviteFailure.wrongPhone || InviteFailure.unavailable) {
           ref.read(pendingInviteTokenProvider.notifier).clear();
         }
       } on Exception {
         finalError = SignInError.network;
+        ref
+            .read(inviteSignInNoticeProvider.notifier)
+            .show(finalError, state.country);
       }
     }
     if (ref.mounted) state = state._next(busy: false, error: finalError);

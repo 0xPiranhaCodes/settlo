@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:settlo_auth/src/phone_number.dart';
+import 'package:settlo_auth/src/sign_in_controller.dart';
 import 'package:settlo_auth/src/widgets.dart';
 import 'package:settlo_core/settlo_core.dart';
 
@@ -56,11 +58,18 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
           .redeem(widget.token, idempotencyKey: _redeemKey);
       ref.read(pendingInviteTokenProvider.notifier).clear();
       if (mounted) context.go(SettloRoutes.home);
+    } on InviteException catch (error) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = signInErrorForInvite(error.failure).message(Country.india);
+        });
+      }
     } on Exception {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error = "This invite couldn't be used. It may have expired.";
+          _error = SignInError.network.message(Country.india);
         });
       }
     }

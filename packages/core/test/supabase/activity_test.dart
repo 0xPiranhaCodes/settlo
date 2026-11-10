@@ -26,6 +26,7 @@ final _views = <String, List<Map<String, Object?>>>{
       'before_amount_minor': 109900,
       'status': null,
       'my_side': null,
+      'link_only': true,
     },
     // Arjun repaid you, and you confirmed.
     {
@@ -128,6 +129,7 @@ void main() {
       (null, null, MoneyTone.neutral),
     );
     expect(edit.at, DateTime.utc(2026, 11, 9, 8, 30, 0, 123, 456));
+    expect(edit.linkOnly, isTrue);
     expect(
       (repaid.kind, repaid.loanId, repaid.counterparty, repaid.byYou),
       (ActivityKind.repayment, 'l1', 'Arjun', true),
@@ -137,6 +139,7 @@ void main() {
       (ActivityStatus.confirmed, true, MoneyTone.owedToYou),
     );
     expect(repaid.beforeAmount, isNull);
+    expect(repaid.linkOnly, isFalse);
   });
 
   test('the next page starts below the last row, by time then id', () async {

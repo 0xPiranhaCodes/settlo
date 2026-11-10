@@ -79,8 +79,8 @@ select throws_ok(format('select public.redeem_invite(%L, %L)', (select token fro
 
 reset role; set local role authenticated;
 select pg_temp.login('00000000-0000-0000-0000-000000010403');
-select throws_ok(format('select public.redeem_invite(%L, %L)', (select token from issued),
- '00000000-0000-4000-8000-000000010442'), '42501', null, 'the wrong verified phone cannot redeem');
+select is(public.redeem_invite((select token from issued),
+ '00000000-0000-4000-8000-000000010442'), 'wrong_phone', 'the wrong verified phone cannot redeem');
 select pg_temp.login('00000000-0000-0000-0000-000000010402');
 select lives_ok(format('select public.redeem_invite(%L, %L)', (select token from issued),
  '00000000-0000-4000-8000-000000010443'), 'the target phone redeems');
@@ -88,8 +88,8 @@ select ok((select accepted_at is not null from public.space_members where id = '
  'redemption accepts the targeted claim');
 select lives_ok(format('select public.redeem_invite(%L, %L)', (select token from issued),
  '00000000-0000-4000-8000-000000010443'), 'same-key redemption replay is harmless');
-select throws_ok(format('select public.redeem_invite(%L, %L)', (select token from issued),
- '00000000-0000-4000-8000-000000010444'), '22023', null, 'a used token cannot be redeemed again');
+select is(public.redeem_invite((select token from issued),
+ '00000000-0000-4000-8000-000000010444'), 'invite_unavailable', 'a used token cannot be redeemed again');
 select is((select count(*)::int from public.inspect_invite((select token from issued))), 0, 'a used token no longer reveals copy');
 
 reset role; set local role authenticated;

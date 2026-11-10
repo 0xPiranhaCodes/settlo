@@ -104,6 +104,7 @@ Future<GoRouter> _pump(
 
 final class _SpaceInvites extends FakeInvitesRepository {
   String? memberId;
+  final keys = <String>[];
 
   @override
   Future<String> issueSpace(
@@ -111,7 +112,8 @@ final class _SpaceInvites extends FakeInvitesRepository {
     required String idempotencyKey,
   }) async {
     this.memberId = memberId;
-    return 'space-token';
+    keys.add(idempotencyKey);
+    return 'space-token-${keys.length}';
   }
 }
 
@@ -267,10 +269,19 @@ void main() {
       expect(opened.single.host, 'wa.me');
       expect(
         opened.single.queryParameters['text'],
-        contains('settlo://join/space-token'),
+        contains('settlo://join/space-token-1'),
       );
       expect(opened.single.queryParameters['text'], isNot(contains('₹')));
       expect(opened.single.queryParameters['text'], isNot(contains('1,200')));
+
+      await tester.tap(invite);
+      await tester.pumpAndSettle();
+      expect(invites.keys, hasLength(2));
+      expect(invites.keys[1], isNot(invites.keys[0]));
+      expect(
+        opened.last.queryParameters['text'],
+        contains('settlo://join/space-token-2'),
+      );
     });
 
     testWidgets('a payer who left still counts in the bar and history', (

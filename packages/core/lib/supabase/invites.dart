@@ -129,10 +129,17 @@ final class SupabaseInvitesRepository implements InvitesRepository {
   @override
   Future<void> redeem(String token, {required String idempotencyKey}) async {
     try {
-      await _db.rpc<void>(
+      final result = await _db.rpc<String>(
         'redeem_invite',
         params: {'p_token': token, 'p_idempotency_key': idempotencyKey},
       );
+      if (result != 'redeemed') {
+        throw InviteException(switch (result) {
+          'wrong_phone' => InviteFailure.wrongPhone,
+          'invite_rate_limited' => InviteFailure.rateLimited,
+          _ => InviteFailure.unavailable,
+        });
+      }
     } on PostgrestException catch (error) {
       throw _mapped(error);
     }

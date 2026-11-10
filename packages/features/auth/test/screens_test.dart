@@ -514,7 +514,7 @@ void main() {
       );
       await tester.tap(find.text('Verify my number to see the ledger'));
       await tester.pumpAndSettle();
-      expect(find.textContaining("couldn't be used"), findsOneWidget);
+      expect(find.textContaining("couldn't reach Settlo"), findsOneWidget);
 
       final invites = _Invites(redeemError: true);
       await _pump(

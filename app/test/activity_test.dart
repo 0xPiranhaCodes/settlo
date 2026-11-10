@@ -187,6 +187,36 @@ void main() {
     expect(router.state.uri.toString(), SettloRoutes.confirmRepayment('r3'));
   });
 
+  testWidgets('link-only decline says the underlying invite remains open', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      FakeActivityRepository(
+        entries: [
+          ActivityEntry(
+            id: 99,
+            at: DateTime(2026, 11, 10),
+            kind: ActivityKind.member,
+            action: ActivityAction.rejected,
+            byYou: false,
+            description: 'Kabir',
+            linkOnly: true,
+          ),
+        ],
+        pending: const [],
+      ),
+    );
+
+    expect(
+      find.text(
+        "Someone with your link said it isn't them. The invite to Kabir "
+        'is still open.',
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('a double tap on Review in one frame opens it once', (
     tester,
   ) async {

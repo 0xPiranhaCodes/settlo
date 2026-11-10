@@ -2,7 +2,7 @@
 -- lifecycle revocation, quotas and uniform validation.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(41);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
  ('00000000-0000-0000-0000-000000010501', '919200000001', now()),
@@ -27,6 +27,8 @@ insert into public.space_members (id, space_id, phone, user_id, role, accepted_a
  ('00000000-0000-0000-0000-000000010523', '00000000-0000-0000-0000-000000010520', '+919200000002', null, 'member', null),
  ('00000000-0000-0000-0000-000000010531', '00000000-0000-0000-0000-000000010530', '+919200000001', '00000000-0000-0000-0000-000000010501', 'owner', now()),
  ('00000000-0000-0000-0000-000000010532', '00000000-0000-0000-0000-000000010530', '+919200000005', null, 'member', null);
+update public.space_members set name = 'Bilal'
+ where id = '00000000-0000-0000-0000-000000010512';
 insert into public.loans (id, lender_phone, borrower_phone, lender_id, borrower_id, principal_minor,
                           schedule_type, created_by, lender_accepted_at)
 values ('00000000-0000-0000-0000-000000010540', '+919200000001', '+919200000002',
@@ -135,6 +137,12 @@ select ok((select accepted_at is null and rejected_at is null and left_at is nul
 select ok(exists(select from public.activity where space_id = '00000000-0000-0000-0000-000000010510'
                   and action = 'rejected' and after ->> 'link_only' = 'true'),
  'anonymous decline tells the inviter that the link reached the wrong person');
+set local role authenticated;
+select pg_temp.login('00000000-0000-0000-0000-000000010501');
+select is((select concat_ws('|', case when link_only then 'true' end, kind, description) from public.activity_feed()
+            where action = 'rejected' order by id desc limit 1), 'true|member|Bilal',
+ 'the inviter feed distinguishes a declined link and names the still-pending invite');
+reset role;
 set local role anon;
 select lives_ok(format('select pg_temp.call_decline(%L, %L)',
  (select token from issued where label = 'decline'), '00000000-0000-4000-8000-000000010561'),
@@ -174,6 +182,17 @@ select ok(not exists(select from private.invite_links i cross join issued x
 
 set local role authenticated;
 select pg_temp.login('00000000-0000-0000-0000-000000010501');
+insert into issued values ('leave-second', pg_temp.issue_space(
+ '00000000-0000-0000-0000-000000010523', '00000000-0000-4000-8000-000000010555'));
+reset role; set local role anon;
+select is((select count(*)::int from public.inspect_invite(
+ (select token from issued where label = 'leave'))), 1, 'a fresh issue key keeps the earlier link live');
+select is((select count(*)::int from public.inspect_invite(
+ (select token from issued where label = 'leave-second'))), 1, 'a fresh issue key creates an additional live link');
+reset role;
+
+set local role authenticated;
+select pg_temp.login('00000000-0000-0000-0000-000000010501');
 select pg_temp.issue_space('00000000-0000-0000-0000-000000010532', '00000000-0000-4000-8000-000000010571');
 select pg_temp.issue_space('00000000-0000-0000-0000-000000010532', '00000000-0000-4000-8000-000000010572');
 select pg_temp.issue_space('00000000-0000-0000-0000-000000010532', '00000000-0000-4000-8000-000000010573');
@@ -197,16 +216,46 @@ reset role; select pg_temp.clear_quota('issue');
 
 set local role authenticated;
 select pg_temp.login('00000000-0000-0000-0000-000000010503');
-select is(pg_temp.hint_for(format('select public.redeem_invite(%L, %L)',
- (select token from issued where label = 'loan'), '00000000-0000-4000-8000-000000010577')),
+select is(public.redeem_invite((select token from issued where label = 'loan'),
+ '00000000-0000-4000-8000-000000010577'),
  'wrong_phone', 'wrong verified phone keeps its distinct plain-copy hint');
 reset role;
 select pg_temp.set_quota('00000000-0000-0000-0000-000000010502', 'redeem', 20);
 set local role authenticated;
 select pg_temp.login('00000000-0000-0000-0000-000000010502');
-select is(pg_temp.hint_for(format('select public.redeem_invite(%L, %L)',
- (select token from issued where label = 'loan'), '00000000-0000-4000-8000-000000010578')),
+select is(public.redeem_invite((select token from issued where label = 'loan'),
+ '00000000-0000-4000-8000-000000010578'),
  'invite_rate_limited', 'redeem is throttled per verified user');
+reset role; select pg_temp.clear_quota('redeem');
+
+set local role authenticated;
+select pg_temp.login('00000000-0000-0000-0000-000000010503');
+select is(public.redeem_invite((select token from issued where label = 'loan'), gen_random_uuid()),
+ 'wrong_phone', 'the first failed wrong-phone attempt is returned');
+reset role;
+select is((select attempts from private.invite_rate_limits where user_id =
+ '00000000-0000-0000-0000-000000010503' and action = 'redeem'), 1,
+ 'a wrong-phone result commits its per-user attempt');
+select pg_temp.set_quota('00000000-0000-0000-0000-000000010503', 'redeem', 20);
+set local role authenticated;
+select pg_temp.login('00000000-0000-0000-0000-000000010503');
+select is(public.redeem_invite((select token from issued where label = 'loan'), gen_random_uuid()),
+ 'invite_rate_limited', 'the next wrong-phone guess is throttled');
+reset role; select pg_temp.clear_quota('redeem');
+
+set local role authenticated;
+select pg_temp.login('00000000-0000-0000-0000-000000010504');
+select is(public.redeem_invite(repeat('f', 64), gen_random_uuid()),
+ 'invite_unavailable', 'an unknown capability remains privacy-safe');
+reset role;
+select is((select attempts from private.invite_rate_limits where user_id =
+ '00000000-0000-0000-0000-000000010504' and action = 'redeem'), 1,
+ 'an unknown capability commits its per-user attempt');
+select pg_temp.set_quota('00000000-0000-0000-0000-000000010504', 'redeem', 20);
+set local role authenticated;
+select pg_temp.login('00000000-0000-0000-0000-000000010504');
+select is(public.redeem_invite(repeat('e', 64), gen_random_uuid()),
+ 'invite_rate_limited', 'a different unknown capability cannot bypass the quota');
 reset role; select pg_temp.clear_quota('redeem');
 
 set local role authenticated;
@@ -232,16 +281,16 @@ select is((select count(*)::int from public.inspect_invite('xyz')), 0,
  'a malformed token is rejected before lookup');
 reset role; set local role authenticated;
 select pg_temp.login('00000000-0000-0000-0000-000000010502');
-select is(pg_temp.hint_for($$select public.redeem_invite('xyz',
- '00000000-0000-4000-8000-000000010580')$$), 'invite_unavailable',
+select is(public.redeem_invite('xyz',
+ '00000000-0000-4000-8000-000000010580'), 'invite_unavailable',
  'malformed redeem keeps the uniform unavailable hint');
 set local role anon;
 select is(pg_temp.hint_for(format('select pg_temp.call_decline(%L, %L)', repeat('a', 4096),
  '00000000-0000-4000-8000-000000010581')), 'invite_unavailable',
  'oversized decline is rejected before lookup');
 reset role;
-select is(pg_temp.quota_attempts(), 0,
- 'invalid tokens do not consume or bypass a user quota row');
+select is(pg_temp.quota_attempts(), 1,
+ 'a malformed redeem consumes the verified caller quota');
 
 select * from finish();
 rollback;

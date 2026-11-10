@@ -28,7 +28,7 @@ begin
   return p_token ~ '^[0-9a-f]{64}$';
 end $$;
 
-create function private.consume_invite_rate_limit(p_user uuid, p_action text) returns void
+create function private.consume_invite_rate_limit(p_user uuid, p_action text) returns boolean
 language plpgsql security definer set search_path = '' as $$
 declare current private.invite_rate_limits;
 begin
@@ -41,9 +41,7 @@ begin
       when private.invite_rate_limits.window_started_at <= now() - interval '1 hour' then 1
       else private.invite_rate_limits.attempts + 1 end
   returning * into current;
-  if current.attempts > 20 then
-    raise exception 'invite rate limit reached' using errcode = 'P0001', hint = 'invite_rate_limited';
-  end if;
+  return current.attempts <= 20;
 end $$;
 
 create function public.issue_invite(p_kind public.invite_kind, p_subject_id uuid, p_idempotency_key uuid)
@@ -68,7 +66,9 @@ begin
   if phone is null then raise exception 'issue_invite: caller is not a party or target is not pending' using errcode = '42501'; end if;
   fp := encode(sha256(convert_to(jsonb_build_object('kind', p_kind, 'subject_id', p_subject_id)::text, 'UTF8')), 'hex');
   perform pg_advisory_xact_lock(hashtextextended(me::text || ':' || p_idempotency_key::text, 1));
-  perform private.consume_invite_rate_limit(me, 'issue');
+  if not private.consume_invite_rate_limit(me, 'issue') then
+    raise exception 'invite rate limit reached' using errcode = 'P0001', hint = 'invite_rate_limited';
+  end if;
   select * into old from private.invite_links i where i.issuer_id = me and i.idempotency_key = p_idempotency_key for update;
   if found then
     if old.fingerprint <> fp then raise exception 'issue_invite: idempotency conflict' using errcode = 'PT409', hint = 'idempotency_conflict'; end if;
@@ -110,20 +110,30 @@ language sql stable security definer set search_path = '' as $$
         or (i.target_phone = l.borrower_phone and l.borrower_accepted_at is null and l.borrower_rejected_at is null))))
 $$;
 
-create function public.redeem_invite(p_token text, p_idempotency_key uuid) returns void
+create function public.redeem_invite(p_token text, p_idempotency_key uuid) returns text
 language plpgsql security definer set search_path = '' as $$
 declare me uuid := public.verified_uid(); phone text := public.auth_phone(); i private.invite_links;
 begin
   if me is null or p_idempotency_key is null then raise exception 'redeem_invite: verified caller required' using errcode = '42501'; end if;
-  if not private.valid_invite_token(p_token) then raise exception 'redeem_invite: unavailable' using errcode = '22023', hint = 'invite_unavailable'; end if;
-  select * into i from private.invite_links x where x.token_hash = sha256(convert_to(p_token, 'UTF8')) for update;
-  if i.id is not null then perform private.consume_invite_rate_limit(me, 'redeem'); end if;
-  if i.redeemed_by = me and i.redeemed_at is not null and i.redeem_idempotency_key = p_idempotency_key then return; end if;
+  if private.valid_invite_token(p_token) then
+    select * into i from private.invite_links x where x.token_hash = sha256(convert_to(p_token, 'UTF8')) for update;
+  end if;
+  if i.redeemed_by = me and i.redeemed_at is not null and i.redeem_idempotency_key = p_idempotency_key then
+    return 'redeemed';
+  end if;
+  -- Expected failures are result values, not exceptions: their quota write
+  -- must commit so invalid, unknown and wrong-phone guesses cannot evade it.
+  if not private.consume_invite_rate_limit(me, 'redeem') then return 'invite_rate_limited'; end if;
   if i.id is null or i.expires_at <= now() or i.redeemed_at is not null or i.declined_at is not null or i.revoked_at is not null then
-    raise exception 'redeem_invite: unavailable' using errcode = '22023', hint = 'invite_unavailable'; end if;
-  if phone is distinct from i.target_phone::text then raise exception 'redeem_invite: wrong phone' using errcode = '42501', hint = 'wrong_phone'; end if;
-  perform public.accept_claim(case when i.kind = 'space' then 'space_member' else 'loan' end, i.subject_id);
+    return 'invite_unavailable'; end if;
+  if phone is distinct from i.target_phone::text then return 'wrong_phone'; end if;
+  begin
+    perform public.accept_claim(case when i.kind = 'space' then 'space_member' else 'loan' end, i.subject_id);
+  exception when others then
+    return 'invite_unavailable';
+  end;
   update private.invite_links set redeemed_at = now(), redeemed_by = me, redeem_idempotency_key = p_idempotency_key where id = i.id;
+  return 'redeemed';
 end $$;
 
 create function public.decline_invite(p_token text, p_idempotency_key uuid) returns void

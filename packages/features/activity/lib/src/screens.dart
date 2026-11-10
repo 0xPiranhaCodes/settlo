@@ -516,6 +516,11 @@ String _who(ActivityEntry e) => e.byYou ? 'You' : e.actor ?? 'Someone';
       ActivityAction.closed => line('$loan is fully repaid'),
       _ => line('$who recorded a loan'),
     },
+    ActivityKind.member when e.linkOnly => line(
+      "Someone with your link said it isn't them. The invite to ",
+      e.description ?? 'that person',
+      ' is still open.',
+    ),
     ActivityKind.member => line(
       '',
       e.description ?? 'A number',

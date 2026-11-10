@@ -330,7 +330,7 @@ class _PendingCard extends ConsumerStatefulWidget {
 }
 
 class _PendingCardState extends ConsumerState<_PendingCard> {
-  final String _inviteKey = newIdempotencyKey();
+  String _inviteKey = newIdempotencyKey();
   bool _busy = false;
 
   Future<void> _send() async {
@@ -341,6 +341,9 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
       final token = await ref
           .read(invitesRepositoryProvider)
           .issueSpace(member.id, idempotencyKey: _inviteKey);
+      // A successful issue is complete: the next share creates another live
+      // link. Only an ambiguous/failed issue retries the same key.
+      _inviteKey = newIdempotencyKey();
       final opened = await ref.read(openUrlProvider)(
         Uri.https('wa.me', '/${member.phone.substring(1)}', {
           'text': spaceInviteText(

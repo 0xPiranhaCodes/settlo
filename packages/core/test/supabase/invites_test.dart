@@ -45,6 +45,15 @@ void main() {
               );
             case 'issue_invite':
               request.response.write(jsonEncode('issued-token'));
+            case 'redeem_invite':
+              request.response.write(
+                jsonEncode(switch (body['p_token']) {
+                  'wrong' => 'wrong_phone',
+                  'rate' => 'invite_rate_limited',
+                  'expired' => 'invite_unavailable',
+                  _ => 'redeemed',
+                }),
+              );
             default:
               final hint = switch (body['p_token']) {
                 'wrong' => 'wrong_phone',
@@ -132,7 +141,6 @@ void main() {
       for (final (token, failure) in [
         ('wrong', InviteFailure.wrongPhone),
         ('rate', InviteFailure.rateLimited),
-        ('target', InviteFailure.targetLimit),
         ('expired', InviteFailure.unavailable),
       ]) {
         await expectLater(
