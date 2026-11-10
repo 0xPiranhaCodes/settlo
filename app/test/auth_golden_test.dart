@@ -95,4 +95,31 @@ void main() {
       }
     }
   }
+
+  testWidgets('390x844 dark welcome pressed golden', (tester) async {
+    await pumpSettloGolden(
+      tester,
+      device: SettloGoldenDevices.canvas390,
+      theme: SettloTheme.dark(),
+      child: Builder(
+        builder: (context) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(disableAnimations: false),
+          child: const WelcomeScreen(),
+        ),
+      ),
+      act: (tester) async {
+        await tester.ensureVisible(find.text('Continue with phone number'));
+        final gesture = await tester.startGesture(
+          tester.getCenter(find.byType(FilledButton)),
+        );
+        addTearDown(gesture.up);
+        await tester.pump(SettloWelcomeMetrics.actionPressDuration);
+      },
+    );
+
+    await expectLater(
+      find.byKey(settloGoldenSurfaceKey),
+      matchesGoldenFile('goldens/auth_welcome_pressed_390x844_dark.png'),
+    );
+  });
 }

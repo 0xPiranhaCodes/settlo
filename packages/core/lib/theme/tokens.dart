@@ -67,6 +67,21 @@ abstract final class SettloWelcomeMetrics {
 
   /// Radius of the illustrative ledger cards.
   static const double exampleCardRadius = 24;
+
+  /// Scale while Welcome's primary action is held.
+  static const double actionPressedScale = 0.97;
+
+  /// Horizontal arrow travel while Welcome's primary action is held.
+  static const double actionArrowNudge = 3;
+
+  /// Duration of Welcome's short press response.
+  static const Duration actionPressDuration = Duration(milliseconds: 90);
+
+  /// Blur radius of the warm shadow beneath Welcome's primary action.
+  static const double actionShadowBlur = 18;
+
+  /// Downward offset of the warm shadow beneath Welcome's primary action.
+  static const double actionShadowOffset = 8;
 }
 
 /// Depth. Cards get no drop shadow: a hairline edge plus a 1px specular

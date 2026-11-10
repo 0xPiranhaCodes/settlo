@@ -136,6 +136,21 @@ class SettloColors extends ThemeExtension<SettloColors> {
   /// The owner-approved lighter gold for Welcome's primary button only.
   final Color welcomeAction;
 
+  /// The lightest stop in Welcome's subtle action gradient.
+  Color get welcomeActionTop =>
+      Color.alphaBlend(const Color(0x1FFFFFFF), welcomeAction);
+
+  /// The lower stop in Welcome's subtle action gradient.
+  Color get welcomeActionBottom =>
+      Color.alphaBlend(const Color(0x0A000000), welcomeAction);
+
+  /// A fine highlight along the top edge of Welcome's action.
+  Color get welcomeActionHighlight =>
+      Color.alphaBlend(const Color(0x66FFFFFF), welcomeAction);
+
+  /// The warm, low shadow beneath Welcome's action.
+  Color get welcomeActionShadow => welcomeAction.withValues(alpha: 0.24);
+
   /// Text and icons on [action].
   final Color onAction;
 
@@ -192,9 +207,9 @@ class SettloColors extends ThemeExtension<SettloColors> {
       ),
       (name: 'onAction on action', text: onAction, background: action),
       (
-        name: 'onAction on welcomeAction',
+        name: 'onAction on welcomeActionTop',
         text: SettloColors.dark.onAction,
-        background: welcomeAction,
+        background: welcomeActionTop,
       ),
       (name: 'textPrimary on glass', text: textPrimary, background: glassOver),
       (name: 'textMuted on glass', text: textMuted, background: glassOver),
