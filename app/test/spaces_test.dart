@@ -258,7 +258,7 @@ void main() {
       final invite = find
           .ancestor(
             of: find.text("Kabir hasn't joined yet"),
-            matching: find.byType(InkWell),
+            matching: find.byType(SPressable),
           )
           .first;
       await tester.ensureVisible(invite);

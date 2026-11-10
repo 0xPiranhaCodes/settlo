@@ -125,6 +125,7 @@ class SpaceDetailView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = SettloColors.of(context);
     final media = MediaQuery.of(context);
+    final largeText = media.textScaler.scale(14) > 21;
     final ledger = ref.watch(spaceLedgerProvider(space.id));
     final loaded = ledger.value;
     return Scaffold(
@@ -144,17 +145,23 @@ class SpaceDetailView extends ConsumerWidget {
             ),
             children: [
               SpaceHeader(space),
-              const SizedBox(height: 20),
+              const SizedBox(height: SettloSpacing.x3),
               if (tab == SpaceTab.expenses) ...[
                 _Hero(space, loaded),
-                const SizedBox(height: 12),
+                const SizedBox(height: SettloSpacing.x2),
                 // The canvas pads these 16, not Material's 24, so both
                 // labels fit side by side at 360.
                 Theme(
                   data: _compactButtons(Theme.of(context)),
-                  child: Row(
+                  child: Flex(
+                    direction: largeText ? Axis.vertical : Axis.horizontal,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: largeText
+                        ? CrossAxisAlignment.stretch
+                        : CrossAxisAlignment.center,
                     children: [
-                      Expanded(
+                      Flexible(
+                        fit: largeText ? FlexFit.loose : FlexFit.tight,
                         child: SPrimaryButton(
                           label: 'Add expense',
                           icon: SpacesIcon(
@@ -167,8 +174,12 @@ class SpaceDetailView extends ConsumerWidget {
                               context.push(SettloRoutes.addExpenseIn(space.id)),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
+                      SizedBox(
+                        width: SettloSpacing.x2,
+                        height: largeText ? SettloSpacing.x2 : 0,
+                      ),
+                      Flexible(
+                        fit: largeText ? FlexFit.loose : FlexFit.tight,
                         child: SSecondaryButton(
                           label: 'Settle up',
                           onPressed: () =>
@@ -178,10 +189,10 @@ class SpaceDetailView extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: SettloSpacing.x3),
               ],
               _Tabs(space: space, tab: tab),
-              const SizedBox(height: 14),
+              const SizedBox(height: SettloSpacing.x2),
               if (loaded == null)
                 Text(
                   ledger.hasError
@@ -193,10 +204,10 @@ class SpaceDetailView extends ConsumerWidget {
                 _ExpenseList(space, loaded)
               else ...[
                 _FairnessCard(space, loaded),
-                const SizedBox(height: 12),
+                const SizedBox(height: SettloSpacing.x2),
                 _SettleCard(space),
                 if (loaded.categories.isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: SettloSpacing.x2),
                   _CategoriesCard(loaded),
                 ],
               ],
@@ -231,6 +242,7 @@ class _Hero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
+    final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
     final balance = space.balance;
     final today = ledger?.today ?? DateTime.now();
     final month = DateTime(today.year, today.month);
@@ -250,10 +262,15 @@ class _Hero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Flex(
+            direction: largeText ? Axis.vertical : Axis.horizontal,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: largeText
+                ? CrossAxisAlignment.start
+                : CrossAxisAlignment.end,
             children: [
-              Expanded(
+              Flexible(
+                fit: largeText ? FlexFit.loose : FlexFit.tight,
                 child: MergeSemantics(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,7 +280,7 @@ class _Hero extends StatelessWidget {
                         < 0 => 'YOU OWE',
                         _ => 'ALL SETTLED',
                       }, style: sectionLabel(c)),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: SettloSpacing.x1),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
@@ -279,9 +296,15 @@ class _Hero extends StatelessWidget {
                   ),
                 ),
               ),
+              SizedBox(
+                width: SettloSpacing.x2,
+                height: largeText ? SettloSpacing.x2 : 0,
+              ),
               MergeSemantics(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: largeText
+                      ? CrossAxisAlignment.start
+                      : CrossAxisAlignment.end,
                   children: [
                     Text(
                       monthName,
@@ -297,7 +320,7 @@ class _Hero extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: SettloSpacing.x2),
           Semantics(
             label: 'Daily spend this month',
             excludeSemantics: true,
@@ -393,7 +416,7 @@ class _Tabs extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: c.surface,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(SettloRadius.iconTile),
               border: Border.all(color: c.hairline),
             ),
           ),
@@ -407,8 +430,8 @@ class _Tabs extends StatelessWidget {
                   child: Semantics(
                     button: true,
                     selected: selected,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(11),
+                    child: SPressable(
+                      ringRadius: BorderRadius.circular(SettloRadius.compact),
                       onTap: selected ? null : () => context.go(route),
                       child: SizedBox(
                         height: SettloSpacing.minTouchTarget,
@@ -418,7 +441,9 @@ class _Tabs extends StatelessWidget {
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: selected ? c.surfaceHighest : null,
-                              borderRadius: BorderRadius.circular(11),
+                              borderRadius: BorderRadius.circular(
+                                SettloRadius.compact,
+                              ),
                             ),
                             child: Text(
                               label,
@@ -550,7 +575,7 @@ class _ExpenseRow extends StatelessWidget {
       constraints: const BoxConstraints(
         minHeight: SettloSpacing.minTouchTarget,
       ),
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
       decoration: divider
           ? BoxDecoration(
               border: Border(bottom: BorderSide(color: c.hairline)),
@@ -559,7 +584,7 @@ class _ExpenseRow extends StatelessWidget {
       child: Row(
         children: [
           SAvatar(payer?.name ?? e.description, size: 36),
-          const SizedBox(width: 14),
+          const SizedBox(width: SettloSpacing.x2),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,7 +617,7 @@ class _ExpenseRow extends StatelessWidget {
       return MergeSemantics(
         child: Semantics(
           hint: 'Confirm or dispute',
-          child: InkWell(
+          child: SPressable(
             onTap: () => showSAmountSheet<void>(
               context: context,
               builder: (_) => ConfirmSettlementSheet(
@@ -610,7 +635,7 @@ class _ExpenseRow extends StatelessWidget {
     return MergeSemantics(
       child: Semantics(
         hint: 'Edit or delete',
-        child: InkWell(
+        child: SPressable(
           onTap: () => showSAmountSheet<void>(
             context: context,
             builder: (_) => EditExpenseSheet(space: space, expense: e),
@@ -647,7 +672,7 @@ class _FairnessCard extends StatelessWidget {
     return RepaintBoundary(
       key: fairnessCardKey,
       child: SCard(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -668,7 +693,7 @@ class _FairnessCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: SettloSpacing.x2),
             if (total == 0)
               Text(
                 'Nothing spent in $month yet.',
@@ -683,7 +708,7 @@ class _FairnessCard extends StatelessWidget {
                   monthTotal: Paise(total),
                   divider: i < rows.length - 1,
                 ),
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Text(
                 'The ${dark ? 'white' : 'dark'} tick is the fair share. A bar '
                 'past it means that person '
@@ -754,7 +779,7 @@ class FairShareBar extends StatelessWidget {
       label: spoken,
       excludeSemantics: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
         decoration: divider
             ? BoxDecoration(
                 border: Border(bottom: BorderSide(color: c.hairline)),
@@ -855,7 +880,7 @@ class _SettleCard extends StatelessWidget {
     final payments = space.payments;
     final waiting = space.pendingFromYou;
     return SCard(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -873,7 +898,7 @@ class _SettleCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: SettloSpacing.x2),
           if (payments.isEmpty && waiting.isEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -955,7 +980,7 @@ class _PaymentRow extends StatelessWidget {
       child: Row(
         children: [
           SAvatar(other.name, size: 32),
-          const SizedBox(width: 12),
+          const SizedBox(width: SettloSpacing.x2),
           Expanded(
             child: MergeSemantics(
               child: Row(
@@ -980,13 +1005,11 @@ class _PaymentRow extends StatelessWidget {
           // with someone who left.
           if (action case (final text, final route)
               when space.members.contains(other)) ...[
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             TextButton(
               onPressed: () => context.push(route),
               style: TextButton.styleFrom(
-                // Drawn 34 high as on the canvas; padded to a full tap
-                // target.
-                minimumSize: const Size(SettloSpacing.minTouchTarget, 34),
+                minimumSize: const Size.square(SettloSpacing.minTouchTarget),
                 tapTargetSize: MaterialTapTargetSize.padded,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 backgroundColor: c.action.withValues(alpha: 0.14),
@@ -1018,7 +1041,7 @@ class _CategoriesCard extends StatelessWidget {
     final month = _months[ledger.month.month - 1].substring(0, 3);
     final rows = ledger.categories;
     return SCard(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1027,7 +1050,7 @@ class _CategoriesCard extends StatelessWidget {
           for (final (i, r) in rows.indexed)
             MergeSemantics(
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
                 decoration: i < rows.length - 1
                     ? BoxDecoration(
                         border: Border(bottom: BorderSide(color: c.hairline)),
@@ -1206,7 +1229,7 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
               ),
             )
           : Text(formatInr(widget.expense.amount).substring(1)),
-      body: ListView(
+      body: SFormBody(
         children: [
           TextField(
             controller: _description,
@@ -1358,8 +1381,7 @@ class _ConfirmSettlementSheetState
         excludeSemantics: true,
         child: Text(amount.substring(1)),
       ),
-      body: ListView(
-        padding: EdgeInsets.zero,
+      body: SFormBody(
         children: [
           Text(
             _disputing
@@ -1400,7 +1422,7 @@ class _ConfirmSettlementSheetState
                   label: _busy ? 'Saving…' : 'Mark as not received',
                   onPressed: _busy ? null : _dispute,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: SettloSpacing.x2),
                 SSecondaryButton(
                   label: 'Back',
                   onPressed: _busy
@@ -1416,7 +1438,7 @@ class _ConfirmSettlementSheetState
                   label: _busy ? 'Saving…' : 'Yes, I received $amount',
                   onPressed: _busy ? null : _confirm,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: SettloSpacing.x2),
                 SSecondaryButton(
                   label: "I didn't receive this",
                   onPressed: _busy

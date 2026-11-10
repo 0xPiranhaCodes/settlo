@@ -124,7 +124,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: SettloSpacing.x2),
           Row(
             children: [
               Transform.translate(
@@ -149,7 +149,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
               const SizedBox(width: SettloSpacing.minTouchTarget - 12),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: SettloSpacing.x3),
           TextField(
             controller: _name,
             textCapitalization: TextCapitalization.sentences,
@@ -178,7 +178,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
               child: Row(
                 children: [
                   SAvatar(m.name, size: 36),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: SettloSpacing.x2),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +218,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
             'verify their number.',
             style: SettloTypography.figtree(13, color: c.textSecondary),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: SettloSpacing.x2),
           TextField(
             controller: _phone,
             keyboardType: TextInputType.phone,
@@ -230,14 +230,14 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
               errorText: _phoneError,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: SettloSpacing.x2),
           TextField(
             controller: _person,
             textCapitalization: TextCapitalization.words,
             onSubmitted: (_) => _add(),
             decoration: const InputDecoration(labelText: 'Their name'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: SettloSpacing.x2),
           SSecondaryButton(
             label: 'Add person',
             icon: SpacesIcon(SpacesGlyph.plus, color: c.textPrimary, size: 18),

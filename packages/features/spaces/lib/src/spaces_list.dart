@@ -90,7 +90,7 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
               ),
               // Chips are 36 drawn inside a 44 target: 4 less above and
               // below keeps the canvas's 24 and 18.
-              const SizedBox(height: 20),
+              const SizedBox(height: SettloSpacing.x3),
               Row(
                 children: [
                   for (final (kind, label) in const [
@@ -107,7 +107,7 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
                   ],
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: SettloSpacing.x2),
               if (all == null)
                 Text(
                   spaces.hasError
@@ -119,13 +119,13 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
                 const _NoSpaces()
               else
                 for (final (i, s) in shown.indexed) ...[
-                  if (i > 0) const SizedBox(height: 12),
+                  if (i > 0) const SizedBox(height: SettloSpacing.x2),
                   _SpaceCard(s),
                 ],
               if (pending.isNotEmpty) ...[
-                const SizedBox(height: 22),
+                const SizedBox(height: SettloSpacing.x3),
                 Text('INVITE PENDING', style: sectionLabel(c)),
-                const SizedBox(height: 10),
+                const SizedBox(height: SettloSpacing.x2),
                 for (final (i, (space, member)) in pending.indexed) ...[
                   if (i > 0) const SizedBox(height: SettloSpacing.x1),
                   _PendingCard(space: space, member: member),
@@ -157,7 +157,7 @@ class _NoSpaces extends StatelessWidget {
               color: c.textSecondary,
             ).copyWith(height: 1.5),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: SettloSpacing.x3),
           SPrimaryButton(
             label: 'Start a space',
             onPressed: () => showCreateSpaceSheet(context),
@@ -182,18 +182,18 @@ class _SpaceCard extends StatelessWidget {
     final total = s.monthTotal.value;
     int percent(Paise part) => (part.value * 100 / total).round();
     return MergeSemantics(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(SettloRadius.card),
+      child: SPressable(
+        ringRadius: BorderRadius.circular(SettloRadius.card),
         onTap: () => context.go(SettloRoutes.space(s.id)),
         child: SCard(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
                   SpaceKindTile(s.kind),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: SettloSpacing.x2),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +254,7 @@ class _SpaceCard extends StatelessWidget {
                   (others.isNotEmpty || s.departed.isNotEmpty)) ...[
                 const SizedBox(height: 16),
                 _PaidBar(s),
-                const SizedBox(height: 6),
+                const SizedBox(height: SettloSpacing.x1),
                 Row(
                   children: [
                     Expanded(
@@ -301,7 +301,7 @@ class _PaidBar extends StatelessWidget {
       child: Row(
         children: [
           for (final (i, m) in payers.indexed) ...[
-            if (i > 0) const SizedBox(width: 6),
+            if (i > 0) const SizedBox(width: SettloSpacing.x1),
             Expanded(
               flex: m.monthPaid.value,
               child: Container(
@@ -381,15 +381,14 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
     return Semantics(
       button: true,
       label: 'Send ${member.name} an invite on WhatsApp',
-      child: InkWell(
-        borderRadius: BorderRadius.circular(SettloRadius.card),
+      child: SPressable(
+        ringRadius: BorderRadius.circular(SettloRadius.card),
         onTap: _busy ? null : _send,
         child: SCard(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
               SAvatar(member.name, size: 36),
-              const SizedBox(width: 12),
+              const SizedBox(width: SettloSpacing.x2),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
