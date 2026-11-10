@@ -27,6 +27,7 @@ final class _Invites implements InvitesRepository {
   int redeemCalls = 0;
   int declineCalls = 0;
   final inspected = <String>[];
+  final redeemed = <String>[];
   final declined = <String>[];
 
   @override
@@ -43,9 +44,10 @@ final class _Invites implements InvitesRepository {
   @override
   Future<void> redeem(String token, {required String idempotencyKey}) async {
     redeemCalls++;
-    if (redeemFailure case final failure?) throw InviteException(failure);
+    redeemed.add(token);
     final completer = redeemCompleter;
     if (completer != null) await completer.future;
+    if (redeemFailure case final failure?) throw InviteException(failure);
   }
 
   @override
@@ -105,6 +107,47 @@ Future<void> _pump(
   await tester.pumpAndSettle();
   _router(tester).go(SettloRoutes.join(_token));
   await tester.pumpAndSettle();
+}
+
+Future<ProviderContainer> _startDelayedOtpRedeem(
+  WidgetTester tester,
+  _Invites invites,
+) async {
+  tester.view
+    ..physicalSize = const Size(390, 844)
+    ..devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  final auth = _SigningInAuth();
+  await tester.pumpWidget(
+    fakeSessionApp(
+      null,
+      invites: invites,
+      overrides: [phoneAuthProvider.overrideWithValue(auth)],
+    ),
+  );
+  await tester.pumpAndSettle();
+  final container = ProviderScope.containerOf(
+    tester.element(find.byType(SettloApp)),
+  );
+  auth.session =
+      container.read(sessionProvider.notifier) as FakeSessionNotifier;
+  container.read(routerProvider).go(SettloRoutes.join(_token));
+  await tester.pumpAndSettle();
+
+  await tester.tap(find.text('Verify my number to see the ledger'));
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.byKey(const ValueKey('phone-number')),
+    '9000000001',
+  );
+  await tester.tap(find.text('Send code'));
+  await tester.pumpAndSettle();
+  await tester.enterText(find.byKey(const ValueKey('otp-code')), '123456');
+  await tester.pumpAndSettle();
+
+  expect(container.read(routerProvider).state.uri.path, SettloRoutes.home);
+  expect(invites.redeemCalls, 1);
+  return container;
 }
 
 void main() {
@@ -205,43 +248,75 @@ void main() {
     expect(invites.declined, [_warmToken]);
   });
 
-  testWidgets('wrong phone after OTP is visible on signed-in Home', (
+  testWidgets('an in-flight Join success stays safe after a token rebuild', (
     tester,
   ) async {
-    tester.view
-      ..physicalSize = const Size(390, 844)
-      ..devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    final auth = _SigningInAuth();
+    final controller = StreamController<Uri>();
+    final completer = Completer<void>();
+    addTearDown(controller.close);
+    final invites = _Invites(redeemCompleter: completer);
     await tester.pumpWidget(
       fakeSessionApp(
-        null,
-        invites: _Invites(redeemFailure: InviteFailure.wrongPhone),
-        overrides: [phoneAuthProvider.overrideWithValue(auth)],
+        fakeSession,
+        invites: invites,
+        overrides: [
+          deepLinkSourceProvider.overrideWithValue(
+            _Links(
+              Future.value(Uri.parse('settlo://join/$_coldToken')),
+              controller,
+            ),
+          ),
+        ],
       ),
     );
     await tester.pumpAndSettle();
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(SettloApp)),
-    );
-    auth.session =
-        container.read(sessionProvider.notifier) as FakeSessionNotifier;
-    container.read(routerProvider).go(SettloRoutes.join(_token));
-    await tester.pumpAndSettle();
-
     await tester.tap(find.text('Verify my number to see the ledger'));
+    await tester.pump();
+
+    controller.add(Uri.parse('settlo://join/$_warmToken'));
     await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('phone-number')),
-      '9000000001',
-    );
-    await tester.tap(find.text('Send code'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const ValueKey('otp-code')), '123456');
+    expect(find.text('Bilal added you to Flat B'), findsOneWidget);
+
+    completer.complete();
     await tester.pumpAndSettle();
 
-    expect(container.read(routerProvider).state.uri.path, SettloRoutes.home);
+    expect(invites.redeemed, [_coldToken]);
+    expect(_router(tester).state.uri.path, SettloRoutes.join(_warmToken));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('wrong phone after OTP is visible on signed-in Home', (
+    tester,
+  ) async {
+    final completer = Completer<void>();
+    final invites = _Invites(
+      redeemCompleter: completer,
+      redeemFailure: InviteFailure.wrongPhone,
+    );
+    final container = await _startDelayedOtpRedeem(tester, invites);
+    expect(find.textContaining('different number'), findsNothing);
+
+    completer.complete();
+    await tester.pumpAndSettle();
+
+    expect(container.read(pendingInviteTokenProvider), isNull);
     expect(find.textContaining('different number'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('successful delayed OTP redeem clears the remembered invite', (
+    tester,
+  ) async {
+    final completer = Completer<void>();
+    final invites = _Invites(redeemCompleter: completer);
+    final container = await _startDelayedOtpRedeem(tester, invites);
+    expect(container.read(pendingInviteTokenProvider), isNotNull);
+
+    completer.complete();
+    await tester.pumpAndSettle();
+
+    expect(container.read(pendingInviteTokenProvider), isNull);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('router exception recovery returns signed out to Welcome', (

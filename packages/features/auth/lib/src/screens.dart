@@ -44,19 +44,17 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
     // Disabled state paints next frame, so guard taps queued in this frame.
     if (_busy) return;
     _busy = true;
+    final pendingInviteNotifier = ref.read(pendingInviteTokenProvider.notifier);
     if (ref.read(sessionProvider) == null) {
-      ref
-          .read(pendingInviteTokenProvider.notifier)
-          .remember(widget.token, idempotencyKey: _redeemKey);
+      pendingInviteNotifier.remember(widget.token, idempotencyKey: _redeemKey);
       if (mounted) context.go(SettloRoutes.phone);
       return;
     }
+    final invites = ref.read(invitesRepositoryProvider);
     if (mounted) setState(() => _error = null);
     try {
-      await ref
-          .read(invitesRepositoryProvider)
-          .redeem(widget.token, idempotencyKey: _redeemKey);
-      ref.read(pendingInviteTokenProvider.notifier).clear();
+      await invites.redeem(widget.token, idempotencyKey: _redeemKey);
+      pendingInviteNotifier.clear();
       if (mounted) context.go(SettloRoutes.home);
     } on InviteException catch (error) {
       if (mounted) {

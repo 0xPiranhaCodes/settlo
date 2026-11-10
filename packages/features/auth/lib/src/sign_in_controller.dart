@@ -185,36 +185,40 @@ class SignInController extends Notifier<SignInState> {
       state = state._next(error: SignInError.incompleteCode);
       return;
     }
+    // Verification changes the session and may dispose this auto-dispose
+    // controller before the invite request returns. Capture every dependency
+    // needed by the continuation while ref and state are still mounted.
+    final phoneAuth = ref.read(phoneAuthProvider);
+    final pendingInvite = ref.read(pendingInviteTokenProvider);
+    final invites = pendingInvite == null
+        ? null
+        : ref.read(invitesRepositoryProvider);
+    final pendingInviteNotifier = ref.read(pendingInviteTokenProvider.notifier);
+    final noticeNotifier = ref.read(inviteSignInNoticeProvider.notifier);
+    final country = state.country;
     state = state._next(busy: true);
     final error = await _call(
-      () => ref.read(phoneAuthProvider).verifyCode(phone: phone, code: code),
+      () => phoneAuth.verifyCode(phone: phone, code: code),
       rejected: SignInError.codeRejected,
     );
     var finalError = error;
-    final pendingInvite = ref.read(pendingInviteTokenProvider);
     if (error == null && pendingInvite != null) {
       try {
-        await ref
-            .read(invitesRepositoryProvider)
-            .redeem(
-              pendingInvite.token,
-              idempotencyKey: pendingInvite.idempotencyKey,
-            );
-        ref.read(pendingInviteTokenProvider.notifier).clear();
+        await invites!.redeem(
+          pendingInvite.token,
+          idempotencyKey: pendingInvite.idempotencyKey,
+        );
+        pendingInviteNotifier.clear();
       } on InviteException catch (inviteError) {
         finalError = signInErrorForInvite(inviteError.failure);
-        ref
-            .read(inviteSignInNoticeProvider.notifier)
-            .show(finalError, state.country);
+        noticeNotifier.show(finalError, country);
         if (inviteError.failure
             case InviteFailure.wrongPhone || InviteFailure.unavailable) {
-          ref.read(pendingInviteTokenProvider.notifier).clear();
+          pendingInviteNotifier.clear();
         }
       } on Exception {
         finalError = SignInError.network;
-        ref
-            .read(inviteSignInNoticeProvider.notifier)
-            .show(finalError, state.country);
+        noticeNotifier.show(finalError, country);
       }
     }
     if (ref.mounted) state = state._next(busy: false, error: finalError);
