@@ -3,7 +3,8 @@
 #   scripts/supabase-hosted-sms.sh deploy | set-secrets | enable | cutover | disable | clear-test-otp | check-test-otp
 # cutover runs deploy, set-secrets and enable in order and stops at the first failure.
 # Once SMS_LIVE is true the hosted test OTP list may hold only the App Review entry in HOSTED_TEST_OTP;
-# clear-test-otp reduces it to that entry (or empties it before then), and check-test-otp enforces it.
+# clear-test-otp reduces it to that entry and renews it for 60 days (or empties it before then), and
+# check-test-otp enforces it and fails when that entry expires within 14 days.
 # Needs SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF (set-secrets and cutover also MSG91_AUTH_KEY,
 # MSG91_TEMPLATE_ID, MSG91_SENDER_ID; deploy and cutover the Supabase CLI; clear-test-otp SMS_LIVE and,
 # with check-test-otp, HOSTED_TEST_OTP). Management API bodies can hold the Auth config and secrets,
@@ -111,7 +112,11 @@ clear_test_otp() {
   if [[ "${SMS_LIVE:-}" == true ]]; then
     jq -en 'env.HOSTED_TEST_OTP // "" | gsub("\\s"; "") | test("^[1-9][0-9]{7,14}=[0-9]{6}$")' >/dev/null 2>&1 ||
       die "HOSTED_TEST_OTP must hold exactly one number=code entry, the App Review number. The test numbers were not changed."
-    api PATCH /config/auth "$(jq -n '{sms_test_otp: (env.HOSTED_TEST_OTP | gsub("\\s"; ""))}')" ||
+    # Same 60-day window as set-test-otp, so the reduction also renews the App Review entry.
+    api PATCH /config/auth "$(jq -n '{
+      sms_test_otp: (env.HOSTED_TEST_OTP | gsub("\\s"; "")),
+      sms_test_otp_valid_until: (now + 60 * 86400 | strftime("%Y-%m-%dT%H:%M:%SZ"))
+    }')" ||
       die "The test numbers were not reduced to the App Review number."
     echo "Test numbers reduced to the App Review number."
   else
@@ -129,7 +134,12 @@ check_test_otp() {
     | $hosted == "" or (($reviewer | test("^[1-9][0-9]{7,14}=[0-9]{6}$")) and $hosted == $reviewer)' \
     "$body_file" >/dev/null 2>&1 ||
     die "The hosted project has a test OTP number other than the App Review number in HOSTED_TEST_OTP while SMS_LIVE is true. Run Supabase hosted with clear-test-otp."
-  echo "The hosted project has no test OTP number other than the App Review number."
+  # A lapsed App Review entry fails review sign-in. A missing or unparseable date fails too.
+  jq -e '(.sms_test_otp // "" | gsub("\\s"; "")) == ""
+    or (.sms_test_otp_valid_until | sub("\\.[0-9]+"; "") | sub("\\+00:00$"; "Z") | fromdateiso8601 >= now + 14 * 86400)' \
+    "$body_file" >/dev/null 2>&1 ||
+    die "The App Review test number expires within 14 days. Run Supabase hosted with set-test-otp or clear-test-otp to renew it for 60 days."
+  echo "The hosted project has no test OTP number other than the App Review number, and it is valid for at least 14 more days."
 }
 
 case "${1:-}" in

@@ -75,13 +75,26 @@ fn_secrets() { # fn_secrets <SEND_SMS_HOOK_SECRET digest>: all four names, as GE
 
 # check-test-otp: empty, or exactly the App Review entry in HOSTED_TEST_OTP. No number or code may be printed.
 reviewer=919000000001=123456
+iso() { jq -nr --argjson d "$1" 'now + $d * 86400 | strftime("%Y-%m-%dT%H:%M:%SZ")'; } # iso <days from now>
+until_ok="$(iso 30)"
 no_otp_in_output() {
   if grep -qE '9190000000|123456|654321' "$tmp/out"; then echo "FAIL $1 printed a test number or code"; fails=$((fails + 1)); fi
 }
 export HOSTED_TEST_OTP="$reviewer"
-fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer\"}"
+fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer\", \"sms_test_otp_valid_until\": \"$until_ok\"}"
 expect pass "check-test-otp passes with exactly the App Review entry" check-test-otp
 no_otp_in_output check-test-otp
+fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer\", \"sms_test_otp_valid_until\": \"$(iso 30 | sed 's/Z$/.123456+00:00/')\"}"
+expect pass "check-test-otp accepts fractional seconds and a +00:00 offset" check-test-otp
+for expiry in "$(iso 13)" "$(iso -1)" null '"not-a-date"'; do
+  [[ "$expiry" == null || "$expiry" == '"'* ]] || expiry="\"$expiry\""
+  fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer\", \"sms_test_otp_valid_until\": $expiry}"
+  expect fail "check-test-otp fails when the App Review entry expires within 14 days ($expiry)" check-test-otp
+  grep -q 'expires within 14 days.*set-test-otp or clear-test-otp' "$tmp/out" ||
+    { echo "FAIL check-test-otp expiry message"; fails=$((fails + 1)); }
+  no_otp_in_output check-test-otp
+  if grep -qF "${expiry//\"/}" "$tmp/out" && [[ "$expiry" != null ]]; then echo "FAIL check-test-otp printed the expiry"; fails=$((fails + 1)); fi
+done
 fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer,919000000002=654321\"}"
 expect fail "check-test-otp fails with an extra entry" check-test-otp
 grep -q 'clear-test-otp' "$tmp/out" || { echo "FAIL check-test-otp message"; fails=$((fails + 1)); }
@@ -91,7 +104,7 @@ expect fail "check-test-otp fails with a different entry" check-test-otp
 no_otp_in_output check-test-otp
 fixture GET_config_auth '{"sms_test_otp": "919000000001=654321"}'
 expect fail "check-test-otp fails with a different code" check-test-otp
-fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer\"}"
+fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer\", \"sms_test_otp_valid_until\": \"$until_ok\"}"
 HOSTED_TEST_OTP="$reviewer,919000000002=654321" expect fail "check-test-otp fails when HOSTED_TEST_OTP has two entries" check-test-otp
 HOSTED_TEST_OTP='' expect fail "check-test-otp fails with a hosted entry and no HOSTED_TEST_OTP" check-test-otp
 no_otp_in_output check-test-otp
@@ -117,6 +130,9 @@ fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer,919000000002=654321\"}"
 SMS_LIVE=true expect pass "clear-test-otp reduces the list to the App Review entry when SMS is live" clear-test-otp
 no_otp_in_output clear-test-otp
 jq -e --arg r "$reviewer" '.sms_test_otp == $r' "$tmp/requests" >/dev/null || { echo "FAIL clear-test-otp live request body"; fails=$((fails + 1)); }
+# Renewed like set-test-otp: 60 days from now (a minute of slack either way).
+jq -e '.sms_test_otp_valid_until | fromdateiso8601 - now | . > 60 * 86400 - 60 and . < 60 * 86400 + 60' "$tmp/requests" >/dev/null ||
+  { echo "FAIL clear-test-otp did not renew sms_test_otp_valid_until for 60 days"; fails=$((fails + 1)); }
 expect pass "check-test-otp passes after the reduction" check-test-otp
 reset
 SMS_LIVE=true HOSTED_TEST_OTP="$reviewer,919000000002=654321" expect fail "clear-test-otp refuses more than one HOSTED_TEST_OTP entry" clear-test-otp

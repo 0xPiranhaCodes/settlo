@@ -128,7 +128,8 @@ Also listed in `docs/release.md`.
    `-f action=clear-test-otp` and wait for it to succeed. With `SMS_LIVE` true, `clear-test-otp`
    reduces the hosted list to that entry instead of emptying it, and it and every **Release** run fail
    unless the list is empty or exactly that entry. The script compares the two in-process and prints
-   neither.
+   neither. `clear-test-otp` also renews the entry for 60 days, like `set-test-otp`; the check fails once it
+   expires within 14 days, so re-run either one before then.
 
 To rotate the secret or change an MSG91 value, run `disable-sms-hook`, `set-sms-secrets`, then
 `enable-sms-hook`, one at a time, waiting for each with `gh run watch`; phone sign-in fails while
