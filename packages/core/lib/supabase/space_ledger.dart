@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/money/paise.dart';
 import 'package:settlo_core/supabase/expenses.dart';
+import 'package:settlo_core/supabase/home.dart';
 import 'package:settlo_core/supabase/providers.dart';
 import 'package:settlo_core/supabase/spaces.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -190,6 +191,142 @@ final class SettlementChanged implements Exception {
   const new();
 }
 
+/// A space's ledger for [userId] on [today] from [t]: its `expenses` with
+/// payers and splits, newest first, and this month's
+/// `space_monthly_fairness` and `space_monthly_categories`, largest first.
+SpaceLedger ledgerFromRows(
+  Tables t, {
+  required String userId,
+  required DateTime today,
+}) {
+  List<_Row> rows(String name) => t[name] ?? const [];
+  final expenses = rows('expenses');
+  final fairness = rows('space_monthly_fairness');
+  final categories = rows('space_monthly_categories');
+  Paise money(_Row row) => Paise(row['amount_minor'] as int);
+  return SpaceLedger(
+    today: today,
+    expenses: [
+      for (final e in expenses)
+        if (e['deleted_at'] == null)
+          SpaceExpense(
+            id: e['id'] as String,
+            description: e['description'] as String,
+            category: e['category'] as String?,
+            amount: money(e),
+            spentOn: DateTime.parse(e['spent_on'] as String),
+            isSettlement: e['is_settlement'] as bool? ?? false,
+            settlementStatus: switch (e['settlement_status']) {
+              final String s => SettlementStatus.values.byName(s),
+              _ => null,
+            },
+            disputeReason: e['dispute_reason'] as String?,
+            createdByYou: e['created_by'] == userId,
+            splitType:
+                ((e['expense_splits'] as List).firstOrNull
+                        as _Row?)?['split_type']
+                    as String? ??
+                'equal',
+            payers: [
+              for (final p in (e['expense_payers'] as List).cast<_Row>())
+                (memberId: p['member_id'] as String, amount: money(p)),
+            ],
+            // Splits have no stored order, but an edit's remainder and
+            // ties go by it, so send them back in member order, as
+            // they were first sent.
+            splits: [
+              for (final s
+                  in (e['expense_splits'] as List).cast<_Row>().toList()
+                    ..sort((a, b) => _joined(a).compareTo(_joined(b))))
+                (
+                  memberId: s['member_id'] as String,
+                  amount: money(s),
+                  percentBp: s['percent_bp'] as int?,
+                  shares: s['shares'] as int?,
+                ),
+            ],
+          ),
+    ],
+    fairness: {
+      for (final f in fairness)
+        f['member_id'] as String: (
+          paid: Paise(f['paid_minor'] as int),
+          fairShare: Paise(f['fair_share_minor'] as int),
+        ),
+    },
+    categories: [
+      for (final c in categories)
+        (
+          category: c['category'] as String?,
+          total: Paise(c['total_minor'] as int),
+          count: c['expense_count'] as int,
+        ),
+    ],
+  );
+}
+
+/// The `update_expense` params for [update] (docs/api.md).
+Map<String, Object?> updateExpenseParams(
+  ExpenseUpdate update, {
+  required String idempotencyKey,
+}) => {
+  'p': {
+    'expense_id': update.id,
+    'idempotency_key': idempotencyKey,
+    'description': update.description,
+    'category': update.category,
+    'amount_minor': update.amount.value,
+    'spent_on': _date(update.spentOn),
+    'is_settlement': update.isSettlement,
+    'split_type': update.splitType,
+    'payers': [
+      for (final p in update.payers)
+        {'member_id': p.memberId, 'amount_minor': p.amount.value},
+    ],
+    'splits': [
+      for (final s in update.splits)
+        {
+          'member_id': s.memberId,
+          // The server recomputes equal splits, so a new amount needs
+          // no amounts here.
+          if (update.splitType != 'equal') 'amount_minor': s.amount.value,
+          'percent_bp': ?s.percentBp,
+          'shares': ?s.shares,
+        },
+    ],
+  },
+};
+
+/// The `delete_expense` params (docs/api.md).
+Map<String, Object?> deleteExpenseParams(
+  String expenseId, {
+  required String idempotencyKey,
+}) => {'p_expense_id': expenseId, 'p_idempotency_key': idempotencyKey};
+
+/// The `confirm_settlement` params (docs/api.md).
+Map<String, Object?> confirmSettlementParams(
+  String expenseId, {
+  required Paise amount,
+  required String payerMemberId,
+  required String idempotencyKey,
+}) => {
+  'p_expense_id': expenseId,
+  'p_amount_minor': amount.value,
+  'p_payer_member_id': payerMemberId,
+  'p_idempotency_key': idempotencyKey,
+};
+
+/// The `dispute_settlement` params (docs/api.md).
+Map<String, Object?> disputeSettlementParams(
+  String expenseId,
+  String reason, {
+  required String idempotencyKey,
+}) => {
+  'p_expense_id': expenseId,
+  'p_reason': reason,
+  'p_idempotency_key': idempotencyKey,
+};
+
 /// [SpaceLedgerRepository] over PostgREST: `expenses` with their payers
 /// and splits, the monthly views, and the `update_expense`,
 /// `delete_expense`, `confirm_settlement` and `dispute_settlement` RPCs
@@ -237,65 +374,14 @@ final class SupabaseSpaceLedgerRepository implements SpaceLedgerRepository {
           .eq('month', _date(month))
           .order('total_minor', ascending: false),
     ]);
-    Paise money(_Row row) => Paise(row['amount_minor'] as int);
-    return SpaceLedger(
-      today: DateTime(today.year, today.month, today.day),
-      expenses: [
-        for (final e in expenses)
-          if (e['deleted_at'] == null)
-            SpaceExpense(
-              id: e['id'] as String,
-              description: e['description'] as String,
-              category: e['category'] as String?,
-              amount: money(e),
-              spentOn: DateTime.parse(e['spent_on'] as String),
-              isSettlement: e['is_settlement'] as bool? ?? false,
-              settlementStatus: switch (e['settlement_status']) {
-                final String s => SettlementStatus.values.byName(s),
-                _ => null,
-              },
-              disputeReason: e['dispute_reason'] as String?,
-              createdByYou: e['created_by'] == userId,
-              splitType:
-                  ((e['expense_splits'] as List).firstOrNull
-                          as _Row?)?['split_type']
-                      as String? ??
-                  'equal',
-              payers: [
-                for (final p in (e['expense_payers'] as List).cast<_Row>())
-                  (memberId: p['member_id'] as String, amount: money(p)),
-              ],
-              // Splits have no stored order, but an edit's remainder and
-              // ties go by it, so send them back in member order, as
-              // they were first sent.
-              splits: [
-                for (final s
-                    in (e['expense_splits'] as List).cast<_Row>().toList()
-                      ..sort((a, b) => _joined(a).compareTo(_joined(b))))
-                  (
-                    memberId: s['member_id'] as String,
-                    amount: money(s),
-                    percentBp: s['percent_bp'] as int?,
-                    shares: s['shares'] as int?,
-                  ),
-              ],
-            ),
-      ],
-      fairness: {
-        for (final f in fairness)
-          f['member_id'] as String: (
-            paid: Paise(f['paid_minor'] as int),
-            fairShare: Paise(f['fair_share_minor'] as int),
-          ),
+    return ledgerFromRows(
+      {
+        'expenses': expenses,
+        'space_monthly_fairness': fairness,
+        'space_monthly_categories': categories,
       },
-      categories: [
-        for (final c in categories)
-          (
-            category: c['category'] as String?,
-            total: Paise(c['total_minor'] as int),
-            count: c['expense_count'] as int,
-          ),
-      ],
+      userId: userId,
+      today: DateTime(today.year, today.month, today.day),
     );
   }
 
@@ -303,42 +389,19 @@ final class SupabaseSpaceLedgerRepository implements SpaceLedgerRepository {
   Future<void> updateExpense(
     ExpenseUpdate update, {
     required String idempotencyKey,
-  }) => _call('update_expense', {
-    'p': {
-      'expense_id': update.id,
-      'idempotency_key': idempotencyKey,
-      'description': update.description,
-      'category': update.category,
-      'amount_minor': update.amount.value,
-      'spent_on': _date(update.spentOn),
-      'is_settlement': update.isSettlement,
-      'split_type': update.splitType,
-      'payers': [
-        for (final p in update.payers)
-          {'member_id': p.memberId, 'amount_minor': p.amount.value},
-      ],
-      'splits': [
-        for (final s in update.splits)
-          {
-            'member_id': s.memberId,
-            // The server recomputes equal splits, so a new amount needs
-            // no amounts here.
-            if (update.splitType != 'equal') 'amount_minor': s.amount.value,
-            'percent_bp': ?s.percentBp,
-            'shares': ?s.shares,
-          },
-      ],
-    },
-  });
+  }) => _call(
+    'update_expense',
+    updateExpenseParams(update, idempotencyKey: idempotencyKey),
+  );
 
   @override
   Future<void> deleteExpense(
     String expenseId, {
     required String idempotencyKey,
-  }) => _call('delete_expense', {
-    'p_expense_id': expenseId,
-    'p_idempotency_key': idempotencyKey,
-  });
+  }) => _call(
+    'delete_expense',
+    deleteExpenseParams(expenseId, idempotencyKey: idempotencyKey),
+  );
 
   @override
   Future<void> confirmSettlement(
@@ -346,23 +409,25 @@ final class SupabaseSpaceLedgerRepository implements SpaceLedgerRepository {
     required Paise amount,
     required String payerMemberId,
     required String idempotencyKey,
-  }) => _call('confirm_settlement', {
-    'p_expense_id': expenseId,
-    'p_amount_minor': amount.value,
-    'p_payer_member_id': payerMemberId,
-    'p_idempotency_key': idempotencyKey,
-  });
+  }) => _call(
+    'confirm_settlement',
+    confirmSettlementParams(
+      expenseId,
+      amount: amount,
+      payerMemberId: payerMemberId,
+      idempotencyKey: idempotencyKey,
+    ),
+  );
 
   @override
   Future<void> disputeSettlement(
     String expenseId,
     String reason, {
     required String idempotencyKey,
-  }) => _call('dispute_settlement', {
-    'p_expense_id': expenseId,
-    'p_reason': reason,
-    'p_idempotency_key': idempotencyKey,
-  });
+  }) => _call(
+    'dispute_settlement',
+    disputeSettlementParams(expenseId, reason, idempotencyKey: idempotencyKey),
+  );
 
   Future<void> _call(String fn, Map<String, Object?> params) async {
     try {

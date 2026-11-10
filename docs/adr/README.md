@@ -15,5 +15,6 @@ One file per decision: Context, Decision, Consequences, Status. Superseding an A
 | [0009](0009-native-splash-and-icons.md) | Native splash and app icon: flutter_native_splash and flutter_launcher_icons | Proposed |
 | [0010](0010-theme-preference.md) | Persist the device-local theme preference with shared_preferences | Accepted |
 | [0011](0011-url-launcher.md) | Opening UPI apps and WhatsApp: url_launcher, and the Android chooser | Proposed |
+| [0012](0012-offline-store.md) | Offline store: drift without codegen, opened by drift_flutter | Proposed |
 
 Owner-level process calls that are not architecture live in `docs/decisions/`.

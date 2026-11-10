@@ -184,6 +184,104 @@ String newIdempotencyKey([Random? random]) {
 
 typedef _Row = Map<String, dynamic>;
 
+/// [userId]'s accepted spaces from [t]: `space_members` (with `spaces`),
+/// `space_member_balances`, `space_monthly_fairness` for [month],
+/// `profiles` and `pending_settlements`.
+List<SpaceSummary> spacesFromRows(
+  Tables t, {
+  required String userId,
+  required DateTime month,
+}) {
+  List<_Row> rows(String name) => t[name] ?? const [];
+  final members = rows('space_members');
+  final balances = rows('space_member_balances');
+  final fairness = rows('space_monthly_fairness');
+  final profiles = rows('profiles');
+  final pending = rows('pending_settlements');
+  final names = {for (final p in profiles) p['id']: p['name'] as String?};
+  final upiIds = {for (final p in profiles) p['id']: p['upi_id'] as String?};
+  final balanceOf = {for (final b in balances) b['member_id']: b};
+  final fairnessOf = {for (final f in fairness) f['member_id']: f};
+  Paise money(_Row? row, String key) => Paise((row?[key] as int?) ?? 0);
+
+  final spaces = <SpaceSummary>[];
+  for (final mine in members) {
+    final space = mine['spaces'] as _Row;
+    if (mine['user_id'] != userId ||
+        mine['accepted_at'] == null ||
+        mine['left_at'] != null ||
+        space['deleted_at'] != null) {
+      continue;
+    }
+    final rows = [
+      for (final m in members)
+        if (m['space_id'] == mine['space_id']) m,
+    ];
+    SpaceMember member(_Row m) => SpaceMember(
+      id: m['id'] as String,
+      name:
+          (m['name'] as String?) ?? names[m['user_id']] ?? m['phone'] as String,
+      phone: m['phone'] as String,
+      isYou: m['id'] == mine['id'],
+      isOwner: m['role'] == 'owner',
+      joined: m['accepted_at'] != null,
+      balance: money(balanceOf[m['id']], 'balance_minor'),
+      monthPaid: money(fairnessOf[m['id']], 'paid_minor'),
+      upiId: upiIds[m['user_id']],
+    );
+    final you = fairnessOf[mine['id']];
+    final byId = {for (final m in rows) m['id']: member(m)};
+    spaces.add(
+      SpaceSummary(
+        id: mine['space_id'] as String,
+        name: space['name'] as String,
+        kind: SpaceKind.values.byName(space['kind'] as String),
+        month: month,
+        monthTotal: money(you, 'month_total_minor'),
+        yourFairShare: money(you, 'fair_share_minor'),
+        // Members who left count too: their payments are still history.
+        hasExpenses: rows.any(
+          (m) => money(balanceOf[m['id']], 'paid_minor').value > 0,
+        ),
+        members: [
+          for (final m in rows)
+            if (m['left_at'] == null) byId[m['id']]!,
+        ],
+        departed: [
+          for (final m in rows)
+            if (m['left_at'] != null) byId[m['id']]!,
+        ],
+        pendingFromYou: [
+          for (final p in pending)
+            if (byId[p['payee_member_id']] case final to?
+                when p['payer_member_id'] == mine['id'])
+              (
+                from: byId[mine['id']]!,
+                to: to,
+                amount: Paise(p['amount_minor'] as int),
+              ),
+        ],
+      ),
+    );
+  }
+  return spaces;
+}
+
+/// The `create_space` params for a new space (docs/api.md).
+Map<String, Object?> createSpaceParams({
+  required String name,
+  required SpaceKind kind,
+  required List<NewSpaceMember> members,
+  required String idempotencyKey,
+}) => {
+  'p_name': name,
+  'p_kind': kind.name,
+  'p_members': [
+    for (final m in members) {'phone': m.phone, 'name': m.name},
+  ],
+  'p_idempotency_key': idempotencyKey,
+};
+
 /// [SpacesRepository] over PostgREST: the tables and views RLS lets the
 /// caller read, joined on device, and the `create_space` RPC
 /// (docs/api.md).
@@ -232,75 +330,17 @@ final class SupabaseSpacesRepository implements SpacesRepository {
           .select('payer_member_id, payee_member_id, amount_minor'),
     ]);
 
-    final names = {for (final p in profiles) p['id']: p['name'] as String?};
-    final upiIds = {for (final p in profiles) p['id']: p['upi_id'] as String?};
-    final balanceOf = {for (final b in balances) b['member_id']: b};
-    final fairnessOf = {for (final f in fairness) f['member_id']: f};
-    Paise money(_Row? row, String key) => Paise((row?[key] as int?) ?? 0);
-
-    final spaces = <SpaceSummary>[];
-    for (final mine in members) {
-      final space = mine['spaces'] as _Row;
-      if (mine['user_id'] != userId ||
-          mine['accepted_at'] == null ||
-          mine['left_at'] != null ||
-          space['deleted_at'] != null) {
-        continue;
-      }
-      final rows = [
-        for (final m in members)
-          if (m['space_id'] == mine['space_id']) m,
-      ];
-      SpaceMember member(_Row m) => SpaceMember(
-        id: m['id'] as String,
-        name:
-            (m['name'] as String?) ??
-            names[m['user_id']] ??
-            m['phone'] as String,
-        phone: m['phone'] as String,
-        isYou: m['id'] == mine['id'],
-        isOwner: m['role'] == 'owner',
-        joined: m['accepted_at'] != null,
-        balance: money(balanceOf[m['id']], 'balance_minor'),
-        monthPaid: money(fairnessOf[m['id']], 'paid_minor'),
-        upiId: upiIds[m['user_id']],
-      );
-      final you = fairnessOf[mine['id']];
-      final byId = {for (final m in rows) m['id']: member(m)};
-      spaces.add(
-        SpaceSummary(
-          id: mine['space_id'] as String,
-          name: space['name'] as String,
-          kind: SpaceKind.values.byName(space['kind'] as String),
-          month: month,
-          monthTotal: money(you, 'month_total_minor'),
-          yourFairShare: money(you, 'fair_share_minor'),
-          // Members who left count too: their payments are still history.
-          hasExpenses: rows.any(
-            (m) => money(balanceOf[m['id']], 'paid_minor').value > 0,
-          ),
-          members: [
-            for (final m in rows)
-              if (m['left_at'] == null) byId[m['id']]!,
-          ],
-          departed: [
-            for (final m in rows)
-              if (m['left_at'] != null) byId[m['id']]!,
-          ],
-          pendingFromYou: [
-            for (final p in pending)
-              if (byId[p['payee_member_id']] case final to?
-                  when p['payer_member_id'] == mine['id'])
-                (
-                  from: byId[mine['id']]!,
-                  to: to,
-                  amount: Paise(p['amount_minor'] as int),
-                ),
-          ],
-        ),
-      );
-    }
-    return spaces;
+    return spacesFromRows(
+      {
+        'space_members': members,
+        'space_member_balances': balances,
+        'space_monthly_fairness': fairness,
+        'profiles': profiles,
+        'pending_settlements': pending,
+      },
+      userId: userId,
+      month: month,
+    );
   }
 
   @override
@@ -313,14 +353,12 @@ final class SupabaseSpacesRepository implements SpacesRepository {
     try {
       return await _db.rpc<String>(
         'create_space',
-        params: {
-          'p_name': name,
-          'p_kind': kind.name,
-          'p_members': [
-            for (final m in members) {'phone': m.phone, 'name': m.name},
-          ],
-          'p_idempotency_key': idempotencyKey,
-        },
+        params: createSpaceParams(
+          name: name,
+          kind: kind,
+          members: members,
+          idempotencyKey: idempotencyKey,
+        ),
       );
     } on PostgrestException catch (e) {
       if (e.code == 'PT409') throw const IdempotencyConflict();

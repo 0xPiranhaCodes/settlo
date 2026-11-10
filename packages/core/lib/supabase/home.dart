@@ -220,6 +220,154 @@ abstract interface class HomeRepository {
 
 typedef _Row = Map<String, dynamic>;
 
+/// PostgREST rows by table or view name, as RLS lets the caller read them.
+/// The online repositories fetch them; the offline mirror stores them.
+typedef Tables = Map<String, List<Map<String, dynamic>>>;
+
+/// Home for [userId] from [t]: `space_members` (with `spaces`),
+/// `space_member_balances`, `space_monthly_fairness` for [month], `loans`,
+/// `loan_summaries`, pending `loan_repayments` and `profiles`.
+HomeData homeFromRows(
+  Tables t, {
+  required String userId,
+  required DateTime month,
+}) {
+  List<_Row> rows(String name) => t[name] ?? const [];
+  final members = rows('space_members');
+  final balances = rows('space_member_balances');
+  final fairness = rows('space_monthly_fairness');
+  final loans = rows('loans');
+  final summaries = rows('loan_summaries');
+  final repayments = rows('loan_repayments');
+  final profiles = rows('profiles');
+  final names = {for (final p in profiles) p['id']: p['name'] as String?};
+  final me = profiles.where((p) => p['id'] == userId).firstOrNull;
+  final balanceOf = {
+    for (final b in balances) b['member_id']: Paise(b['balance_minor'] as int),
+  };
+  String label(_Row m) =>
+      (m['name'] as String?) ?? names[m['user_id']] ?? m['phone'] as String;
+
+  final spaces = <HomeSpace>[];
+  final claims = <Claim>[];
+  for (final m in members) {
+    final space = m['spaces'] as _Row;
+    if (m['user_id'] != userId ||
+        m['left_at'] != null ||
+        space['deleted_at'] != null) {
+      continue;
+    }
+    final others = [
+      for (final o in members)
+        if (o['space_id'] == m['space_id'] &&
+            o['id'] != m['id'] &&
+            o['left_at'] == null)
+          o,
+    ];
+    final balance = balanceOf[m['id']] ?? Paise.zero;
+    if (m['accepted_at'] != null) {
+      spaces.add(
+        HomeSpace(
+          id: m['space_id'] as String,
+          name: space['name'] as String,
+          kind: SpaceKind.values.byName(space['kind'] as String),
+          balance: balance,
+          people: [for (final o in others) label(o)],
+        ),
+      );
+    } else {
+      final creator = space['created_by'];
+      final creatorRow = others.where((o) => o['user_id'] == creator);
+      claims.add(
+        Claim(
+          kind: ClaimKind.spaceMember,
+          id: m['id'] as String,
+          title: space['name'] as String,
+          recordedBy:
+              names[creator] ?? creatorRow.map(label).firstOrNull ?? 'Someone',
+          amount: balance,
+          people: others.length + 1,
+        ),
+      );
+    }
+  }
+
+  final accepted = {
+    for (final m in members)
+      if (m['user_id'] == userId && m['accepted_at'] != null) m['id'],
+  };
+  final monthSpend = fairness
+      .where((f) => accepted.contains(f['member_id']))
+      .fold(Paise.zero, (sum, f) => sum + Paise(f['fair_share_minor'] as int));
+
+  final summaryOf = {for (final s in summaries) s['loan_id']: s};
+  final homeLoans = <HomeLoan>[];
+  for (final l in loans) {
+    final youLent = l['lender_id'] == userId;
+    if (l['closed_at'] != null || (!youLent && l['borrower_id'] != userId)) {
+      continue;
+    }
+    final (side, other) = youLent
+        ? ('lender', 'borrower')
+        : ('borrower', 'lender');
+    final counterparty =
+        names[l['${other}_id']] ?? l['${other}_phone'] as String;
+    final s = summaryOf[l['id']] ?? const <String, dynamic>{};
+    final pending = repayments
+        .where(
+          (r) =>
+              r['loan_id'] == l['id'] &&
+              r['recorded_by'] != userId &&
+              r['status'] == 'pending',
+        )
+        .firstOrNull;
+    Paise? money(String key) => s[key] == null ? null : Paise(s[key] as int);
+    if (l['${side}_accepted_at'] != null) {
+      homeLoans.add(
+        HomeLoan(
+          id: l['id'] as String,
+          counterparty: counterparty,
+          youLent: youLent,
+          outstanding: money('outstanding_minor') ?? Paise.zero,
+          installment: money('installment_minor'),
+          installmentsPaid: s['installments_paid'] as int?,
+          installmentsTotal: s['installments_total'] as int?,
+          nextDueOn: switch (s['next_due_on']) {
+            final String d => DateTime.parse(d),
+            _ => null,
+          },
+          pendingRepaymentId: pending?['id'] as String?,
+          pendingRepaymentAmount: switch (pending?['amount_minor']) {
+            final int amount => Paise(amount),
+            _ => null,
+          },
+        ),
+      );
+    } else {
+      claims.add(
+        Claim(
+          kind: ClaimKind.loan,
+          id: l['id'] as String,
+          title: counterparty,
+          recordedBy: names[l['created_by']] ?? counterparty,
+          amount: money('principal_minor') ?? Paise.zero,
+          youLent: youLent,
+        ),
+      );
+    }
+  }
+
+  return HomeData(
+    phone: (me?['phone'] as String?) ?? '',
+    name: me?['name'] as String?,
+    month: month,
+    monthSpend: monthSpend,
+    spaces: spaces,
+    loans: homeLoans,
+    claims: claims,
+  );
+}
+
 /// [HomeRepository] over PostgREST: the tables and views RLS lets the
 /// caller read, joined on device, and the `accept_claim` / `reject_claim`
 /// RPCs (docs/api.md).
@@ -286,137 +434,18 @@ final class SupabaseHomeRepository implements HomeRepository {
       _db.from('profiles').select('id, name, phone'),
     ]);
 
-    final names = {for (final p in profiles) p['id']: p['name'] as String?};
-    final me = profiles.where((p) => p['id'] == userId).firstOrNull;
-    final balanceOf = {
-      for (final b in balances)
-        b['member_id']: Paise(b['balance_minor'] as int),
-    };
-    String label(_Row m) =>
-        (m['name'] as String?) ?? names[m['user_id']] ?? m['phone'] as String;
-
-    final spaces = <HomeSpace>[];
-    final claims = <Claim>[];
-    for (final m in members) {
-      final space = m['spaces'] as _Row;
-      if (m['user_id'] != userId ||
-          m['left_at'] != null ||
-          space['deleted_at'] != null) {
-        continue;
-      }
-      final others = [
-        for (final o in members)
-          if (o['space_id'] == m['space_id'] &&
-              o['id'] != m['id'] &&
-              o['left_at'] == null)
-            o,
-      ];
-      final balance = balanceOf[m['id']] ?? Paise.zero;
-      if (m['accepted_at'] != null) {
-        spaces.add(
-          HomeSpace(
-            id: m['space_id'] as String,
-            name: space['name'] as String,
-            kind: SpaceKind.values.byName(space['kind'] as String),
-            balance: balance,
-            people: [for (final o in others) label(o)],
-          ),
-        );
-      } else {
-        final creator = space['created_by'];
-        final creatorRow = others.where((o) => o['user_id'] == creator);
-        claims.add(
-          Claim(
-            kind: ClaimKind.spaceMember,
-            id: m['id'] as String,
-            title: space['name'] as String,
-            recordedBy:
-                names[creator] ??
-                creatorRow.map(label).firstOrNull ??
-                'Someone',
-            amount: balance,
-            people: others.length + 1,
-          ),
-        );
-      }
-    }
-
-    final accepted = {
-      for (final m in members)
-        if (m['user_id'] == userId && m['accepted_at'] != null) m['id'],
-    };
-    final monthSpend = fairness
-        .where((f) => accepted.contains(f['member_id']))
-        .fold(
-          Paise.zero,
-          (sum, f) => sum + Paise(f['fair_share_minor'] as int),
-        );
-
-    final summaryOf = {for (final s in summaries) s['loan_id']: s};
-    final homeLoans = <HomeLoan>[];
-    for (final l in loans) {
-      final youLent = l['lender_id'] == userId;
-      if (l['closed_at'] != null || (!youLent && l['borrower_id'] != userId)) {
-        continue;
-      }
-      final (side, other) = youLent
-          ? ('lender', 'borrower')
-          : ('borrower', 'lender');
-      final counterparty =
-          names[l['${other}_id']] ?? l['${other}_phone'] as String;
-      final s = summaryOf[l['id']] ?? const <String, dynamic>{};
-      final pending = repayments
-          .where(
-            (r) =>
-                r['loan_id'] == l['id'] &&
-                r['recorded_by'] != userId &&
-                r['status'] == 'pending',
-          )
-          .firstOrNull;
-      Paise? money(String key) => s[key] == null ? null : Paise(s[key] as int);
-      if (l['${side}_accepted_at'] != null) {
-        homeLoans.add(
-          HomeLoan(
-            id: l['id'] as String,
-            counterparty: counterparty,
-            youLent: youLent,
-            outstanding: money('outstanding_minor') ?? Paise.zero,
-            installment: money('installment_minor'),
-            installmentsPaid: s['installments_paid'] as int?,
-            installmentsTotal: s['installments_total'] as int?,
-            nextDueOn: switch (s['next_due_on']) {
-              final String d => DateTime.parse(d),
-              _ => null,
-            },
-            pendingRepaymentId: pending?['id'] as String?,
-            pendingRepaymentAmount: switch (pending?['amount_minor']) {
-              final int amount => Paise(amount),
-              _ => null,
-            },
-          ),
-        );
-      } else {
-        claims.add(
-          Claim(
-            kind: ClaimKind.loan,
-            id: l['id'] as String,
-            title: counterparty,
-            recordedBy: names[l['created_by']] ?? counterparty,
-            amount: money('principal_minor') ?? Paise.zero,
-            youLent: youLent,
-          ),
-        );
-      }
-    }
-
-    return HomeData(
-      phone: (me?['phone'] as String?) ?? '',
-      name: me?['name'] as String?,
+    return homeFromRows(
+      {
+        'space_members': members,
+        'space_member_balances': balances,
+        'space_monthly_fairness': fairness,
+        'loans': loans,
+        'loan_summaries': summaries,
+        'loan_repayments': repayments,
+        'profiles': profiles,
+      },
+      userId: userId,
       month: month,
-      monthSpend: monthSpend,
-      spaces: spaces,
-      loans: homeLoans,
-      claims: claims,
     );
   }
 
