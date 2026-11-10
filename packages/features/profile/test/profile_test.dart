@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:settlo_profile/src/glyphs.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
@@ -422,4 +426,190 @@ void main() {
     expect(find.text('Appearance'), findsNWidgets(2));
     expect(theme.saved, ThemeMode.dark);
   });
+
+  testWidgets('Export shares a space as CSV and PDF, once on a no-pump '
+      'double tap', (tester) async {
+    final shared = <List<SharedFile>>[];
+    final sharing = Completer<void>();
+    final sheet = Completer<void>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
+          themeModeRepositoryProvider.overrideWithValue(
+            _ThemeRepository(ThemeMode.dark),
+          ),
+          spacesRepositoryProvider.overrideWithValue(_SpacesRepository()),
+          spaceLedgerRepositoryProvider.overrideWithValue(_LedgerRepository()),
+          shareFilesProvider.overrideWithValue((files, _) async {
+            shared.add(files);
+            sharing.complete();
+            await sheet.future;
+          }),
+        ],
+        child: MaterialApp(
+          theme: SettloTheme.dark(),
+          home: const ProfileScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export'));
+    await tester.pumpAndSettle();
+    expect(find.text('CSV and PDF'), findsOneWidget);
+
+    await tester.tap(find.text('Flat 4B'));
+    await tester.tap(find.text('Flat 4B'));
+    // The PDF is built with real fonts and real async work.
+    await tester.runAsync(() => sharing.future);
+    await tester.pump();
+    expect(find.text('Preparing…'), findsOneWidget);
+    sheet.complete();
+    await tester.pumpAndSettle();
+
+    expect(shared, hasLength(1));
+    final [csv, pdf] = shared.single;
+    expect(
+      csv.name,
+      matches(RegExp(r'^settlo-flat-4b-expenses-[\d-]{10}\.csv$')),
+    );
+    expect(csv.mimeType, 'text/csv');
+    final text = utf8.decode(csv.bytes);
+    expect(text, contains('Rent,,no,,1000,10.00,Satheesh,1000,10.00,500,5.00'));
+    expect(text, contains('Member 2,0,0.00,500,5.00'));
+    expect(text, isNot(contains('98765')));
+    expect(
+      pdf.name,
+      matches(RegExp(r'^settlo-flat-4b-summary-[\d-]{10}\.pdf$')),
+    );
+    expect(String.fromCharCodes(pdf.bytes.take(5)), '%PDF-');
+    expect(find.text('CSV and PDF'), findsOneWidget);
+  });
+
+  testWidgets('Export says when there is nothing to export or it fails', (
+    tester,
+  ) async {
+    Future<void> open({bool none = false, bool fail = false}) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          key: UniqueKey(),
+          overrides: [
+            profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
+            themeModeRepositoryProvider.overrideWithValue(
+              _ThemeRepository(ThemeMode.dark),
+            ),
+            spacesRepositoryProvider.overrideWithValue(
+              _SpacesRepository(none: none),
+            ),
+            spaceLedgerRepositoryProvider.overrideWithValue(
+              _LedgerRepository(fail: fail),
+            ),
+            shareFilesProvider.overrideWithValue((_, _) async {}),
+          ],
+          child: MaterialApp(
+            theme: SettloTheme.dark(),
+            home: const ProfileScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, -700));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Export'));
+      await tester.pumpAndSettle();
+    }
+
+    await open(none: true);
+    expect(find.text('No spaces to export yet.'), findsOneWidget);
+
+    await open(fail: true);
+    await tester.tap(find.text('Flat 4B'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text("We couldn't make the export. Try again."),
+      findsOneWidget,
+    );
+    expect(find.text('CSV and PDF'), findsOneWidget);
+  });
+}
+
+final class _SpacesRepository implements SpacesRepository {
+  new({this.none = false});
+
+  /// Whether you have no spaces.
+  final bool none;
+
+  @override
+  Future<List<SpaceSummary>> load() async => none
+      ? const []
+      : const [
+          SpaceSummary(
+            id: 's1',
+            name: 'Flat 4B',
+            kind: SpaceKind.flat,
+            members: [
+              SpaceMember(
+                id: 'm1',
+                name: 'Satheesh',
+                phone: '+919876543210',
+                isYou: true,
+              ),
+              SpaceMember(
+                id: 'm2',
+                name: '+919876543211',
+                phone: '+919876543211',
+              ),
+            ],
+          ),
+        ];
+
+  @override
+  Future<String> create({
+    required String name,
+    required SpaceKind kind,
+    required List<NewSpaceMember> members,
+    required String idempotencyKey,
+  }) => throw UnimplementedError();
+}
+
+final class _LedgerRepository implements SpaceLedgerRepository {
+  new({this.fail = false});
+
+  /// Whether loading fails, as when offline with nothing mirrored.
+  final bool fail;
+
+  @override
+  Future<SpaceLedger> load(String spaceId) async => fail
+      ? throw StateError('private')
+      : SpaceLedger(
+          today: DateTime(2026, 11, 10),
+          expenses: [
+            SpaceExpense(
+              id: 'e1',
+              description: 'Rent',
+              amount: const Paise(1000),
+              spentOn: DateTime(2026, 11),
+              payers: const [(memberId: 'm1', amount: Paise(1000))],
+              splits: const [
+                (
+                  memberId: 'm1',
+                  amount: Paise(500),
+                  percentBp: null,
+                  shares: null,
+                ),
+                (
+                  memberId: 'm2',
+                  amount: Paise(500),
+                  percentBp: null,
+                  shares: null,
+                ),
+              ],
+            ),
+          ],
+        );
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }

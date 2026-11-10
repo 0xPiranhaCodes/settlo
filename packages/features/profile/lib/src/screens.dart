@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_profile/src/export_sheet.dart';
 import 'package:settlo_profile/src/glyphs.dart';
 import 'package:settlo_profile/src/profile_controller.dart';
 import 'package:settlo_profile/src/profile_repository.dart';
@@ -218,23 +219,31 @@ class _QuietPreferences extends StatelessWidget {
   const new();
 
   @override
-  Widget build(BuildContext context) => const _SettingsCard(
+  Widget build(BuildContext context) => _SettingsCard(
     rows: [
-      _SettingRowData(
+      const _SettingRowData(
         ProfileGlyph.bell,
         'Reminders',
         'Gentle nudges before due dates',
       ),
-      _SettingRowData(
+      const _SettingRowData(
         ProfileGlyph.person,
         'Contacts matching',
         'Find friends already on Settlo',
       ),
-      _SettingRowData(ProfileGlyph.shield, 'App lock', 'Face ID when opening'),
+      const _SettingRowData(
+        ProfileGlyph.shield,
+        'App lock',
+        'Face ID when opening',
+      ),
       _SettingRowData(
         ProfileGlyph.download,
         'Export',
         'Statements as PDF or CSV',
+        onTap: () => showSettloSheet<void>(
+          context: context,
+          builder: (_) => const ExportSheet(),
+        ),
       ),
     ],
   );

@@ -22,6 +22,21 @@ var _canOpen = true;
 /// The Loan artboard's start: ₹10 lakh at ₹25,000 from March ends Jul 2029.
 final _today = DateTime(2026, 3, 5);
 
+/// Files handed to the share sheet; reset by [_pump].
+final _shared = <List<SharedFile>>[];
+
+/// Completes when the share sheet opens; set by a test.
+Completer<void>? _sharing;
+
+/// While set, the share sheet stays open until it completes.
+Completer<void>? _sheetOpen;
+
+Future<void> _share(List<SharedFile> files, Rect origin) async {
+  _shared.add(files);
+  _sharing?.complete();
+  await _sheetOpen?.future;
+}
+
 Future<bool> _open(Uri uri) async {
   _opened.add(uri);
   return _canOpen;
@@ -40,6 +55,7 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
   addTearDown(tester.view.reset);
   final repo = loans ?? FakeLoansRepository(loansList());
   _opened.clear();
+  _shared.clear();
   _canOpen = true;
   final router = GoRouter(
     initialLocation: location,
@@ -54,6 +70,7 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
         sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
         indiaTodayProvider.overrideWithValue(_today),
         openUrlProvider.overrideWithValue(_open),
+        shareFilesProvider.overrideWithValue(_share),
       ],
       child: MaterialApp.router(
         theme: SettloTheme.dark(),
@@ -388,6 +405,33 @@ void main() {
       );
       await _tap(tester, find.byTooltip('Back'));
       expect(router.state.uri.toString(), SettloRoutes.loans);
+    });
+
+    testWidgets('download statement shares one PDF, even on a no-pump '
+        'double tap', (tester) async {
+      await _pump(tester, location: SettloRoutes.loan('l1'));
+      final download = find.byTooltip('Download statement');
+      expect(tester.getSize(download), const Size(44, 44));
+      _sharing = Completer<void>();
+      final sheet = _sheetOpen = Completer<void>();
+      addTearDown(() => _sheetOpen = null);
+
+      await tester.tap(download);
+      await tester.tap(download);
+      // The PDF is built with real fonts and real async work.
+      await tester.runAsync(() => _sharing!.future);
+      await tester.pump();
+      sheet.complete();
+      await tester.pumpAndSettle();
+
+      expect(_shared, hasLength(1));
+      final [file] = _shared.single;
+      expect(
+        file.name,
+        matches(RegExp(r'^settlo-loan-statement-\d{4}-\d\d-\d\d\.pdf$')),
+      );
+      expect(file.mimeType, 'application/pdf');
+      expect(String.fromCharCodes(file.bytes.take(5)), '%PDF-');
     });
   });
 

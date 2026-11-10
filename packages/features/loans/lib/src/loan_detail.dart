@@ -9,6 +9,7 @@ import 'package:settlo_loans/src/loan_ring.dart';
 import 'package:settlo_loans/src/loans_provider.dart';
 import 'package:settlo_loans/src/record_repayment_sheet.dart';
 import 'package:settlo_loans/src/repayment_decision.dart';
+import 'package:settlo_loans/src/statement_button.dart';
 
 /// A loan (Loan artboard, canvas note n20): a ring for progress, three
 /// tiles for how much each time, when next and whether it is on track,
@@ -67,7 +68,7 @@ class LoanDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: SettloSpacing.minTouchTarget),
+                StatementButton(loan, yourName: data.yourName),
               ],
             ),
             const SizedBox(height: 20),
