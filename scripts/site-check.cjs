@@ -1,6 +1,9 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
+const outputDir = process.env.SITE_CHECK_OUTPUT || "/tmp/settlo-site-check";
+const publicUrl = "https://settlo.hellojosh.studio/";
 (async () => {
+  fs.mkdirSync(outputDir, { recursive: true });
   const browser = await chromium.launch({
     executablePath:
       process.env.CHROME_PATH ||
@@ -29,10 +32,24 @@ const fs = require("fs");
     });
     const page = await context.newPage();
     const requests = [];
+    const failures = [];
     page.on("request", (r) => requests.push(r.url()));
+    page.on("requestfailed", (r) => failures.push(r.url()));
+    page.on("response", (r) => {
+      if (r.status() >= 400) failures.push(`${r.status()} ${r.url()}`);
+    });
     for (const path of ["", "privacy/", "support/"]) {
       await page.goto("http://127.0.0.1:8765/" + path);
       await page.evaluate(() => document.fonts.ready);
+      // Load lazy images too, so a missing below-the-fold asset fails the check.
+      await page.locator("img").evaluateAll(async (images) => {
+        await Promise.all(images.map(async (img) => {
+          img.loading = "eager";
+          await img.decode();
+        }));
+      });
+      if (await page.locator('link[rel="canonical"]').getAttribute("href") !== publicUrl + path)
+        throw Error("Canonical URL mismatch: " + path);
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth > innerWidth,
       );
@@ -42,6 +59,17 @@ const fs = require("fs");
           .locator('script[type="application/ld+json"]')
           .allTextContents();
         const schemas = blocks.map(JSON.parse);
+        const app = schemas.find((x) => x["@type"] === "SoftwareApplication");
+        if (app.url !== publicUrl || app.image !== publicUrl + "images/social.png")
+          throw Error("Application schema URL mismatch");
+        for (const [selector, expected] of [
+          ['meta[property="og:url"]', publicUrl],
+          ['meta[property="og:image"]', publicUrl + "images/social.png"],
+          ['meta[name="twitter:image"]', publicUrl + "images/social.png"],
+        ]) {
+          if (await page.locator(selector).getAttribute("content") !== expected)
+            throw Error("Social URL mismatch: " + selector);
+        }
         const faq = schemas.find((x) => x["@type"] === "FAQPage");
         const visible = await page
           .locator("details")
@@ -64,7 +92,7 @@ const fs = require("fs");
         if (JSON.stringify(schemas).includes("aggregateRating"))
           throw Error("Invented rating");
         await page.screenshot({
-          path: `docs/evidence/140/landing-${width}.png`,
+          path: `${outputDir}/landing-${width}.png`,
           fullPage: true,
         });
         await page.locator("summary").first().click();
@@ -74,18 +102,19 @@ const fs = require("fs");
           throw Error("FAQ");
       } else if (width === 360)
         await page.screenshot({
-          path: `docs/evidence/140/${path.slice(0, -1)}-${width}.png`,
+          path: `${outputDir}/${path.slice(0, -1)}-${width}.png`,
           fullPage: true,
         });
       results.push({ width, path, overflow, jsDisabled: true });
     }
     if (requests.some((u) => !u.startsWith("http://127.0.0.1:8765/")))
       throw Error("External request");
+    if (failures.length) throw Error("Failed resources: " + failures.join(", "));
     await context.close();
   }
   await browser.close();
   fs.writeFileSync(
-    "docs/evidence/140/browser.json",
+    `${outputDir}/browser.json`,
     JSON.stringify(results, null, 2) + "\n",
   );
 })();
