@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/money/paise.dart';
+import 'package:settlo_core/supabase/home.dart';
 import 'package:settlo_core/supabase/providers.dart';
 import 'package:settlo_core/supabase/spaces.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -341,6 +342,146 @@ typedef _Row = Map<String, dynamic>;
 
 DateTime? _day(Object? d) => d is String ? DateTime.parse(d) : null;
 
+/// Your loans for [userId] from [t]: `loans`, `loan_summaries`,
+/// `loan_repayments` (newest first) and `profiles`, as of India's [today].
+LoansData loansFromRows(
+  Tables t, {
+  required String userId,
+  required DateTime today,
+}) {
+  List<_Row> rows(String name) => t[name] ?? const [];
+  final loans = rows('loans');
+  final summaries = rows('loan_summaries');
+  final repayments = rows('loan_repayments');
+  final profiles = rows('profiles');
+  final names = {for (final p in profiles) p['id']: p['name'] as String?};
+  final summaryOf = {for (final s in summaries) s['loan_id']: s};
+  final result = <Loan>[];
+  for (final l in loans) {
+    final youLent = l['lender_id'] == userId;
+    final (side, other) = youLent
+        ? ('lender', 'borrower')
+        : ('borrower', 'lender');
+    final s = summaryOf[l['id']];
+    if (l['${side}_id'] != userId ||
+        l['${side}_accepted_at'] == null ||
+        s == null) {
+      continue;
+    }
+    Paise? money(String key) => s[key] == null ? null : Paise(s[key] as int);
+    result.add(
+      Loan(
+        id: l['id'] as String,
+        counterparty: names[l['${other}_id']] ?? l['${other}_phone'] as String,
+        youLent: youLent,
+        principal: money('principal_minor')!,
+        repaid: money('repaid_minor') ?? Paise.zero,
+        startOn: _day(s['start_on'])!,
+        installment: money('installment_minor'),
+        dueDay: s['due_day'] as int?,
+        installmentsPaid: s['installments_paid'] as int?,
+        installmentsTotal: s['installments_total'] as int?,
+        nextDueOn: _day(s['next_due_on']),
+        endsOn: _day(s['ends_on']),
+        onTrack: s['on_track'] as bool?,
+        closed: s['closed_at'] != null,
+        repayments: [
+          for (final r in repayments)
+            if (r['loan_id'] == l['id'])
+              LoanRepayment(
+                id: r['id'] as String,
+                amount: Paise(r['amount_minor'] as int),
+                paidOn: _day(r['paid_on'])!,
+                method: switch (r['method']) {
+                  final String m => RepaymentMethod.values.byName(m),
+                  _ => null,
+                },
+                reference: r['reference'] as String?,
+                status: RepaymentStatus.values.byName(r['status'] as String),
+                recordedByYou: r['recorded_by'] == userId,
+                disputeReason: r['dispute_reason'] as String?,
+              ),
+        ],
+      ),
+    );
+  }
+  // Open loans first; sort is stable, so each group keeps its order.
+  result.sort((a, b) => (a.closed ? 1 : 0) - (b.closed ? 1 : 0));
+  return LoansData(today: today, loans: result, yourName: names[userId]);
+}
+
+/// `create_loan` parameters for [loan] (docs/api.md).
+Map<String, Object?> createLoanParams(
+  NewLoan loan, {
+  required String idempotencyKey,
+}) => {
+  'p': {
+    'idempotency_key': idempotencyKey,
+    'direction': loan.youLent ? 'lent' : 'borrowed',
+    'counterparty_phone': loan.counterpartyPhone,
+    'principal_minor': loan.principal.value,
+    'installment_minor': ?loan.installment?.value,
+    'due_day': ?loan.dueDay,
+    'start_on': loan.startOn.toIso8601String().substring(0, 10),
+  },
+};
+
+/// `record_repayment` parameters for [repayment].
+Map<String, Object?> recordRepaymentParams(
+  NewRepayment repayment, {
+  required String idempotencyKey,
+}) => {
+  'p': {
+    'loan_id': repayment.loanId,
+    'idempotency_key': idempotencyKey,
+    'amount_minor': repayment.amount.value,
+    'method': ?repayment.method?.name,
+    if (repayment.paidOn case final d?)
+      'paid_on':
+          '${d.year.toString().padLeft(4, '0')}-'
+          '${d.month.toString().padLeft(2, '0')}-'
+          '${d.day.toString().padLeft(2, '0')}',
+    'reference': ?repayment.reference,
+  },
+};
+
+/// `confirm_repayment` parameters.
+Map<String, Object?> confirmRepaymentParams(
+  String repaymentId, {
+  required String idempotencyKey,
+}) => {'p_repayment_id': repaymentId, 'p_idempotency_key': idempotencyKey};
+
+/// `dispute_repayment` parameters.
+Map<String, Object?> disputeRepaymentParams(
+  String repaymentId, {
+  required String reason,
+  required String idempotencyKey,
+}) => {
+  'p_repayment_id': repaymentId,
+  'p_reason': reason,
+  'p_idempotency_key': idempotencyKey,
+};
+
+/// What a loan RPC's refusal [e] is thrown as: [IdempotencyConflict],
+/// [LoanRejected], or [e] itself when it is not a refusal.
+Exception loanRefusal(PostgrestException e) => switch ((e.code, e.hint)) {
+  ('PT409', _) => const IdempotencyConflict(),
+  (_, 'overpayment') => const LoanRejected(LoanRejection.overpayment),
+  (_, 'loan_closed') => const LoanRejected(LoanRejection.closed),
+  (_, 'not_pending') => const LoanRejected(LoanRejection.notPending),
+  (_, 'own_record') => const LoanRejected(LoanRejection.ownRecord),
+  (_, 'paid_on_before_start') => const LoanRejected(
+    LoanRejection.paidOnBeforeStart,
+  ),
+  (_, 'paid_on_future') => const LoanRejected(LoanRejection.paidOnFuture),
+  (_, 'reference_invalid') => const LoanRejected(
+    LoanRejection.referenceInvalid,
+  ),
+  ('42501', _) => const LoanRejected(LoanRejection.notAllowed),
+  ('22023', _) => const LoanRejected(LoanRejection.invalid),
+  _ => e,
+};
+
 /// [LoansRepository] over PostgREST: `loans`, `loan_summaries`,
 /// `loan_repayments` and `profiles` joined on device, and the
 /// `create_loan`, `record_repayment`, `confirm_repayment` and
@@ -392,64 +533,15 @@ final class SupabaseLoansRepository implements LoansRepository {
           .order('created_at', ascending: false),
       _db.from('profiles').select('id, name'),
     ]);
-    final names = {for (final p in profiles) p['id']: p['name'] as String?};
-    final summaryOf = {for (final s in summaries) s['loan_id']: s};
-    final result = <Loan>[];
-    for (final l in loans) {
-      final youLent = l['lender_id'] == userId;
-      final (side, other) = youLent
-          ? ('lender', 'borrower')
-          : ('borrower', 'lender');
-      final s = summaryOf[l['id']];
-      if (l['${side}_id'] != userId ||
-          l['${side}_accepted_at'] == null ||
-          s == null) {
-        continue;
-      }
-      Paise? money(String key) => s[key] == null ? null : Paise(s[key] as int);
-      result.add(
-        Loan(
-          id: l['id'] as String,
-          counterparty:
-              names[l['${other}_id']] ?? l['${other}_phone'] as String,
-          youLent: youLent,
-          principal: money('principal_minor')!,
-          repaid: money('repaid_minor') ?? Paise.zero,
-          startOn: _day(s['start_on'])!,
-          installment: money('installment_minor'),
-          dueDay: s['due_day'] as int?,
-          installmentsPaid: s['installments_paid'] as int?,
-          installmentsTotal: s['installments_total'] as int?,
-          nextDueOn: _day(s['next_due_on']),
-          endsOn: _day(s['ends_on']),
-          onTrack: s['on_track'] as bool?,
-          closed: s['closed_at'] != null,
-          repayments: [
-            for (final r in repayments)
-              if (r['loan_id'] == l['id'])
-                LoanRepayment(
-                  id: r['id'] as String,
-                  amount: Paise(r['amount_minor'] as int),
-                  paidOn: _day(r['paid_on'])!,
-                  method: switch (r['method']) {
-                    final String m => RepaymentMethod.values.byName(m),
-                    _ => null,
-                  },
-                  reference: r['reference'] as String?,
-                  status: RepaymentStatus.values.byName(r['status'] as String),
-                  recordedByYou: r['recorded_by'] == userId,
-                  disputeReason: r['dispute_reason'] as String?,
-                ),
-          ],
-        ),
-      );
-    }
-    // Open loans first; sort is stable, so each group keeps its order.
-    result.sort((a, b) => (a.closed ? 1 : 0) - (b.closed ? 1 : 0));
-    return LoansData(
+    return loansFromRows(
+      {
+        'loans': loans,
+        'loan_summaries': summaries,
+        'loan_repayments': repayments,
+        'profiles': profiles,
+      },
+      userId: userId,
       today: DateTime(ist.year, ist.month, ist.day),
-      loans: result,
-      yourName: names[userId],
     );
   }
 
@@ -457,84 +549,48 @@ final class SupabaseLoansRepository implements LoansRepository {
   Future<String> createLoan(
     NewLoan loan, {
     required String idempotencyKey,
-  }) async {
-    final id = await _call<String>('create_loan', {
-      'p': {
-        'idempotency_key': idempotencyKey,
-        'direction': loan.youLent ? 'lent' : 'borrowed',
-        'counterparty_phone': loan.counterpartyPhone,
-        'principal_minor': loan.principal.value,
-        'installment_minor': ?loan.installment?.value,
-        'due_day': ?loan.dueDay,
-        'start_on': loan.startOn.toIso8601String().substring(0, 10),
-      },
-    });
-    return id!;
-  }
+  }) async => (await _call<String>(
+    'create_loan',
+    createLoanParams(loan, idempotencyKey: idempotencyKey),
+  ))!;
 
   @override
   Future<String> recordRepayment(
     NewRepayment repayment, {
     required String idempotencyKey,
-  }) async {
-    final id = await _call<String>('record_repayment', {
-      'p': {
-        'loan_id': repayment.loanId,
-        'idempotency_key': idempotencyKey,
-        'amount_minor': repayment.amount.value,
-        'method': ?repayment.method?.name,
-        if (repayment.paidOn case final d?)
-          'paid_on':
-              '${d.year.toString().padLeft(4, '0')}-'
-              '${d.month.toString().padLeft(2, '0')}-'
-              '${d.day.toString().padLeft(2, '0')}',
-        'reference': ?repayment.reference,
-      },
-    });
-    return id!;
-  }
+  }) async => (await _call<String>(
+    'record_repayment',
+    recordRepaymentParams(repayment, idempotencyKey: idempotencyKey),
+  ))!;
 
   @override
   Future<void> confirmRepayment(
     String repaymentId, {
     required String idempotencyKey,
-  }) => _call<void>('confirm_repayment', {
-    'p_repayment_id': repaymentId,
-    'p_idempotency_key': idempotencyKey,
-  });
+  }) => _call<void>(
+    'confirm_repayment',
+    confirmRepaymentParams(repaymentId, idempotencyKey: idempotencyKey),
+  );
 
   @override
   Future<void> disputeRepayment(
     String repaymentId, {
     required String reason,
     required String idempotencyKey,
-  }) => _call<void>('dispute_repayment', {
-    'p_repayment_id': repaymentId,
-    'p_reason': reason,
-    'p_idempotency_key': idempotencyKey,
-  });
+  }) => _call<void>(
+    'dispute_repayment',
+    disputeRepaymentParams(
+      repaymentId,
+      reason: reason,
+      idempotencyKey: idempotencyKey,
+    ),
+  );
 
   Future<T?> _call<T>(String fn, Map<String, Object?> params) async {
     try {
       return await _db.rpc<T>(fn, params: params);
     } on PostgrestException catch (e) {
-      throw switch ((e.code, e.hint)) {
-        ('PT409', _) => const IdempotencyConflict(),
-        (_, 'overpayment') => const LoanRejected(LoanRejection.overpayment),
-        (_, 'loan_closed') => const LoanRejected(LoanRejection.closed),
-        (_, 'not_pending') => const LoanRejected(LoanRejection.notPending),
-        (_, 'own_record') => const LoanRejected(LoanRejection.ownRecord),
-        (_, 'paid_on_before_start') => const LoanRejected(
-          LoanRejection.paidOnBeforeStart,
-        ),
-        (_, 'paid_on_future') => const LoanRejected(LoanRejection.paidOnFuture),
-        (_, 'reference_invalid') => const LoanRejected(
-          LoanRejection.referenceInvalid,
-        ),
-        ('42501', _) => const LoanRejected(LoanRejection.notAllowed),
-        ('22023', _) => const LoanRejected(LoanRejection.invalid),
-        _ => e,
-      };
+      throw loanRefusal(e);
     }
   }
 }

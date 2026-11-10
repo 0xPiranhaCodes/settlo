@@ -22,7 +22,8 @@ const _profile = ProfileData(
 final class _ProfileRepository implements ProfileRepository {
   ProfileData data = _profile;
   ({String name, String? upiId})? saved;
-  bool signedOut = false;
+  int signOuts = 0;
+  bool get signedOut => signOuts > 0;
   Object? loadError;
   Object? updateError;
   Object? signOutError;
@@ -36,7 +37,7 @@ final class _ProfileRepository implements ProfileRepository {
   @override
   Future<void> signOut() async {
     if (signOutError case final error?) _throw(error);
-    signedOut = true;
+    signOuts++;
   }
 
   @override
@@ -391,6 +392,105 @@ void main() {
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
     expect(find.text("We couldn't sign you out. Try again."), findsOneWidget);
+  });
+
+  group('signing out with unsent changes', () {
+    late _ProfileRepository profile;
+    late int drains;
+
+    Future<void> open(WidgetTester tester, {required int count}) async {
+      profile = _ProfileRepository();
+      drains = 0;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            profileRepositoryProvider.overrideWithValue(profile),
+            themeModeRepositoryProvider.overrideWithValue(
+              _ThemeRepository(ThemeMode.system),
+            ),
+            unsentChangesProvider.overrideWithValue((
+              count: () async => count,
+              drain: () async {
+                drains++;
+                // A drain that fails must not surface anywhere.
+                throw StateError('offline');
+              },
+            )),
+          ],
+          child: MaterialApp(
+            theme: SettloTheme.dark(),
+            home: const ProfileScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, -700));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('nothing unsent signs out without asking', (tester) async {
+      await open(tester, count: 0);
+      await tester.tap(find.text('Sign out'));
+      await tester.pumpAndSettle();
+      expect(find.text('Keep'), findsNothing);
+      expect(profile.signedOut, isTrue);
+    });
+
+    testWidgets('Keep stays signed in and tries to send them', (tester) async {
+      await open(tester, count: 2);
+      // A double tap on the row opens one sheet.
+      await tester.tap(find.text('Sign out'));
+      await tester.tap(find.text('Sign out'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(find.text('You have 2 unsent changes'), findsOneWidget);
+      expect(profile.signedOut, isFalse);
+
+      // No pump between the taps: one pop, one drain.
+      await tester.tap(find.text('Keep'));
+      await tester.tap(find.text('Keep'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(drains, 1);
+      expect(profile.signedOut, isFalse);
+      expect(find.text('Keep'), findsNothing);
+      expect(
+        find.byType(ProfileScreen),
+        findsOneWidget,
+        reason: 'one pop: Profile stays under the sheet',
+      );
+
+      // The row works again afterwards.
+      await tester.tap(find.text('Sign out'));
+      await tester.pumpAndSettle();
+      expect(find.text('You have 2 unsent changes'), findsOneWidget);
+    });
+
+    testWidgets('Sign out anyway signs out once on a no-pump double tap', (
+      tester,
+    ) async {
+      await open(tester, count: 1);
+      await tester.tap(find.text('Sign out'));
+      await tester.pumpAndSettle();
+      expect(find.text('You have 1 unsent change'), findsOneWidget);
+
+      await tester.tap(find.text('Sign out anyway'));
+      await tester.tap(find.text('Sign out anyway'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(profile.signOuts, 1);
+      expect(drains, 0);
+      expect(find.byType(ProfileScreen), findsOneWidget);
+    });
+
+    testWidgets('dismissing the sheet stays signed in', (tester) async {
+      await open(tester, count: 1);
+      await tester.tap(find.text('Sign out'));
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(profile.signedOut, isFalse);
+      expect(drains, 0);
+    });
   });
 
   testWidgets('appearance save failures use safe copy and keep the sheet', (

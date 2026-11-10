@@ -714,3 +714,29 @@ expense id and the trimmed reason.
 POST /rest/v1/rpc/dispute_settlement
 {"p_expense_id": "0b9d…", "p_reason": "Not received yet", "p_idempotency_key": "e5f6…"}
 ```
+
+## Claims (#9, #116)
+
+A membership or loan side recorded against a number is a claim until its holder answers it. Both
+answers are final.
+
+### `accept_claim(p_kind text, p_id uuid, p_idempotency_key uuid)`
+### `reject_claim(p_kind text, p_id uuid, p_idempotency_key uuid)`
+`p_kind` is `space_member` (then `p_id` is the `space_members.id`) or `loan` (the `loans.id`).
+Accepting links the caller and stamps the acceptance; rejecting ('This isn't me') unlinks the number
+for good and writes a `rejected` activity row that names the number, not the caller.
+
+The key follows ADR 0004 and #59: it is claimed in `private.idempotency_keys` (unique per user,
+bound to the function and to `kind` + `id`) before anything else, so a replay returns without
+writing even though the claim is no longer pending. A refused call rolls its key back with it.
+
+- `22023`: `p_kind`, `p_id` or the key is null.
+- `42501`: the caller has no verified phone, or has no pending claim on that row (unknown kind or id,
+  someone else's claim, or one already answered under another key).
+- `PT409` (`idempotency_conflict`): the key was used with another function, kind or id.
+- Replay window (#70): keys are honoured for 30 days. After that a replay runs as a new call and is
+  refused with `42501`; the app drops a queued answer first sent more than 29 days ago.
+
+The two-argument `accept_claim(p_kind, p_id)` and `reject_claim(p_kind, p_id)` remain for
+`redeem_invite` and older clients. They are not idempotent: a retry after a lost response is refused
+with `42501`, so new callers must pass a key.

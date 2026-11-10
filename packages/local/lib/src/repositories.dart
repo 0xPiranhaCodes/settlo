@@ -1,14 +1,12 @@
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_local/src/sync.dart';
 
-/// [HomeRepository] over the mirror. Claims stay online: their RPCs take
-/// no idempotency key, so they cannot be queued safely (follow-up on #53).
+/// [HomeRepository] over the mirror; a claim decision is queued.
 final class DriftHomeRepository implements HomeRepository {
-  /// Reads through [_sync]; claims go through [_online].
-  const new(this._sync, this._online, {this.now = DateTime.now});
+  /// Reads and writes through [_sync].
+  const new(this._sync, {this.now = DateTime.now});
 
   final SyncEngine _sync;
-  final HomeRepository _online;
 
   /// The clock.
   final DateTime Function() now;
@@ -24,16 +22,20 @@ final class DriftHomeRepository implements HomeRepository {
   }
 
   @override
-  Future<void> acceptClaim(Claim claim) async {
-    await _online.acceptClaim(claim);
-    await _sync.sync();
-  }
+  Future<void> acceptClaim(Claim claim, {required String idempotencyKey}) =>
+      _sync.submit(
+        'accept_claim',
+        claimParams(claim, idempotencyKey: idempotencyKey),
+        idempotencyKey,
+      );
 
   @override
-  Future<void> rejectClaim(Claim claim) async {
-    await _online.rejectClaim(claim);
-    await _sync.sync();
-  }
+  Future<void> rejectClaim(Claim claim, {required String idempotencyKey}) =>
+      _sync.submit(
+        'reject_claim',
+        claimParams(claim, idempotencyKey: idempotencyKey),
+        idempotencyKey,
+      );
 }
 
 /// [SpacesRepository] over the mirror; a new space is queued.
@@ -173,4 +175,121 @@ final class DriftSpaceLedgerRepository implements SpaceLedgerRepository {
     disputeSettlementParams(expenseId, reason, idempotencyKey: idempotencyKey),
     idempotencyKey,
   );
+}
+
+/// [LoansRepository] over the mirror; every write is queued.
+final class DriftLoansRepository implements LoansRepository {
+  /// Reads and writes through [_sync].
+  const new(this._sync, {this.now = DateTime.now});
+
+  final SyncEngine _sync;
+
+  /// The clock. India's date decides what is due (UTC+5:30).
+  final DateTime Function() now;
+
+  @override
+  Future<LoansData> load() async {
+    final today = now();
+    final ist = today.toUtc().add(const Duration(hours: 5, minutes: 30));
+    return loansFromRows(
+      await _sync.snapshot(today),
+      userId: _sync.owner,
+      today: DateTime(ist.year, ist.month, ist.day),
+    );
+  }
+
+  @override
+  Future<String> createLoan(
+    NewLoan loan, {
+    required String idempotencyKey,
+  }) async {
+    await _sync.submit(
+      'create_loan',
+      createLoanParams(loan, idempotencyKey: idempotencyKey),
+      idempotencyKey,
+    );
+    // create_loan makes the key the loan's id.
+    return idempotencyKey;
+  }
+
+  @override
+  Future<String> recordRepayment(
+    NewRepayment repayment, {
+    required String idempotencyKey,
+  }) async {
+    await _sync.submit(
+      'record_repayment',
+      recordRepaymentParams(repayment, idempotencyKey: idempotencyKey),
+      idempotencyKey,
+    );
+    // record_repayment makes the key the repayment's id.
+    return idempotencyKey;
+  }
+
+  @override
+  Future<void> confirmRepayment(
+    String repaymentId, {
+    required String idempotencyKey,
+  }) => _sync.submit(
+    'confirm_repayment',
+    confirmRepaymentParams(repaymentId, idempotencyKey: idempotencyKey),
+    idempotencyKey,
+  );
+
+  @override
+  Future<void> disputeRepayment(
+    String repaymentId, {
+    required String reason,
+    required String idempotencyKey,
+  }) => _sync.submit(
+    'dispute_repayment',
+    disputeRepaymentParams(
+      repaymentId,
+      reason: reason,
+      idempotencyKey: idempotencyKey,
+    ),
+    idempotencyKey,
+  );
+}
+
+/// [ActivityRepository] over the mirror, which keeps the newest
+/// [mirroredActivity] entries; pages older than those come from [_online],
+/// so they need a connection.
+final class DriftActivityRepository implements ActivityRepository {
+  /// Reads through [_sync]; history past the mirror through [_online].
+  const new(this._sync, this._online, {this.now = DateTime.now});
+
+  final SyncEngine _sync;
+  final ActivityRepository _online;
+
+  /// The clock.
+  final DateTime Function() now;
+
+  @override
+  Future<List<ActivityEntry>> feed({
+    required int limit,
+    ActivityEntry? before,
+  }) async {
+    final rows = (await _sync.snapshot(now()))['activity_feed'] ?? const [];
+    final page = [
+      for (final e in activityFromRows(rows))
+        if (before == null ||
+            e.at.isBefore(before.at) ||
+            (e.at.isAtSameMomentAs(before.at) && e.id < before.id))
+          e,
+    ];
+    if (page.length >= limit || rows.length < mirroredActivity) {
+      return page.take(limit).toList();
+    }
+    try {
+      return await _online.feed(limit: limit, before: before);
+    } on Exception {
+      // Offline: what the mirror has left; the rest loads once back.
+      return page;
+    }
+  }
+
+  @override
+  Future<List<PendingAnswer>> needsYou() async =>
+      needsYouFromRows((await _sync.snapshot(now()))['needs_you'] ?? const []);
 }

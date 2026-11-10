@@ -285,12 +285,15 @@ void main() {
       recordedBy: 'Kabir',
       amount: Paise.zero,
     );
-    await repository().acceptClaim(space);
-    await repository().rejectClaim(loan);
+    String call(String rpc, String kind, String id, String key) =>
+        'POST rpc/$rpc  '
+        '{"p_kind":"$kind","p_id":"$id","p_idempotency_key":"$key"}';
+    await repository().acceptClaim(space, idempotencyKey: 'k1');
+    await repository().rejectClaim(loan, idempotencyKey: 'k2');
 
     expect(requests, [
-      'POST rpc/accept_claim  {"p_kind":"space_member","p_id":"m8"}',
-      'POST rpc/reject_claim  {"p_kind":"loan","p_id":"l2"}',
+      call('accept_claim', 'space_member', 'm8', 'k1'),
+      call('reject_claim', 'loan', 'l2', 'k2'),
     ]);
   });
 

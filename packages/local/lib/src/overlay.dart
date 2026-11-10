@@ -15,7 +15,10 @@ String dateKey(DateTime d) =>
 ///
 /// Ids the device made up are `local:<key>` for an expense and
 /// `local:<key>:me` / `local:<key>:<phone>` for a new space's members;
-/// a new space's id is its key, as `create_space` makes it.
+/// a new space's, loan's or repayment's id is its key, as their RPCs make
+/// it.
+///
+/// The activity feed is the server's history and is left as mirrored.
 Tables applyQueue(
   Tables t,
   List<Mutation> queue, {
@@ -30,6 +33,36 @@ Tables applyQueue(
   final balances = rows('space_member_balances');
   final fairness = rows('space_monthly_fairness');
   final categories = rows('space_monthly_categories');
+  late final loans = rows('loans');
+  late final summaries = rows('loan_summaries');
+  late final repayments = rows('loan_repayments');
+  // Loans are dated in India (docs/api.md).
+  DateTime india(DateTime t) =>
+      t.toUtc().add(const Duration(hours: 5, minutes: 30));
+
+  // Sets what `loan_summaries` derives from [s]'s confirmed repayments.
+  void schedule(_Row s) {
+    final principal = s['principal_minor'] as int;
+    final repaid = s['repaid_minor'] as int;
+    final closed = repaid == principal;
+    s['outstanding_minor'] = principal - repaid;
+    final installment = s['installment_minor'] as int?;
+    if (installment == null) return;
+    final n = s['installments_total'] as int;
+    final start = DateTime.parse(s['start_on'] as String);
+    final day = s['due_day'] as int;
+    final ist = india(today);
+    final monthsIn = (ist.year - start.year) * 12 + ist.month - start.month;
+    final due = (monthsIn - 1 + (day < ist.day ? 1 : 0)).clamp(0, n);
+    s['installments_paid'] = closed ? n : repaid ~/ installment;
+    s['next_due_on'] = closed || due >= n
+        ? null
+        : dateKey(DateTime(start.year, start.month + due + 1, day));
+    final expected = installment * due;
+    s['on_track'] = closed
+        ? null
+        : repaid >= (expected < principal ? expected : principal);
+  }
 
   _Row balance(Object? member) =>
       balances.where((b) => b['member_id'] == member).firstOrNull ??
@@ -252,11 +285,13 @@ Tables applyQueue(
         insert(updated);
         count(updated, 1);
       case 'delete_expense':
+        t['needs_you']?.removeWhere((n) => n['id'] == params['p_expense_id']);
         final old = expense(params['p_expense_id']);
         if (old == null) continue;
         count(old, -1);
         expenses.remove(old);
       case 'confirm_settlement' || 'dispute_settlement':
+        t['needs_you']?.removeWhere((n) => n['id'] == params['p_expense_id']);
         final old = expense(params['p_expense_id']);
         if (old == null || old['settlement_status'] != 'pending') continue;
         count(old, -1);
@@ -264,6 +299,121 @@ Tables applyQueue(
         old['settlement_status'] = confirmed ? 'confirmed' : 'disputed';
         old['dispute_reason'] = params['p_reason'];
         count(old, 1);
+      case 'create_loan':
+        final p = params['p'] as Map<String, dynamic>;
+        final (mine, theirs) = p['direction'] == 'lent'
+            ? ('lender', 'borrower')
+            : ('borrower', 'lender');
+        final me = rows('profiles').where((r) => r['id'] == userId);
+        final at = m.createdAt.toUtc().toIso8601String();
+        final principal = p['principal_minor'] as int;
+        final installment = p['installment_minor'] as int?;
+        final start = DateTime.parse(p['start_on'] as String);
+        final n = installment == null
+            ? null
+            : (principal + installment - 1) ~/ installment;
+        loans.add({
+          'id': m.key,
+          '${mine}_id': userId,
+          '${theirs}_id': null,
+          '${mine}_phone': me.firstOrNull?['phone'] ?? '',
+          '${theirs}_phone': p['counterparty_phone'],
+          '${mine}_accepted_at': at,
+          '${theirs}_accepted_at': null,
+          'created_by': userId,
+          'closed_at': null,
+        });
+        final summary = <String, dynamic>{
+          'loan_id': m.key,
+          'principal_minor': principal,
+          'repaid_minor': 0,
+          'installment_minor': installment,
+          'due_day': p['due_day'],
+          'start_on': p['start_on'],
+          'closed_at': null,
+          'installments_total': n,
+          'installments_paid': null,
+          'next_due_on': null,
+          'ends_on': n == null
+              ? null
+              : dateKey(
+                  DateTime(start.year, start.month + n, p['due_day'] as int),
+                ),
+          'on_track': null,
+        };
+        schedule(summary);
+        summaries.add(summary);
+      case 'record_repayment':
+        final p = params['p'] as Map<String, dynamic>;
+        final r = {
+          'id': m.key,
+          'loan_id': p['loan_id'],
+          'amount_minor': p['amount_minor'],
+          'paid_on': p['paid_on'] ?? dateKey(india(m.createdAt)),
+          'method': p['method'],
+          'reference': p['reference'],
+          'recorded_by': userId,
+          'status': 'pending',
+          'dispute_reason': null,
+        };
+        // Newest paid first, as the server orders them.
+        final at = repayments.indexWhere(
+          (o) =>
+              (o['paid_on'] as String).compareTo(r['paid_on'] as String) <= 0,
+        );
+        repayments.insert(at < 0 ? repayments.length : at, r);
+      case 'confirm_repayment' || 'dispute_repayment':
+        final id = params['p_repayment_id'];
+        t['needs_you']?.removeWhere((n) => n['id'] == id);
+        final r = repayments.where((r) => r['id'] == id).firstOrNull;
+        if (r == null || r['status'] != 'pending') continue;
+        if (m.kind == 'dispute_repayment') {
+          r['status'] = 'disputed';
+          r['dispute_reason'] = (params['p_reason'] as String).trim();
+          continue;
+        }
+        r['status'] = 'confirmed';
+        final s = summaries
+            .where((s) => s['loan_id'] == r['loan_id'])
+            .firstOrNull;
+        if (s == null) continue;
+        s['repaid_minor'] =
+            (s['repaid_minor'] as int) + (r['amount_minor'] as int);
+        schedule(s);
+        // The last repayment closes the loan (`close_repaid_loan`).
+        if (s['outstanding_minor'] == 0) {
+          final at = m.createdAt.toUtc().toIso8601String();
+          s['closed_at'] = at;
+          loans
+                  .where((l) => l['id'] == r['loan_id'])
+                  .firstOrNull?['closed_at'] =
+              at;
+        }
+      case 'accept_claim' || 'reject_claim':
+        final accept = m.kind == 'accept_claim';
+        final at = m.createdAt.toUtc().toIso8601String();
+        if (params['p_kind'] == 'space_member') {
+          final row = members
+              .where((r) => r['id'] == params['p_id'])
+              .firstOrNull;
+          if (row == null || row['accepted_at'] != null) continue;
+          if (accept) {
+            row['accepted_at'] = at;
+          } else {
+            // 'This isn't me' unlinks the number and leaves the space.
+            row['user_id'] = null;
+            row['left_at'] = at;
+          }
+        } else {
+          final l = loans.where((l) => l['id'] == params['p_id']).firstOrNull;
+          if (l == null) continue;
+          final side = l['lender_id'] == userId ? 'lender' : 'borrower';
+          if (accept) {
+            l['${side}_accepted_at'] ??= at;
+          } else if (l['${side}_accepted_at'] == null) {
+            l['${side}_id'] = null;
+          }
+        }
     }
   }
   return t;

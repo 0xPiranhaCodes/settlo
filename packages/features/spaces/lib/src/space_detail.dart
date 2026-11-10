@@ -1133,6 +1133,8 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
       _error =
           'This change was already saved with what you first entered. '
           'Close this to see it.';
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       _error = "We couldn't save that. Check your connection and try again.";
     } finally {
@@ -1313,6 +1315,8 @@ class _ConfirmSettlementSheetState
       ref.read(ledgerRevisionProvider.notifier).bump();
       _error =
           'This settle-up was just changed. Close this and check it again.';
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       _error =
           "We couldn't save that. Check your connection and try again. "

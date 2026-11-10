@@ -15,13 +15,21 @@ class HomeController extends AsyncNotifier<HomeData> {
     return ref.watch(homeRepositoryProvider).load();
   }
 
-  /// Accepts [claim]. Throws if the server refuses; Home is unchanged.
-  Future<void> accept(Claim claim) =>
-      _settle(() => ref.read(homeRepositoryProvider).acceptClaim(claim));
+  /// Accepts [claim]. Throws if the server refuses; Home is unchanged. A
+  /// retry must pass the same [idempotencyKey].
+  Future<void> accept(Claim claim, {required String idempotencyKey}) => _settle(
+    () => ref
+        .read(homeRepositoryProvider)
+        .acceptClaim(claim, idempotencyKey: idempotencyKey),
+  );
 
-  /// 'This isn't me' for [claim]. Throws if the server refuses.
-  Future<void> reject(Claim claim) =>
-      _settle(() => ref.read(homeRepositoryProvider).rejectClaim(claim));
+  /// 'This isn't me' for [claim]. Throws if the server refuses. A retry
+  /// must pass the same [idempotencyKey].
+  Future<void> reject(Claim claim, {required String idempotencyKey}) => _settle(
+    () => ref
+        .read(homeRepositoryProvider)
+        .rejectClaim(claim, idempotencyKey: idempotencyKey),
+  );
 
   Future<void> _settle(Future<void> Function() call) async {
     await call();

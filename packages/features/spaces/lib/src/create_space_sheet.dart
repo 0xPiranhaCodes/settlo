@@ -87,6 +87,8 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
       _error =
           'This space was already saved with the details you first '
           'entered. Close this to see it.';
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       _error =
           "We couldn't create the space. Check your connection and try "

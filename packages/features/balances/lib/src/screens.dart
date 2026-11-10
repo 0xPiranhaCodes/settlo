@@ -847,11 +847,23 @@ class _ClaimsCard extends StatelessWidget {
   }
 }
 
-class _ClaimRow extends ConsumerWidget {
+class _ClaimRow extends ConsumerStatefulWidget {
   const new(this.claim, {required this.divider});
 
   final Claim claim;
   final bool divider;
+
+  @override
+  ConsumerState<_ClaimRow> createState() => _ClaimRowState();
+}
+
+class _ClaimRowState extends ConsumerState<_ClaimRow> {
+  // One key per button, reused when a failed answer is tried again.
+  final String _acceptKey = newIdempotencyKey();
+  final String _rejectKey = newIdempotencyKey();
+  bool _busy = false;
+
+  Claim get claim => widget.claim;
 
   /// `Rahul says you owe ₹750 · 3 people`: their word, in their name.
   /// [money] writes the amount: [formatInr] to show, [spokenInr] to read.
@@ -870,14 +882,15 @@ class _ClaimRow extends ConsumerWidget {
     };
   }
 
-  Future<void> _settle(
-    BuildContext context,
-    WidgetRef ref,
-    Future<void> Function(HomeController) call,
-  ) async {
+  Future<void> _settle(Future<void> Function(HomeController) call) async {
+    // Not state: a second tap in the same frame must see it.
+    if (_busy) return;
+    _busy = true;
     final messenger = ScaffoldMessenger.of(context);
     try {
       await call(ref.read(homeProvider.notifier));
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       messenger.showSnackBar(
         const SnackBar(
@@ -886,15 +899,17 @@ class _ClaimRow extends ConsumerWidget {
           ),
         ),
       );
+    } finally {
+      _busy = false;
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     return Container(
       padding: const EdgeInsets.only(top: 14, bottom: SettloSpacing.half),
-      decoration: divider
+      decoration: widget.divider
           ? BoxDecoration(
               border: Border(bottom: BorderSide(color: c.hairline)),
             )
@@ -928,15 +943,17 @@ class _ClaimRow extends ConsumerWidget {
                     _TextAction(
                       'Accept',
                       color: c.action,
-                      onTap: () =>
-                          _settle(context, ref, (h) => h.accept(claim)),
+                      onTap: () => _settle(
+                        (h) => h.accept(claim, idempotencyKey: _acceptKey),
+                      ),
                     ),
                     const SizedBox(width: SettloSpacing.x3),
                     _TextAction(
                       "This isn't me",
                       color: c.textSecondary,
-                      onTap: () =>
-                          _settle(context, ref, (h) => h.reject(claim)),
+                      onTap: () => _settle(
+                        (h) => h.reject(claim, idempotencyKey: _rejectKey),
+                      ),
                     ),
                   ],
                 ),

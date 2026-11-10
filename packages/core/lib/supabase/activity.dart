@@ -213,6 +213,56 @@ abstract interface class ActivityRepository {
   Future<List<PendingAnswer>> needsYou();
 }
 
+/// Feed entries from `activity_feed` rows, in their order.
+List<ActivityEntry> activityFromRows(List<Map<String, dynamic>> rows) {
+  Paise? money(Object? v) => v is int ? Paise(v) : null;
+  return [
+    for (final r in rows)
+      ActivityEntry(
+        id: r['id'] as int,
+        at: DateTime.parse(r['created_at'] as String),
+        kind: ActivityKind.values.byName(r['kind'] as String),
+        action: ActivityAction.values.byName(r['action'] as String),
+        byYou: r['by_me'] as bool,
+        spaceId: r['space_id'] as String?,
+        spaceName: r['space_name'] as String?,
+        loanId: r['loan_id'] as String?,
+        actor: r['actor_name'] as String?,
+        counterparty: r['counterparty'] as String?,
+        description: r['description'] as String?,
+        amount: money(r['amount_minor']),
+        beforeDescription: r['before_description'] as String?,
+        beforeAmount: money(r['before_amount_minor']),
+        status: switch (r['status']) {
+          final String s => ActivityStatus.values.byName(s),
+          _ => null,
+        },
+        toYou: switch (r['my_side']) {
+          'in' => true,
+          'out' => false,
+          _ => null,
+        },
+        linkOnly: r['link_only'] as bool? ?? false,
+      ),
+  ];
+}
+
+/// What waits for you from `needs_you` rows, in their order.
+List<PendingAnswer> needsYouFromRows(List<Map<String, dynamic>> rows) => [
+  for (final r in rows)
+    PendingAnswer(
+      id: r['id'] as String,
+      isRepayment: r['kind'] == 'repayment',
+      counterparty: r['counterparty'] as String,
+      amount: Paise(r['amount_minor'] as int),
+      paidOn: DateTime.parse(r['paid_on'] as String),
+      recordedAt: DateTime.parse(r['created_at'] as String),
+      spaceId: r['space_id'] as String?,
+      spaceName: r['space_name'] as String?,
+      loanId: r['loan_id'] as String?,
+    ),
+];
+
 /// [ActivityRepository] over the `activity_feed` RPC and `needs_you` view
 /// (docs/api.md).
 final class SupabaseActivityRepository implements ActivityRepository {
@@ -237,36 +287,7 @@ final class SupabaseActivityRepository implements ActivityRepository {
         },
       },
     );
-    Paise? money(Object? v) => v is int ? Paise(v) : null;
-    return [
-      for (final r in rows.cast<Map<String, dynamic>>())
-        ActivityEntry(
-          id: r['id'] as int,
-          at: DateTime.parse(r['created_at'] as String),
-          kind: ActivityKind.values.byName(r['kind'] as String),
-          action: ActivityAction.values.byName(r['action'] as String),
-          byYou: r['by_me'] as bool,
-          spaceId: r['space_id'] as String?,
-          spaceName: r['space_name'] as String?,
-          loanId: r['loan_id'] as String?,
-          actor: r['actor_name'] as String?,
-          counterparty: r['counterparty'] as String?,
-          description: r['description'] as String?,
-          amount: money(r['amount_minor']),
-          beforeDescription: r['before_description'] as String?,
-          beforeAmount: money(r['before_amount_minor']),
-          status: switch (r['status']) {
-            final String s => ActivityStatus.values.byName(s),
-            _ => null,
-          },
-          toYou: switch (r['my_side']) {
-            'in' => true,
-            'out' => false,
-            _ => null,
-          },
-          linkOnly: r['link_only'] as bool? ?? false,
-        ),
-    ];
+    return activityFromRows(rows.cast());
   }
 
   @override
@@ -278,20 +299,7 @@ final class SupabaseActivityRepository implements ActivityRepository {
           'amount_minor, paid_on, created_at',
         )
         .order('created_at', ascending: false);
-    return [
-      for (final r in rows)
-        PendingAnswer(
-          id: r['id'] as String,
-          isRepayment: r['kind'] == 'repayment',
-          counterparty: r['counterparty'] as String,
-          amount: Paise(r['amount_minor'] as int),
-          paidOn: DateTime.parse(r['paid_on'] as String),
-          recordedAt: DateTime.parse(r['created_at'] as String),
-          spaceId: r['space_id'] as String?,
-          spaceName: r['space_name'] as String?,
-          loanId: r['loan_id'] as String?,
-        ),
-    ];
+    return needsYouFromRows(rows);
   }
 }
 

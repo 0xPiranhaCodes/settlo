@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -18,13 +19,25 @@ const lost = #lost;
 typedef Rows = List<Map<String, Object?>>;
 
 /// A PostgREST stand-in on loopback: GETs read [tables] (with `eq.`
-/// filters), RPCs go to [rpc]. Every RPC is logged in [calls].
+/// filters, `offset` and `limit`, cut at [maxRows]; a read-only function
+/// is the table `rpc/<name>`), POSTed RPCs go to [rpc]. Every RPC is
+/// logged in [calls] and every GET in [reads].
 final class FakeServer {
   final tables = <String, Rows>{};
   final calls = <(String, Map<String, dynamic>)>[];
 
-  /// Answers an RPC: a value to send as JSON, a [Refuse], or [lost].
-  Object? Function(String fn, Map<String, dynamic> body) rpc = (_, _) => null;
+  /// `<table>?<filters, offset and limit>` of every GET, in order.
+  final reads = <String>[];
+
+  /// PostgREST's `max_rows`.
+  int maxRows = 1000;
+
+  /// Answers an RPC: a value to send as JSON, a [Refuse], or [lost], now
+  /// or when a future completes.
+  FutureOr<Object?> Function(String fn, Map<String, dynamic> body) rpc = (
+    _,
+    _,
+  ) => null;
 
   /// A status for every GET; 200 serves [tables].
   int readStatus = 200;
@@ -54,11 +67,11 @@ final class FakeServer {
     final body = await utf8.decoder.bind(request).join();
     final path = request.uri.path.replaceFirst('/rest/v1/', '');
     final response = request.response..headers.contentType = ContentType.json;
-    if (path.startsWith('rpc/')) {
+    if (request.method == 'POST') {
       final fn = path.substring(4);
       final params = jsonDecode(body) as Map<String, dynamic>;
       calls.add((fn, params));
-      switch (rpc(fn, params)) {
+      switch (await rpc(fn, params)) {
         case lost:
           (await response.detachSocket()).destroy();
           return;
@@ -78,16 +91,31 @@ final class FakeServer {
         ..write(jsonEncode({'message': 'down'}));
     } else {
       onRead();
+      final query = request.uri.queryParameters;
       final filters = {
-        for (final MapEntry(:key, :value)
-            in request.uri.queryParameters.entries)
+        for (final MapEntry(:key, :value) in query.entries)
           if (value.startsWith('eq.')) key: value.substring(3),
       };
+      reads.add(
+        [
+          path,
+          for (final f in filters.entries) '${f.key}=${f.value}',
+          if (query['offset'] case final o?) 'offset=$o',
+        ].join(' '),
+      );
+      final limit = int.parse(query['limit'] ?? '$maxRows');
       response.write(
-        jsonEncode([
-          for (final row in tables[path] ?? const <Map<String, Object?>>[])
-            if (filters.entries.every((f) => '${row[f.key]}' == f.value)) row,
-        ]),
+        jsonEncode(
+          [
+                for (final row
+                    in tables[path] ?? const <Map<String, Object?>>[])
+                  if (filters.entries.every((f) => '${row[f.key]}' == f.value))
+                    row,
+              ]
+              .skip(int.parse(query['offset'] ?? '0'))
+              .take(limit < maxRows ? limit : maxRows)
+              .toList(),
+        ),
       );
     }
     await response.close();

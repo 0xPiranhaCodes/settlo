@@ -551,6 +551,33 @@ void main() {
     expect((await db.mutations(_me)).single.applied, isFalse);
   });
 
+  test('an answer that arrives after the database was wiped is dropped, '
+      'even from an engine nobody disposed', () async {
+    final held = Completer<Object?>();
+    final sent = Completer<void>();
+    server
+      ..tables['space_members'] = [_member('m1', '+919000000001', user: _me)]
+      ..rpc = (_, _) {
+        sent.complete();
+        return held.future;
+      };
+    await db.enqueue(_me, 's1', 'create_space', const {}, clock);
+    final replay = engine.sync();
+    await sent.future;
+    await db.keepOnly(null);
+    await db.keepOnly('u-next');
+    held.complete('s1');
+    await replay;
+    expect(await db.localIds(_me), isEmpty);
+    expect(await db.mirror(_me), isEmpty);
+    // Nor does it take anything new.
+    await expectLater(
+      engine.submit('delete_expense', const {}, 'k2'),
+      throwsA(isA<SessionEnded>()),
+    );
+    expect(await db.mutations(_me), isEmpty);
+  });
+
   test('signing out mid-refresh writes no mirror', () async {
     server
       ..tables['profiles']!.first['name'] = 'Changed'
@@ -662,38 +689,4 @@ void main() {
       'p_idempotency_key': 'k1',
     });
   });
-
-  test('claims are answered online, then the mirror refreshes', () async {
-    final online = _ClaimsOnly();
-    final home = DriftHomeRepository(engine, online, now: () => clock);
-    expect((await home.load()).spaces.single.name, 'Flat 7C');
-    const claim = Claim(
-      kind: ClaimKind.spaceMember,
-      id: 'm3',
-      title: 'Flat 7C',
-      recordedBy: 'Asha',
-      amount: Paise.zero,
-    );
-    changes = 0;
-    server.tables['profiles']!.first['name'] = 'Asha K';
-    await home.acceptClaim(claim);
-    await home.rejectClaim(claim);
-    expect(online.answered, ['accept', 'reject']);
-    // Only the first refresh found anything new.
-    expect(changes, 1);
-    expect((await home.load()).name, 'Asha K');
-  });
-}
-
-final class _ClaimsOnly implements HomeRepository {
-  final answered = <String>[];
-
-  @override
-  Future<HomeData> load() => throw UnimplementedError();
-
-  @override
-  Future<void> acceptClaim(Claim claim) async => answered.add('accept');
-
-  @override
-  Future<void> rejectClaim(Claim claim) async => answered.add('reject');
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -285,15 +286,109 @@ class _AccountCard extends ConsumerWidget {
     );
   }
 
+  /// Signs out, after asking first when changes made offline have not
+  /// reached the server: signing out deletes them from this phone.
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final profile = ref.read(profileProvider.notifier);
+    // Not widget state: a second tap in the same frame must see it.
+    if (profile.signingOut) return;
+    profile.signingOut = true;
     try {
-      await ref.read(profileProvider.notifier).signOut();
+      final unsent = ref.read(unsentChangesProvider);
+      final count = await unsent?.count() ?? 0;
+      if (unsent != null && count > 0) {
+        if (!context.mounted) return;
+        final leave = await showSettloSheet<bool>(
+          context: context,
+          builder: (_) => _UnsentSheet(count, drain: unsent.drain),
+        );
+        if (leave != true) return;
+      }
+      await profile.signOut();
     } on Object {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("We couldn't sign you out. Try again.")),
       );
+    } finally {
+      profile.signingOut = false;
     }
+  }
+}
+
+/// Asks before a sign-out that would delete [count] unsent changes.
+/// Pops true to sign out anyway; Keep tries to send them and stays.
+class _UnsentSheet extends StatefulWidget {
+  const new(this.count, {required this.drain});
+
+  final int count;
+  final Future<void> Function() drain;
+
+  @override
+  State<_UnsentSheet> createState() => _UnsentSheetState();
+}
+
+class _UnsentSheetState extends State<_UnsentSheet> {
+  bool _busy = false;
+
+  void _close({required bool leave}) {
+    // Not state: a second tap in the same frame would pop Profile too.
+    if (_busy) return;
+    _busy = true;
+    // Sent in the background; nothing here waits for the network.
+    if (!leave) unawaited(widget.drain().catchError((_) {}));
+    Navigator.of(context).pop(leave);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SettloColors.of(context);
+    final changes = widget.count == 1
+        ? '1 unsent change'
+        : '${widget.count} unsent changes';
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'You have $changes',
+            style: SettloTypography.figtree(
+              20,
+              weight: FontWeight.w500,
+              color: colors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "They haven't reached the server yet. Signing out now deletes "
+            'them from this phone.',
+            style: SettloTypography.figtree(
+              14,
+              color: colors.textSecondary,
+            ).copyWith(height: 1.4),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: SPrimaryButton(
+              label: 'Keep',
+              onPressed: () => _close(leave: false),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: SSecondaryButton(
+              label: 'Sign out anyway',
+              onPressed: () => _close(leave: true),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

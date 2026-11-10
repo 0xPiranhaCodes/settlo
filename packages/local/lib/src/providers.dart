@@ -17,10 +17,12 @@ final localDbProvider = Provider<LocalDb>((ref) {
 
 /// The signed-in user's sync engine, or null when signed out. A new user
 /// (or signing out) deletes every row of anyone else, queue included,
-/// before anything syncs. Syncs on build, whenever the app resumes, and on
-/// every [ledgerRevisionProvider] bump, so writes still made online (loans,
-/// claims) reach the mirror; it bumps back only when the mirror changed,
-/// so the two settle.
+/// before anything syncs. The last engine is disposed first, which drops
+/// the request it has in flight, and the wipe starts a new session in the
+/// database, so a late answer writes nothing. Syncs on build, whenever the
+/// app resumes, and on every [ledgerRevisionProvider] bump, so writes still
+/// made online (invites, the profile) reach the mirror; it bumps back only
+/// when the mirror changed, so the two settle.
 final syncEngineProvider = Provider<SyncEngine?>((ref) {
   final db = ref.watch(localDbProvider);
   final userId = ref.watch(sessionProvider.select((s) => s?.user.id));
@@ -55,20 +57,13 @@ SyncEngine _engine(Ref ref) =>
     ref.watch(syncEngineProvider) ??
     (throw StateError('The offline mirror needs a signed-in user'));
 
-/// Swaps the interim online repositories for the mirror (#53). `app`
+/// Swaps the interim online repositories for the mirror (#53, #116). `app`
 /// passes these to its `ProviderScope`; tests keep the online defaults or
 /// fakes.
 final List<Override> offlineRepositories = [
-  homeRepositoryProvider.overrideWith((ref) {
-    final sync = _engine(ref);
-    return DriftHomeRepository(
-      sync,
-      SupabaseHomeRepository(
-        ref.watch(supabaseClientProvider),
-        userId: sync.owner,
-      ),
-    );
-  }),
+  homeRepositoryProvider.overrideWith(
+    (ref) => DriftHomeRepository(_engine(ref)),
+  ),
   spacesRepositoryProvider.overrideWith(
     (ref) => DriftSpacesRepository(_engine(ref)),
   ),
@@ -78,4 +73,17 @@ final List<Override> offlineRepositories = [
   spaceLedgerRepositoryProvider.overrideWith(
     (ref) => DriftSpaceLedgerRepository(_engine(ref)),
   ),
+  loansRepositoryProvider.overrideWith(
+    (ref) => DriftLoansRepository(_engine(ref)),
+  ),
+  activityRepositoryProvider.overrideWith(
+    (ref) => DriftActivityRepository(
+      _engine(ref),
+      SupabaseActivityRepository(ref.watch(supabaseClientProvider)),
+    ),
+  ),
+  unsentChangesProvider.overrideWith((ref) {
+    final sync = ref.watch(syncEngineProvider);
+    return sync == null ? null : (count: sync.unsent, drain: sync.sync);
+  }),
 ];

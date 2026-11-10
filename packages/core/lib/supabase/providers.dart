@@ -45,3 +45,14 @@ class LedgerRevision extends Notifier<int> {
   /// Tells every watcher the ledger changed.
   void bump() => state++;
 }
+
+/// Writes made on this phone that the server has not taken yet (ADR 0004):
+/// how many, and a way to try sending them now.
+typedef UnsentChanges = ({
+  Future<int> Function() count,
+  Future<void> Function() drain,
+});
+
+/// The signed-in user's [UnsentChanges]; null when nothing queues writes,
+/// as with the online repositories. `local` overrides it.
+final unsentChangesProvider = Provider<UnsentChanges?>((ref) => null);

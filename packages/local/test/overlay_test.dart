@@ -250,7 +250,7 @@ void main() {
       _m('update_expense', {
         'p': {'expense_id': 'nope'},
       }),
-      _m('accept_claim', {}),
+      _m('leave_space', {}),
     ]);
     expect(t, _tables());
   });
