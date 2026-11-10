@@ -14,7 +14,7 @@ final class _Invites implements InvitesRepository {
   );
 
   @override
-  Future<void> decline(String token) async {}
+  Future<void> decline(String token, {required String idempotencyKey}) async {}
   @override
   Future<void> redeem(String token, {required String idempotencyKey}) async {}
   @override
@@ -42,7 +42,11 @@ void main() {
             overrides: [
               invitesRepositoryProvider.overrideWithValue(_Invites()),
             ],
-            child: const JoinScreen(token: 'golden-token'),
+            child: const JoinScreen(
+              token:
+                  'dddddddddddddddddddddddddddddddd'
+                  'dddddddddddddddddddddddddddddddd',
+            ),
           ),
         );
 

@@ -113,5 +113,5 @@ class FakeInvitesRepository implements InvitesRepository {
   Future<void> redeem(String token, {required String idempotencyKey}) async {}
 
   @override
-  Future<void> decline(String token) async {}
+  Future<void> decline(String token, {required String idempotencyKey}) async {}
 }

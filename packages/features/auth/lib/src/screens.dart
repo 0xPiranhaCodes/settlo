@@ -30,11 +30,13 @@ class JoinScreen extends ConsumerStatefulWidget {
 }
 
 class _JoinScreenState extends ConsumerState<JoinScreen> {
-  late final Future<InvitePreview?> _preview = ref
-      .read(invitesRepositoryProvider)
-      .inspect(widget.token);
+  late final Future<InvitePreview?> _preview = isInviteToken(widget.token)
+      ? ref.read(invitesRepositoryProvider).inspect(widget.token)
+      : Future.value();
   bool _busy = false;
   String? _error;
+  late final String _redeemKey = newIdempotencyKey();
+  late final String _declineKey = newIdempotencyKey();
 
   Future<void> _join() async {
     // Disabled state paints next frame, so guard taps queued in this frame.
@@ -43,7 +45,7 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
     if (ref.read(sessionProvider) == null) {
       ref
           .read(pendingInviteTokenProvider.notifier)
-          .remember(widget.token, idempotencyKey: newIdempotencyKey());
+          .remember(widget.token, idempotencyKey: _redeemKey);
       if (mounted) context.go(SettloRoutes.phone);
       return;
     }
@@ -51,7 +53,7 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
     try {
       await ref
           .read(invitesRepositoryProvider)
-          .redeem(widget.token, idempotencyKey: newIdempotencyKey());
+          .redeem(widget.token, idempotencyKey: _redeemKey);
       ref.read(pendingInviteTokenProvider.notifier).clear();
       if (mounted) context.go(SettloRoutes.home);
     } on Exception {
@@ -69,7 +71,9 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
     _busy = true;
     if (mounted) setState(() => _error = null);
     try {
-      await ref.read(invitesRepositoryProvider).decline(widget.token);
+      await ref
+          .read(invitesRepositoryProvider)
+          .decline(widget.token, idempotencyKey: _declineKey);
       if (mounted) {
         context.go(
           ref.read(sessionProvider) == null

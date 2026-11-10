@@ -11,6 +11,13 @@ import 'package:settlo_core/settlo_core.dart';
 
 import 'support/fake_session.dart';
 
+const _token =
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+const _coldToken =
+    'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+const _warmToken =
+    'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
+
 final class _Invites implements InvitesRepository {
   new({this.redeemCompleter});
 
@@ -34,7 +41,8 @@ final class _Invites implements InvitesRepository {
   }
 
   @override
-  Future<void> decline(String token) async => declineCalls++;
+  Future<void> decline(String token, {required String idempotencyKey}) async =>
+      declineCalls++;
 
   @override
   Future<String> issueLoan(String loanId, {required String idempotencyKey}) =>
@@ -75,7 +83,7 @@ Future<void> _pump(
     fakeSessionApp(signedIn ? fakeSession : null, invites: invites),
   );
   await tester.pumpAndSettle();
-  _router(tester).go(SettloRoutes.join('token'));
+  _router(tester).go(SettloRoutes.join(_token));
   await tester.pumpAndSettle();
 }
 
@@ -121,7 +129,7 @@ void main() {
     final controller = StreamController<Uri>();
     addTearDown(controller.close);
     final links = _Links(
-      Future.value(Uri.parse('settlo://join/cold-token')),
+      Future.value(Uri.parse('settlo://join/$_coldToken')),
       controller,
     );
     await tester.pumpWidget(
@@ -133,14 +141,14 @@ void main() {
     );
     await tester.pumpAndSettle();
     final router = _router(tester);
-    expect(router.state.uri.path, SettloRoutes.join('cold-token'));
+    expect(router.state.uri.path, SettloRoutes.join(_coldToken));
     expect(find.byType(JoinScreen), findsOneWidget);
 
     router.go(SettloRoutes.welcome);
     await tester.pumpAndSettle();
-    controller.add(Uri.parse('settlo://join/warm-token'));
+    controller.add(Uri.parse('settlo://join/$_warmToken'));
     await tester.pumpAndSettle();
-    expect(router.state.uri.path, SettloRoutes.join('warm-token'));
+    expect(router.state.uri.path, SettloRoutes.join(_warmToken));
     expect(find.byType(JoinScreen), findsOneWidget);
   });
 
@@ -158,9 +166,15 @@ void main() {
 
   test('normalizes only the supported custom-scheme shape', () {
     expect(
-      invitePathForUri(Uri.parse('settlo://join/abc')),
-      SettloRoutes.join('abc'),
+      invitePathForUri(Uri.parse('settlo://join/$_token')),
+      SettloRoutes.join(_token),
     );
+    expect(invitePathForUri(Uri.parse('settlo://join/abc')), isNull);
+    expect(
+      invitePathForUri(Uri.parse('settlo://join/${_token.toUpperCase()}')),
+      isNull,
+    );
+    expect(invitePathForUri(Uri.parse('settlo://join/${_token}a')), isNull);
     expect(invitePathForUri(Uri.parse('settlo://other/abc')), isNull);
     expect(invitePathForUri(Uri.parse('https://example.com/join/abc')), isNull);
   });

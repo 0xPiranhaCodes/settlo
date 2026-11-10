@@ -24,7 +24,13 @@ enum SignInError {
   rateLimited,
 
   /// The server could not be reached.
-  network;
+  network,
+
+  /// The verified number is not the one this invite records.
+  inviteWrongPhone,
+
+  /// The invite expired, was withdrawn or was already used.
+  inviteUnavailable;
 
   /// What to tell the person, for numbers in [country]. Plain and warm,
   /// sentence case, no exclamation marks; never says whether the number
@@ -44,6 +50,11 @@ enum SignInError {
       "That's a lot of tries in a short time. Wait a minute, "
           'then try again.',
     network => "We couldn't reach Settlo. Check your connection and try again.",
+    inviteWrongPhone =>
+      'This invite was recorded against a different number. Ask the sender '
+          'to invite this number instead.',
+    inviteUnavailable =>
+      'This invite is no longer available. Ask the sender for a new link.',
   };
 }
 
@@ -157,6 +168,17 @@ class SignInController extends Notifier<SignInState> {
               idempotencyKey: pendingInvite.idempotencyKey,
             );
         ref.read(pendingInviteTokenProvider.notifier).clear();
+      } on InviteException catch (inviteError) {
+        finalError = switch (inviteError.failure) {
+          InviteFailure.wrongPhone => SignInError.inviteWrongPhone,
+          InviteFailure.rateLimited => SignInError.rateLimited,
+          InviteFailure.unavailable ||
+          InviteFailure.targetLimit => SignInError.inviteUnavailable,
+        };
+        if (inviteError.failure
+            case InviteFailure.wrongPhone || InviteFailure.unavailable) {
+          ref.read(pendingInviteTokenProvider.notifier).clear();
+        }
       } on Exception {
         finalError = SignInError.network;
       }

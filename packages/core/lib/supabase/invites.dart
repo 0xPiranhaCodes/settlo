@@ -8,6 +8,33 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 // universal/app-link entitlements.
 const inviteHttpsHost = String.fromEnvironment('SETTLO_INVITE_HOST');
 
+/// True only for canonical 256-bit lower-case hexadecimal capabilities.
+bool isInviteToken(String token) => RegExp(r'^[0-9a-f]{64}$').hasMatch(token);
+
+/// Stable invite failures that UI copy can explain without exposing internals.
+enum InviteFailure {
+  /// The capability records a different verified phone.
+  wrongPhone,
+
+  /// The capability is expired, consumed, declined or revoked.
+  unavailable,
+
+  /// This user has reached the hourly invite-operation limit.
+  rateLimited,
+
+  /// This target already has five live capabilities.
+  targetLimit,
+}
+
+/// A privacy-safe failure returned by an invite RPC.
+final class InviteException implements Exception {
+  /// Creates a mapped invite failure.
+  const new(this.failure);
+
+  /// The action the person can take.
+  final InviteFailure failure;
+}
+
 /// Builds the link put in WhatsApp. Until [inviteHttpsHost] is configured it
 /// is `settlo://join/<token>`.
 Uri inviteLink(String token) => inviteHttpsHost.isEmpty
@@ -52,8 +79,8 @@ abstract interface class InvitesRepository {
   /// Accepts the targeted claim and consumes the capability.
   Future<void> redeem(String token, {required String idempotencyKey});
 
-  /// Rejects the targeted claim and consumes the capability.
-  Future<void> decline(String token);
+  /// Invalidates only this capability and records a link-only decline.
+  Future<void> decline(String token, {required String idempotencyKey});
 }
 
 /// [InvitesRepository] implemented by the invite RPCs.
@@ -100,15 +127,36 @@ final class SupabaseInvitesRepository implements InvitesRepository {
       _issue('loan', loanId, idempotencyKey);
 
   @override
-  Future<void> redeem(String token, {required String idempotencyKey}) =>
-      _db.rpc<void>(
+  Future<void> redeem(String token, {required String idempotencyKey}) async {
+    try {
+      await _db.rpc<void>(
         'redeem_invite',
         params: {'p_token': token, 'p_idempotency_key': idempotencyKey},
       );
+    } on PostgrestException catch (error) {
+      throw _mapped(error);
+    }
+  }
 
   @override
-  Future<void> decline(String token) =>
-      _db.rpc<void>('decline_invite', params: {'p_token': token});
+  Future<void> decline(String token, {required String idempotencyKey}) async {
+    try {
+      await _db.rpc<void>(
+        'decline_invite',
+        params: {'p_token': token, 'p_idempotency_key': idempotencyKey},
+      );
+    } on PostgrestException catch (error) {
+      throw _mapped(error);
+    }
+  }
+
+  static InviteException _mapped(PostgrestException error) =>
+      InviteException(switch (error.hint) {
+        'wrong_phone' => InviteFailure.wrongPhone,
+        'invite_rate_limited' => InviteFailure.rateLimited,
+        'invite_target_limit' => InviteFailure.targetLimit,
+        _ => InviteFailure.unavailable,
+      });
 }
 
 /// Invite operations through the configured Supabase client.

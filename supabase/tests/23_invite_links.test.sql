@@ -37,7 +37,7 @@ grant execute on all functions in schema pg_temp to public;
 select ok(not has_table_privilege('authenticated', 'private.invite_links', 'select'), 'invite rows are private');
 select ok(not has_function_privilege('anon', 'public.issue_invite(public.invite_kind,uuid,uuid)', 'execute'), 'anon cannot issue');
 select ok(has_function_privilege('anon', 'public.inspect_invite(text)', 'execute'), 'anon may inspect the minimal copy');
-select ok(has_function_privilege('anon', 'public.decline_invite(text)', 'execute'), 'anon may decline by capability');
+select ok(has_function_privilege('anon', 'public.decline_invite(text,uuid)', 'execute'), 'anon may decline by capability');
 select is((select count(*)::int from pg_proc where proname like '%invite%' and pronamespace = 'public'::regnamespace
   and not coalesce(proconfig @> array['search_path=""'], false)), 0, 'all invite RPCs fix search_path empty');
 
@@ -56,8 +56,9 @@ create temporary table issued(token text);
 grant select, insert, delete on issued to public;
 insert into issued select pg_temp.issue_space('00000000-0000-4000-8000-000000010433');
 select is(length(token), 64, 'the server issues a 256-bit hex token') from issued;
-select is(pg_temp.issue_space('00000000-0000-4000-8000-000000010433'), (select token from issued),
- 'same-key same-payload issue replay returns the same token');
+select isnt(pg_temp.issue_space('00000000-0000-4000-8000-000000010433'), (select token from issued),
+ 'same-key same-payload issue replay rotates the bearer token');
+update issued set token = pg_temp.issue_space('00000000-0000-4000-8000-000000010433');
 select throws_ok($$select pg_temp.issue_loan('00000000-0000-4000-8000-000000010433')$$,
  'PT409', null, 'same issue key with another payload conflicts');
 reset role;
@@ -97,11 +98,12 @@ truncate issued; insert into issued select pg_temp.issue_loan('00000000-0000-400
 reset role; set local role anon;
 select is((select kind::text from public.inspect_invite((select token from issued))), 'loan',
  'a loan capability reveals only loan Join copy');
-select lives_ok(format('select public.decline_invite(%L)', (select token from issued)),
+select lives_ok(format('select public.decline_invite(%L, %L)', (select token from issued),
+ '00000000-0000-4000-8000-000000010445'),
  'an anonymous bearer may say this is not them');
 reset role;
-select ok((select borrower_rejected_at is not null from public.loans
- where id = '00000000-0000-0000-0000-000000010420'), 'decline rejects the targeted loan party');
+select ok((select borrower_rejected_at is null and borrower_id is null from public.loans
+ where id = '00000000-0000-0000-0000-000000010420'), 'link decline leaves the targeted loan claim pending');
 select is((select count(*)::int from public.inspect_invite((select token from issued))), 0,
  'a declined token no longer reveals copy');
 
@@ -113,7 +115,8 @@ truncate issued; insert into issued select pg_temp.issue_space('00000000-0000-40
 reset role; update private.invite_links set expires_at = now() - interval '1 second' where redeemed_at is null;
 set local role anon;
 select is((select count(*)::int from public.inspect_invite((select token from issued))), 0, 'expired tokens reveal nothing');
-select throws_ok(format('select public.decline_invite(%L)', (select token from issued)), '22023', null, 'expired tokens cannot decline');
+select throws_ok(format('select public.decline_invite(%L, %L)', (select token from issued),
+ '00000000-0000-4000-8000-000000010446'), '22023', null, 'expired tokens cannot decline');
 
 select * from finish();
 rollback;

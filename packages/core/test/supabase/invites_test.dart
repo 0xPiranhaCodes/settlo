@@ -44,7 +44,20 @@ void main() {
             case 'issue_invite':
               request.response.write(jsonEncode('issued-token'));
             default:
-              request.response.statusCode = HttpStatus.noContent;
+              if (body['p_token'] == 'wrong') {
+                request.response
+                  ..statusCode = HttpStatus.forbidden
+                  ..write(
+                    jsonEncode({
+                      'code': '42501',
+                      'message': 'wrong phone',
+                      'details': null,
+                      'hint': 'wrong_phone',
+                    }),
+                  );
+              } else {
+                request.response.statusCode = HttpStatus.noContent;
+              }
           }
           await request.response.close();
         });
@@ -77,7 +90,7 @@ void main() {
         'issued-token',
       );
       await invites.redeem('token', idempotencyKey: 'redeem-key');
-      await invites.decline('token');
+      await invites.decline('token', idempotencyKey: 'decline-key');
 
       expect(requests.map((request) => request.path), [
         'inspect_invite',
@@ -93,13 +106,31 @@ void main() {
       });
       expect(requests[2].body['p_kind'], 'loan');
       expect(requests[3].body['p_idempotency_key'], 'redeem-key');
-      expect(requests[4].body, {'p_token': 'token'});
+      expect(requests[4].body, {
+        'p_token': 'token',
+        'p_idempotency_key': 'decline-key',
+      });
     });
 
     test('maps unavailable copy to null', () async {
       expect(
         await SupabaseInvitesRepository(client).inspect('missing'),
         isNull,
+      );
+    });
+
+    test('maps stable server hints to privacy-safe failures', () async {
+      expect(
+        () =>
+            SupabaseInvitesRepository(client)
+                .redeem('wrong', idempotencyKey: 'key'),
+        throwsA(
+          isA<InviteException>().having(
+            (error) => error.failure,
+            'failure',
+            InviteFailure.wrongPhone,
+          ),
+        ),
       );
     });
   });

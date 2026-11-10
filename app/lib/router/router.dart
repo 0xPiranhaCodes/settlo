@@ -65,7 +65,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 String? invitePathForUri(Uri uri) {
   if (uri.scheme != 'settlo' || uri.host != 'join') return null;
   final segments = uri.pathSegments.where((part) => part.isNotEmpty).toList();
-  return segments.length == 1 ? SettloRoutes.join(segments.single) : null;
+  return segments.length == 1 && isInviteToken(segments.single)
+      ? SettloRoutes.join(segments.single)
+      : null;
 }
 
 /// Cold- and warm-start links delivered by the host platforms.

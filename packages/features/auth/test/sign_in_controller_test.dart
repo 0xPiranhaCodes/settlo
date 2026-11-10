@@ -7,16 +7,20 @@ import 'fake_phone_auth.dart';
 
 final class _Invites implements InvitesRepository {
   bool fail = false;
+  InviteFailure? inviteFailure;
   final calls = <(String, String)>[];
 
   @override
   Future<void> redeem(String token, {required String idempotencyKey}) async {
     calls.add((token, idempotencyKey));
+    final mapped = inviteFailure;
+    if (mapped != null) throw InviteException(mapped);
     if (fail) throw Exception('offline');
   }
 
   @override
-  Future<void> decline(String token) => throw UnimplementedError();
+  Future<void> decline(String token, {required String idempotencyKey}) =>
+      throw UnimplementedError();
 
   @override
   Future<InvitePreview?> inspect(String token) => throw UnimplementedError();
@@ -139,6 +143,38 @@ void main() {
       expect(state().error, SignInError.network);
       expect(container.read(pendingInviteTokenProvider)?.token, 'capability');
     });
+
+    test(
+      'wrong-phone invite gives plain copy and clears terminal state',
+      () async {
+        invites.inviteFailure = InviteFailure.wrongPhone;
+        container
+            .read(pendingInviteTokenProvider.notifier)
+            .remember('capability', idempotencyKey: 'stable-key');
+        await controller().verifyCode('123456');
+
+        expect(state().error, SignInError.inviteWrongPhone);
+        expect(
+          state().error?.message(Country.india),
+          contains('different number'),
+        );
+        expect(container.read(pendingInviteTokenProvider), isNull);
+      },
+    );
+
+    test(
+      'unavailable invite clears terminal state without a network error',
+      () async {
+        invites.inviteFailure = InviteFailure.unavailable;
+        container
+            .read(pendingInviteTokenProvider.notifier)
+            .remember('capability', idempotencyKey: 'stable-key');
+        await controller().verifyCode('123456');
+
+        expect(state().error, SignInError.inviteUnavailable);
+        expect(container.read(pendingInviteTokenProvider), isNull);
+      },
+    );
 
     test('resends to the number the code went to', () async {
       controller().updateNumber('9999999999');

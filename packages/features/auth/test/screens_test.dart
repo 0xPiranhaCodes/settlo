@@ -10,6 +10,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'fake_phone_auth.dart';
 
+const _inviteToken =
+    'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+
 /// The sign-in routes with a fake [auth], starting at [location].
 Future<GoRouter> _pump(
   WidgetTester tester,
@@ -94,11 +97,13 @@ final class _Invites implements InvitesRepository {
 
   final InvitePreview? preview;
   final Future<InvitePreview?>? previewFuture;
-  final bool redeemError;
-  final bool declineError;
+  bool redeemError;
+  bool declineError;
   final Completer<void>? redeemCompleter;
   int redeems = 0;
   int declines = 0;
+  final redeemKeys = <String>[];
+  final declineKeys = <String>[];
 
   @override
   Future<InvitePreview?> inspect(String token) =>
@@ -107,14 +112,16 @@ final class _Invites implements InvitesRepository {
   @override
   Future<void> redeem(String token, {required String idempotencyKey}) async {
     redeems++;
+    redeemKeys.add(idempotencyKey);
     if (redeemError) throw Exception('redeem');
     final completer = redeemCompleter;
     if (completer != null) await completer.future;
   }
 
   @override
-  Future<void> decline(String token) async {
+  Future<void> decline(String token, {required String idempotencyKey}) async {
     declines++;
+    declineKeys.add(idempotencyKey);
     if (declineError) throw Exception('decline');
   }
 
@@ -412,7 +419,7 @@ void main() {
       final router = await _pump(
         tester,
         auth,
-        location: SettloRoutes.join('capability'),
+        location: SettloRoutes.join(_inviteToken),
         invites: _Invites(),
       );
 
@@ -425,7 +432,7 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(PhoneScreen)),
       );
-      expect(container.read(pendingInviteTokenProvider)?.token, 'capability');
+      expect(container.read(pendingInviteTokenProvider)?.token, _inviteToken);
     });
 
     testWidgets('renders loan trust copy and redeems for a signed-in target', (
@@ -442,7 +449,7 @@ void main() {
       final router = await _pump(
         tester,
         auth,
-        location: SettloRoutes.join('capability'),
+        location: SettloRoutes.join(_inviteToken),
         invites: invites,
         session: _signedIn,
       );
@@ -462,7 +469,7 @@ void main() {
       await _pump(
         tester,
         auth,
-        location: SettloRoutes.join('capability'),
+        location: SettloRoutes.join(_inviteToken),
         invites: invites,
         session: _signedIn,
       );
@@ -482,7 +489,7 @@ void main() {
       await _pump(
         tester,
         auth,
-        location: SettloRoutes.join('capability'),
+        location: SettloRoutes.join(_inviteToken),
         invites: invites,
       );
 
@@ -490,13 +497,18 @@ void main() {
       await tester.pumpAndSettle();
       expect(invites.declines, 1);
       expect(find.textContaining("couldn't be declined"), findsOneWidget);
+
+      invites.declineError = false;
+      await tester.tap(find.text("This isn't me"));
+      await tester.pumpAndSettle();
+      expect(invites.declineKeys.toSet(), hasLength(1));
     });
 
     testWidgets('redeem failure and unavailable copy are safe', (tester) async {
       await _pump(
         tester,
         auth,
-        location: SettloRoutes.join('bad'),
+        location: SettloRoutes.join(_inviteToken),
         invites: _Invites(redeemError: true),
         session: _signedIn,
       );
@@ -504,10 +516,25 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining("couldn't be used"), findsOneWidget);
 
+      final invites = _Invites(redeemError: true);
       await _pump(
         tester,
         auth,
-        location: SettloRoutes.join('missing'),
+        location: SettloRoutes.join(_inviteToken),
+        invites: invites,
+        session: _signedIn,
+      );
+      await tester.tap(find.text('Verify my number to see the ledger'));
+      await tester.pumpAndSettle();
+      invites.redeemError = false;
+      await tester.tap(find.text('Verify my number to see the ledger'));
+      await tester.pumpAndSettle();
+      expect(invites.redeemKeys.toSet(), hasLength(1));
+
+      await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
         invites: _Invites(preview: null),
       );
       expect(find.text('This invite is no longer available.'), findsOneWidget);
@@ -521,7 +548,7 @@ void main() {
       final router = await _pump(
         tester,
         auth,
-        location: SettloRoutes.join('capability'),
+        location: SettloRoutes.join(_inviteToken),
         invites: invites,
         settle: false,
       );
