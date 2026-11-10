@@ -437,7 +437,10 @@ void main() {
       await _pump(tester, FakeHomeRepository(homeMain));
       await expectTargets(tester, find.byType(IconButton));
       await expectTargets(tester, tappable('SEE ALL', GestureDetector));
-      await expectTargets(tester, tappable('Arjun · interest free', InkWell));
+      await expectTargets(
+        tester,
+        tappable('Arjun · interest free', SPressable),
+      );
     });
 
     testWidgets('a single-line loan row still has a 44pt target', (
@@ -462,7 +465,10 @@ void main() {
           ),
         ),
       );
-      await expectTargets(tester, tappable('Arjun · interest free', InkWell));
+      await expectTargets(
+        tester,
+        tappable('Arjun · interest free', SPressable),
+      );
     });
 
     testWidgets('claim actions', (tester) async {
@@ -590,11 +596,8 @@ void main() {
     final scale = tester.widget<AnimatedScale>(
       find.descendant(of: action, matching: find.byType(AnimatedScale)),
     );
-    final opacity = tester.widget<AnimatedOpacity>(
-      find.descendant(of: action, matching: find.byType(AnimatedOpacity)),
-    );
     expect(scale.duration, Duration.zero);
-    expect(opacity.duration, Duration.zero);
+    expect(scale.scale, 1);
     await gesture.up();
     await tester.pumpAndSettle();
   });

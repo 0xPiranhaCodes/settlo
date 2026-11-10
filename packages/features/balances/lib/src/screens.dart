@@ -549,8 +549,7 @@ class _Section extends StatelessWidget {
           right: 0,
           child: Semantics(
             button: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: SPressable(
               onTap: () => context.go(route),
               child: Container(
                 constraints: const BoxConstraints(
@@ -596,7 +595,7 @@ class _Row extends StatelessWidget {
     final c = SettloColors.of(context);
     final trailing = this.trailing;
     return MergeSemantics(
-      child: InkWell(
+      child: SPressable(
         onTap: onTap,
         child: Container(
           constraints: const BoxConstraints(
@@ -892,7 +891,7 @@ class _JobTile extends StatelessWidget {
   }
 }
 
-class _HomePressable extends StatefulWidget {
+class _HomePressable extends StatelessWidget {
   const new({required this.label, required this.onTap, required this.child});
 
   final String label;
@@ -900,39 +899,8 @@ class _HomePressable extends StatefulWidget {
   final Widget child;
 
   @override
-  State<_HomePressable> createState() => _HomePressableState();
-}
-
-class _HomePressableState extends State<_HomePressable> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    label: widget.label,
-    onTap: widget.onTap,
-    excludeSemantics: true,
-    child: GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onTap,
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedScale(
-        scale: _pressed ? SettloHomeMetrics.pressedScale : 1,
-        duration: MediaQuery.disableAnimationsOf(context)
-            ? Duration.zero
-            : SettloHomeMetrics.pressDuration,
-        child: AnimatedOpacity(
-          opacity: _pressed ? 0.88 : 1,
-          duration: MediaQuery.disableAnimationsOf(context)
-              ? Duration.zero
-              : SettloHomeMetrics.pressDuration,
-          child: widget.child,
-        ),
-      ),
-    ),
-  );
+  Widget build(BuildContext context) =>
+      SPressable(label: label, onTap: onTap, child: child);
 }
 
 /// A text-only action with a target of at least 44x44pt.
