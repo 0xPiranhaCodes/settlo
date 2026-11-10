@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(22);
+select plan(30);
 
 -- Linking is deferred to commit; fire it at each statement so this transaction can observe it.
 set constraints auth.link_verified_phone immediate;
@@ -152,6 +152,35 @@ select results_eq(
   $$values (array['00000000-0000-0000-0000-0000000d0102'::uuid], 0, 0, null::text)$$,
   'it reads only the Trip: none of the old loans, expenses or profile');
 reset role;
+
+-- What profiles_id_fkey enforced still holds, whoever asks: a live profile has an auth user, an
+-- auth user with a profile keeps its id, and only delete_account makes a tombstone.
+set local role service_role;
+select throws_ok(
+  $$insert into public.profiles (id, phone, name) values ('00000000-0000-0000-0000-0000000d0009', '+919660000009', 'Orphan')$$,
+  '23503', null, 'service_role cannot insert a live profile without an auth user');
+select throws_ok(
+  $$insert into public.profiles (id, deleted_at) values ('00000000-0000-0000-0000-0000000d0009', now())$$,
+  '42501', null, 'service_role cannot insert a tombstone');
+select throws_ok(
+  $$update public.profiles set deleted_at = now() where id = '00000000-0000-0000-0000-0000000d0001'$$,
+  '42501', null, 'service_role cannot set the tombstone marker directly');
+reset role;
+select throws_ok(
+  $$update public.profiles set deleted_at = now() where id = '00000000-0000-0000-0000-0000000d0001'$$,
+  '42501', null, 'nor can postgres');
+select throws_ok(
+  $$update public.profiles set deleted_at = null, phone = '+919660000008' where id = '00000000-0000-0000-0000-0000000d0002'$$,
+  '23503', null, 'a tombstone cannot be made live again without an auth user');
+select throws_ok(
+  $$update public.profiles set id = '00000000-0000-0000-0000-0000000d0009' where id = '00000000-0000-0000-0000-0000000d0001'$$,
+  '23503', null, 'a live profile cannot move to an id with no auth user');
+-- As postgres, which may not assume supabase_auth_admin; the trigger does not look at the role.
+select throws_ok(
+  $$update auth.users set id = '00000000-0000-0000-0000-0000000d0009' where id = '00000000-0000-0000-0000-0000000d0001'$$,
+  '23503', null, 'the id of an auth user that has a live profile cannot change');
+select is((select count(*)::int from private.account_deletions), 0,
+  'delete_account leaves no standing right to tombstone');
 
 -- The cascade that replaced profiles_id_fkey: a live profile goes with its auth user, a tombstone stays.
 delete from auth.users where id = '00000000-0000-0000-0000-0000000d0003';

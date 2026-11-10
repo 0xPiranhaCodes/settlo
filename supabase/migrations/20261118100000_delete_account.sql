@@ -4,8 +4,51 @@
 -- balances, activity and dispute reasons are not touched.
 
 -- profiles.id cascaded from auth.users, which would take the tombstone with the auth user (or, with
--- history, refuse the delete). A trigger keeps the cascade for live profiles only.
+-- history, refuse the delete). Triggers keep what the foreign key enforced for live profiles: a
+-- live profile always has its auth user, and goes with it. The one profile without an auth user
+-- is a tombstone, and only delete_account can make one.
 alter table public.profiles drop constraint profiles_id_fkey;
+
+-- The right to tombstone a profile, held only while delete_account runs: it adds the row, updates
+-- the profile and removes the row in one transaction. Nothing but security definer code can write
+-- here (private has no client or service_role privileges), so the marker cannot be set directly.
+create table private.account_deletions (user_id uuid primary key);
+alter table private.account_deletions enable row level security;
+revoke all on table private.account_deletions from public, anon, authenticated;
+
+create function public.check_profile_user() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if new.deleted_at is null then
+    -- Locked as a foreign key would, so the auth user cannot go before this commits.
+    perform from auth.users where id = new.id for key share;
+    if not found then
+      raise exception 'profile % has no auth user', new.id using errcode = 'foreign_key_violation';
+    end if;
+  elsif (tg_op = 'INSERT' or old.deleted_at is null)
+        and not exists (select from private.account_deletions where user_id = new.id) then
+    raise exception 'only delete_account may tombstone a profile' using errcode = 'insufficient_privilege';
+  end if;
+  return new;
+end $$;
+
+create trigger profiles_user
+  before insert or update of id, deleted_at on public.profiles
+  for each row execute function public.check_profile_user();
+
+create function public.guard_user_id_change() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if new.id is distinct from old.id and exists (select from public.profiles where id = old.id) then
+    raise exception 'auth user % has a profile; its id cannot change', old.id
+      using errcode = 'foreign_key_violation';
+  end if;
+  return new;
+end $$;
+
+create trigger guard_user_id_change
+  before update of id on auth.users
+  for each row execute function public.guard_user_id_change();
 
 create function public.cascade_deleted_user() returns trigger
 language plpgsql security definer set search_path = '' as $$
@@ -14,7 +57,9 @@ begin
   return null;
 end $$;
 
-revoke execute on function public.cascade_deleted_user() from public, anon, authenticated;
+revoke execute on function
+  public.check_profile_user(), public.guard_user_id_change(), public.cascade_deleted_user()
+  from public, anon, authenticated;
 
 create trigger cascade_deleted_user
   after delete on auth.users
@@ -39,8 +84,10 @@ begin
   perform from auth.users where id = me for update;
 
   perform public.release_pending_claims(me, null);
+  insert into private.account_deletions (user_id) values (me);
   update public.profiles set name = 'Deleted user', upi_id = null, phone = null, deleted_at = now()
    where id = me and deleted_at is null;
+  delete from private.account_deletions where user_id = me;
   delete from public.friends where user_id = me;
   update public.friends set friend_id = null where friend_id = me;
   -- Links this user issued must not keep admitting people in their name.
