@@ -6,6 +6,7 @@ import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_activity.dart';
+import 'support/fake_session.dart';
 
 /// The Activity artboard (n30) in the shell on 9 Nov, dark and light:
 /// Arjun's repayment waits for you on top, then the feed.
@@ -18,6 +19,9 @@ void main() {
       testWidgets('${device.name} $themeName activity golden', (tester) async {
         final container = ProviderContainer(
           overrides: [
+            sessionProvider.overrideWith(
+              () => FakeSessionNotifier(fakeSession),
+            ),
             activityRepositoryProvider.overrideWithValue(
               FakeActivityRepository(),
             ),
