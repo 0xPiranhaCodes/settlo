@@ -86,21 +86,43 @@ class WelcomeBackgroundPainter extends CustomPainter {
       colors: [hot.withValues(alpha: 0), hot, hot.withValues(alpha: 0)],
       stops: const [0.61, 0.66, 0.71],
     ).createShader(bounds);
-    final bottomShader = LinearGradient(
-      colors: [
-        gold.withValues(alpha: 0.3),
-        gold,
-        hot,
-        gold,
-        gold.withValues(alpha: 0.25),
-        gold.withValues(alpha: 0),
-      ],
-      stops: const [0, 0.045, 0.075, 0.105, 0.2, 0.245],
-    ).createShader(bounds);
-    final bottomHotShader = LinearGradient(
-      colors: [hot.withValues(alpha: 0), hot, hot.withValues(alpha: 0)],
-      stops: const [0.045, 0.075, 0.105],
-    ).createShader(bounds);
+    final (bottomShader, bottomHotShader) = switch (placement) {
+      SettloArcPlacement.welcome => (
+        LinearGradient(
+          colors: [
+            gold.withValues(alpha: 0.3),
+            gold,
+            hot,
+            gold,
+            gold.withValues(alpha: 0.25),
+            gold.withValues(alpha: 0),
+          ],
+          stops: const [0, 0.045, 0.075, 0.105, 0.2, 0.245],
+        ).createShader(bounds),
+        LinearGradient(
+          colors: [hot.withValues(alpha: 0), hot, hot.withValues(alpha: 0)],
+          stops: const [0.045, 0.075, 0.105],
+        ).createShader(bounds),
+      ),
+      SettloArcPlacement.home => (
+        LinearGradient(
+          colors: [
+            gold.withValues(alpha: 0),
+            gold.withValues(alpha: 0.3),
+            gold,
+            hot,
+            gold,
+            gold.withValues(alpha: 0.25),
+            gold.withValues(alpha: 0),
+          ],
+          stops: const [0.48, 0.54, 0.61, 0.69, 0.79, 0.92, 1],
+        ).createShader(bounds),
+        LinearGradient(
+          colors: [hot.withValues(alpha: 0), hot, hot.withValues(alpha: 0)],
+          stops: const [0.61, 0.69, 0.79],
+        ).createShader(bounds),
+      ),
+    };
 
     void drawGlowingArc(Path path, Shader shader, Shader hotShader) {
       canvas

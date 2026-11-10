@@ -119,8 +119,7 @@ class SettloColors extends ThemeExtension<SettloColors> {
   /// Secondary buttons, icon tiles and inputs on a card.
   final Color surfaceRaised;
 
-  /// Avatars, chips, progress tracks and the selected tab. Carries primary
-  /// text only.
+  /// Avatars, chips and progress tracks. Carries primary text only.
   final Color surfaceHighest;
 
   /// 1px card edges and dividers.
