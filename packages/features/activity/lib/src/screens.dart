@@ -486,6 +486,57 @@ class _ReviewPill extends StatelessWidget {
   }
 }
 
+/// The newest real feed entries, composed for the populated Home screen.
+///
+/// This intentionally watches the same provider and uses the same row as the
+/// Activity tab, so Home never invents or caches a second version of history.
+class ActivityPreview extends ConsumerWidget {
+  /// Creates the compact Home preview.
+  const new({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entries = ref.watch(activityFeedProvider).value?.entries;
+    if (entries == null || entries.isEmpty) return const SizedBox.shrink();
+    final c = SettloColors.of(context);
+    final shown = entries.take(3).toList();
+    return SCard(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'RECENT ACTIVITY',
+                  style: SettloTypography.figtree(
+                    12,
+                    letterSpacing: 0.3,
+                    color: c.textSecondary,
+                  ),
+                ),
+              ),
+              SPressable(
+                label: 'See all activity',
+                onTap: () => context.go(SettloRoutes.activity),
+                ringRadius: BorderRadius.circular(SettloRadius.pill),
+                child: const SizedBox(
+                  width: SettloSpacing.minTouchTarget,
+                  height: SettloSpacing.minTouchTarget,
+                  child: Icon(Icons.arrow_forward, size: 18),
+                ),
+              ),
+            ],
+          ),
+          for (final (i, entry) in shown.indexed)
+            _EntryRow(entry, divider: i < shown.length - 1),
+        ],
+      ),
+    );
+  }
+}
+
 /// One feed line: who did what, where, and the amount in its tone, with
 /// members' questions under it. With [onQuestion] the whole row is the
 /// target for 'Question this', so the link in its detail need not be.

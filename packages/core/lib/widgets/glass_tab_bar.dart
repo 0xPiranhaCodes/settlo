@@ -98,7 +98,7 @@ class _Tab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final color = selected ? c.textPrimary : c.textMuted;
+    final color = selected ? SettloColors.dark.onAction : c.textMuted;
     return SPressable(
       onTap: onTap,
       selected: selected,
@@ -107,7 +107,7 @@ class _Tab extends StatelessWidget {
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: selected ? c.surfaceHighest : null,
+          color: selected ? c.welcomeAction : null,
           borderRadius: BorderRadius.circular(26),
         ),
         child: Column(

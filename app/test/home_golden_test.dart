@@ -2,10 +2,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo/shell.dart';
+import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_test_support/golden.dart';
 
+import 'support/fake_activity.dart';
 import 'support/fake_home.dart';
 
 /// Home in the shell with [data] already loaded. Riverpod pauses widgets
@@ -15,10 +17,12 @@ Future<Widget> homeInShell(HomeData data) async {
   final container = ProviderContainer(
     overrides: [
       homeRepositoryProvider.overrideWithValue(FakeHomeRepository(data)),
+      activityRepositoryProvider.overrideWithValue(FakeActivityRepository()),
     ],
   );
   addTearDown(container.dispose);
   await container.read(homeProvider.future);
+  await container.read(activityFeedProvider.future);
   return UncontrolledProviderScope(
     container: container,
     child: SettloShell(
@@ -35,7 +39,7 @@ Future<Widget> homeInShell(HomeData data) async {
 void main() {
   final states = [
     ('main', homeMain, ['dark', 'light']),
-    ('empty', homeEmpty, ['dark']),
+    ('empty', homeEmpty, ['dark', 'light']),
     ('found', homeFound, ['dark']),
   ];
   for (final device in SettloGoldenDevices.all) {

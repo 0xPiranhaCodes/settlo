@@ -37,3 +37,4 @@ export 'widgets/s_card.dart';
 export 'widgets/settlo_mark.dart';
 export 'widgets/sheet.dart';
 export 'widgets/tab_icons.dart';
+export 'widgets/welcome_background.dart';

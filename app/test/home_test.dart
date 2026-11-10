@@ -7,8 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_test_support/golden.dart';
 
+import 'support/fake_activity.dart';
 import 'support/fake_home.dart';
 
 /// Pumps Home in the shell with [repository], inside a router whose other
@@ -17,12 +19,16 @@ Future<GoRouter> _pump(
   WidgetTester tester,
   FakeHomeRepository repository, {
   GoldenDevice device = SettloGoldenDevices.canvas390,
+  double textScaleFactor = 1,
+  Future<bool> Function(Uri)? openUrl,
 }) async {
   await loadSettloFonts();
   tester.view
     ..physicalSize = device.size
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
+  tester.platformDispatcher.textScaleFactorTestValue = textScaleFactor;
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
   final router = GoRouter(
     initialLocation: SettloRoutes.home,
     routes: [
@@ -52,7 +58,11 @@ Future<GoRouter> _pump(
   addTearDown(router.dispose);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [homeRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        homeRepositoryProvider.overrideWithValue(repository),
+        activityRepositoryProvider.overrideWithValue(FakeActivityRepository()),
+        if (openUrl != null) openUrlProvider.overrideWithValue(openUrl),
+      ],
       child: MaterialApp.router(
         theme: SettloTheme.dark(),
         routerConfig: router,
@@ -143,6 +153,9 @@ void main() {
       expect(find.text('Rahul, Priya'), findsOne);
       expect(find.text('5 people'), findsOne);
       expect(find.text('13 of 40 · next ₹25,000 on 5 Dec'), findsOne);
+      await _scrollToEnd(tester);
+      expect(find.text('RECENT ACTIVITY'), findsOne);
+      expect(find.textContaining('Priya added'), findsOne);
     });
 
     testWidgets('accepting a claim moves it into the balances', (tester) async {
@@ -175,6 +188,8 @@ void main() {
       final repository = FakeHomeRepository(homeFound);
       await _pump(tester, repository);
 
+      await tester.ensureVisible(find.text("This isn't me").last);
+      await tester.pumpAndSettle();
       await tester.tap(find.text("This isn't me").last);
       await tester.pumpAndSettle();
 
@@ -292,7 +307,6 @@ void main() {
       (homeMain, 'Arjun · interest free', SettloRoutes.loan('l1')),
       (homeEmpty, 'Start a space', SettloRoutes.spaces),
       (homeEmpty, 'Record a loan', SettloRoutes.newLoan),
-      (homeEmpty, 'Allow', SettloRoutes.profile),
     ]) {
       testWidgets('$label goes to $location', (tester) async {
         final router = await _pump(tester, FakeHomeRepository(data));
@@ -306,7 +320,6 @@ void main() {
 
     for (final (label, target, location) in [
       ('Notifications', find.byTooltip('Notifications'), SettloRoutes.activity),
-      ('Profile', find.byType(SAvatar).first, SettloRoutes.profile),
     ]) {
       testWidgets('$label goes to $location', (tester) async {
         final router = await _pump(tester, FakeHomeRepository(homeMain));
@@ -315,6 +328,25 @@ void main() {
         expect(router.state.uri.toString(), location);
       });
     }
+
+    testWidgets('Help opens the existing support page', (tester) async {
+      final opened = <Uri>[];
+      await _pump(
+        tester,
+        FakeHomeRepository(homeEmpty),
+        openUrl: (uri) async {
+          opened.add(uri);
+          return true;
+        },
+      );
+
+      await tester.tap(find.byTooltip('Help and support'));
+      await tester.pump();
+
+      expect(opened, [
+        Uri.parse('https://0xpiranhacodes.github.io/settlo/support/'),
+      ]);
+    });
 
     testWidgets('pending repayment opens its confirmation receipt', (
       tester,
@@ -370,9 +402,9 @@ void main() {
           ),
         ),
       );
+      expect(find.text('all settled across 2 spaces and 2 loans'), findsOne);
       await _scrollToEnd(tester);
 
-      expect(find.text('all settled across 2 spaces and 2 loans'), findsOne);
       expect(find.text('Just you'), findsOne);
       expect(find.text('you borrowed · flexible repayments'), findsOne);
       expect(find.text('1 of 2'), findsOne);
@@ -411,7 +443,6 @@ void main() {
     testWidgets('header, See all and the loan row', (tester) async {
       await _pump(tester, FakeHomeRepository(homeMain));
       await expectTargets(tester, find.byType(IconButton));
-      await expectTargets(tester, tappable('S', InkWell));
       await expectTargets(tester, tappable('SEE ALL', GestureDetector));
       await expectTargets(tester, tappable('Arjun · interest free', InkWell));
     });
@@ -441,16 +472,13 @@ void main() {
       await expectTargets(tester, tappable('Arjun · interest free', InkWell));
     });
 
-    testWidgets('claim actions and Allow', (tester) async {
+    testWidgets('claim actions', (tester) async {
       await _pump(tester, FakeHomeRepository(homeFound));
       await expectTargets(tester, find.widgetWithText(TextButton, 'Accept'));
       await expectTargets(
         tester,
         find.widgetWithText(TextButton, "This isn't me"),
       );
-      await _pump(tester, FakeHomeRepository(homeEmpty));
-      await _scrollToEnd(tester);
-      await expectTargets(tester, find.widgetWithText(TextButton, 'Allow'));
     });
   });
 
@@ -521,5 +549,16 @@ void main() {
         expect(find.byType(HomeScreen), findsOne);
       });
     }
+  });
+
+  testWidgets('empty Home fits at 200% text scaling', (tester) async {
+    await _pump(
+      tester,
+      FakeHomeRepository(homeEmpty),
+      device: SettloGoldenDevices.compact360,
+      textScaleFactor: 2,
+    );
+    await _scrollToEnd(tester);
+    expect(tester.takeException(), isNull);
   });
 }
