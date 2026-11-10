@@ -46,3 +46,23 @@ for name, variants in groups.items():
                 draw.text((x + 8, y + 80), 'No baseline for this added state', fill='#1b1b18', font=font)
     sheet.save(out / f'{name}.png', optimize=True)
 print(f'Composed {len(groups)} review sheets from Linux artifacts.')
+
+# Compare content above the navigation region, ignoring small raster noise.
+from PIL import ImageChops
+lines = ['# Linux pixel deltas', '',
+         'Baseline: b60a54cc5872a4aa15ca93d5a7d395e9447e3e7b. '
+         'Generated from Linux PNGs; RGB channel delta >8 counts as changed. '
+         'The bottom 120 pixels are excluded to isolate content from navigation.',
+         '', '| Image | Content pixels changed |', '| --- | ---: |']
+for path in sorted(after.glob('*.png')):
+    old = before / path.name
+    if not old.exists():
+        continue
+    a, b = Image.open(old).convert('RGB'), Image.open(path).convert('RGB')
+    if a.size != b.size:
+        continue
+    box = (0, 0, a.width, max(1, a.height - 120))
+    pixels = list(ImageChops.difference(a.crop(box), b.crop(box)).getdata())
+    changed = sum(max(pixel) > 8 for pixel in pixels)
+    lines.append(f'| {path.name} | {changed / len(pixels):.2%} |')
+(root / 'docs/design/145/pixel-deltas.md').write_text('\n'.join(lines) + '\n')
