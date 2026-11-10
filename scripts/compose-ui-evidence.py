@@ -35,7 +35,7 @@ for path in sorted(after.glob('*.png')):
 for name, variants in groups.items():
     rows = [(device, theme) for device in ('360x800', '390x844')
             for theme in ('dark', 'light') if (device, theme, False) in variants]
-    sheet = Image.new('RGB', (1200, len(rows) * 900), '#e6e2d8')
+    sheet = Image.new('RGB', (1200, len(rows) * 940), '#e6e2d8')
     draw = ImageDraw.Draw(sheet)
     for row, (device, theme) in enumerate(rows):
         current = variants[(device, theme, False)]
@@ -44,7 +44,7 @@ for name, variants in groups.items():
             ('After', current),
             ('After at 200%', variants.get((device, theme, True))),
         ]):
-            x, y = col * 400, row * 900
+            x, y = col * 400, row * 940
             draw.text((x + 8, y + 6), f'{label} · {device} · {theme}', fill='#1b1b18', font=font)
             if col == 1 and (before / current.name).exists():
                 old = Image.open(before / current.name).convert('RGB')
@@ -53,7 +53,7 @@ for name, variants in groups.items():
                     box = (0, 0, new.width, max(1, new.height - 120))
                     pixels = list(ImageChops.difference(old.crop(box), new.crop(box)).getdata())
                     fraction = sum(max(pixel) > 8 for pixel in pixels) / len(pixels)
-                    draw.text((x + 8, y + 870), f'Content changed: {fraction:.1%}', fill='#1b1b18', font=font)
+                    draw.text((x + 8, y + 900), f'Content changed: {fraction:.1%}', fill='#1b1b18', font=font)
             if path is not None and path.exists():
                 im = Image.open(path).convert('RGB')
                 sheet.paste(im, (x + (400 - im.width) // 2, y + 40))

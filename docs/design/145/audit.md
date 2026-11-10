@@ -155,3 +155,7 @@ Welcome composition, continuous glass band and accessible loan/payer names.
 The temporary workflow is restored to the PR base. Exact-head pull_request CI
 including Android and final flutter clean are recorded in the PR reply. No palette, font assets, routes,
 providers or mutation guards are changed in this round.
+
+Comparison-sheet review also found the 844px renders overlapping their delta
+captions. Rows now reserve 940px, with captions below the full screenshots; all
+sheets are recomposed in Linux CI from the unchanged Linux golden artifacts.
