@@ -288,7 +288,7 @@ void main() {
     await tester.pump();
 
     expect(opened, [
-      Uri.parse('https://0xpiranhacodes.github.io/settlo/support/'),
+      Uri.parse('https://settlo.hellojosh.studio/support/'),
     ]);
   });
 

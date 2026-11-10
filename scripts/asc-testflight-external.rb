@@ -156,8 +156,8 @@ module TestFlightExternal
 
       upsert('betaAppLocalizations', @client.list("/v1/apps/#{app_id}/betaAppLocalizations"), {
         description: 'Split expenses with flatmates, track personal loans, and record repayments with Settlo.',
-        feedbackEmail: 'settlo@hellojosh.studio', marketingUrl: 'https://0xpiranhacodes.github.io/settlo/',
-        privacyPolicyUrl: 'https://0xpiranhacodes.github.io/settlo/privacy/'
+        feedbackEmail: 'settlo@hellojosh.studio', marketingUrl: 'https://settlo.hellojosh.studio/',
+        privacyPolicyUrl: 'https://settlo.hellojosh.studio/privacy/'
       }, 'app', 'apps', app_id)
       @client.request(:patch, "/v1/betaAppReviewDetails/#{detail.fetch('id')}", data: {
         type: 'betaAppReviewDetails', id: detail.fetch('id'), attributes: contacts.merge(

@@ -13,7 +13,7 @@ import 'package:settlo_profile/src/profile_repository.dart';
 import 'package:settlo_profile/src/theme_mode.dart';
 
 final Uri _supportUri = Uri.parse(
-  'https://0xpiranhacodes.github.io/settlo/support/',
+  'https://settlo.hellojosh.studio/support/',
 );
 
 /// Profile and settings (canvas Profile, note n31).
