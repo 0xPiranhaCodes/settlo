@@ -91,6 +91,7 @@ final class _Invites implements InvitesRepository {
     ),
     this.previewFuture,
     this.redeemError = false,
+    this.redeemFailure,
     this.declineError = false,
     this.redeemCompleter,
   });
@@ -98,6 +99,7 @@ final class _Invites implements InvitesRepository {
   final InvitePreview? preview;
   final Future<InvitePreview?>? previewFuture;
   bool redeemError;
+  final InviteFailure? redeemFailure;
   bool declineError;
   final Completer<void>? redeemCompleter;
   int redeems = 0;
@@ -113,6 +115,7 @@ final class _Invites implements InvitesRepository {
   Future<void> redeem(String token, {required String idempotencyKey}) async {
     redeems++;
     redeemKeys.add(idempotencyKey);
+    if (redeemFailure case final failure?) throw InviteException(failure);
     if (redeemError) throw Exception('redeem');
     final completer = redeemCompleter;
     if (completer != null) await completer.future;
@@ -538,6 +541,23 @@ void main() {
         invites: _Invites(preview: null),
       );
       expect(find.text('This invite is no longer available.'), findsOneWidget);
+    });
+
+    testWidgets('signed-in Join explains a wrong-phone redemption', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        auth,
+        location: SettloRoutes.join(_inviteToken),
+        invites: _Invites(redeemFailure: InviteFailure.wrongPhone),
+        session: _signedIn,
+      );
+
+      await tester.tap(find.text('Verify my number to see the ledger'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('different number'), findsOneWidget);
     });
 
     testWidgets('waits for inspection and records a successful decline', (

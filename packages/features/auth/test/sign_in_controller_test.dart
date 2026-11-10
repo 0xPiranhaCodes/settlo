@@ -61,6 +61,13 @@ void main() {
     expect(state().sentTo, isNull);
   });
 
+  test('target-cap failures use unavailable copy', () {
+    expect(
+      signInErrorForInvite(InviteFailure.targetLimit),
+      SignInError.inviteUnavailable,
+    );
+  });
+
   test('an invalid number is not sent', () async {
     controller().updateNumber('98765');
     expect(await controller().sendCode(), isFalse);
