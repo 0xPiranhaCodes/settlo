@@ -133,3 +133,23 @@ surface isolation, Reduce Motion, high-contrast header actions, responsive row
 names, and both dismissal and snap-back sheet gestures. The first full rerun
 passed 386 core tests; the final 18-test focused suite and root analyze pass.
 This follow-up changes tests only; the successful Linux renders remain current.
+
+## Re-review 2 audit (2026-11-10)
+
+| Finding | Fix and regression evidence |
+| --- | --- |
+| Reduce Motion removed iOS builder-route swipe-back | Keep the Cupertino transition builder and its gesture detector; automatic motion uses settled animations while interactive swipes retain the route animation. Plain MaterialPage swipe-back is tested with Reduce Motion on/off in app and core. |
+| Inactive glass items looked like separate buttons | Replace per-item fills with one wide feathered gradient band; preserve 42% tint, sigma 28, the bronze active pill and the existing contrast assertions. Test that inactive item decorations have no fill/gradient. |
+| Welcome lost regular headline and medium plus weights | Restore w400 headline and w500 plus. At default text size fit the approved two-line composition to width; accessibility text reflows naturally. Pin both weights and two-line layout at both phone sizes. |
+| Large names and payer chips truncated | Loan titles/subtitles wrap to two lines from 1.3x; payer options become full-width rows. Golden assertions reject truncated primary loan/payer names at 200%. |
+| Loan separators were orphaned | Put the loan start date on its own unprefixed line at large scale; split the confirmation counterparty and principal onto separate lines at large scale. |
+| Shared scroll widget silently deleted the first spacer | Preserve every content child and expose headerGap explicitly; test gap plus a legitimate first spacer. Remove Home's duplicate legacy spacer explicitly to retain its mock position. |
+| Space tabs and invite cards had duplicate semantics | Let SPressable own the selected tab and keep its action enabled as a no-op; invite cards use one complete label retaining spoken rupees. Pin selected/enabled tab flags and retain spoken-amount tests. |
+| Raw-size guard omitted core | Scan core too, allowing only the typography factory, PDF statements, and exactly one derived call in amount_sheet, money_text and avatar. |
+
+Local verification: all 652 app tests and 392 core tests pass; root analyze is
+clean. Diagnostic renders confirm the two-line regular Welcome headline, seamless
+glass and full large-text names. Remaining gates: affected Linux renders and
+comparison sheets, exact-head pull_request CI including Android, workflow
+restoration and flutter clean. No palette, font assets, routes,
+providers or mutation guards are changed in this round.

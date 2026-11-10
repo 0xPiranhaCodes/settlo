@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """Compose review sheets from Linux golden PNGs; never modify the goldens."""
+import argparse
 from collections import defaultdict
 from pathlib import Path
 import re
 from PIL import Image, ImageChops, ImageDraw, ImageFont
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--names', nargs='+', help='Only compose these screen/state groups')
+args = parser.parse_args()
 
 root = Path(__file__).resolve().parent.parent
 before = root / 'docs/design/145/before'
@@ -24,6 +29,8 @@ for path in sorted(after.glob('*.png')):
         continue
     state = suffix.replace(theme, '').strip('_')
     name += '_' + state if state else ''
+    if args.names and name not in args.names:
+        continue
     groups[name][(device, theme, bool(large))] = path
 for name, variants in groups.items():
     rows = [(device, theme) for device in ('360x800', '390x844')
