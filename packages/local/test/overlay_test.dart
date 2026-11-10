@@ -119,7 +119,6 @@ Mutation _m(String kind, Map<String, dynamic> params, {String key = 'k'}) => (
   createdAt: _today,
   attempts: 0,
   applied: false,
-  result: const {},
 );
 
 Tables _apply(List<Mutation> queue) =>

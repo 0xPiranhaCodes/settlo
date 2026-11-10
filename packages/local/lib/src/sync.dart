@@ -118,13 +118,10 @@ final class SyncEngine {
 
   /// Sends every unsent write; true when none is left.
   Future<bool> _replay() async {
-    final ids = <String, Object?>{};
+    final ids = await _db.localIds(owner);
     for (final m in await _db.mutations(owner)) {
       if (_disposed) return false;
-      if (m.applied) {
-        ids.addAll(m.result);
-        continue;
-      }
+      if (m.applied) continue;
       if (m.attempts > 0 &&
           _purgedKinds.contains(m.kind) &&
           now().difference(m.createdAt) > const Duration(days: 29)) {
@@ -137,7 +134,7 @@ final class SyncEngine {
           params: _resolve(m.params, ids)! as Map<String, dynamic>,
         );
         final created = await _created(m, result);
-        await _db.markApplied(m.id, created);
+        await _db.markApplied(owner, m.id, created);
         ids.addAll(created);
         _changed = true;
         _waiting[m.key]?.complete(result is String ? result : null);
@@ -176,7 +173,7 @@ final class SyncEngine {
 
   /// [value] with every device-made id replaced by the server's. One
   /// with no server id belongs to a write that was refused.
-  Object? _resolve(Object? value, Map<String, Object?> ids) => switch (value) {
+  Object? _resolve(Object? value, Map<String, String> ids) => switch (value) {
     final String s when s.startsWith('local:') =>
       ids[s] ?? (throw const PostgrestException(message: '', code: 'orphan')),
     final Map<String, dynamic> map => {
@@ -224,8 +221,7 @@ final class SyncEngine {
       return;
     }
     if (_disposed) return;
-    await _db.replaceMirror(owner, tables);
-    _changed = true;
+    if (await _db.replaceMirror(owner, tables)) _changed = true;
     _retry?.cancel();
   }
 

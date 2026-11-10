@@ -6,8 +6,7 @@ import 'package:settlo_core/settlo_core.dart';
 
 /// A queued write (ADR 0004): the RPC `kind` with its exact `params`,
 /// sent with `key` on every attempt. `applied` means the server accepted
-/// it and the next refresh will drop it; `result` maps the local ids it
-/// created to the server's.
+/// it and the next refresh will drop it.
 typedef Mutation = ({
   int id,
   String key,
@@ -16,12 +15,13 @@ typedef Mutation = ({
   DateTime createdAt,
   int attempts,
   bool applied,
-  Map<String, dynamic> result,
 });
 
 /// The on-device store: the server rows each signed-in user can read
-/// (`mirror`) and their queued writes (`pending_mutations`). Every row is
-/// scoped by `owner`, the auth user id.
+/// (`mirror`), their queued writes (`pending_mutations`), and the server
+/// ids of what those writes created (`local_ids`), kept past refreshes so
+/// a screen still holding a device-made id can save against it. Every row
+/// is scoped by `owner`, the auth user id.
 ///
 /// Raw SQL, no codegen: the mirror keeps PostgREST rows as JSON so the
 /// joins in `settlo_core` run on them unchanged (ADR 0012).
@@ -58,8 +58,12 @@ final class LocalDb extends GeneratedDatabase {
         'created_at INTEGER NOT NULL, '
         'attempts INTEGER NOT NULL DEFAULT 0, '
         'last_error TEXT, '
-        "status TEXT NOT NULL DEFAULT 'pending', "
-        "result TEXT NOT NULL DEFAULT '{}')",
+        "status TEXT NOT NULL DEFAULT 'pending')",
+      );
+      await customStatement(
+        'CREATE TABLE local_ids ( '
+        'owner TEXT NOT NULL, local_id TEXT NOT NULL, '
+        'server_id TEXT NOT NULL, PRIMARY KEY (owner, local_id))',
       );
     },
   );
@@ -95,7 +99,6 @@ final class LocalDb extends GeneratedDatabase {
           ),
           attempts: r.read<int>('attempts'),
           applied: r.read<String>('status') == 'applied',
-          result: jsonDecode(r.read<String>('result')) as Map<String, dynamic>,
         ),
     ];
   }
@@ -138,12 +141,31 @@ final class LocalDb extends GeneratedDatabase {
     );
   });
 
-  /// The server accepted mutation [id]; [result] maps its local ids.
-  Future<void> markApplied(int id, Map<String, String> result) => customUpdate(
-    "UPDATE pending_mutations SET status = 'applied', result = ? "
-    'WHERE id = ?',
-    variables: [Variable(jsonEncode(result)), Variable(id)],
-  );
+  /// The server accepted [owner]'s mutation [id]; [ids] maps the local
+  /// ids it created to the server's.
+  Future<void> markApplied(String owner, int id, Map<String, String> ids) =>
+      transaction(() async {
+        await customUpdate(
+          "UPDATE pending_mutations SET status = 'applied' WHERE id = ?",
+          variables: [Variable(id)],
+        );
+        for (final MapEntry(:key, :value) in ids.entries) {
+          await customInsert(
+            'INSERT OR REPLACE INTO local_ids (owner, local_id, server_id) '
+            'VALUES (?, ?, ?)',
+            variables: [Variable(owner), Variable(key), Variable(value)],
+          );
+        }
+      });
+
+  /// [owner]'s device-made ids, mapped to the server's.
+  Future<Map<String, String>> localIds(String owner) async => {
+    for (final r in await customSelect(
+      'SELECT local_id, server_id FROM local_ids WHERE owner = ?',
+      variables: [Variable(owner)],
+    ).get())
+      r.read<String>('local_id'): r.read<String>('server_id'),
+  };
 
   /// Mutation [id] could not reach the server; it stays queued.
   Future<void> markFailed(int id, String error) => customUpdate(
@@ -159,34 +181,42 @@ final class LocalDb extends GeneratedDatabase {
   );
 
   /// Replaces [owner]'s mirror with [tables] and drops their applied
-  /// mutations, which [tables] now include, in one transaction.
-  Future<void> replaceMirror(String owner, Tables tables) => transaction(
+  /// mutations, which [tables] now include, in one transaction. True when
+  /// that changed what the mirror shows.
+  Future<bool> replaceMirror(String owner, Tables tables) => transaction(
     () async {
+      final before = {
+        for (final r in await customSelect(
+          'SELECT source, rows FROM mirror WHERE owner = ?',
+          variables: [Variable(owner)],
+        ).get())
+          r.read<String>('source'): r.read<String>('rows'),
+      };
       await customUpdate(
         'DELETE FROM mirror WHERE owner = ?',
         variables: [Variable(owner)],
       );
+      var changed = before.length != tables.length;
       for (final MapEntry(:key, :value) in tables.entries) {
+        final rows = jsonEncode(value);
+        changed |= before[key] != rows;
         await customInsert(
           'INSERT INTO mirror (owner, source, rows) VALUES (?, ?, ?)',
-          variables: [
-            Variable(owner),
-            Variable(key),
-            Variable(jsonEncode(value)),
-          ],
+          variables: [Variable(owner), Variable(key), Variable(rows)],
         );
       }
-      await customUpdate(
+      final applied = await customUpdate(
         "DELETE FROM pending_mutations WHERE owner = ? AND status = 'applied'",
         variables: [Variable(owner)],
       );
+      return changed || applied > 0;
     },
   );
 
   /// Deletes every row that is not [owner]'s, or every row when [owner]
   /// is null (signed out).
   Future<void> keepOnly(String? owner) => transaction(() async {
-    for (final table in ['mirror', 'pending_mutations']) {
+    for (final table in ['mirror', 'pending_mutations', 'local_ids']) {
       await customUpdate(
         'DELETE FROM $table WHERE owner IS NOT ?',
         variables: [Variable(owner)],

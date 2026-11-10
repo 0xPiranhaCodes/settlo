@@ -17,7 +17,10 @@ final localDbProvider = Provider<LocalDb>((ref) {
 
 /// The signed-in user's sync engine, or null when signed out. A new user
 /// (or signing out) deletes every row of anyone else, queue included,
-/// before anything syncs. Syncs on build and whenever the app resumes.
+/// before anything syncs. Syncs on build, whenever the app resumes, and on
+/// every [ledgerRevisionProvider] bump, so writes still made online (loans,
+/// claims) reach the mirror; it bumps back only when the mirror changed,
+/// so the two settle.
 final syncEngineProvider = Provider<SyncEngine?>((ref) {
   final db = ref.watch(localDbProvider);
   final userId = ref.watch(sessionProvider.select((s) => s?.user.id));
@@ -33,10 +36,12 @@ final syncEngineProvider = Provider<SyncEngine?>((ref) {
   final lifecycle = AppLifecycleListener(
     onResume: () => unawaited(engine.sync()),
   );
-  ref.onDispose(() {
-    lifecycle.dispose();
-    engine.dispose();
-  });
+  ref
+    ..listen(ledgerRevisionProvider, (_, _) => unawaited(engine.sync()))
+    ..onDispose(() {
+      lifecycle.dispose();
+      engine.dispose();
+    });
   unawaited(engine.sync());
   return engine;
 });

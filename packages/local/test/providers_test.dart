@@ -114,13 +114,31 @@ void main() {
   });
 
   test('coming back to the app syncs', () async {
-    await container.read(syncEngineProvider)!.sync();
+    final engine = container.read(syncEngineProvider)!;
+    await engine.sync();
     final before = reads;
     binding
       ..handleAppLifecycleStateChanged(AppLifecycleState.inactive)
       ..handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await container.read(syncEngineProvider)!.sync();
+    await engine.sync();
     expect(reads, greaterThan(before));
+  });
+
+  test('a write made online elsewhere refreshes the mirror', () async {
+    final engine = container.read(syncEngineProvider)!;
+    await engine.sync();
+    final revision = container.read(ledgerRevisionProvider);
+    server.tables['profiles']!.first['name'] = 'Asha K';
+    container.read(ledgerRevisionProvider.notifier).bump();
+    await engine.sync();
+    expect(
+      (await container.read(homeRepositoryProvider).load()).name,
+      'Asha K',
+    );
+    // One bump from the write, one back from the changed mirror, and no
+    // more: an unchanged refresh does not bump.
+    await engine.sync();
+    expect(container.read(ledgerRevisionProvider), revision + 2);
   });
 
   test('signing out deletes everything and stops syncing', () async {

@@ -399,6 +399,44 @@ void main() {
     },
   );
 
+  test('ids made on the phone still resolve after the refresh', () async {
+    server.rpc = (fn, body) {
+      if (fn == 'create_space') {
+        server.tables['space_members']!.add({
+          'id': 'g1',
+          'space_id': 'space-1',
+          'user_id': _me,
+          'phone': '+919000000001',
+        });
+        return body['p_idempotency_key'];
+      }
+      return 'e7';
+    };
+    await DriftSpacesRepository(engine).create(
+      name: 'Goa',
+      kind: SpaceKind.trip,
+      members: const [],
+      idempotencyKey: 'space-1',
+    );
+    await engine.sync();
+    expect(await db.mutations(_me), isEmpty);
+
+    // A sheet opened before the refresh still holds the device-made id.
+    await DriftExpensesRepository(engine).add(
+      _groceries(
+        space: 'space-1',
+        payer: 'local:space-1:me',
+        members: ['local:space-1:me'],
+        amount: 1000,
+      ),
+      idempotencyKey: 'k1',
+    );
+    final (_, add) = server.calls.last;
+    expect((add['p'] as Map)['payers'], [
+      {'member_id': 'g1', 'amount_minor': 1000},
+    ]);
+  });
+
   test('a write that needs a refused one is refused too', () async {
     server.rpc = (_, _) => _offline;
     await DriftSpacesRepository(engine).create(
@@ -565,10 +603,13 @@ void main() {
       amount: Paise.zero,
     );
     changes = 0;
+    server.tables['profiles']!.first['name'] = 'Asha K';
     await home.acceptClaim(claim);
     await home.rejectClaim(claim);
     expect(online.answered, ['accept', 'reject']);
-    expect(changes, 2);
+    // Only the first refresh found anything new.
+    expect(changes, 1);
+    expect((await home.load()).name, 'Asha K');
   });
 }
 
