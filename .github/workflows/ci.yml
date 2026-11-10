@@ -300,11 +300,14 @@ jobs:
           start_attempt() {
             local attempt="$1"
             echo "Supabase start attempt $attempt of 2"
-            if [[ "$attempt" == 1 && "$EXERCISE_RETRY" == true ]]; then
-              echo "Forced first-attempt failure for retry-path proof." >&2
+            if ! scripts/supabase-local.sh start; then
               return 1
             fi
-            scripts/supabase-local.sh start
+            if [[ "$attempt" == 1 && "$EXERCISE_RETRY" == true ]]; then
+              echo "Forced first-attempt failure after a real start for cleanup proof." >&2
+              return 1
+            fi
+            return 0
           }
 
           if start_attempt 1; then
@@ -312,6 +315,7 @@ jobs:
           fi
 
           echo "::warning::Supabase start attempt 1 failed; retrying once after 15 seconds."
+          scripts/supabase-local.sh stop --no-backup || true
           sleep 15
           if start_attempt 2; then
             exit 0
