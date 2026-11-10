@@ -33,7 +33,7 @@ Future<Widget> _profileInShell(ThemeMode mode) async {
 }
 
 void main() {
-  for (final device in SettloGoldenDevices.all) {
+  for (final device in SettloGoldenDevices.accessible) {
     for (final mode in [ThemeMode.dark, ThemeMode.light]) {
       testWidgets('${device.name} ${mode.name} profile golden', (tester) async {
         await pumpSettloGolden(

@@ -41,19 +41,19 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             if (data != null) ...[
               _Identity(data),
-              const SizedBox(height: 20),
+              const SizedBox(height: SettloSpacing.x3),
               _UpiCard(data),
-              const SizedBox(height: 20),
+              const SizedBox(height: SettloSpacing.x3),
               const _SectionLabel('Preferences'),
-              const SizedBox(height: 10),
+              const SizedBox(height: SettloSpacing.x2),
               const _QuietPreferences(),
               const SizedBox(height: 16),
               const _SectionLabel('Help'),
-              const SizedBox(height: 10),
+              const SizedBox(height: SettloSpacing.x2),
               const _HelpCard(),
               const SizedBox(height: 16),
               const _SectionLabel('Account'),
-              const SizedBox(height: 10),
+              const SizedBox(height: SettloSpacing.x2),
               _AccountCard(data),
             ] else if (profile.hasError) ...[
               const SizedBox(height: 80),
@@ -65,7 +65,7 @@ class ProfileScreen extends ConsumerWidget {
                   color: SettloColors.of(context).textPrimary,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Center(
                 child: SSecondaryButton(
                   label: 'Try again',
@@ -180,11 +180,10 @@ class _UpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
     return SCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       child: Row(
         children: [
           const _IconTile(ProfileGlyph.wallet, action: true),
-          const SizedBox(width: 12),
+          const SizedBox(width: SettloSpacing.x2),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,7 +446,7 @@ class _LeaveSheetState extends State<_LeaveSheet> {
     final colors = SettloColors.of(context);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,7 +467,7 @@ class _LeaveSheetState extends State<_LeaveSheet> {
               color: colors.textSecondary,
             ).copyWith(height: 1.4),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: SettloSpacing.x3),
           SizedBox(
             width: double.infinity,
             child: SPrimaryButton(
@@ -518,7 +517,8 @@ class _SettingsCard extends StatelessWidget {
       children: [
         for (var index = 0; index < rows.length; index++) ...[
           _SettingRow(rows[index]),
-          if (index != rows.length - 1) const Divider(height: 1),
+          if (index != rows.length - 1)
+            const SizedBox(height: SettloSpacing.x1),
         ],
       ],
     ),
@@ -544,14 +544,14 @@ class _SettingRow extends StatelessWidget {
     final colors = SettloColors.of(context);
     return Semantics(
       button: data.onTap != null,
-      child: InkWell(
+      child: SPressable(
         onTap: data.onTap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 64),
           child: Row(
             children: [
               _IconTile(data.icon),
-              const SizedBox(width: 14),
+              const SizedBox(width: SettloSpacing.x2),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -606,7 +606,7 @@ class _IconTile extends StatelessWidget {
                 colors.surface,
               )
             : colors.surfaceRaised,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(SettloRadius.iconTile),
       ),
       alignment: Alignment.center,
       child: ProfileIcon(
@@ -658,7 +658,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
     final colors = SettloColors.of(context);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       child: Form(
         key: _formKey,
         child: Column(
@@ -673,7 +673,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
                 color: colors.textPrimary,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: SettloSpacing.x3),
             TextFormField(
               key: const ValueKey('profile-name'),
               controller: _name,
@@ -696,13 +696,13 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
               validator: validateUpiId,
             ),
             if (_serverError != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: SettloSpacing.x2),
               Text(
                 _serverError!,
                 style: SettloTypography.figtree(13, color: colors.textPrimary),
               ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: SettloSpacing.x3),
             SizedBox(
               width: double.infinity,
               child: SPrimaryButton(
@@ -755,7 +755,7 @@ class _AppearanceSheet extends ConsumerWidget {
     final colors = SettloColors.of(context);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -768,7 +768,7 @@ class _AppearanceSheet extends ConsumerWidget {
               color: colors.textPrimary,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: SettloSpacing.x2),
           for (final mode in ThemeMode.values)
             ListTile(
               minTileHeight: 52,
