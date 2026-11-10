@@ -103,23 +103,32 @@ Also listed in `docs/release.md`.
    gh secret set MSG91_SENDER_ID --env production
    ```
 
-2. `gh workflow run "Supabase hosted" -f action=deploy-send-sms` deploys the function
-   (`config.toml` sets `verify_jwt = false` for it).
-3. `gh workflow run "Supabase hosted" -f action=set-sms-secrets` sets the three MSG91 function
-   secrets, generates a new `SEND_SMS_HOOK_SECRET` (`v1,whsec_` + 32 random bytes in base64), and
-   sets it on both the function and the Auth hook along with the hook URI
-   `https://<ref>.supabase.co/functions/v1/send-sms`. It refuses while the hook is enabled, and leaves
-   it disabled.
-4. `gh workflow run "Supabase hosted" -f action=enable-sms-hook` checks that `send-sms` is deployed
-   and active, that all four function secrets exist, and that the hook URI and secret are set, then
-   turns on phone sign-in and the hook.
-5. Send an OTP to a real number and check the function logs for `sent OTP to ********NNNN`.
-6. Clear the test numbers (`-f action=clear-test-otp`), then set the repository variable
-   `gh variable set SMS_LIVE --body true`. From then on `clear-test-otp` and every **Release** run
+2. `gh workflow run "Supabase hosted" -f action=sms-cutover` runs these three steps in one job, each
+   only after the one before succeeded, so a failure never enables the hook:
+   - deploy `send-sms` (`config.toml` sets `verify_jwt = false` for it);
+   - set the three MSG91 function secrets, generate a new `SEND_SMS_HOOK_SECRET` (`v1,whsec_` + 32
+     random bytes in base64), and set it on both the function and the Auth hook along with the hook
+     URI `https://<ref>.supabase.co/functions/v1/send-sms`. This refuses while the hook is enabled, and
+     leaves it disabled;
+   - check that `send-sms` is deployed and active, that all four function secrets exist, that the
+     hook URI is set and the hook secret matches the function's, then turn on phone sign-in and the hook.
+
+   Wait for the run to succeed before any other dispatch: GitHub keeps only one pending run per
+   concurrency group, so a newer dispatch replaces (cancels) any run still pending.
+
+   ```sh
+   sleep 5; gh run watch --exit-status "$(gh run list --workflow "Supabase hosted" --limit 1 --json databaseId --jq '.[0].databaseId')"
+   ```
+
+   For recovery, `deploy-send-sms`, `set-sms-secrets` and `enable-sms-hook` run the steps singly. Run
+   them one at a time in that order, waiting for each with `gh run watch`.
+3. Send an OTP to a real number and check the function logs for `sent OTP to ********NNNN`.
+4. Clear the test numbers (`-f action=clear-test-otp`) and wait for that run to succeed, then set
+   the repository variable `gh variable set SMS_LIVE --body true`. From then on `clear-test-otp` and every **Release** run
    fail if the hosted project still has a test number.
 
 To rotate the secret or change an MSG91 value, run `disable-sms-hook`, `set-sms-secrets`, then
-`enable-sms-hook`; phone sign-in fails while the hook is off. `disable-sms-hook` alone turns the
-hook off: Auth then has no SMS provider and phone sign-in fails until it is re-enabled.
+`enable-sms-hook`, one at a time, waiting for each with `gh run watch`; phone sign-in fails while
+the hook is off. `disable-sms-hook` alone turns the hook off: Auth then has no SMS provider and phone sign-in fails until it is re-enabled.
 `scripts/test/supabase-hosted-sms-test.sh` checks the script behind these actions offline (CI runs
 it in the Supabase job).

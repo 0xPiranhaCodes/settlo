@@ -12,6 +12,7 @@ on:
           - db-push
           - set-test-otp
           - clear-test-otp
+          - sms-cutover
           - deploy-send-sms
           - set-sms-secrets
           - enable-sms-hook
@@ -126,7 +127,7 @@ jobs:
           # The response repeats the Auth config and an error may echo the submitted list, so the
           # body is discarded: this public log gets the status and a fixed message only.
           # The token (as a curl config on a pipe) and the body (on stdin) stay out of curl's argv.
-          status="$(printf '%s' "$body" | curl -sS -o /dev/null -w '%{http_code}' -X PATCH \
+          status="$(printf '%s' "$body" | curl -sS --connect-timeout 10 --max-time 60 -o /dev/null -w '%{http_code}' -X PATCH \
             --config <(printf 'header = "Authorization: Bearer %s"\n' "$SUPABASE_ACCESS_TOKEN") \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth" \
             -H 'Content-Type: application/json' \
@@ -145,11 +146,12 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: scripts/supabase-hosted-sms.sh check-test-otp
 
-  # Production SMS through the MSG91 Send-SMS hook (#119). Order: deploy-send-sms, set-sms-secrets,
-  # enable-sms-hook; see supabase/README.md#enabling-on-the-hosted-project.
+  # Production SMS through the MSG91 Send-SMS hook (#119). sms-cutover runs deploy-send-sms,
+  # set-sms-secrets and enable-sms-hook in order in one job, stopping at the first failure; the
+  # single actions are for recovery. See supabase/README.md#enabling-on-the-hosted-project.
   sms-hook:
     name: Send-SMS hook
-    if: contains(fromJSON('["deploy-send-sms", "set-sms-secrets", "enable-sms-hook", "disable-sms-hook"]'), inputs.action)
+    if: contains(fromJSON('["sms-cutover", "deploy-send-sms", "set-sms-secrets", "enable-sms-hook", "disable-sms-hook"]'), inputs.action)
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -165,17 +167,27 @@ jobs:
           persist-credentials: false
 
       - name: Set up Supabase CLI
-        if: inputs.action == 'deploy-send-sms'
+        if: inputs.action == 'deploy-send-sms' || inputs.action == 'sms-cutover'
         uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
           version: 3.0.0
 
-      # Reads verify_jwt = false from config.toml: GoTrue signs the hook call, it sends no user JWT.
       - name: Deploy send-sms
         if: inputs.action == 'deploy-send-sms'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase functions deploy send-sms --project-ref "$SUPABASE_PROJECT_REF"
+        run: scripts/supabase-hosted-sms.sh deploy
+
+      # Deploy, set secrets, enable: each runs only if the one before succeeded, so a failure never
+      # enables the hook.
+      - name: Cut over to MSG91
+        if: inputs.action == 'sms-cutover'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          MSG91_AUTH_KEY: ${{ secrets.MSG91_AUTH_KEY }}
+          MSG91_TEMPLATE_ID: ${{ secrets.MSG91_TEMPLATE_ID }}
+          MSG91_SENDER_ID: ${{ secrets.MSG91_SENDER_ID }}
+        run: scripts/supabase-hosted-sms.sh cutover
 
       # Generates a new hook secret each run and sets it on the function and the Auth hook; the
       # hook must be disabled first. Values are masked and never printed.

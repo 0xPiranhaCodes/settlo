@@ -60,17 +60,18 @@ The numbers lapse 60 days after the last run, and a `supabase config push` remov
 
 ### Production SMS (MSG91)
 
-Real OTPs go out through the `send-sms` hook once the owner's MSG91 account, DLT template and sender id are approved (#119). After the three MSG91 values are stored as **production** environment secrets, the cutover is four dispatches from `main`:
+Real OTPs go out through the `send-sms` hook once the owner's MSG91 account, DLT template and sender id are approved (#119). After the three MSG91 values are stored as **production** environment secrets, run each dispatch from `main` and wait for it to succeed before the next (GitHub keeps only one pending run per concurrency group, so a newer dispatch replaces (cancels) any run still pending):
 
 ```sh
-gh workflow run "Supabase hosted" -f action=deploy-send-sms
-gh workflow run "Supabase hosted" -f action=set-sms-secrets   # hook secret generated, hook left disabled
-gh workflow run "Supabase hosted" -f action=enable-sms-hook   # checks deploy + secrets first
+gh workflow run "Supabase hosted" -f action=sms-cutover   # deploy, set secrets, enable; stops at the first failure
+sleep 5; gh run watch --exit-status "$(gh run list --workflow "Supabase hosted" --limit 1 --json databaseId --jq '.[0].databaseId')"
+# Send a real OTP and check it arrives, then:
 gh workflow run "Supabase hosted" -f action=clear-test-otp
-gh variable set SMS_LIVE --body true
+sleep 5; gh run watch --exit-status "$(gh run list --workflow "Supabase hosted" --limit 1 --json databaseId --jq '.[0].databaseId')"
+gh variable set SMS_LIVE --body true   # only after both runs succeeded
 ```
 
-`disable-sms-hook` turns it off again. Once `SMS_LIVE` is `true`, `clear-test-otp` and the **Release** workflow (before it builds or uploads) fail if any test number remains on the hosted project; until then both skip the check, so current release candidates keep using test numbers. Details and rotation: [supabase/README.md](../supabase/README.md#enabling-on-the-hosted-project).
+`deploy-send-sms`, `set-sms-secrets` and `enable-sms-hook` run the cutover's steps singly for recovery; run them one at a time in that order, waiting for each with `gh run watch`. `disable-sms-hook` turns the hook off again. Once `SMS_LIVE` is `true`, `clear-test-otp` and the **Release** workflow (before it builds or uploads) fail if any test number remains on the hosted project; until then both skip the check, so current release candidates keep using test numbers. Details and rotation: [supabase/README.md](../supabase/README.md#enabling-on-the-hosted-project).
 
 ### External TestFlight (Family Testers)
 

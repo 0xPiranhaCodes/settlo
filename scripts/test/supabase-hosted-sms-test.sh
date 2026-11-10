@@ -10,7 +10,9 @@ mkdir "$tmp/bin" "$tmp/api"
 
 # Fixtures: $tmp/api/<METHOD>_<path with / as _>.json (body) and .status (default 200).
 # Each request body is appended to $tmp/requests, one compact JSON per line; each argv to
-# $tmp/argv and each --config file to $tmp/configs.
+# $tmp/argv, each --config file to $tmp/configs, and each "METHOD path" (or "deploy" from the fake
+# supabase) to $tmp/calls. A successful POST /secrets or PATCH /config/auth updates the matching GET
+# fixture, so a cutover reads back what it wrote.
 cat > "$tmp/bin/curl" <<'EOF'
 #!/usr/bin/env bash
 out='' method=GET url='' data=false
@@ -26,12 +28,31 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
-key="$method$(printf '%s' "${url#https://api.supabase.com/v1/projects/ref}" | tr / _)"
-if $data; then jq -c . >> "$FAKE_API/../requests"; fi
+path="${url#https://api.supabase.com/v1/projects/ref}"
+key="$method$(printf '%s' "$path" | tr / _)"
+echo "$method $path" >> "$FAKE_API/../calls"
+body=null
+if $data; then body="$(jq -c .)"; echo "$body" >> "$FAKE_API/../requests"; fi
 cp "$FAKE_API/$key.json" "$out" 2>/dev/null || echo '{}' > "$out"
-cat "$FAKE_API/$key.status" 2>/dev/null || printf 200
+status="$(cat "$FAKE_API/$key.status" 2>/dev/null || printf 200)"
+if [[ "$status" == 2* && "$key" == POST_secrets ]]; then
+  jq -r '.[] | [.name, .value] | @tsv' <<<"$body" | while IFS=$'\t' read -r name value; do
+    jq -nc --arg n "$name" --arg d "$(printf '%s' "$value" | openssl dgst -sha256 | awk '{print $NF}')" '{name: $n, value: $d}'
+  done | jq -s . > "$FAKE_API/GET_secrets.json"
+elif [[ "$status" == 2* && "$key" == PATCH_config_auth ]]; then
+  jq -c --argjson b "$body" '. + $b' "$FAKE_API/GET_config_auth.json" > "$FAKE_API/merged" 2>/dev/null ||
+    echo "$body" > "$FAKE_API/merged"
+  mv "$FAKE_API/merged" "$FAKE_API/GET_config_auth.json"
+fi
+printf '%s' "$status"
 EOF
-chmod +x "$tmp/bin/curl"
+cat > "$tmp/bin/supabase" <<'EOF'
+#!/usr/bin/env bash
+[[ "$*" == "functions deploy send-sms --project-ref ref" ]] || exit 2
+echo deploy >> "$FAKE_API/../calls"
+exit "${FAKE_DEPLOY_STATUS:-0}"
+EOF
+chmod +x "$tmp/bin/curl" "$tmp/bin/supabase"
 
 export PATH="$tmp/bin:$PATH" FAKE_API="$tmp/api" SUPABASE_ACCESS_TOKEN=token-sentinel SUPABASE_PROJECT_REF=ref
 unset GITHUB_ACTIONS
@@ -45,7 +66,7 @@ expect() { # expect pass|fail <name> <args...>
     echo "FAIL $name (wanted $want)"; sed 's/^/     /' "$tmp/out"; fails=$((fails + 1)); fi
 }
 fixture() { printf '%s' "$2" > "$tmp/api/$1.json"; printf '%s' "${3:-200}" > "$tmp/api/$1.status"; }
-reset() { rm -f "$tmp/api/"* "$tmp/requests" "$tmp/argv" "$tmp/configs"; }
+reset() { rm -f "$tmp/api/"* "$tmp/requests" "$tmp/argv" "$tmp/configs" "$tmp/calls"; }
 sha256() { printf '%s' "$1" | openssl dgst -sha256 | awk '{print $NF}'; }
 fn_secrets() { # fn_secrets <SEND_SMS_HOOK_SECRET digest>: all four names, as GET /secrets lists them
   fixture GET_secrets "$(jq -nc --arg d "$1" '[{name: "SEND_SMS_HOOK_SECRET", value: $d},
@@ -64,6 +85,8 @@ expect pass "check-test-otp passes with no list" check-test-otp
 if grep -q token-sentinel "$tmp/argv"; then echo "FAIL the access token reached curl's argv"; fails=$((fails + 1)); fi
 grep -qx 'header = "Authorization: Bearer token-sentinel"' "$tmp/configs" ||
   { echo "FAIL the access token did not reach curl's config"; fails=$((fails + 1)); }
+if grep -v -e '--connect-timeout 10 .*--max-time 60 ' "$tmp/argv" | grep -q .; then
+  echo "FAIL a curl call has no connect or overall timeout"; fails=$((fails + 1)); fi
 fixture GET_config_auth '{}' 500
 expect fail "check-test-otp fails when the API errors" check-test-otp
 
@@ -130,6 +153,29 @@ jq -e '.hook_send_sms_enabled == true' "$tmp/requests" >/dev/null || { echo "FAI
 reset
 expect pass "disable turns the hook off" disable
 jq -e '.hook_send_sms_enabled == false' "$tmp/requests" >/dev/null || { echo "FAIL disable request body"; fails=$((fails + 1)); }
+
+# cutover: deploy, set-secrets, enable, each only after the one before succeeded
+cutover_fixtures() {
+  reset
+  fixture GET_functions_send-sms '{"status": "ACTIVE"}'
+  fixture GET_config_auth '{"hook_send_sms_enabled": false}'
+}
+calls() { tr '\n' ' ' < "$tmp/calls"; }
+cutover_fixtures
+FAKE_DEPLOY_STATUS=1 expect fail "cutover stops when the deploy fails" cutover
+[[ "$(calls)" == "deploy " ]] || { echo "FAIL cutover called the API after a failed deploy"; fails=$((fails + 1)); }
+cutover_fixtures
+fixture PATCH_config_auth '{}' 500
+expect fail "cutover stops when set-secrets fails" cutover
+if [[ "$(calls)" != "deploy GET /config/auth POST /secrets PATCH /config/auth " ]] ||
+  jq -e 'select(.hook_send_sms_enabled? == true)' "$tmp/requests" >/dev/null; then
+  echo "FAIL cutover went on to enable after set-secrets failed"; fails=$((fails + 1)); fi
+cutover_fixtures
+expect pass "cutover deploys, sets secrets, then enables" cutover
+[[ "$(calls)" == "deploy GET /config/auth POST /secrets PATCH /config/auth GET /functions/send-sms GET /secrets GET /config/auth PATCH /config/auth " ]] ||
+  { echo "FAIL cutover call order: $(calls)"; fails=$((fails + 1)); }
+jq -e '.hook_send_sms_enabled == true' "$tmp/api/GET_config_auth.json" >/dev/null ||
+  { echo "FAIL cutover left the hook disabled"; fails=$((fails + 1)); }
 
 [[ $fails -eq 0 ]] || { echo "$fails check(s) failed"; exit 1; }
 echo "All checks passed."

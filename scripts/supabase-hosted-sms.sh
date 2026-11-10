@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Hosted Send-SMS hook cutover (#119), run by the Supabase hosted and Release workflows:
-#   scripts/supabase-hosted-sms.sh set-secrets | enable | disable | check-test-otp
-# Needs SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF (set-secrets also MSG91_AUTH_KEY,
-# MSG91_TEMPLATE_ID, MSG91_SENDER_ID). Management API bodies can hold the Auth config and secrets,
+#   scripts/supabase-hosted-sms.sh deploy | set-secrets | enable | cutover | disable | check-test-otp
+# cutover runs deploy, set-secrets and enable in order and stops at the first failure.
+# Needs SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF (set-secrets and cutover also MSG91_AUTH_KEY,
+# MSG91_TEMPLATE_ID, MSG91_SENDER_ID; deploy and cutover the Supabase CLI). Management API bodies can hold the Auth config and secrets,
 # so they go to a temp file that is parsed with jq and never printed.
 # Off before anything expands a secret: an inherited `bash -x` would trace it ahead of ::add-mask::.
 { set +x; } 2>/dev/null
@@ -29,12 +30,18 @@ sha256() { printf '%s' "$1" | openssl dgst -sha256 | awk '{print $NF}'; }
 # api METHOD PATH [JSON]: prints only the status; returns 1 on a non-2xx answer.
 api() {
   local status
-  local args=(-sS -o "$body_file" -w '%{http_code}' -X "$1" "$api_base$2")
+  local args=(-sS --connect-timeout 10 --max-time 60 -o "$body_file" -w '%{http_code}' -X "$1" "$api_base$2")
   [[ $# -lt 3 ]] || args+=(-H 'Content-Type: application/json' --data-binary @-)
   # The token (as a curl config on a pipe) and the JSON (on stdin) never reach curl's argv.
   status="$(printf '%s' "${3:-}" | curl --config <(token_header) "${args[@]}")" || status=000
   echo "Management API $1 $2 answered $status"
   [[ "$status" == 2* ]]
+}
+
+# Reads verify_jwt = false from config.toml: GoTrue signs the hook call, it sends no user JWT.
+deploy() {
+  supabase functions deploy send-sms --project-ref "$SUPABASE_PROJECT_REF" ||
+    die "send-sms was not deployed; the hook was not changed."
 }
 
 set_secrets() {
@@ -105,9 +112,12 @@ check_test_otp() {
 }
 
 case "${1:-}" in
+  deploy) deploy ;;
   set-secrets) set_secrets ;;
   enable) enable ;;
+  # Each step dies on failure, so enable runs only after a successful deploy and set-secrets.
+  cutover) deploy; set_secrets; enable ;;
   disable) disable ;;
   check-test-otp) check_test_otp ;;
-  *) die "usage: $0 set-secrets|enable|disable|check-test-otp" ;;
+  *) die "usage: $0 deploy|set-secrets|enable|cutover|disable|check-test-otp" ;;
 esac
