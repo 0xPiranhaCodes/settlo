@@ -5,16 +5,48 @@ import 'package:settlo_core/settlo_core.dart';
 
 import 'fake_phone_auth.dart';
 
+final class _Invites implements InvitesRepository {
+  bool fail = false;
+  final calls = <(String, String)>[];
+
+  @override
+  Future<void> redeem(String token, {required String idempotencyKey}) async {
+    calls.add((token, idempotencyKey));
+    if (fail) throw Exception('offline');
+  }
+
+  @override
+  Future<void> decline(String token) => throw UnimplementedError();
+
+  @override
+  Future<InvitePreview?> inspect(String token) => throw UnimplementedError();
+
+  @override
+  Future<String> issueLoan(String loanId, {required String idempotencyKey}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> issueSpace(
+    String memberId, {
+    required String idempotencyKey,
+  }) => throw UnimplementedError();
+}
+
 void main() {
   late FakePhoneAuth auth;
+  late _Invites invites;
   late ProviderContainer container;
   SignInController controller() => container.read(signInProvider.notifier);
   SignInState state() => container.read(signInProvider);
 
   setUp(() {
     auth = FakePhoneAuth();
+    invites = _Invites();
     container = ProviderContainer(
-      overrides: [phoneAuthProvider.overrideWithValue(auth)],
+      overrides: [
+        phoneAuthProvider.overrideWithValue(auth),
+        invitesRepositoryProvider.overrideWithValue(invites),
+      ],
     )..listen(signInProvider, (_, _) {});
   });
   tearDown(() => container.dispose());
@@ -84,6 +116,28 @@ void main() {
       auth.failure = PhoneAuthFailure.rejected;
       await controller().verifyCode('000000');
       expect(state().error, SignInError.codeRejected);
+    });
+
+    test('redeems a pending invite with its original replay key', () async {
+      container
+          .read(pendingInviteTokenProvider.notifier)
+          .remember('capability', idempotencyKey: 'stable-key');
+      await controller().verifyCode('123456');
+
+      expect(invites.calls, [('capability', 'stable-key')]);
+      expect(container.read(pendingInviteTokenProvider), isNull);
+      expect(state().error, isNull);
+    });
+
+    test('keeps a pending invite when redemption needs a retry', () async {
+      invites.fail = true;
+      container
+          .read(pendingInviteTokenProvider.notifier)
+          .remember('capability', idempotencyKey: 'stable-key');
+      await controller().verifyCode('123456');
+
+      expect(state().error, SignInError.network);
+      expect(container.read(pendingInviteTokenProvider)?.token, 'capability');
     });
 
     test('resends to the number the code went to', () async {

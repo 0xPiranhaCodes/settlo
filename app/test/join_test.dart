@@ -144,6 +144,18 @@ void main() {
     expect(find.byType(JoinScreen), findsOneWidget);
   });
 
+  testWidgets('router exception recovery returns signed out to Welcome', (
+    tester,
+  ) async {
+    await tester.pumpWidget(fakeSessionApp(null, invites: _Invites()));
+    await tester.pumpAndSettle();
+    final router = _router(tester)..go('settlo://join/recovered-token');
+    await tester.pumpAndSettle();
+
+    expect(router.state.uri.path, SettloRoutes.welcome);
+    expect(find.byType(WelcomeScreen), findsOneWidget);
+  });
+
   test('normalizes only the supported custom-scheme shape', () {
     expect(
       invitePathForUri(Uri.parse('settlo://join/abc')),
