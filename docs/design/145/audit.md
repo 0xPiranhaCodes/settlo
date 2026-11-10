@@ -80,3 +80,37 @@ python3 scripts/compose-ui-evidence.py  # Pillow 11.3.0
 
 The comparison sheets show both viewports and themes, with before/after at 100%
 and the after view at 200%. Full-resolution source images remain beside the tests.
+
+## PR 146 fix-round checkpoint (2026-11-10)
+
+The checklist below supersedes conflicting first-round notes above. This is an
+implementation checkpoint, not a claim of final verification or merge readiness.
+No palette or font-family changes are intended; the owner explicitly approved
+growth within the Welcome/Home composition to accommodate the new type ramp.
+
+- [x] **Review fixes implemented:** 20px card / 24px hero padding, 24/32px
+  section rhythm, micro-borders and layered ambient shadows, fewer dividers,
+  42% glass tint with 28-sigma blur and local 72% legibility plates, icon-only
+  navigation at larger text sizes, single-line action labels, responsive paired
+  actions, and expanded sheet hit-target / mid-word-wrap audits.
+- [x] **Global type ramp implemented:** named Figtree HIG roles from 34px large
+  title through 12px caption, with 11px reserved for tab labels; feature-level
+  raw font sizing replaced by roles, body/input text at 17px, hero amounts
+  retained, and source/tree contract tests added.
+- [x] **Native scrolling implemented:** shared sliver scaffold with pinned glass
+  chrome and covered status region, platform refresh/physics, per-tab positions,
+  active-tab scroll-to-top, iOS status tap and swipe-back, drag keyboard dismissal,
+  panel drag/fling dismissal, haptics, native routes, and Reduce Motion handling.
+- [ ] **Finish local verification:** latest core suite passed 370 tests and
+  targeted Home/Spaces/Activity/inset suite passed 137; full app run passed 644
+  with two receipt visibility failures whose test fixes still need rerunning.
+  Profile tests currently have nine failures under investigation after migration
+  to lazy slivers. Rerun affected/full suites and obtain clean root analyze.
+- [ ] **Finish visual evidence:** review both sizes/themes at 100% and 200%,
+  regenerate authoritative Linux goldens and comparison sheets, and add pixel
+  deltas. Current local PNGs are macOS diagnostics and must not be committed as
+  Linux evidence; original before images remain the baseline.
+- [ ] **Finish delivery:** restore any temporary workflow dispatch changes so
+  `.github` has an empty base diff, verify pull_request CI on the exact final head
+  including Android debug, run `flutter clean`, push and reply on PR 146 without
+  merging, then report completion through Orca.
