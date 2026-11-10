@@ -148,8 +148,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
     ref.watch(loansProvider);
     final c = SettloColors.of(context);
     final media = MediaQuery.of(context);
-    final label = SettloTypography.figtree(
-      12,
+    final label = SettloTypography.footnote(
       letterSpacing: 0.3,
       color: c.textSecondary,
     );
@@ -248,7 +247,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
               Text(
                 principal.value == 0 ? '' : amountInWords(principal),
                 textAlign: TextAlign.center,
-                style: SettloTypography.figtree(13, color: c.textSecondary),
+                style: SettloTypography.subheadline(color: c.textSecondary),
               ),
               const SizedBox(height: SettloSpacing.x3),
               Text(_youLent ? 'TO' : 'FROM', style: label),
@@ -337,7 +336,14 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                         menuMaxHeight: 320,
                         items: [
                           for (var d = 1; d <= 28; d++)
-                            DropdownMenuItem(value: d, child: Text(ordinal(d))),
+                            DropdownMenuItem(
+                              value: d,
+                              child: Text(
+                                ordinal(d),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                         ],
                         onChanged: installment == null
                             ? null
@@ -366,8 +372,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                             maxLines: 1,
                             softWrap: false,
                             overflow: TextOverflow.fade,
-                            style: SettloTypography.figtree(
-                              15,
+                            style: SettloTypography.headline(
                               color: c.textPrimary,
                             ),
                           ),
@@ -382,7 +387,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                 Text(
                   'The monthly amount must be more than ₹0 and at most the '
                   'principal.',
-                  style: SettloTypography.figtree(13, color: c.textPrimary),
+                  style: SettloTypography.subheadline(color: c.textPrimary),
                 ),
               ],
               gap,
@@ -398,7 +403,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                 Text(
                   error,
                   textAlign: TextAlign.center,
-                  style: SettloTypography.figtree(13, color: c.textPrimary),
+                  style: SettloTypography.subheadline(color: c.textPrimary),
                 ),
                 const SizedBox(height: SettloSpacing.x2),
               ],
@@ -407,10 +412,8 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                 'WhatsApp message.$schedule\nSettlo keeps the record. It is '
                 'not a lender and never moves money.',
                 textAlign: TextAlign.center,
-                style: SettloTypography.figtree(
-                  12,
-                  color: c.textMuted,
-                ).copyWith(height: 1.5),
+                style: SettloTypography.footnote(color: c.textMuted)
+                    .copyWith(height: 1.5),
               ),
               const SizedBox(height: SettloSpacing.x2),
               SPrimaryButton(
@@ -467,6 +470,7 @@ class _Direction extends StatelessWidget {
                     minHeight: SettloSpacing.minTouchTarget,
                   ),
                   padding: const EdgeInsets.symmetric(
+                    horizontal: SettloSpacing.x2,
                     vertical: SettloSpacing.x1,
                   ),
                   alignment: Alignment.center,
@@ -474,14 +478,17 @@ class _Direction extends StatelessWidget {
                     color: lent == youLent ? c.textPrimary : null,
                     borderRadius: BorderRadius.circular(SettloRadius.compact),
                   ),
-                  child: Text(
-                    label,
-                    style: SettloTypography.figtree(
-                      14,
-                      weight: lent == youLent
-                          ? FontWeight.w500
-                          : FontWeight.w400,
-                      color: lent == youLent ? c.background : c.textSecondary,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      style: SettloTypography.body(
+                        weight: lent == youLent
+                            ? FontWeight.w500
+                            : FontWeight.w400,
+                        color: lent == youLent ? c.background : c.textSecondary,
+                      ),
                     ),
                   ),
                 ),
@@ -508,8 +515,7 @@ class _Labelled extends StatelessWidget {
         child: Text(
           label,
           maxLines: 1,
-          style: SettloTypography.figtree(
-            12,
+          style: SettloTypography.footnote(
             letterSpacing: 0.3,
             color: SettloColors.of(context).textSecondary,
           ),
@@ -555,13 +561,12 @@ class _Person extends StatelessWidget {
                 children: [
                   Text(
                     who.name,
-                    style: SettloTypography.figtree(15, color: c.textPrimary),
+                    style: SettloTypography.headline(color: c.textPrimary),
                   ),
                   if (named)
                     Text(
                       groupPhone(who.phone),
-                      style: SettloTypography.figtree(
-                        13,
+                      style: SettloTypography.subheadline(
                         color: c.textSecondary,
                       ),
                     ),
@@ -600,12 +605,12 @@ class _Interest extends StatelessWidget {
                 children: [
                   Text(
                     'Interest',
-                    style: SettloTypography.figtree(14, color: c.textPrimary),
+                    style: SettloTypography.body(color: c.textPrimary),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'Interest free · add simple or reducing later',
-                    style: SettloTypography.figtree(12, color: c.textSecondary),
+                    style: SettloTypography.footnote(color: c.textSecondary),
                   ),
                 ],
               ),

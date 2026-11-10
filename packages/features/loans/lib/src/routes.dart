@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_loans/src/confirm_repayment.dart';
@@ -25,19 +24,8 @@ final GoRoute loansTabRoute = GoRoute(
 final List<RouteBase> loansRoutes = [
   GoRoute(
     path: SettloRoutes.newLoan,
-    pageBuilder: (context, state) => CustomTransitionPage<void>(
-      key: state.pageKey,
-      opaque: false,
-      barrierDismissible: true,
-      barrierColor: SettloColors.of(context).background.withValues(alpha: 0.6),
-      transitionsBuilder: (_, animation, _, child) => SlideTransition(
-        position: Tween(begin: const Offset(0, 1), end: Offset.zero).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-        ),
-        child: child,
-      ),
-      child: const NewLoanSheet(),
-    ),
+    pageBuilder: (context, state) =>
+        SettloPage<void>(key: state.pageKey, child: const NewLoanSheet()),
   ),
   GoRoute(
     path: SettloRoutes.confirmRepaymentPattern,

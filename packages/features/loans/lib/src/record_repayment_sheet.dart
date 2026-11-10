@@ -114,7 +114,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
     final who = loan.counterparty;
     final amount = parseInr(_amount.text) ?? Paise.zero;
     final over = amount.value > loan.outstanding.value;
-    final note = SettloTypography.figtree(13, color: c.textSecondary);
+    final note = SettloTypography.subheadline(color: c.textSecondary);
     return SAmountSheet(
       title: 'Record repayment · $who',
       onClose: widget.onClose,
@@ -166,8 +166,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
           const SizedBox(height: SettloSpacing.x3),
           Text(
             'PAID BY',
-            style: SettloTypography.figtree(
-              12,
+            style: SettloTypography.footnote(
               letterSpacing: 0.3,
               color: c.textSecondary,
             ),
@@ -208,7 +207,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
             inputFormatters: [_RepaymentReferenceFormatter()],
             textCapitalization: TextCapitalization.characters,
             onChanged: (_) => setState(() => _error = null),
-            style: SettloTypography.figtree(15, color: c.textPrimary),
+            style: SettloTypography.headline(color: c.textPrimary),
             decoration: const InputDecoration(
               hintText: 'UPI or bank reference',
               counterText: '',
@@ -219,7 +218,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
             Text(
               _error ?? "That's more than is left on the loan.",
               textAlign: TextAlign.center,
-              style: SettloTypography.figtree(13, color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.textPrimary),
             ),
           ],
         ],
@@ -356,4 +355,4 @@ const _months = [
 ];
 
 TextStyle _sheetLabel(SettloColors c) =>
-    SettloTypography.figtree(12, letterSpacing: 0.3, color: c.textSecondary);
+    SettloTypography.footnote(letterSpacing: 0.3, color: c.textSecondary);
