@@ -39,6 +39,7 @@ class SettloColors extends ThemeExtension<SettloColors> {
     required this.textSecondary,
     required this.textMuted,
     required this.action,
+    required this.welcomeAction,
     required this.onAction,
     required this.glass,
     required this.glassFallback,
@@ -60,6 +61,7 @@ class SettloColors extends ThemeExtension<SettloColors> {
     textSecondary: Color(0xFF9B9D9A),
     textMuted: Color(0xFF8A8D88),
     action: Color(0xFFD8B36A), // gold
+    welcomeAction: Color(0xFFF2C77F), // welcome mock's lighter gold
     onAction: Color(0xFF0A0B0D),
     glass: Color(0x9E15171A), // 62% surface
     glassFallback: Color(0xEB15171A), // 92% surface
@@ -83,6 +85,7 @@ class SettloColors extends ThemeExtension<SettloColors> {
     textSecondary: Color(0xFF6B6B66),
     textMuted: Color(0xFF6D6B67), // was #7A7873
     action: Color(0xFF1B1B18), // ink
+    welcomeAction: Color(0xFFF2C77F), // fixed dark welcome treatment
     onAction: Color(0xFFF4F1EA),
     glass: Color(0x99FFFFFF), // 60% white
     glassFallback: Color(0xEBFFFFFF), // 92% white
@@ -129,6 +132,9 @@ class SettloColors extends ThemeExtension<SettloColors> {
   /// A tappable primary action: gold in dark, ink in light. Never progress,
   /// ticks, badges or status.
   final Color action;
+
+  /// The owner-approved lighter gold for Welcome's primary button only.
+  final Color welcomeAction;
 
   /// Text and icons on [action].
   final Color onAction;
@@ -185,6 +191,11 @@ class SettloColors extends ThemeExtension<SettloColors> {
         background: surfaceHighest,
       ),
       (name: 'onAction on action', text: onAction, background: action),
+      (
+        name: 'onAction on welcomeAction',
+        text: SettloColors.dark.onAction,
+        background: welcomeAction,
+      ),
       (name: 'textPrimary on glass', text: textPrimary, background: glassOver),
       (name: 'textMuted on glass', text: textMuted, background: glassOver),
     ];
@@ -209,6 +220,7 @@ class SettloColors extends ThemeExtension<SettloColors> {
       textSecondary: l(textSecondary, other.textSecondary),
       textMuted: l(textMuted, other.textMuted),
       action: l(action, other.action),
+      welcomeAction: l(welcomeAction, other.welcomeAction),
       onAction: l(onAction, other.onAction),
       glass: l(glass, other.glass),
       glassFallback: l(glassFallback, other.glassFallback),

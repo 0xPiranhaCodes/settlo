@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_auth/src/widgets.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -28,119 +29,138 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     // The welcome art direction is deliberately dark in both system themes.
-    return Theme(
-      data: SettloTheme.dark(),
-      child: Builder(
-        builder: (context) {
-          final colors = SettloColors.of(context);
-          return Scaffold(
-            body: Stack(
-              children: [
-                Positioned.fill(
-                  child: ExcludeSemantics(
-                    child: CustomPaint(
-                      painter: _WelcomeBackgroundPainter(
-                        background: colors.background,
-                        gold: colors.action,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Theme(
+        data: SettloTheme.dark(),
+        child: Builder(
+          builder: (context) {
+            final colors = SettloColors.of(context);
+            return Scaffold(
+              body: Stack(
+                children: [
+                  Positioned.fill(
+                    child: ExcludeSemantics(
+                      child: CustomPaint(
+                        painter: _WelcomeBackgroundPainter(
+                          background: colors.background,
+                          gold: colors.action,
+                          highlight: colors.textPrimary,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                SafeArea(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) => SingleChildScrollView(
-                      padding: const EdgeInsets.all(SettloSpacing.x3),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: math.max(
-                            0,
-                            constraints.maxHeight - SettloSpacing.x6,
+                  SafeArea(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) => SingleChildScrollView(
+                        padding: const EdgeInsets.all(SettloSpacing.x3),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: math.max(
+                              0,
+                              constraints.maxHeight - SettloSpacing.x6,
+                            ),
                           ),
-                        ),
-                        child: IntrinsicHeight(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              const Align(
-                                alignment: Alignment.centerLeft,
-                                child: SettloMark(size: 30),
-                              ),
-                              SizedBox(
-                                height: constraints.maxHeight >= 820 ? 136 : 96,
-                              ),
-                              Semantics(
-                                header: true,
-                                child: Text(
-                                  'Money between friends,\nfinally settled.',
+                          child: IntrinsicHeight(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: SettloMark(size: 30),
+                                ),
+                                SizedBox(
+                                  height: constraints.maxHeight >= 820
+                                      ? 136
+                                      : 96,
+                                ),
+                                Semantics(
+                                  header: true,
+                                  child: Text(
+                                    'Money between friends,\nfinally settled.',
+                                    style: SettloTypography.figtree(
+                                      31,
+                                      color: colors.textPrimary,
+                                    ).copyWith(height: 1.13),
+                                  ),
+                                ),
+                                const SizedBox(height: SettloSpacing.x2),
+                                Text(
+                                  'Flatmates, trips, and the ₹10 lakh you lent '
+                                  'your '
+                                  'friend — one quiet ledger you both can see.',
                                   style: SettloTypography.figtree(
-                                    32,
-                                    weight: FontWeight.w500,
-                                    letterSpacing: -0.9,
-                                    color: colors.textPrimary,
-                                  ).copyWith(height: 1.08),
+                                    15,
+                                    color: colors.textSecondary,
+                                  ).copyWith(height: 1.5),
                                 ),
-                              ),
-                              const SizedBox(height: SettloSpacing.x2),
-                              Text(
-                                'Flatmates, trips, and the ₹10 lakh you lent '
-                                'your '
-                                'friend — one quiet ledger you both can see.',
-                                style: SettloTypography.figtree(
-                                  15,
-                                  color: colors.textSecondary,
-                                ).copyWith(height: 1.5),
-                              ),
-                              const SizedBox(height: SettloSpacing.x5),
-                              const _AvatarStack(),
-                              const SizedBox(height: SettloSpacing.x5),
-                              const _ExampleCard(
-                                semanticsLabel:
-                                    'Example: Rahul owes you 750 rupees. '
-                                    'Flat 402, groceries, wifi.',
-                                initial: 'R',
-                                title: 'Rahul owes you',
-                                detail: 'Flat 402 · groceries, wifi',
-                                amount: '₹750',
-                              ),
-                              const SizedBox(height: 12),
-                              const _ExampleCard(
-                                semanticsLabel:
-                                    'Example: Arjun repaid 25,000 rupees. '
-                                    '13 of 40, on schedule.',
-                                initial: 'A',
-                                title: 'Arjun repaid',
-                                detail: '13 of 40 · on schedule',
-                                amount: '₹25,000',
-                              ),
-                              const Spacer(),
-                              const SizedBox(height: SettloSpacing.x4),
-                              AuthButton(
-                                label: 'Continue with phone number',
-                                arrow: true,
-                                onPressed: _continue,
-                              ),
-                              const SizedBox(height: 14),
-                              Text(
-                                'No email. No password. Your number is your '
-                                'account.',
-                                textAlign: TextAlign.center,
-                                style: SettloTypography.figtree(
-                                  12,
-                                  color: colors.textMuted,
+                                const SizedBox(height: SettloSpacing.x5),
+                                const _AvatarStack(),
+                                const SizedBox(height: SettloSpacing.x5),
+                                const _ExampleCard(
+                                  semanticsLabel:
+                                      'Example: Rahul owes you 750 rupees. '
+                                      'Flat 402, groceries, wifi.',
+                                  initial: 'R',
+                                  title: 'Rahul owes you',
+                                  detail: 'Flat 402 · groceries, wifi',
+                                  amount: '₹750',
                                 ),
-                              ),
-                              const SizedBox(height: SettloSpacing.x6),
-                            ],
+                                const SizedBox(height: 12),
+                                const _ExampleCard(
+                                  semanticsLabel:
+                                      'Example: Arjun repaid 25,000 rupees. '
+                                      '13 of 40, on schedule.',
+                                  initial: 'A',
+                                  title: 'Arjun repaid',
+                                  detail: '13 of 40 · on schedule',
+                                  amount: '₹25,000',
+                                ),
+                                const Spacer(),
+                                const SizedBox(height: SettloSpacing.x4),
+                                Theme(
+                                  data: Theme.of(context).copyWith(
+                                    filledButtonTheme: FilledButtonThemeData(
+                                      style: Theme.of(context)
+                                          .filledButtonTheme
+                                          .style
+                                          ?.copyWith(
+                                            backgroundColor:
+                                                WidgetStatePropertyAll<Color>(
+                                                  colors.welcomeAction,
+                                                ),
+                                          ),
+                                    ),
+                                  ),
+                                  child: AuthButton(
+                                    label: 'Continue with phone number',
+                                    arrow: true,
+                                    onPressed: _continue,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                Text(
+                                  'No email. No password. Your number is your '
+                                  'account.',
+                                  textAlign: TextAlign.center,
+                                  style: SettloTypography.figtree(
+                                    12,
+                                    color: colors.textMuted,
+                                  ),
+                                ),
+                                const SizedBox(height: SettloSpacing.x6),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -361,45 +381,26 @@ class _ExampleCard extends StatelessWidget {
 }
 
 class _WelcomeBackgroundPainter extends CustomPainter {
-  const new({required this.background, required this.gold});
+  const new({
+    required this.background,
+    required this.gold,
+    required this.highlight,
+  });
 
   final Color background;
   final Color gold;
+  final Color highlight;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, Paint()..color = background);
 
-    void glow(Offset center, double radius) {
-      canvas.drawCircle(
-        center,
-        radius,
-        Paint()
-          ..shader = RadialGradient(
-            colors: [
-              gold.withValues(alpha: 0.13),
-              gold.withValues(alpha: 0.045),
-              gold.withValues(alpha: 0),
-            ],
-          ).createShader(Rect.fromCircle(center: center, radius: radius)),
-      );
-    }
-
-    glow(Offset(size.width * 0.96, size.height * 0.07), size.width * 0.55);
-    glow(Offset(size.width * 0.02, size.height * 0.98), size.width * 0.48);
-
-    final line = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8
-      ..color = gold.withValues(alpha: 0.78)
-      ..strokeCap = StrokeCap.round;
-
     final topArc = Path()
-      ..moveTo(size.width * 0.34, -4)
+      ..moveTo(size.width * 0.37, -4)
       ..quadraticBezierTo(
-        size.width * 0.76,
-        size.height * 0.07,
-        size.width + 8,
+        size.width * 0.82,
+        size.height * 0.065,
+        size.width + 12,
         size.height * 0.32,
       );
     final bottomArc = Path()
@@ -410,12 +411,45 @@ class _WelcomeBackgroundPainter extends CustomPainter {
         size.width * 0.48,
         size.height + 8,
       );
-    canvas
-      ..drawPath(topArc, line)
-      ..drawPath(bottomArc, line);
+    final bounds = Offset.zero & size;
+    final hot = Color.lerp(gold, highlight, 0.96)!;
+    final topShader = LinearGradient(
+      colors: [gold.withValues(alpha: 0.08), hot, gold.withValues(alpha: 0.06)],
+      stops: const [0.3, 0.66, 1],
+    ).createShader(bounds);
+    final bottomShader = LinearGradient(
+      colors: [gold.withValues(alpha: 0.22), hot, gold.withValues(alpha: 0)],
+      stops: const [0, 0.12, 0.52],
+    ).createShader(bounds);
+
+    void drawGlowingArc(Path path, Shader shader) {
+      canvas
+        ..drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 5.5
+            ..strokeCap = StrokeCap.round
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.2)
+            ..shader = shader,
+        )
+        ..drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.5
+            ..strokeCap = StrokeCap.round
+            ..shader = shader,
+        );
+    }
+
+    drawGlowingArc(topArc, topShader);
+    drawGlowingArc(bottomArc, bottomShader);
   }
 
   @override
   bool shouldRepaint(_WelcomeBackgroundPainter oldDelegate) =>
-      oldDelegate.background != background || oldDelegate.gold != gold;
+      oldDelegate.background != background ||
+      oldDelegate.gold != gold ||
+      oldDelegate.highlight != highlight;
 }
