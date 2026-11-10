@@ -361,36 +361,35 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
     String detail(String amount) => b.value == 0
         ? 'Added to ${space.name} as $number'
         : '$amount in ${space.name} is recorded against $number';
-    return Semantics(
-      button: true,
-      label: 'Send ${member.name} an invite on WhatsApp',
-      child: SPressable(
-        ringRadius: BorderRadius.circular(SettloRadius.card),
-        onTap: _busy ? null : _send,
-        child: SCard(
-          child: Row(
-            children: [
-              SAvatar(member.name, size: 36),
-              const SizedBox(width: SettloSpacing.x2),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "${member.name} hasn't joined yet",
-                      style: SettloTypography.body(color: c.textPrimary),
-                    ),
-                    Text(
-                      detail(formatInr(Paise(b.value.abs()))),
-                      semanticsLabel: detail(spokenInr(Paise(b.value.abs()))),
-                      style: SettloTypography.footnote(color: c.textSecondary)
-                          .copyWith(height: 1.3),
-                    ),
-                  ],
-                ),
+    return SPressable(
+      label:
+          'Send ${member.name} an invite on WhatsApp. '
+          '${detail(spokenInr(Paise(b.value.abs())))}',
+      ringRadius: BorderRadius.circular(SettloRadius.card),
+      onTap: _busy ? null : _send,
+      child: SCard(
+        child: Row(
+          children: [
+            SAvatar(member.name, size: 36),
+            const SizedBox(width: SettloSpacing.x2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${member.name} hasn't joined yet",
+                    style: SettloTypography.body(color: c.textPrimary),
+                  ),
+                  Text(
+                    detail(formatInr(Paise(b.value.abs()))),
+                    semanticsLabel: detail(spokenInr(Paise(b.value.abs()))),
+                    style: SettloTypography.footnote(color: c.textSecondary)
+                        .copyWith(height: 1.3),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -423,38 +423,37 @@ class _Tabs extends StatelessWidget {
             children: [
               for (final (label, route, selected) in tabs)
                 Expanded(
-                  child: Semantics(
-                    button: true,
+                  child: SPressable(
                     selected: selected,
-                    child: SPressable(
-                      ringRadius: BorderRadius.circular(SettloRadius.compact),
-                      onTap: selected ? null : () => context.go(route),
-                      child: SizedBox(
-                        height: SettloSpacing.minTouchTarget,
-                        child: Center(
-                          child: Container(
-                            height: 34,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: selected ? c.surfaceHighest : null,
-                              borderRadius: BorderRadius.circular(
-                                SettloRadius.compact,
-                              ),
+                    ringRadius: BorderRadius.circular(SettloRadius.compact),
+                    onTap: () {
+                      if (!selected) context.go(route);
+                    },
+                    child: SizedBox(
+                      height: SettloSpacing.minTouchTarget,
+                      child: Center(
+                        child: Container(
+                          height: 34,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: selected ? c.surfaceHighest : null,
+                            borderRadius: BorderRadius.circular(
+                              SettloRadius.compact,
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                label,
-                                maxLines: 1,
-                                style: SettloTypography.subheadline(
-                                  weight: selected
-                                      ? FontWeight.w500
-                                      : FontWeight.w400,
-                                  color: selected
-                                      ? c.textPrimary
-                                      : c.textSecondary,
-                                ),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              label,
+                              maxLines: 1,
+                              style: SettloTypography.subheadline(
+                                weight: selected
+                                    ? FontWeight.w500
+                                    : FontWeight.w400,
+                                color: selected
+                                    ? c.textPrimary
+                                    : c.textSecondary,
                               ),
                             ),
                           ),

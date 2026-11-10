@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -196,6 +197,27 @@ SpaceSummary _settledFlat() {
 }
 
 void main() {
+  testWidgets('selected space tab has one enabled button announcement', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pump(
+      tester,
+      FakeSpacesRepository(spacesList),
+      initialLocation: SettloRoutes.space(spacesList.first.id),
+    );
+    final tab = find.bySemanticsLabel('Expenses');
+    expect(tab, findsOneWidget);
+    final flags = tester.getSemantics(tab).getSemanticsData().flagsCollection;
+    expect(flags.isButton, isTrue);
+    expect(flags.isSelected, Tristate.isTrue);
+    expect(flags.isEnabled, isNot(Tristate.isFalse));
+    await tester.tap(find.text('Expenses'));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Expenses'), findsOneWidget);
+    handle.dispose();
+  });
+
   test('spacesProvider creates a space and reloads it into the list', () async {
     final repository = FakeSpacesRepository(spacesList);
     final c = ProviderContainer(
