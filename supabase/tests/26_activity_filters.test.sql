@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(97);
+select plan(172);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000009301', '919930000001', now()),
@@ -97,85 +97,186 @@ select ok(has_table_privilege('authenticated', 'public.activity_seen', 'select')
 select is((select count(*)::int from pg_proc where proname = 'activity_feed' and pronamespace = 'public'::regnamespace), 1,
   'activity_feed has one signature, so a call naming only the old arguments is not ambiguous');
 
--- Redaction: the app's rule (redactPhones), case for case. Expected values are what the app's own
--- function returns for the same input. Invisible characters, spaces other than U+0020 and
--- characters outside the BMP are written as escapes so the file shows what it tests.
-select is(private.redact_phones(c.input), c.want, 'redact: ' || c.what) from (values
+-- Redaction. The server is the authority and may be stricter than the app, never laxer. Each case
+-- is an input, what the app's own redactPhones returns for it (app), and what the server must
+-- return (want). Two checks per case: the server returns want, and it redacts at least everything
+-- the app does, that is, redacting the app's output leaves nothing the server would have kept:
+-- server(app) = server(input). Invisible characters, marks outside Devanagari, spaces other than
+-- U+0020 and characters outside the BMP are written as escapes so the file shows what it tests.
+create temp table redaction_cases (n int generated always as identity, input text, app text, want text, what text);
+-- Where the app and the server agree.
+insert into redaction_cases (input, app, want, what) values
   (E'Call +९१ ९८०००–००००९ / 9\u200C8000 00009',
+   E'Call •••• / ••••',
    E'Call •••• / ••••', E'the reviewer''s probe: Devanagari with +91 and an en dash, and a zero-width non-joiner'),
   (E'फ़ोन ९८०००००००९ पर',
+   E'फ़ोन •••• पर',
    E'फ़ोन •••• पर', E'Devanagari digits'),
   (E'৯৮০০০০০০০৯',
+   E'••••',
    E'••••', E'Bengali digits'),
   (E'９８０００００００９',
+   E'••••',
    E'••••', E'fullwidth digits'),
   (E'٩٨٠٠٠٠٠٠٠٩',
+   E'••••',
    E'••••', E'Arabic-Indic digits'),
   (E'x \U0001D7D7\U0001D7D6\U0001D7CE\U0001D7CE\U0001D7CE\U0001D7CE\U0001D7CE\U0001D7CE\U0001D7CE\U0001D7D7',
+   E'x ••••',
    E'x ••••', E'digits outside the BMP (mathematical bold)'),
   (E'98०००০০০০9',
+   E'••••',
    E'••••', E'scripts mixed inside one number'),
   (E'98000\u200D00009',
+   E'••••',
    E'••••', E'a zero-width joiner inside'),
   (E'9\u200B8\u200B0\u200B0\u200B0\u200B0\u200B0\u200B0\u200B0\u200B9',
+   E'••••',
    E'••••', E'a zero-width space between every digit'),
   (E'\u200E98000\u00AD00009',
+   E'\u200E••••',
    E'\u200E••••', E'a left-to-right mark before and a soft hyphen inside'),
   (E'+9\u20601 9800000009',
+   E'••••',
    E'••••', E'a word joiner inside the +91'),
   (E'98000—00009',
+   E'••••',
    E'••••', E'an em dash'),
   (E'98000–00009',
+   E'••••',
    E'••••', E'an en dash'),
   (E'９８０００－００００９',
+   E'••••',
    E'••••', E'a fullwidth hyphen between fullwidth digits'),
   (E'+91\u00A098000\u00A000009',
+   E'••••',
    E'••••', E'no-break spaces'),
   (E'98000\u300000009',
+   E'••••',
    E'••••', E'an ideographic space'),
   (E'98000\u2009 00009',
+   E'••••',
    E'••••', E'a thin space and a space'),
   (E'98000.00009',
+   E'••••',
    E'••••', E'dots'),
   (E'9.8.0.0.0.0.0.0.0.9',
+   E'••••',
    E'••••', E'a dot between every digit'),
   (E'(+91) 98000.00009',
+   E'••••',
    E'••••', E'parentheses and a dot'),
   (E'Ask Riya (98000) 00009 today',
+   E'Ask Riya •••• today',
    E'Ask Riya •••• today', E'parentheses around the first half'),
   (E'+919800000009',
+   E'••••',
    E'••••', E'prefix +91, joined'),
   (E'+91 98000 00009',
+   E'••••',
    E'••••', E'prefix +91, spaced'),
   (E'UTR 919800000009',
+   E'UTR ••••',
    E'UTR ••••', E'prefix 91, joined, in a sentence'),
   (E'91-98000-00009',
+   E'••••',
    E'••••', E'prefix 91, hyphens'),
   (E'09800000009',
+   E'••••',
    E'••••', E'prefix 0, joined'),
   (E'0 98000 00009',
+   E'••••',
    E'••••', E'prefix 0, spaced'),
   (E'(0)9800000009',
+   E'••••',
    E'••••', E'prefix 0 in parentheses'),
   (E'9800000009 9800000010',
+   E'•••• ••••',
    E'•••• ••••', E'two numbers a space apart'),
   (E'कमरा १२\u00A0— 98000 00009 🎉',
+   E'कमरा १२\u00A0— •••• 🎉',
    E'कमरा १२\u00A0— •••• 🎉', E'the rest is returned as written: its own digits, no-break space, dash and emoji'),
   (E'19800000009',
+   E'19800000009',
    E'19800000009', E'11 digits with no trunk prefix is not a phone'),
   (E'980000000',
+   E'980000000',
    E'980000000', E'9 digits is not a phone'),
   (E'Ref 4321 8812 0099 1234',
+   E'Ref 4321 8812 0099 1234',
    E'Ref 4321 8812 0099 1234', E'a card-like run is not a phone'),
   (E'₹10,00,000 on 2026-11-05, ref 12345',
+   E'₹10,00,000 on 2026-11-05, ref 12345',
    E'₹10,00,000 on 2026-11-05, ref 12345', E'amounts and dates are not phones'),
   (E'98000 - 00009',
+   E'98000 - 00009',
    E'98000 - 00009', E'three separators break a number'),
   (E'9198000000091',
+   E'9198000000091',
    E'9198000000091', E'13 digits is not a phone'),
   (E'',
-   E'', E'an empty note')
-) c(input, want, what);
+   E'',
+   E'', E'an empty note');
+-- Where the server is stricter: lookalike digits (folded by NFKC) and nonspacing or enclosing
+-- marks (dropped), neither of which the app folds; and what must still be left alone.
+insert into redaction_cases (input, app, want, what) values
+  (E'Call 9\u034F8\u034F0\u034F0\u034F0\u034F0\u034F0\u034F0\u034F0\u034F9',
+   E'Call 9\u034F8\u034F0\u034F0\u034F0\u034F0\u034F0\u034F0\u034F0\u034F9',
+   E'Call ••••', E'the reviewer''s repro: a combining grapheme joiner (U+034F) between every digit'),
+  (E'9\uFE0F8\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F9 ok',
+   E'9\uFE0F8\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F9 ok',
+   E'•••• ok', E'the reviewer''s repro: a variation selector (U+FE0F) between every digit'),
+  (E'Call 9\u034F8\u034F0\u034F0\u034F0\u034F0\u034F0\u034F0\u034F0\u034F9 / 9\uFE0F8\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F9',
+   E'Call 9\u034F8\u034F0\u034F0\u034F0\u034F0\u034F0\u034F0\u034F0\u034F9 / 9\uFE0F8\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F9',
+   E'Call •••• / ••••', E'the reviewer''s repro, whole'),
+  (E'Call ⑨⑧⓪⓪⓪⓪⓪⓪⓪⑨',
+   E'Call ⑨⑧⓪⓪⓪⓪⓪⓪⓪⑨',
+   E'Call ••••', E'circled digits'),
+  (E'⁹⁸⁰⁰⁰⁰⁰⁰⁰⁹ now',
+   E'⁹⁸⁰⁰⁰⁰⁰⁰⁰⁹ now',
+   E'•••• now', E'superscript digits'),
+  (E'₉₈₀₀₀₀₀₀₀₉',
+   E'₉₈₀₀₀₀₀₀₀₉',
+   E'••••', E'subscript digits'),
+  (E'⁺⁹¹ ⑨⑧⓪⓪⓪ ⓪⓪⓪⓪⑨',
+   E'⁺⁹¹ ⑨⑧⓪⓪⓪ ⓪⓪⓪⓪⑨',
+   E'••••', E'superscript +91 and circled digits, spaced'),
+  (E'⑼⑻⑴⑴⑴⑴⑴⑴⑴⑼',
+   E'⑼⑻⑴⑴⑴⑴⑴⑴⑴⑼',
+   E'••••', E'parenthesised digits'),
+  (E'⒐⒏⒈⒈⒈⒈⒈⒈⒈⒐',
+   E'⒐⒏⒈⒈⒈⒈⒈⒈⒈⒐',
+   E'••••', E'digits with a full stop'),
+  (E'9\uFE0F\u20E38\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E39\uFE0F\u20E3 ok',
+   E'9\uFE0F\u20E38\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E30\uFE0F\u20E39\uFE0F\u20E3 ok',
+   E'•••• ok', E'keycap digits'),
+  (E'9\U000E01008\U000E01000\U000E01000\U000E01000\U000E01000\U000E01000\U000E01000\U000E01000\U000E01009',
+   E'9\U000E01008\U000E01000\U000E01000\U000E01000\U000E01000\U000E01000\U000E01000\U000E01000\U000E01009',
+   E'••••', E'a supplementary variation selector (U+E0100) between digits'),
+  (E'9\u03368\u03360\u03360\u03360\u03360\u03360\u03360\u03360\u03369\u0336',
+   E'9\u03368\u03360\u03360\u03360\u03360\u03360\u03360\u03360\u03369\u0336',
+   E'••••', E'a combining strike-through on every digit'),
+  (E'9\u20DD8\u20DD0\u20DD0\u20DD0\u20DD0\u20DD0\u20DD0\u20DD0\u20DD9\u20DD',
+   E'9\u20DD8\u20DD0\u20DD0\u20DD0\u20DD0\u20DD0\u20DD0\u20DD0\u20DD9\u20DD',
+   E'••••', E'an enclosing circle on every digit'),
+  (E'98⓪⓪⁰⁰००09',
+   E'98⓪⓪⁰⁰००09',
+   E'••••', E'plain, circled, superscript and Devanagari digits in one number'),
+  (E'x ⑳12345678',
+   E'x ⑳12345678',
+   E'x ••••', E'one character that is two digits (U+2473 is 20) starts a number'),
+  (E'Seat ⑳, row ⑫',
+   E'Seat ⑳, row ⑫',
+   E'Seat ⑳, row ⑫', E'circled numbers that are not a phone stay'),
+  (E'x² + y² = 10',
+   E'x² + y² = 10',
+   E'x² + y² = 10', E'superscripts in a sum stay'),
+  (E'किराया ₹१२,००० क्यों? café',
+   E'किराया ₹१२,००० क्यों? café',
+   E'किराया ₹१२,००० क्यों? café', E'text with its own combining marks stays as written');
+select is(private.redact_phones(c.input), c.want, 'redact: ' || c.what) from redaction_cases c order by c.n;
+select is(private.redact_phones(c.app), private.redact_phones(c.input),
+          'redact, at least what the app does: ' || c.what) from redaction_cases c order by c.n;
 select is(private.redact_phones(c.input, true), c.want, 'redact, as a reference: ' || c.what) from (values
   (E'432188120099',
    E'432188120099', E'a whole 12-digit UTR is kept'),
@@ -305,6 +406,14 @@ select lives_ok(format('select public.question_activity(%s, %L)', (select s1 fro
 select is((select q ->> 'note' from public.activity_feed() f, jsonb_array_elements(f.questions) q
             where f.id = (select s1 from x) and (q ->> 'by_me')::boolean),
   'Call •••• / ••••, or ••••, ••••, ••••', 'note: none of them is stored or returned');
+-- The second review's repro, and the lookalikes: marks between digits, circled and superscript digits.
+select lives_ok(format('select public.question_activity(%s, %L)', (select s1 from x),
+    E'Call 9\u034F8\u034F0\u034F0\u034F0\u034F0\u034F0\u034F0\u034F0\u034F9 / 9\uFE0F8\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F0\uFE0F9'
+    || E', ⑨⑧⓪⓪⓪⓪⓪⓪⓪⑨ or ⁹⁸⁰⁰⁰⁰⁰⁰⁰⁹'),
+  'note: B sends numbers split by U+034F and U+FE0F, and in circled and superscript digits');
+select is((select q ->> 'note' from public.activity_feed() f, jsonb_array_elements(f.questions) q
+            where f.id = (select s1 from x) and (q ->> 'by_me')::boolean),
+  'Call •••• / ••••, •••• or ••••', 'note: none of them is stored or returned');
 select lives_ok(format('select public.question_activity(%s, %L)', (select s1 from x), 'Why did this go up?'),
   'note: B asks the first question again');
 select pg_temp.login('00000000-0000-0000-0000-000000009303');

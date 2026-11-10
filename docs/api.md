@@ -783,13 +783,18 @@ be an accepted, active member of the row's space and not the editor; anything el
 included, gets the same `42501`, so the call cannot probe for rows. The note is trimmed and must be
 1 to 280 characters (`22023`).
 
-Indian phone numbers in it are replaced with `••••` on write, by `private.redact_phones`, the
-app's `redactPhones` rule in full: 10 digits, optionally led by `+91`, `91` or `0`, with up to two
-spaces, dashes, dots or parentheses between digits, in any script's digits (`Nd`), with any space
-(`Zs`) or dash (`Pd`), and with invisible format characters (`Cf`) ignored. So a client that
-redacts nothing still cannot store a number. The helper also carries the rule's exemption for a
-reference that is exactly 12 contiguous digits (a UTR); notes are free text and do not use it. The
-app still redacts before sending and when showing a note, as a second line.
+Indian phone numbers in it are replaced with `••••` on write, by `private.redact_phones`. The
+server is the authority here: it starts from the app's `redactPhones` rule and is stricter. A
+number is 10 digits, optionally led by `+91`, `91` or `0`, with up to two spaces, dashes, dots or
+parentheses between digits. It is looked for in a folded copy of the note: NFKC first, so circled,
+superscript, subscript, parenthesised and fullwidth digits read as plain ones; then any script's
+digits (`Nd`), any space (`Zs`) and any dash (`Pd`) are folded; and nonspacing and enclosing marks
+(`Mn`, `Me`, which include U+034F and the variation selectors U+FE00–FE0F and U+E0100–E01EF) and
+invisible format characters (`Cf`) are dropped. The match is then redacted in the original text.
+So a client that redacts nothing still cannot store a number. The helper also carries the rule's
+exemption for a reference that is exactly 12 contiguous digits (a UTR); notes are free text and do
+not use it. The app still redacts before sending and when showing a note, as a second line; it
+does not fold lookalike digits or marks, which is why the server does.
 
 One note per member per row: asking again replaces the caller's note. The same note again changes
 nothing, so a replay is harmless and there is no idempotency key; a changed note counts as asked
