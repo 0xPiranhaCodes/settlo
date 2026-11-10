@@ -24,8 +24,49 @@ The checked evidence above is bound to issue [#65](https://github.com/0xPiranhaC
 
 The evidence above is bound to issue [#92](https://github.com/0xPiranhaCodes/settlo/issues/92). The gate is not merge-ready until the final hosted checks are green and the merge rule below is satisfied.
 
+## Internal builds (TestFlight)
+
+Signing is described in [ADR 0014](adr/0014-ios-release-signing.md), and the test-number sign-in in [the owner decision](decisions/2026-11-10-testflight-test-otp.md). Android (Play internal) is a stub job in the same workflow until a Play Console account exists.
+
+### Cutting a build
+
+1. Apply migrations to the hosted project: run **Supabase hosted** with `db-push`, read the dry run, then run it again with **apply** ticked. The first migration push also enables `pg_cron`.
+
+   ```sh
+   gh workflow run "Supabase hosted" -f action=db-push
+   gh workflow run "Supabase hosted" -f action=db-push -f apply=true
+   ```
+
+2. Tag a commit that is green on `main` and push the tag. `v0.1.0-rc1` builds version `0.1.0`; the build number is the workflow's run number.
+
+   ```sh
+   git tag v0.1.0-rc1 && git push origin v0.1.0-rc1
+   ```
+
+3. **Release** builds against the hosted project, signs, uploads, and waits until App Store Connect reports the build `VALID`. Do not re-run a run that has uploaded; push a new tag.
+
+### Test numbers
+
+The owner keeps the list. To set or change it, store it as a secret and run the workflow; nothing is committed or printed.
+
+```sh
+gh secret set HOSTED_TEST_OTP   # paste <number>=<code>,<number>=<code> (country code, no +)
+gh workflow run "Supabase hosted" -f action=set-test-otp
+```
+
+The numbers lapse 60 days after the last run, and a `supabase config push` removes them; re-run the workflow in either case.
+
+### First TestFlight checklist
+
+- [ ] A fresh install from TestFlight signs in with a test number against the hosted project.
+- [ ] The flatmate flow works end to end between two testers: invite, expense, settle-up, confirm.
+- [ ] On a real iPhone (iOS 16.2+), a pending settle-up shows the Live Activity on the lock screen and in the Dynamic Island, with "A flatmate" in place of any number (#105).
+- [ ] **Confirm** in the expanded island opens the confirm sheet.
+- [ ] The activity ends on confirm, on dispute and on sign-out.
+
 ## M6 Release gate
 
+- [ ] The test OTP numbers are gone from the hosted project: **Supabase hosted** has run with `clear-test-otp`, and the `HOSTED_TEST_OTP` secret is deleted (#119).
 - [ ] Store listings are complete for iOS and Android.
 - [ ] App Store and Play Store privacy labels match the app's actual data collection and use.
 - [ ] Final release screenshots are approved, including the 390x844 and 360x800 layouts.

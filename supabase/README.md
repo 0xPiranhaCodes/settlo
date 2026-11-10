@@ -54,6 +54,9 @@ phone login is off locally.
   `[auth.hook.send_sms]`. `config push` sends unresolved `env(...)` values as literals, and a
   declared `enabled = false` would turn off the Dashboard hook. See
   [Send-SMS hook](#send-sms-hook-msg91) below.
+- Migrations reach the hosted project through the manual **Supabase hosted** workflow
+  (`.github/workflows/supabase-hosted.yml`): a dry run first, then `apply`. The same workflow sets
+  and clears the hosted test OTP numbers; see [docs/release.md](../docs/release.md#internal-builds-testflight).
 - To push config safely, run the **raw** CLI from the repo root (never the wrapper, which refuses):
   `supabase link --project-ref <ref>`, then `supabase config diff`, check that the diff has no
   `test_otp`, `twilio` or `hook`, then `supabase config push`.
