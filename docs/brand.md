@@ -72,7 +72,7 @@ Read against the implementation at landing-page base `ca9ee2c84aac85feb4ec742c6b
 | Live Activity for pending settle-up, not loan repayment | `packages/platform/lib/src/live_activity.dart` |
 | CSV and summary PDF / loan statements | `packages/features/profile/lib/src/export_sheet.dart`; `packages/features/loans/lib/src/statement_button.dart` |
 | Mumbai hosting, no contacts upload, no tracking | `site/privacy/index.html` where/what/website; `docs/context-pack.md` |
-| Account deletion and retained shared records | `packages/features/profile/lib/src/screens.dart` `_deleteAccount`; `docs/api.md` account deletion; privacy policy deletion section |
+| In-app Profile › Delete account takes effect at once and cannot be undone; email settlo@hellojosh.studio if unable to sign in; shared records remain with the other people | `packages/features/profile/lib/src/screens.dart` `_deleteAccount`; `packages/features/profile/lib/src/profile_repository.dart` → `delete_account`; `docs/api.md` account deletion; email fallback wording aligned with PR #143 |
 | iPhone TestFlight beta; Android later; operator/contact | Issue #140 and owner assignment; no unsupported public installation link |
 
 Privacy/support policy wording belongs to PR #143. This change only adjusts their document metadata; shared CSS restyles the content without rewriting it.
