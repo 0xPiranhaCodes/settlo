@@ -246,7 +246,7 @@ class _Frame extends StatelessWidget {
                 const SizedBox(width: SettloSpacing.minTouchTarget - 12),
               ],
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: SettloSpacing.x3),
             if (label case final label?) ...[
               Text(
                 label,
@@ -298,14 +298,14 @@ class _PaymentRow extends StatelessWidget {
         constraints: const BoxConstraints(
           minHeight: SettloSpacing.minTouchTarget,
         ),
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: c.hairline)),
         ),
         child: Row(
           children: [
             SAvatar(other.name, size: 32),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +325,7 @@ class _PaymentRow extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             MoneyText(
               payment.amount,
               tone: youPay ? MoneyTone.youOwe : MoneyTone.owedToYou,
@@ -353,14 +353,14 @@ class _WaitingRow extends StatelessWidget {
         constraints: const BoxConstraints(
           minHeight: SettloSpacing.minTouchTarget,
         ),
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: c.hairline)),
         ),
         child: Row(
           children: [
             SAvatar(payment.to.name, size: 32),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +380,7 @@ class _WaitingRow extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: SettloSpacing.x2),
             MoneyText(payment.amount, tone: MoneyTone.settled),
           ],
         ),

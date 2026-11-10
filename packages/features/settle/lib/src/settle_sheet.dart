@@ -171,15 +171,14 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
           ),
         ),
       ),
-      body: ListView(
-        padding: EdgeInsets.zero,
+      body: SFormBody(
         children: [
           note(
             _youPay
                 ? 'clears your balance in ${widget.space.name}'
                 : 'full balance',
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: SettloSpacing.x3),
           if (_confirming)
             Text(
               ask,
@@ -206,7 +205,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                   ? null
                   : () => setState(() => _cash = false),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: SettloSpacing.x2),
             _Option(
               title: 'Record cash or bank payment',
               subtitle: 'Already paid outside Settlo',
@@ -215,7 +214,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
             ),
           ],
           if (_error case final error?) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: SettloSpacing.x2),
             Text(
               error,
               textAlign: TextAlign.center,
@@ -235,7 +234,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                 : "Settlo doesn't move money. Nothing is recorded until you "
                       'confirm the payment arrived.',
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: SettloSpacing.x2),
           ...switch ((_confirming, _youPay)) {
             (true, _) => [
               SPrimaryButton(
@@ -246,7 +245,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
                     : 'Yes, ${_other.name} paid',
                 onPressed: _busy ? null : _record,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: SettloSpacing.x2),
               SSecondaryButton(
                 label: 'Not yet',
                 onPressed: _busy
@@ -259,7 +258,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
             ],
             (false, true) when _p.to.upiId != null => [
               SPrimaryButton(label: 'Pay $_amount via UPI', onPressed: _pay),
-              const SizedBox(height: 10),
+              const SizedBox(height: SettloSpacing.x2),
               SSecondaryButton(
                 label: 'I already paid in cash',
                 onPressed: () => setState(() => _confirming = true),
@@ -375,7 +374,10 @@ class _Option extends StatelessWidget {
       constraints: const BoxConstraints(
         minHeight: SettloSpacing.minTouchTarget,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: SettloSpacing.x2,
+      ),
       decoration: BoxDecoration(
         color: c.surfaceRaised,
         borderRadius: radius,
@@ -398,7 +400,7 @@ class _Option extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: SettloSpacing.x2),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,7 +427,7 @@ class _Option extends StatelessWidget {
     return onTap == null
         ? Semantics(enabled: false, child: card)
         : SPressable(
-            onTap: onTap!,
+            onTap: onTap,
             ringRadius: radius,
             selected: selected,
             child: card,
