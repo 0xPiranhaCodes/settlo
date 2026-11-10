@@ -13,7 +13,7 @@ ADR [0004](0004-offline-sync.md) puts a drift mirror and a `pending_mutations` q
 
 - **What the mirror holds (#116).** Besides the space sources, it keeps `loans`, `loan_summaries`, every `loan_repayments` row, `needs_you`, and the newest 100 `activity_feed` entries (the RPC's largest page). Feed pages older than those are read from the server and need a connection. Queued writes are overlaid on every source except the feed, which stays the server's history.
 - **Reads past `max_rows` (#116).** PostgREST cuts a read at 1000 rows. A source that comes back that long is read again in full: one request per space for sources with a `space_id`, and `offset` pages within each. Every query orders by a unique last column so pages never overlap. Pages are separate requests, so a row written between two of them can be missed until the next refresh.
-- **Signing out (#116).** Signing out deletes the queue. When it still holds unsent writes the app asks first, and "Keep" tries to send them.
+- **Signing out (#116).** Signing out deletes the queue. When it still holds unsent writes the app asks first, and "Keep" tries to send them. Every wipe starts a new session generation (the user id and a counter) in `LocalDb`. Signing out or switching user stops waiting for a request in flight, and a sync started under an older generation writes nothing, so a late answer cannot put rows back after the wipe.
 
 ## Alternatives considered
 - **Typed drift tables with `drift_dev`.** Typed columns and queries, but the device does not query the mirror beyond what the online joins already do. The cost would be a second schema to keep in step with `supabase/`, plus a build step.

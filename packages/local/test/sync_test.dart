@@ -551,6 +551,33 @@ void main() {
     expect((await db.mutations(_me)).single.applied, isFalse);
   });
 
+  test('an answer that arrives after the database was wiped is dropped, '
+      'even from an engine nobody disposed', () async {
+    final held = Completer<Object?>();
+    final sent = Completer<void>();
+    server
+      ..tables['space_members'] = [_member('m1', '+919000000001', user: _me)]
+      ..rpc = (_, _) {
+        sent.complete();
+        return held.future;
+      };
+    await db.enqueue(_me, 's1', 'create_space', const {}, clock);
+    final replay = engine.sync();
+    await sent.future;
+    await db.keepOnly(null);
+    await db.keepOnly('u-next');
+    held.complete('s1');
+    await replay;
+    expect(await db.localIds(_me), isEmpty);
+    expect(await db.mirror(_me), isEmpty);
+    // Nor does it take anything new.
+    await expectLater(
+      engine.submit('delete_expense', const {}, 'k2'),
+      throwsStateError,
+    );
+    expect(await db.mutations(_me), isEmpty);
+  });
+
   test('signing out mid-refresh writes no mirror', () async {
     server
       ..tables['profiles']!.first['name'] = 'Changed'

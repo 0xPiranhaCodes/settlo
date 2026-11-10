@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -14,19 +15,23 @@ const _me = 'u-me';
 
 final class _Session extends SessionNotifier {
   @override
-  Session? build() => Session(
+  Session? build() => _session(_me);
+
+  void signOut() => state = null;
+
+  void signIn(String id) => state = _session(id);
+
+  static Session _session(String id) => Session(
     accessToken: 'token',
     tokenType: 'bearer',
-    user: const User(
-      id: _me,
-      appMetadata: {},
-      userMetadata: {},
+    user: User(
+      id: id,
+      appMetadata: const {},
+      userMetadata: const {},
       aud: 'authenticated',
       createdAt: '2026-11-01T00:00:00Z',
     ),
   );
-
-  void signOut() => state = null;
 }
 
 void main() {
@@ -173,6 +178,68 @@ void main() {
       await pumpEventQueue();
     },
   );
+
+  // A `create_space` of [_me]'s whose answer the server holds until the
+  // returned completer completes; the sync that sent it is in flight.
+  Future<(Completer<Object?>, Future<void>)> heldReplay() async {
+    final engine = container.read(syncEngineProvider)!;
+    await engine.sync();
+    final held = Completer<Object?>();
+    final sent = Completer<void>();
+    server
+      ..tables['space_members'] = [
+        {'id': 'member-server', 'space_id': 'k1', 'user_id': _me},
+      ]
+      ..rpc = (_, _) {
+        sent.complete();
+        return held.future;
+      };
+    await db.enqueue(_me, 'k1', 'create_space', const {
+      'p_name': 'Flat 7C',
+    }, DateTime(2026));
+    final replay = engine.sync();
+    await sent.future;
+    return (held, replay);
+  }
+
+  Future<int> rows(String table) async =>
+      (await db.customSelect('SELECT COUNT(*) AS n FROM $table').getSingle())
+          .read<int>('n');
+
+  test('a replay answered after signing out writes nothing', () async {
+    final (held, replay) = await heldReplay();
+    (container.read(sessionProvider.notifier) as _Session).signOut();
+    expect(container.read(syncEngineProvider), isNull);
+    await pumpEventQueue();
+    held.complete('k1');
+    await replay;
+    await pumpEventQueue();
+    expect(await db.localIds(_me), isEmpty);
+    for (final table in ['local_ids', 'pending_mutations', 'mirror']) {
+      expect(await rows(table), 0, reason: table);
+    }
+  });
+
+  test('a replay answered after another user signed in leaves them none of '
+      'the last user’s rows', () async {
+    final (held, replay) = await heldReplay();
+    final session = container.read(sessionProvider.notifier) as _Session
+      ..signOut();
+    expect(container.read(syncEngineProvider), isNull);
+    session.signIn('u-b');
+    final next = container.read(syncEngineProvider)!;
+    expect(next.owner, 'u-b');
+    await db.keepOnly('u-b');
+    await pumpEventQueue();
+    held.complete('k1');
+    await replay;
+    await next.sync();
+    await pumpEventQueue();
+    expect(await db.localIds(_me), isEmpty);
+    expect(await db.mutations(_me), isEmpty);
+    expect(await db.mirror(_me), isEmpty);
+    expect(await rows('local_ids'), 0);
+  });
 
   test('signing out deletes everything and stops syncing', () async {
     await container.read(syncEngineProvider)!.sync();

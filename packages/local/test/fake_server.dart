@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -31,8 +32,12 @@ final class FakeServer {
   /// PostgREST's `max_rows`.
   int maxRows = 1000;
 
-  /// Answers an RPC: a value to send as JSON, a [Refuse], or [lost].
-  Object? Function(String fn, Map<String, dynamic> body) rpc = (_, _) => null;
+  /// Answers an RPC: a value to send as JSON, a [Refuse], or [lost], now
+  /// or when a future completes.
+  FutureOr<Object?> Function(String fn, Map<String, dynamic> body) rpc = (
+    _,
+    _,
+  ) => null;
 
   /// A status for every GET; 200 serves [tables].
   int readStatus = 200;
@@ -66,7 +71,7 @@ final class FakeServer {
       final fn = path.substring(4);
       final params = jsonDecode(body) as Map<String, dynamic>;
       calls.add((fn, params));
-      switch (rpc(fn, params)) {
+      switch (await rpc(fn, params)) {
         case lost:
           (await response.detachSocket()).destroy();
           return;

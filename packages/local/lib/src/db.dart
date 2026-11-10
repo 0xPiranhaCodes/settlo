@@ -37,6 +37,12 @@ final class LocalDb extends GeneratedDatabase {
   @override
   Iterable<TableInfo<Table, dynamic>> get allTables => const [];
 
+  /// Whose rows the file holds and how many times [keepOnly] has wiped it:
+  /// the session generation. A sync started under another one writes
+  /// nothing.
+  (String?, int) get session => _session;
+  (String?, int) _session = (null, 0);
+
   // Upgrades: the mirror is disposable and may be dropped and refetched;
   // pending_mutations is user data and only takes additive `from < n` steps.
   @override
@@ -256,12 +262,18 @@ final class LocalDb extends GeneratedDatabase {
 
   /// Deletes every row that is not [owner]'s, or every row when [owner]
   /// is null (signed out).
-  Future<void> keepOnly(String? owner) => transaction(() async {
-    for (final table in ['mirror', 'pending_mutations', 'local_ids']) {
-      await customUpdate(
-        'DELETE FROM $table WHERE owner IS NOT ?',
-        variables: [Variable(owner)],
-      );
-    }
-  });
+  ///
+  /// Starts a new [session] at once, before the delete is queued, so a
+  /// write of the last session that is still waiting can see it is late.
+  Future<void> keepOnly(String? owner) {
+    _session = (owner, _session.$2 + 1);
+    return transaction(() async {
+      for (final table in ['mirror', 'pending_mutations', 'local_ids']) {
+        await customUpdate(
+          'DELETE FROM $table WHERE owner IS NOT ?',
+          variables: [Variable(owner)],
+        );
+      }
+    });
+  }
 }

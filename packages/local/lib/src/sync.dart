@@ -50,7 +50,7 @@ final class SyncEngine {
     this.now = DateTime.now,
     this.submitWait = const Duration(seconds: 5),
     this.pageSize = mirrorPageSize,
-  });
+  }) : _session = _db.session;
 
   final LocalDb _db;
   final SupabaseClient _client;
@@ -76,7 +76,24 @@ final class SyncEngine {
   Future<void>? _running;
   var _again = false;
   var _changed = false;
-  var _disposed = false;
+  final _cancelled = Completer<void>();
+
+  /// The database's session when this engine was made.
+  final (String?, int) _session;
+
+  /// Signed out, or the database was wiped since: nothing this engine
+  /// still has in flight may be written.
+  bool get _stale => _cancelled.isCompleted || _db.session != _session;
+
+  /// Runs [write] in a transaction unless [_stale]; false when it did not
+  /// run. Checked inside the transaction, so a wipe that began while
+  /// [write] waited for the database is seen.
+  Future<bool> _write(Future<void> Function() write) =>
+      _db.transaction(() async {
+        if (_stale) return false;
+        await write();
+        return true;
+      });
   Timer? _retry;
 
   /// Plain sentences about writes the server refused after the screen
@@ -112,7 +129,9 @@ final class SyncEngine {
     Map<String, Object?> params,
     String key,
   ) async {
-    await _db.enqueue(owner, key, kind, params, now());
+    if (!await _write(() => _db.enqueue(owner, key, kind, params, now()))) {
+      throw StateError('Signed out');
+    }
     final done = _waiting[key] = Completer<String?>();
     unawaited(sync());
     try {
@@ -137,9 +156,9 @@ final class SyncEngine {
   Future<void> _loop() async {
     do {
       _again = false;
-      if (await _replay() && !_disposed) await _refresh();
-    } while (_again && !_disposed);
-    if (_changed && !_disposed) onChanged?.call();
+      if (await _replay() && !_stale) await _refresh();
+    } while (_again && !_stale);
+    if (_changed && !_stale) onChanged?.call();
     _changed = false;
   }
 
@@ -147,7 +166,7 @@ final class SyncEngine {
   Future<bool> _replay() async {
     final ids = await _db.localIds(owner);
     for (final m in await _db.mutations(owner)) {
-      if (_disposed) return false;
+      if (_stale) return false;
       if (m.applied) continue;
       if (m.firstAttemptAt case final first?
           when _purgedKinds.contains(m.kind) &&
@@ -156,13 +175,21 @@ final class SyncEngine {
         continue;
       }
       try {
-        await _db.markAttempted(m.id, now());
-        final result = await _client.rpc<Object?>(
-          m.kind,
-          params: _resolve(m.params, ids)! as Map<String, dynamic>,
-        );
+        if (!await _write(() => _db.markAttempted(m.id, now()))) return false;
+        // Signing out stops waiting for the answer; whatever it is, it is
+        // dropped.
+        final result = await Future.any<Object?>([
+          _client.rpc<Object?>(
+            m.kind,
+            params: _resolve(m.params, ids)! as Map<String, dynamic>,
+          ),
+          _cancelled.future,
+        ]);
+        if (_stale) return false;
         final created = await _created(m, result);
-        await _db.markApplied(owner, m.id, created);
+        if (!await _write(() => _db.markApplied(owner, m.id, created))) {
+          return false;
+        }
         ids.addAll(created);
         _changed = true;
         _waiting[m.key]?.complete(result is String ? result : null);
@@ -171,7 +198,7 @@ final class SyncEngine {
           await _reject(m, e);
           continue;
         }
-        await _db.markFailed(m.id, '$e');
+        if (!await _write(() => _db.markFailed(m.id, '$e'))) return false;
         _waiting[m.key]?.complete(null);
         _retryIn(Duration(seconds: 2 << m.attempts.clamp(0, 5)));
         return false;
@@ -221,7 +248,7 @@ final class SyncEngine {
 
   /// Drops [m], which rolls it back, and tells whoever made it.
   Future<void> _reject(Mutation m, PostgrestException e) async {
-    await _db.drop(m.id);
+    if (!await _write(() => _db.drop(m.id))) return;
     _changed = true;
     final waiting = _waiting.remove(m.key);
     if (waiting != null) {
@@ -249,20 +276,24 @@ final class SyncEngine {
       _retryIn(const Duration(seconds: 2));
       return;
     }
-    if (_disposed) return;
-    if (await _db.replaceMirror(owner, tables)) _changed = true;
+    await _write(() async {
+      if (await _db.replaceMirror(owner, tables)) _changed = true;
+    });
+    if (_stale) return;
     _retry?.cancel();
   }
 
   void _retryIn(Duration delay) {
-    if (_disposed) return;
+    if (_stale) return;
     _retry?.cancel();
     _retry = Timer(delay, () => unawaited(sync()));
   }
 
-  /// Stops syncing; a sync in flight writes nothing more.
+  /// Stops syncing: a request in flight is no longer waited for, and a
+  /// sync in flight writes nothing more.
   void dispose() {
-    _disposed = true;
+    if (_cancelled.isCompleted) return;
+    _cancelled.complete();
     _retry?.cancel();
     unawaited(_notices.close());
   }

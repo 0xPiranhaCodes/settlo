@@ -17,10 +17,12 @@ final localDbProvider = Provider<LocalDb>((ref) {
 
 /// The signed-in user's sync engine, or null when signed out. A new user
 /// (or signing out) deletes every row of anyone else, queue included,
-/// before anything syncs. Syncs on build, whenever the app resumes, and on
-/// every [ledgerRevisionProvider] bump, so writes still made online
-/// (invites, the profile) reach the mirror; it bumps back only when the
-/// mirror changed, so the two settle.
+/// before anything syncs. The last engine is disposed first, which drops
+/// the request it has in flight, and the wipe starts a new session in the
+/// database, so a late answer writes nothing. Syncs on build, whenever the
+/// app resumes, and on every [ledgerRevisionProvider] bump, so writes still
+/// made online (invites, the profile) reach the mirror; it bumps back only
+/// when the mirror changed, so the two settle.
 final syncEngineProvider = Provider<SyncEngine?>((ref) {
   final db = ref.watch(localDbProvider);
   final userId = ref.watch(sessionProvider.select((s) => s?.user.id));
