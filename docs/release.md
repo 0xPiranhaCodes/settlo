@@ -26,18 +26,20 @@ The evidence above is bound to issue [#92](https://github.com/0xPiranhaCodes/set
 
 ## Internal builds (TestFlight)
 
-Signing is described in [ADR 0015](adr/0015-ios-release-signing.md), and the test-number sign-in in [the owner decision](decisions/2026-11-10-testflight-test-otp.md). Android (Play internal) is a stub job in the same workflow until a Play Console account exists.
+Signing is described in [ADR 0015](adr/0015-ios-release-signing.md), and the test-number sign-in in [the owner decision](decisions/2026-11-10-testflight-test-otp.md). Android (Play internal) is not built yet; it joins the **Release** workflow once a Play Console account and an upload keystore exist.
+
+Both workflows run in the `production` environment and act on `main` only: **Release** fails unless the tagged commit is on `main`, and **Supabase hosted** refuses any other ref. Only admins can create `v*` tags. See [the trust-boundary decision](decisions/2026-11-10-release-trust-boundary.md).
 
 ### Cutting a build
 
-1. Apply migrations to the hosted project: run **Supabase hosted** with `db-push`, read the dry run, then run it again with **apply** ticked. The first migration push also enables `pg_cron`.
+1. Apply migrations to the hosted project: run **Supabase hosted** from `main` with `db-push`, read the dry run, then run it again with **apply** ticked. The first migration push also enables `pg_cron`.
 
    ```sh
    gh workflow run "Supabase hosted" -f action=db-push
    gh workflow run "Supabase hosted" -f action=db-push -f apply=true
    ```
 
-2. Tag a commit that is green on `main` and push the tag. `v0.1.0-rc1` builds version `0.1.0`; the build number is the workflow's run number.
+2. Tag a commit that is on `main` and green there, and push the tag. `v0.1.0-rc1` builds version `0.1.0`; the build number is the workflow's run number.
 
    ```sh
    git tag v0.1.0-rc1 && git push origin v0.1.0-rc1

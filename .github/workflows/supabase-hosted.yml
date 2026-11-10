@@ -26,17 +26,28 @@ permissions:
   contents: read
 
 env:
-  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
   SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
 
+# Trust boundary (docs/decisions/2026-11-10-release-trust-boundary.md): both jobs run in the
+# `production` environment and refuse any ref but main. SUPABASE_ACCESS_TOKEN is a repository
+# secret, handed only to the steps that call Supabase.
 jobs:
   db-push:
     name: Migrations
-    if: github.event_name == 'workflow_dispatch' && inputs.action == 'db-push'
+    if: inputs.action == 'db-push'
     runs-on: ubuntu-latest
+    environment: production
     steps:
+      - name: Require main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::The hosted project takes migrations from main only."
+          exit 1
+
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
@@ -45,27 +56,43 @@ jobs:
 
       # The raw CLI on purpose: scripts/supabase-local.sh refuses remote commands.
       - name: Link hosted project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Show migration status
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: supabase migration list --remote
 
       - name: Dry run
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: supabase db push --remote --dry-run
 
       - name: Apply migrations
-        if: github.event_name == 'workflow_dispatch' && inputs.apply
+        if: inputs.apply && github.ref == 'refs/heads/main'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: supabase db push --remote --yes
 
   test-otp:
     name: Test OTP numbers
-    if: github.event_name == 'workflow_dispatch' && inputs.action != 'db-push'
+    if: inputs.action != 'db-push'
     runs-on: ubuntu-latest
+    environment: production
     steps:
+      - name: Require main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Hosted Auth config is changed from main only."
+          exit 1
+
       - name: Patch hosted Auth config
         shell: bash
         env:
           ACTION: ${{ inputs.action }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           # "<number>=<code>,<number>=<code>", country code without +. Never committed or echoed.
           HOSTED_TEST_OTP: ${{ secrets.HOSTED_TEST_OTP }}
         run: |
@@ -87,16 +114,16 @@ jobs:
             body='{"sms_test_otp": ""}'
           fi
 
-          # The response repeats the Auth config, so only the status is printed.
-          status="$(curl -sS -o "$RUNNER_TEMP/response.json" -w '%{http_code}' -X PATCH \
+          # The response repeats the Auth config and an error may echo the submitted list, so the
+          # body is discarded: this public log gets the status and a fixed message only.
+          status="$(curl -sS -o /dev/null -w '%{http_code}' -X PATCH \
             "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/config/auth" \
             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             -H 'Content-Type: application/json' \
             --data "$body")"
           echo "Management API answered $status"
           if [[ "$status" != 2* ]]; then
-            jq -r '.message // empty' "$RUNNER_TEMP/response.json" || true
+            echo "::error::The Auth config was not changed. Check the token's access and the format of HOSTED_TEST_OTP."
             exit 1
           fi
-          jq -r '"Test numbers configured: \((.sms_test_otp // "") | split(",") | map(select(. != "")) | length)"' \
-            "$RUNNER_TEMP/response.json"
+          echo "Hosted Auth config updated ($ACTION)."
