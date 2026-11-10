@@ -1,0 +1,137 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+# Trust boundary (docs/decisions/2026-11-10-release-trust-boundary.md): a tag builds only when
+# its commit is on main, and the App Store secrets live in the `production` environment.
+# Android (Play internal) joins here once a Play Console account and upload keystore exist (#110).
+jobs:
+  guard:
+    name: Tag is on main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Require the tagged commit to be an ancestor of origin/main
+        run: |
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not on main. Release tags are cut from main only."
+            exit 1
+          fi
+
+  ios:
+    name: iOS TestFlight
+    needs: guard
+    runs-on: macos-latest
+    environment: production
+    outputs:
+      build_number: ${{ steps.version.outputs.build_number }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version-file: .fvmrc
+          cache: true
+
+      - name: Derive version from tag
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          # v0.1.0-rc1 -> 0.1.0: CFBundleShortVersionString takes digits and dots only.
+          build_name="${GITHUB_REF_NAME#v}"
+          build_name="${build_name%%-*}"
+          if [[ ! "$build_name" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME is not vMAJOR.MINOR.PATCH[-suffix]."
+            exit 1
+          fi
+          echo "build_name=$build_name" >> "$GITHUB_OUTPUT"
+          # The run number only goes up, so every tag gets a higher build number.
+          echo "build_number=$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Write hosted dart defines
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+          [[ -n "$SUPABASE_URL" && -n "$SUPABASE_PUBLISHABLE_KEY" ]] || {
+            echo "::error::Repository variables SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY must be set."
+            exit 1
+          }
+          jq -n '{SUPABASE_URL: env.SUPABASE_URL, SUPABASE_ANON_KEY: env.SUPABASE_PUBLISHABLE_KEY}' \
+            > "$RUNNER_TEMP/release.env.json"
+
+      - name: Build unsigned archive
+        working-directory: app
+        run: >
+          flutter build ipa --release --no-codesign
+          --build-name "${{ steps.version.outputs.build_name }}"
+          --build-number "${{ steps.version.outputs.build_number }}"
+          --dart-define-from-file "$RUNNER_TEMP/release.env.json"
+
+      - name: Sign, export and upload to TestFlight
+        shell: bash
+        env:
+          ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          key_path="$RUNNER_TEMP/AuthKey.p8"
+          options="$RUNNER_TEMP/ExportOptions.plist"
+          trap 'rm -f "$key_path"' EXIT
+          (umask 077 && printf '%s\n' "$ASC_KEY_P8" > "$key_path")
+
+          # Cloud-managed distribution signing (ADR 0015): no certificate or profile on the runner.
+          plutil -create xml1 "$options"
+          plutil -insert method -string app-store-connect "$options"
+          plutil -insert destination -string upload "$options"
+          plutil -insert signingStyle -string automatic "$options"
+          plutil -insert teamID -string "$APPLE_TEAM_ID" "$options"
+          plutil -insert manageAppVersionAndBuildNumber -bool NO "$options"
+
+          xcodebuild -exportArchive \
+            -archivePath app/build/ios/archive/Runner.xcarchive \
+            -exportOptionsPlist "$options" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$key_path" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+  ios-verify:
+    name: Confirm build in TestFlight
+    needs: ios
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Wait for App Store Connect to process the build
+        env:
+          ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: ruby scripts/asc-wait-for-build.rb app.settlo "${{ needs.ios.outputs.build_number }}"
