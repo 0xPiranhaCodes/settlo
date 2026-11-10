@@ -12,7 +12,7 @@ These are settled and are not reopened by any agent:
 - Flutter (stable, Dart 3) over React Native; iOS and Android only.
 - Supabase (Postgres, phone OTP auth, RLS, RPCs, Edge Functions) over Firebase.
 - Phone number (E.164) is the only identity. No email, no password.
-- Dark-first UI; Figtree for text, IBM Plex Serif for amounts at 20px and above.
+- Dark-first UI; Figtree for all text and amounts.
 - Gold accent means a tappable primary action only.
 - Loan repayments need two-sided confirmation (recorded by one party, confirmed by the other).
 - Settlo never holds or moves money; settling is a UPI deep link.

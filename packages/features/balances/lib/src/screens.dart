@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_balances/src/home_controller.dart';
 import 'package:settlo_balances/src/widgets.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -25,70 +27,85 @@ class HomeScreen extends ConsumerWidget {
     const gap = SizedBox(height: 14);
     // The canvas sets letter spacing and line height only where it means
     // to; elsewhere they are 0 and CSS `normal` (1.2 for Figtree).
+    final c = SettloColors.of(context);
     return Scaffold(
-      body: DefaultTextStyle.merge(
-        style: const TextStyle(letterSpacing: 0, height: 1.2),
-        child: RefreshIndicator(
-          onRefresh: () => ref.refresh(homeProvider.future),
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              SettloSpacing.screenMargin,
-              math.max(media.padding.top, 44) + 16,
-              SettloSpacing.screenMargin,
-              media.padding.bottom + SettloSpacing.x2,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: ExcludeSemantics(
+              child: CustomPaint(
+                painter: WelcomeBackgroundPainter(
+                  background: c.background,
+                  gold: c.homeGold,
+                  highlight: c.homeGold,
+                  placement: SettloArcPlacement.home,
+                ),
+              ),
             ),
-            children: [
-              _Header(name: data?.name ?? ''),
-              const SizedBox(height: SettloSpacing.x3),
-              ...switch (data) {
-                null => [
-                  _NetCard.muted(
-                    caption: home.hasError
-                        ? "We couldn't load your balances. Pull down to try "
-                              'again.'
-                        : '',
-                  ),
-                ],
-                HomeData(isEmpty: true) => const [
-                  _NetCard.muted(
-                    caption:
-                        'Nothing recorded yet. Your first entry takes about '
-                        'ten seconds.',
-                  ),
-                  gap,
-                  _JobTile(
-                    icon: _SpaceIcon(SpaceKind.flat, tile: false),
-                    title: 'Start a space',
-                    body:
-                        'Flatmates, a trip, or one friend. Add people by '
-                        "phone number — they don't need the app yet.",
-                    route: SettloRoutes.spaces,
-                  ),
-                  SizedBox(height: 12),
-                  _JobTile(
-                    icon: _LoanIcon(),
-                    title: 'Record a loan',
-                    body:
-                        'Money you lent or borrowed. Both of you see every '
-                        'repayment and confirm it.',
-                    route: SettloRoutes.newLoan,
-                  ),
-                  SizedBox(height: 12),
-                  _ContactsNote(),
-                ],
-                HomeData(claims: [_, ...]) => [
-                  _ClaimsCard(data),
-                  gap,
-                  const _NetCard.blank(),
-                  gap,
-                  const _Note(),
-                  ..._balances(data),
-                ],
-                _ => [_NetCard(data), gap, _Actions(), ..._balances(data)],
-              },
-            ],
           ),
-        ),
+          DefaultTextStyle.merge(
+            style: const TextStyle(letterSpacing: 0, height: 1.2),
+            child: RefreshIndicator(
+              onRefresh: () => _refresh(ref),
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(
+                  SettloSpacing.screenMargin,
+                  math.max(media.padding.top, 44) + 16,
+                  SettloSpacing.screenMargin,
+                  media.padding.bottom + SettloSpacing.x2,
+                ),
+                children: [
+                  _Header(data?.name),
+                  const SizedBox(height: SettloSpacing.x3),
+                  ...switch (data) {
+                    null => [
+                      _NetCard.muted(
+                        caption: home.hasError
+                            ? "We couldn't load your balances. Pull down to "
+                                  'try again.'
+                            : '',
+                      ),
+                    ],
+                    HomeData(isEmpty: true) => const [
+                      _NetCard.empty(
+                        caption:
+                            'Nothing recorded yet. Your first entry takes '
+                            'about ten seconds.',
+                      ),
+                      gap,
+                      _JobTile(
+                        icon: _SpaceIcon(SpaceKind.flat, tile: false),
+                        title: 'Start a space',
+                        body:
+                            'Flatmates, a trip, or one friend. Add people by '
+                            "phone number — they don't need the app yet.",
+                        route: SettloRoutes.spaces,
+                      ),
+                      SizedBox(height: 12),
+                      _JobTile(
+                        icon: _LoanIcon(),
+                        title: 'Record a loan',
+                        body:
+                            'Money you lent or borrowed. Both of you see every '
+                            'repayment and confirm it.',
+                        route: SettloRoutes.newLoan,
+                      ),
+                    ],
+                    HomeData(claims: [_, ...]) => [
+                      _ClaimsCard(data),
+                      gap,
+                      const _NetCard.blank(),
+                      gap,
+                      const _Note(),
+                      ..._balances(data),
+                    ],
+                    _ => [_NetCard(data), gap, _Actions(), ..._balances(data)],
+                  },
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -102,7 +119,16 @@ class HomeScreen extends ConsumerWidget {
       const SizedBox(height: 12),
       _LoansCard(data.loans),
     ],
+    if (!data.isEmpty) ...[const SizedBox(height: 12), const ActivityPreview()],
   ];
+
+  static Future<void> _refresh(WidgetRef ref) async {
+    ref.invalidate(activityFeedProvider);
+    await Future.wait([
+      ref.refresh(homeProvider.future),
+      ref.read(activityFeedProvider.future),
+    ]);
+  }
 }
 
 const _months = [
@@ -123,59 +149,76 @@ String _groupPhone(String e164) => e164.startsWith('+91') && e164.length == 13
     ? '+91 ${e164.substring(3, 8)} ${e164.substring(8)}'
     : e164;
 
-class _Header extends StatelessWidget {
-  const new({required this.name});
+class _Header extends ConsumerWidget {
+  const new(this.name);
 
-  final String name;
+  final String? name;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = SettloColors.of(context);
-    return Row(
+    final lockup = Semantics(
+      label: 'Settlo',
+      excludeSemantics: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SettloMark(semanticsLabel: null, size: 42, color: c.homeGold),
+          const SizedBox(width: 12),
+          Text(
+            'SETTLO',
+            style: SettloTypography.figtree(
+              20,
+              weight: FontWeight.w600,
+              letterSpacing: 1.8,
+              color: c.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+    final controls = Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Semantics(
-          label: 'Settlo',
-          excludeSemantics: true,
-          child: Row(
-            children: [
-              const SettloMark(semanticsLabel: null),
-              const SizedBox(width: SettloSpacing.x1),
-              Text(
-                'settlo',
-                style: SettloTypography.figtree(
-                  22,
-                  weight: FontWeight.w500,
-                  letterSpacing: -0.6,
-                  color: c.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Spacer(),
-        // What is new in Activity since you last opened it; on an error,
-        // a plain bell.
-        Consumer(
-          builder: (context, ref, _) => SBell(
-            unread: ref.watch(activityUnreadProvider).value ?? 0,
-            onPressed: () => context.go(SettloRoutes.activity),
-          ),
+        SBell(
+          unread: ref.watch(activityUnreadProvider).value ?? 0,
+          onPressed: () => context.go(SettloRoutes.activity),
         ),
         const SizedBox(width: SettloSpacing.x1),
-        // Neutral, as every avatar is; the canvas's gold avatar waits on
-        // the owner's decision.
-        Semantics(
-          button: true,
-          label: 'Profile',
-          excludeSemantics: true,
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: () => context.go(SettloRoutes.profile),
-            child: SAvatar(name, size: SettloSpacing.minTouchTarget),
+        IconButton(
+          tooltip: 'Profile',
+          onPressed: () => context.go(SettloRoutes.profile),
+          style: IconButton.styleFrom(
+            fixedSize: const Size.square(SettloHomeMetrics.headerControl),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            backgroundColor: SettloColors.dark.surfaceRaised,
+            side: BorderSide(color: c.hairline),
+          ),
+          icon: Text(
+            (name?.trim().isNotEmpty ?? false)
+                ? name!.trim().characters.first.toUpperCase()
+                : 'Y',
+            style: SettloTypography.figtree(
+              17,
+              weight: FontWeight.w500,
+              color: Colors.white,
+            ),
           ),
         ),
       ],
     );
+    if (MediaQuery.textScalerOf(context).scale(1) > 1.4) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          lockup,
+          const SizedBox(height: 8),
+          Align(alignment: Alignment.centerRight, child: controls),
+        ],
+      );
+    }
+    return Row(children: [lockup, const Spacer(), controls]);
   }
 }
 
@@ -190,29 +233,40 @@ class _NetCard extends StatelessWidget {
   const new(HomeData this.data)
     : label = 'NET POSITION',
       caption = null,
-      blank = false;
+      blank = false,
+      whiteZero = false;
 
   /// ₹0 in muted type: nothing recorded yet, or still loading.
   const new muted({required this.caption})
     : data = null,
       label = 'NET POSITION',
-      blank = false;
+      blank = false,
+      whiteZero = false;
+
+  /// ₹0 in white when nothing has been recorded yet.
+  const new empty({required this.caption})
+    : data = null,
+      label = 'NET POSITION',
+      blank = false,
+      whiteZero = true;
 
   /// ₹— while claims wait for review.
   const new blank()
     : data = null,
       label = 'NET POSITION · AFTER YOU REVIEW',
       caption = 'Balances appear once you accept or dispute each item above.',
-      blank = true;
+      blank = true,
+      whiteZero = false;
 
   final HomeData? data;
   final String label;
   final String? caption;
   final bool blank;
+  final bool whiteZero;
 
   @override
   Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
+    const c = SettloColors.dark;
     final data = this.data;
     final String caption;
     final Widget amount;
@@ -220,7 +274,12 @@ class _NetCard extends StatelessWidget {
       caption = this.caption!;
       amount = blank
           ? const MoneyText.blank(size: 46)
-          : const MoneyText(Paise.zero, tone: MoneyTone.settled, size: 46);
+          : MoneyText(
+              Paise.zero,
+              tone: whiteZero ? MoneyTone.neutral : MoneyTone.settled,
+              size: 46,
+              color: whiteZero ? Colors.white : null,
+            );
     } else {
       final net = data.net.value;
       final where = _spacesAndLoans(data.spaces.length, data.loans.length);
@@ -229,54 +288,84 @@ class _NetCard extends StatelessWidget {
           : net < 0
           ? 'you owe across $where'
           : 'all settled across $where';
-      amount = MoneyText(data.net, size: 46, signed: true);
+      amount = MoneyText(data.net, size: 46, signed: true, color: Colors.white);
     }
-    return SCard(
-      hero: true,
-      padding: const EdgeInsets.all(22),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: _label(c)),
-          const SizedBox(height: SettloSpacing.x1),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: amount,
-          ),
-          if (caption.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(caption, style: _caption(c)),
-          ],
-          if (data != null) ...[
-            const SizedBox(height: 22),
-            Divider(height: 1, thickness: 1, color: c.hairline),
-            const SizedBox(height: 18),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _Stat(
-                  'You are owed',
-                  data.owed,
-                  data.owed.value > 0 ? MoneyTone.owedToYou : MoneyTone.settled,
+    return Theme(
+      data: SettloTheme.dark(),
+      child: SCard(
+        hero: true,
+        padding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ExcludeSemantics(
+                child: CustomPaint(
+                  painter: _NetArcPainter(
+                    gold: c.welcomeAction,
+                    surface: c.surface,
+                  ),
                 ),
-                const SizedBox(width: SettloSpacing.x3),
-                _Stat(
-                  'You owe',
-                  data.owe,
-                  data.owe.value > 0 ? MoneyTone.youOwe : MoneyTone.settled,
-                ),
-                const Spacer(),
-                _Stat(
-                  '${_months[data.month.month - 1]} spend',
-                  data.monthSpend,
-                  MoneyTone.neutral,
-                  end: true,
-                ),
-              ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: _label(c)),
+                  const SizedBox(height: SettloSpacing.x1),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: amount,
+                  ),
+                  if (caption.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(caption, style: _caption(c)),
+                  ],
+                  if (data != null) ...[
+                    const SizedBox(height: 22),
+                    Divider(height: 1, thickness: 1, color: c.hairline),
+                    const SizedBox(height: 18),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _Stat(
+                            'You are owed',
+                            data.owed,
+                            data.owed.value > 0
+                                ? MoneyTone.owedToYou
+                                : MoneyTone.settled,
+                          ),
+                        ),
+                        const SizedBox(width: SettloSpacing.x1),
+                        Expanded(
+                          child: _Stat(
+                            'You owe',
+                            data.owe,
+                            data.owe.value > 0
+                                ? MoneyTone.youOwe
+                                : MoneyTone.settled,
+                          ),
+                        ),
+                        const SizedBox(width: SettloSpacing.x1),
+                        Expanded(
+                          child: _Stat(
+                            '${_months[data.month.month - 1]} spend',
+                            data.monthSpend,
+                            MoneyTone.neutral,
+                            end: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -305,10 +394,90 @@ class _Stat extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 2),
-        MoneyText(amount, tone: tone, size: 17),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: end ? Alignment.centerRight : Alignment.centerLeft,
+          child: MoneyText(amount, tone: tone, size: 17),
+        ),
       ],
     ),
   );
+}
+
+/// The clipped gold corner treatment from the owner's net-position card.
+class _NetArcPainter extends CustomPainter {
+  const new({required this.gold, required this.surface});
+
+  final Color gold;
+  final Color surface;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final glow = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(0.98, -0.94),
+        radius: 0.72,
+        colors: [
+          const Color(0xFFFFF1D2).withValues(alpha: 0.24),
+          gold.withValues(alpha: 0.12),
+          surface.withValues(alpha: 0),
+        ],
+        stops: const [0, 0.36, 1],
+      ).createShader(Offset.zero & size);
+    canvas.drawRect(Offset.zero & size, glow);
+
+    final arc = Path()
+      ..moveTo(size.width * 0.58, -2)
+      ..quadraticBezierTo(
+        size.width * 0.91,
+        size.height * 0.19,
+        size.width + 6,
+        size.height * 0.78,
+      );
+    canvas
+      ..drawPath(
+        arc,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 26
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18)
+          ..color = gold.withValues(alpha: 0.1),
+      )
+      ..drawPath(
+        arc,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3)
+          ..color = const Color(0xFFFFE7B0).withValues(alpha: 0.58),
+      )
+      ..drawPath(
+        arc,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2
+          ..color = gold,
+      );
+    final lower = Path()
+      ..moveTo(size.width * 0.79, size.height + 3)
+      ..quadraticBezierTo(
+        size.width * 0.91,
+        size.height * 0.83,
+        size.width + 4,
+        size.height * 0.82,
+      );
+    canvas.drawPath(
+      lower,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2
+        ..color = gold.withValues(alpha: 0.85),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_NetArcPainter oldDelegate) =>
+      oldDelegate.gold != gold || oldDelegate.surface != surface;
 }
 
 class _Actions extends StatelessWidget {
@@ -488,7 +657,7 @@ class _SpaceIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final color = tile ? c.textPrimary : c.action;
+    final color = tile ? c.textPrimary : c.homeGold;
     final glyph = switch (kind) {
       SpaceKind.flat => STabIcon.home.widget,
       SpaceKind.trip => HomeIcon(HomeGlyph.plane, color: color),
@@ -518,7 +687,7 @@ class _LoanIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconTheme(
-    data: IconThemeData(color: SettloColors.of(context).action, size: 22),
+    data: IconThemeData(color: SettloColors.of(context).homeGold, size: 22),
     child: STabIcon.loans.widget,
   );
 }
@@ -649,115 +818,137 @@ class _JobTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return Semantics(
-      button: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => context.push(route),
-        child: SCard(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: c.action.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(SettloRadius.button),
-                ),
-                child: icon,
-              ),
-              const SizedBox(height: SettloSpacing.x2),
-              Text(
-                title,
-                style: SettloTypography.figtree(
-                  17,
-                  weight: FontWeight.w500,
-                  letterSpacing: -0.2,
-                  color: c.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(body, style: _caption(c).copyWith(height: 1.5)),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Text(
-                    'Start',
-                    style: SettloTypography.figtree(
-                      13,
-                      weight: FontWeight.w500,
-                      color: c.action,
-                    ),
+    return _HomePressable(
+      label: title,
+      onTap: () => context.push(route),
+      child: SCard(
+        padding: const EdgeInsets.all(20),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.4;
+            final copy = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: c.homeGold.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(SettloRadius.button),
                   ),
-                  const SizedBox(width: 6),
-                  HomeIcon(HomeGlyph.arrow, color: c.action, size: 16),
-                ],
+                  child: icon,
+                ),
+                const SizedBox(height: SettloSpacing.x2),
+                Text(
+                  title,
+                  style: SettloTypography.figtree(
+                    20,
+                    weight: FontWeight.w500,
+                    letterSpacing: -0.3,
+                    color: c.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(body, style: _caption(c).copyWith(height: 1.45)),
+              ],
+            );
+            final arrow = Container(
+              width: SettloHomeMetrics.arrowButton,
+              height: SettloHomeMetrics.arrowButton,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: c.homeGold.withValues(alpha: 0.22),
+                shape: BoxShape.circle,
               ),
-            ],
-          ),
+              child: HomeIcon(
+                HomeGlyph.arrow,
+                color: c.homeGold,
+                size: 22,
+                stroke: 2,
+              ),
+            );
+            if (largeText) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  copy,
+                  const SizedBox(height: 12),
+                  Align(alignment: Alignment.centerRight, child: arrow),
+                ],
+              );
+            }
+            return Row(
+              children: [
+                Expanded(child: copy),
+                const SizedBox(width: 12),
+                arrow,
+              ],
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _ContactsNote extends StatelessWidget {
-  const new();
+class _HomePressable extends StatefulWidget {
+  const new({required this.label, required this.onTap, required this.child});
+
+  final String label;
+  final VoidCallback onTap;
+  final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
-    return SCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          HomeIcon(HomeGlyph.person, color: c.textSecondary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Find friends already on Settlo. We match hashed numbers only; '
-              'your contact list never leaves your phone.',
-              style: _caption(c).copyWith(height: 1.5),
-            ),
-          ),
-          const SizedBox(width: 12),
-          _TextAction(
-            'Allow',
-            color: c.action,
-            alignment: Alignment.centerRight,
-            onTap: () => context.go(SettloRoutes.profile),
-          ),
-        ],
+  State<_HomePressable> createState() => _HomePressableState();
+}
+
+class _HomePressableState extends State<_HomePressable> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: widget.label,
+    onTap: widget.onTap,
+    excludeSemantics: true,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? SettloHomeMetrics.pressedScale : 1,
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : SettloHomeMetrics.pressDuration,
+        child: AnimatedOpacity(
+          opacity: _pressed ? 0.88 : 1,
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : SettloHomeMetrics.pressDuration,
+          child: widget.child,
+        ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 /// A text-only action with a target of at least 44x44pt.
 class _TextAction extends StatelessWidget {
-  const new(
-    this.label, {
-    required this.color,
-    required this.onTap,
-    this.alignment = Alignment.centerLeft,
-  });
+  const new(this.label, {required this.color, required this.onTap});
 
   final String label;
   final Color color;
   final VoidCallback onTap;
-
-  /// Where a label shorter than the target sits inside it.
-  final AlignmentGeometry alignment;
 
   @override
   Widget build(BuildContext context) => TextButton(
     onPressed: onTap,
     style: TextButton.styleFrom(
       foregroundColor: color,
-      alignment: alignment,
+      alignment: Alignment.centerLeft,
       minimumSize: const Size.square(SettloSpacing.minTouchTarget),
       padding: EdgeInsets.zero,
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -934,7 +1125,9 @@ class _ClaimRowState extends ConsumerState<_ClaimRow> {
                     color: c.textSecondary,
                   ).copyWith(height: 1.3),
                 ),
-                Row(
+                Wrap(
+                  spacing: SettloSpacing.x2,
+                  runSpacing: SettloSpacing.half,
                   children: [
                     _TextAction(
                       'Accept',
@@ -943,7 +1136,6 @@ class _ClaimRowState extends ConsumerState<_ClaimRow> {
                         (h) => h.accept(claim, idempotencyKey: _acceptKey),
                       ),
                     ),
-                    const SizedBox(width: SettloSpacing.x3),
                     _TextAction(
                       "This isn't me",
                       color: c.textSecondary,

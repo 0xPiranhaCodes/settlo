@@ -9,7 +9,12 @@ class SettloMark extends StatelessWidget {
   /// Creates a Settlo mark with an optional screen-reader [semanticsLabel].
   ///
   /// Set [semanticsLabel] to null when a parent lockup supplies the name.
-  const new({this.size = 26, this.semanticsLabel = 'Settlo', super.key});
+  const new({
+    this.size = 26,
+    this.semanticsLabel = 'Settlo',
+    this.color,
+    super.key,
+  });
 
   /// The square box containing the mark.
   final double size;
@@ -17,12 +22,17 @@ class SettloMark extends StatelessWidget {
   /// The name announced for the mark, or null to leave it decorative.
   final String? semanticsLabel;
 
+  /// Optional composition-specific colour; otherwise the global brand rule.
+  final Color? color;
+
   @override
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
-    final color = Theme.of(context).brightness == Brightness.dark
-        ? colors.action
-        : colors.textPrimary;
+    final color =
+        this.color ??
+        (Theme.of(context).brightness == Brightness.dark
+            ? colors.action
+            : colors.textPrimary);
     final image = Image.asset(
       'assets/brand/settlo_mark.png',
       package: 'settlo_core',
@@ -33,6 +43,15 @@ class SettloMark extends StatelessWidget {
       colorBlendMode: BlendMode.srcIn,
       filterQuality: FilterQuality.high,
       excludeFromSemantics: true,
+      errorBuilder: (context, error, stackTrace) => SizedBox.square(
+        dimension: size,
+        child: FittedBox(
+          child: Text(
+            'S',
+            style: TextStyle(color: color, fontWeight: FontWeight.w800),
+          ),
+        ),
+      ),
     );
     final label = semanticsLabel;
     if (label == null) return image;

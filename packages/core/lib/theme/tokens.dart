@@ -84,6 +84,21 @@ abstract final class SettloWelcomeMetrics {
   static const double actionShadowOffset = 8;
 }
 
+/// Measurements unique to the owner-approved Home composition.
+abstract final class SettloHomeMetrics {
+  /// Diameter of the circular header controls.
+  static const double headerControl = 44;
+
+  /// Diameter of the gold arrow control on an empty-state action card.
+  static const double arrowButton = 44;
+
+  /// Scale while a custom Home control is held.
+  static const double pressedScale = 0.98;
+
+  /// Duration of the short press response.
+  static const Duration pressDuration = Duration(milliseconds: 90);
+}
+
 /// Depth. Cards get no drop shadow: a hairline edge plus a 1px specular
 /// highlight along the top. Only floating chrome casts a shadow.
 abstract final class SettloElevation {

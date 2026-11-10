@@ -142,7 +142,7 @@ ByteData _font(String file) =>
 final StatementFonts fonts = (
   regular: _font('Figtree-Regular.ttf'),
   medium: _font('Figtree-Medium.ttf'),
-  serif: _font('IBMPlexSerif-Medium.ttf'),
+  serif: _font('Figtree-Medium.ttf'),
 );
 
 /// The page count in a PDF's page tree, which the pdf package writes

@@ -3,18 +3,11 @@ import 'package:flutter/material.dart';
 const _package = 'settlo_core';
 const _tabular = [FontFeature.tabularFigures()];
 
-/// Type scale from the canvas. Figtree for all text (body 400, labels and
-/// buttons 500), IBM Plex Serif 500 for amounts at 20px and above, tabular
-/// figures everywhere.
+/// Type scale from the canvas. Figtree for all text, including amounts, with
+/// tabular figures everywhere.
 abstract final class SettloTypography {
-  /// Amounts at this size and above are set in the serif.
-  static const double serifFrom = 20;
-
   /// Bundled text family; pair with `package: 'settlo_core'`.
   static const String figtreeFamily = 'Figtree';
-
-  /// Bundled amount family; pair with `package: 'settlo_core'`.
-  static const String serifFamily = 'IBM Plex Serif';
 
   /// Figtree at [size] and [weight] (400, 500 or 600), tabular figures.
   static TextStyle figtree(
@@ -32,23 +25,13 @@ abstract final class SettloTypography {
     fontFeatures: _tabular,
   );
 
-  /// The style for an amount at [size]: IBM Plex Serif 500 from
-  /// [serifFrom], otherwise Figtree 500.
-  static TextStyle amount(double size, {Color? color}) {
-    if (size < serifFrom) {
-      return figtree(size, weight: FontWeight.w500, color: color);
-    }
-    return TextStyle(
-      fontFamily: serifFamily,
-      package: _package,
-      fontSize: size,
-      fontWeight: FontWeight.w500,
-      letterSpacing: size >= 32 ? -1 : -0.8,
-      height: 1.05,
-      color: color,
-      fontFeatures: _tabular,
-    );
-  }
+  /// Figtree 500 for an amount at [size].
+  static TextStyle amount(double size, {Color? color}) => figtree(
+    size,
+    weight: FontWeight.w500,
+    letterSpacing: size >= 32 ? -1 : -0.8,
+    color: color,
+  ).copyWith(height: 1.05);
 
   /// Material text theme in [color].
   ///

@@ -6,10 +6,13 @@ Future<void> _pump(
   WidgetTester tester, {
   required ThemeData theme,
   String? semanticsLabel = 'Settlo',
+  Color? color,
 }) => tester.pumpWidget(
   MaterialApp(
     theme: theme,
-    home: Scaffold(body: SettloMark(semanticsLabel: semanticsLabel)),
+    home: Scaffold(
+      body: SettloMark(semanticsLabel: semanticsLabel, color: color),
+    ),
   ),
 );
 
@@ -36,5 +39,21 @@ void main() {
       SettloColors.light.textPrimary,
     );
     semantics.dispose();
+  });
+
+  testWidgets('a composition can supply gold and the fallback keeps the mark', (
+    tester,
+  ) async {
+    const gold = Color(0xFFF2C77F);
+    await _pump(tester, theme: SettloTheme.light(), color: gold);
+
+    final image = tester.widget<Image>(find.byType(Image));
+    expect(image.color, gold);
+    final fallback = image.errorBuilder!(
+      tester.element(find.byType(Image)),
+      Exception('missing'),
+      StackTrace.empty,
+    );
+    expect(fallback, isA<SizedBox>());
   });
 }

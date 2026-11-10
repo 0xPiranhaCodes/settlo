@@ -10,7 +10,7 @@ const double _amountSize = 52;
 
 /// The frame of an amount-entry sheet (add expense, new loan, settle up):
 /// drag handle, close button and title, then an optional [header], the
-/// amount in the serif, then [body], then [action] pinned to the bottom.
+/// amount in Figtree, then [body], then [action] pinned to the bottom.
 ///
 /// Show it with [showSAmountSheet].
 class SAmountSheet extends StatelessWidget {
@@ -30,8 +30,8 @@ class SAmountSheet extends StatelessWidget {
   final String title;
 
   /// The amount, usually a field or text holding just the number. It
-  /// inherits IBM Plex Serif 500 at 52 in primary text; the ₹ before it
-  /// is drawn by the sheet.
+  /// inherits Figtree 500 at 52 in primary text; the ₹ before it is drawn
+  /// by the sheet.
   final Widget amount;
 
   /// Small caps label above the amount.

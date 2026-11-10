@@ -5,11 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_profile/src/export_sheet.dart';
 import 'package:settlo_profile/src/glyphs.dart';
 import 'package:settlo_profile/src/profile_controller.dart';
 import 'package:settlo_profile/src/profile_repository.dart';
 import 'package:settlo_profile/src/theme_mode.dart';
+
+final Uri _supportUri = Uri.parse(
+  'https://0xpiranhacodes.github.io/settlo/support/',
+);
 
 /// Profile and settings (canvas Profile, note n31).
 class ProfileScreen extends ConsumerWidget {
@@ -42,6 +47,10 @@ class ProfileScreen extends ConsumerWidget {
               const _SectionLabel('Preferences'),
               const SizedBox(height: 10),
               const _QuietPreferences(),
+              const SizedBox(height: 16),
+              const _SectionLabel('Help'),
+              const SizedBox(height: 10),
+              const _HelpCard(),
               const SizedBox(height: 16),
               const _SectionLabel('Account'),
               const SizedBox(height: 10),
@@ -370,6 +379,35 @@ class _AccountCard extends ConsumerWidget {
 
 String _changes(int count) =>
     count == 1 ? '1 unsent change' : '$count unsent changes';
+
+class _HelpCard extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => _SettingsCard(
+    rows: [
+      _SettingRowData(
+        ProfileGlyph.help,
+        'Help and support',
+        'Guides, privacy, and contact details',
+        onTap: () => _openSupport(context, ref),
+      ),
+    ],
+  );
+
+  Future<void> _openSupport(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final opened = await ref.read(openUrlProvider)(_supportUri);
+      if (opened || !context.mounted) return;
+    } on Object {
+      if (!context.mounted) return;
+    }
+    messenger.showSnackBar(
+      const SnackBar(content: Text("We couldn't open support. Try again.")),
+    );
+  }
+}
 
 /// Asks before signing out with unsent changes, or deleting the account.
 /// Pops true to leave; the keep button stays and runs [onKeep].

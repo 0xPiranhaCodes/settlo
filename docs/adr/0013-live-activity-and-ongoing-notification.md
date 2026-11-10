@@ -28,5 +28,5 @@ A trip has no data model beyond `space_kind = 'trip'`: no start or end date, so 
 ## Consequences
 - A settle-up recorded while Settlo is closed shows up only after the app is next opened or resumed. Push lifts this limit later.
 - The canvas's "Not yet" button is left out of the island and the notification. Disputing needs a reason, which the confirm sheet already collects, and an in-place dismiss would need App Intents (iOS 17). Confirm and a tap anywhere both open the confirm sheet.
-- The island uses the system serif in place of IBM Plex Serif, so the extension does not bundle fonts.
+- The island uses the system sans in place of Figtree, so the extension does not bundle fonts.
 - The Runner embeds an app extension. CI's `flutter build ios --no-codesign` builds it, and signing for release needs the `app.settlo.SettloWidgets` identifier in the provisioning profile.

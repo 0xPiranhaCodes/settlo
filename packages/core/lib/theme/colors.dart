@@ -39,7 +39,11 @@ class SettloColors extends ThemeExtension<SettloColors> {
     required this.textSecondary,
     required this.textMuted,
     required this.action,
+    required this.homeGold,
     required this.welcomeAction,
+    required this.navActiveStart,
+    required this.navActiveEnd,
+    required this.onNavActive,
     required this.onAction,
     required this.glass,
     required this.glassFallback,
@@ -61,7 +65,11 @@ class SettloColors extends ThemeExtension<SettloColors> {
     textSecondary: Color(0xFF9B9D9A),
     textMuted: Color(0xFF8A8D88),
     action: Color(0xFFD8B36A), // gold
+    homeGold: Color(0xFFF2C77F),
     welcomeAction: Color(0xFFF2C77F), // welcome mock's lighter gold
+    navActiveStart: Color(0xFF926A30),
+    navActiveEnd: Color(0xFF473419),
+    onNavActive: Color(0xFFFFFFFF),
     onAction: Color(0xFF0A0B0D),
     glass: Color(0x9E15171A), // 62% surface
     glassFallback: Color(0xEB15171A), // 92% surface
@@ -85,7 +93,11 @@ class SettloColors extends ThemeExtension<SettloColors> {
     textSecondary: Color(0xFF6B6B66),
     textMuted: Color(0xFF6D6B67), // was #7A7873
     action: Color(0xFF1B1B18), // ink
+    homeGold: Color(0xFF76531F),
     welcomeAction: Color(0xFFF2C77F), // fixed dark welcome treatment
+    navActiveStart: Color(0xFF926A30),
+    navActiveEnd: Color(0xFF473419),
+    onNavActive: Color(0xFFFFFFFF),
     onAction: Color(0xFFF4F1EA),
     glass: Color(0x99FFFFFF), // 60% white
     glassFallback: Color(0xEBFFFFFF), // 92% white
@@ -107,8 +119,7 @@ class SettloColors extends ThemeExtension<SettloColors> {
   /// Secondary buttons, icon tiles and inputs on a card.
   final Color surfaceRaised;
 
-  /// Avatars, chips, progress tracks and the selected tab. Carries primary
-  /// text only.
+  /// Avatars, chips and progress tracks. Carries primary text only.
   final Color surfaceHighest;
 
   /// 1px card edges and dividers.
@@ -133,8 +144,21 @@ class SettloColors extends ThemeExtension<SettloColors> {
   /// ticks, badges or status.
   final Color action;
 
+  /// Home's gold mark, arrows and decorative arcs. The light-theme value is
+  /// dark enough to meet text contrast on paper and white cards.
+  final Color homeGold;
+
   /// The owner-approved lighter gold for Welcome's primary button only.
   final Color welcomeAction;
+
+  /// Top-left and bottom-right stops of the active navigation pill.
+  final Color navActiveStart;
+
+  /// Bottom-right stop of the active navigation pill.
+  final Color navActiveEnd;
+
+  /// Text and icons on the active navigation pill.
+  final Color onNavActive;
 
   /// The lightest stop in Welcome's subtle action gradient.
   Color get welcomeActionTop =>
@@ -189,6 +213,7 @@ class SettloColors extends ThemeExtension<SettloColors> {
       'textSecondary': textSecondary,
       'textMuted': textMuted,
       'action': action,
+      'homeGold': homeGold,
       for (final tone in MoneyTone.values) 'money.${tone.name}': money(tone),
     };
     final glassOver = Color.alphaBlend(glass, background);
@@ -206,6 +231,16 @@ class SettloColors extends ThemeExtension<SettloColors> {
         background: surfaceHighest,
       ),
       (name: 'onAction on action', text: onAction, background: action),
+      (
+        name: 'onNavActive on navActiveStart',
+        text: onNavActive,
+        background: navActiveStart,
+      ),
+      (
+        name: 'onNavActive on navActiveEnd',
+        text: onNavActive,
+        background: navActiveEnd,
+      ),
       (
         name: 'onAction on welcomeActionTop',
         text: SettloColors.dark.onAction,
@@ -235,7 +270,11 @@ class SettloColors extends ThemeExtension<SettloColors> {
       textSecondary: l(textSecondary, other.textSecondary),
       textMuted: l(textMuted, other.textMuted),
       action: l(action, other.action),
+      homeGold: l(homeGold, other.homeGold),
       welcomeAction: l(welcomeAction, other.welcomeAction),
+      navActiveStart: l(navActiveStart, other.navActiveStart),
+      navActiveEnd: l(navActiveEnd, other.navActiveEnd),
+      onNavActive: l(onNavActive, other.onNavActive),
       onAction: l(onAction, other.onAction),
       glass: l(glass, other.glass),
       glassFallback: l(glassFallback, other.glassFallback),

@@ -87,8 +87,8 @@ private struct SettleUpCard: View {
         Text("\(state.payer) is paying you").font(.system(size: 17)).foregroundStyle(Palette.text)
           .lineLimit(1)
         Spacer()
-        // The app's amounts are IBM Plex Serif; the system serif stands in here.
-        Text(state.amount).font(.system(size: 30, weight: .medium, design: .serif))
+        // The app uses Figtree; the system sans stands in inside the extension.
+        Text(state.amount).font(.system(size: 30, weight: .medium))
           .monospacedDigit().foregroundStyle(Palette.text)
       }
       // Requested and paid; your confirmation is the last step. Progress is neutral, never gold.

@@ -18,10 +18,10 @@ Audience: Indian users, INR only in v1, UPI for settling (deep link `upi://pay` 
 - Accent gold #D8B36A on #0A0B0D text. Gold means exactly one thing: a tappable primary action (and the focused OTP box). Never for progress, ticks, badges or status.
 - Money colours: owed to you = mint #5BD39B, you owe = coral #F0715C, settled = secondary grey. No other use of green or red anywhere.
 - Light theme: paper #F4F1EA, ink #1B1B18 replaces gold as primary action, mint #1E7F5C, coral #B6342B.
-- Type: Figtree (variable 400–700) for all text; body 400, labels and buttons 500. IBM Plex Serif 500 for every amount at 20px and above, tabular figures. Amounts in lists use Figtree tabular. The ₹ sign is always Figtree at ~56% of the number, aligned to cap height.
+- Type: Figtree (variable 400–700) for all text and amounts; body 400, labels, buttons and amounts 500, with tabular figures. The ₹ sign in hero amounts is Figtree at 66% of the number, aligned to cap height.
 - Shape: cards radius 24–28, buttons 16, chips pill, 8pt grid, 20px screen margins, 44pt minimum touch targets.
 - Glass only for chrome: floating tab bar (68px pill, blur 28, 62% surface, 1px specular border). Android mid-range falls back to a flat 92% surface. Never blur behind content or amounts.
-- Sheets for amount entry (add expense, new loan, settle up); amount first, in the serif.
+- Sheets for amount entry (add expense, new loan, settle up); amount first.
 - Voice: plain, warm, no guilt. "Rahul owes you ₹420", never "in debt". Sentence case. No exclamation marks.
 - Canvas is the source of truth: 22 artboards with a rationale note under each. Names: Splash, Welcome, Phone, Onboarding (OTP), Main (Home), HomeEmpty, HomeFound, SpacesList, SpaceExpenses, Space (balances), SpaceEmpty, AddExpense, Loan, NewLoan, Settle (request side), SettlePay (you pay), ConfirmRepayment, Activity, Profile, Join (invitee), LiveActivity, HomeLight.
 
@@ -36,7 +36,7 @@ Audience: Indian users, INR only in v1, UPI for settling (deep link `upi://pay` 
 - Quality: 80% unit coverage on money and sync; golden tests per screen at 390x844 and 360x800; pgTAP tests per RLS policy including negative cases; integration test for the flatmate flow (create space, add 3 expenses, settle) and the loan flow (create, repay, confirm).
 
 ## Decisions already taken (do not reopen)
-Flutter over React Native; Supabase over Firebase; phone-only identity; dark-first; Figtree + IBM Plex Serif; gold accent for actions only; two-sided confirmation on repayments; Settlo never moves money; INR only in v1; interest-free loans in v1.
+Flutter over React Native; Supabase over Firebase; phone-only identity; dark-first; Figtree throughout; gold accent for actions only; two-sided confirmation on repayments; Settlo never moves money; INR only in v1; interest-free loans in v1.
 
 ## Working rules for every agent
 - Work only on your assigned issue, inside your own worktree, on branch `<issue>-<slug>`.

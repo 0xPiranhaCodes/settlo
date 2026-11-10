@@ -35,6 +35,9 @@ enum ProfileGlyph {
   /// Delete-account bin.
   trash,
 
+  /// Help and support question mark.
+  help,
+
   /// Forward disclosure arrow.
   chevron,
 
@@ -193,6 +196,14 @@ class _ProfileGlyphPainter extends CustomPainter {
         ..lineTo(7, 20)
         ..lineTo(17, 20)
         ..lineTo(18, 7),
+    ProfileGlyph.help =>
+      Path()
+        ..addOval(Rect.fromCircle(center: const Offset(12, 12), radius: 9))
+        ..moveTo(9.5, 9)
+        ..cubicTo(10, 6.5, 14.5, 6.5, 14.5, 9.5)
+        ..cubicTo(14.5, 11.5, 12, 11.5, 12, 14)
+        ..moveTo(12, 18)
+        ..lineTo(12, 18.1),
     ProfileGlyph.chevron =>
       Path()
         ..moveTo(9, 6)
