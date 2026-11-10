@@ -381,17 +381,29 @@ jobs:
           set -euo pipefail
           (
             cd app
-            flutter test --update-goldens
+            flutter test --update-goldens \
+              test/home_golden_test.dart test/activity_golden_test.dart \
+              test/spaces_golden_test.dart test/loans_golden_test.dart \
+              test/profile_golden_test.dart test/add_expense_golden_test.dart \
+              test/glass_golden_test.dart test/scroll_chrome_test.dart \
+              test/sheet_hit_test.dart
+            flutter test --update-goldens test/auth_golden_test.dart --plain-name welcome
           )
           (
             cd packages/core
-            flutter test --update-goldens
+            flutter test --update-goldens test/widgets/components_golden_test.dart --plain-name tab_bar
           )
+
+      - name: Compose affected Linux review evidence
+        run: |
+          python3 -m pip install Pillow==11.3.0
+          python3 scripts/compose-ui-evidence.py --names activity activity_new add_expense auth_welcome confirm_repayment glass_scrolled_blur glass_scrolled_solid home_empty home_found home_main loans_detail loans_list profile scroll_rest scroll_scrolled sheet_appearance sheet_confirmation_dispute sheet_country_picker sheet_create_space sheet_delete_account sheet_edit_expense sheet_edit_profile sheet_export sheet_loan_dispute sheet_question_edit sheet_record_repayment sheet_sign_out_unsent spaces_balances spaces_empty spaces_expenses spaces_list spaces_settle_ups
 
       - name: Commit app and core goldens
         shell: bash
         run: |
           set -euo pipefail
+          git add docs/design/145/comparisons docs/design/145/pixel-deltas.md
           git add app/test/goldens/*.png
           git add packages/core/test/theme/goldens/*.png
           git add packages/core/test/widgets/goldens/*.png
