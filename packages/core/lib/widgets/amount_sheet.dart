@@ -3,6 +3,7 @@ import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
 import 'package:settlo_core/widgets/pressable.dart';
+import 'package:settlo_core/widgets/scroll_scaffold.dart';
 import 'package:settlo_core/widgets/sheet.dart';
 
 /// Font size of the amount at the top of an amount-entry sheet.
@@ -13,7 +14,7 @@ const double _amountSize = 52;
 /// amount in Figtree, then [body], then [action] pinned to the bottom.
 ///
 /// Show it with [showSAmountSheet].
-class SAmountSheet extends StatelessWidget {
+class SAmountSheet extends StatefulWidget {
   /// A sheet titled [title] around [amount] and [body].
   const new({
     required this.title,
@@ -50,6 +51,35 @@ class SAmountSheet extends StatelessWidget {
   final Widget? action;
 
   @override
+  State<SAmountSheet> createState() => _SAmountSheetState();
+}
+
+class _SAmountSheetState extends State<SAmountSheet> {
+  double _drag = 0;
+  bool _dragging = false;
+  bool _dismissed = false;
+  String get title => widget.title;
+  String get amountLabel => widget.amountLabel;
+  Widget get amount => widget.amount;
+  Widget? get body => widget.body;
+  Widget? get header => widget.header;
+  Widget? get action => widget.action;
+  VoidCallback get onClose => widget.onClose;
+
+  void _endDrag(DragEndDetails details) {
+    if (_dismissed) return;
+    if (_drag > 100 || (details.primaryVelocity ?? 0) > 700) {
+      _dismissed = true;
+      onClose();
+    } else {
+      setState(() {
+        _dragging = false;
+        _drag = 0;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final text = Theme.of(context).textTheme;
@@ -57,6 +87,73 @@ class SAmountSheet extends StatelessWidget {
     // The specular edge is a line clipped by the top corners: Flutter
     // cannot round a border drawn on one side only.
     final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
+    final titleRow = Row(
+      children: [
+        Transform.translate(
+          offset: const Offset(-12, 0),
+          child: SPressable(
+            onTap: onClose,
+            label: 'Close',
+            ringRadius: BorderRadius.circular(SettloSpacing.minTouchTarget / 2),
+            child: SizedBox.square(
+              dimension: SettloSpacing.minTouchTarget,
+              child: Center(
+                child: CustomPaint(
+                  size: const Size.square(22),
+                  painter: _CrossPainter(c.textPrimary),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: largeText
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis,
+              style: text.titleLarge,
+            ),
+          ),
+        ),
+        const SizedBox(width: SettloSpacing.minTouchTarget - 12),
+      ],
+    );
+    final navigation = GestureDetector(
+      excludeFromSemantics: true,
+      behavior: HitTestBehavior.opaque,
+      onVerticalDragUpdate: (details) => setState(() {
+        _dragging = true;
+        _drag = (_drag + details.delta.dy).clamp(0, double.infinity);
+      }),
+      onVerticalDragEnd: _endDrag,
+      onVerticalDragCancel: () => setState(() {
+        _dragging = false;
+        _drag = 0;
+      }),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(top: 10),
+              decoration: BoxDecoration(
+                color: c.surfaceHighest,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          titleRow,
+        ],
+      ),
+    );
     final content = SafeArea(
       top: false,
       child: Padding(
@@ -67,53 +164,6 @@ class SAmountSheet extends StatelessWidget {
           mainAxisSize: largeText ? MainAxisSize.min : MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(top: 10),
-                decoration: BoxDecoration(
-                  color: c.surfaceHighest,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Transform.translate(
-                  offset: const Offset(-12, 0),
-                  child: SPressable(
-                    onTap: onClose,
-                    label: 'Close',
-                    ringRadius: BorderRadius.circular(
-                      SettloSpacing.minTouchTarget / 2,
-                    ),
-                    child: SizedBox.square(
-                      dimension: SettloSpacing.minTouchTarget,
-                      child: Center(
-                        child: CustomPaint(
-                          size: const Size.square(22),
-                          painter: _CrossPainter(c.textPrimary),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    maxLines: largeText ? null : 1,
-                    overflow: largeText
-                        ? TextOverflow.visible
-                        : TextOverflow.ellipsis,
-                    style: text.titleSmall,
-                  ),
-                ),
-                const SizedBox(width: SettloSpacing.minTouchTarget - 12),
-              ],
-            ),
             const SizedBox(height: 22),
             if (header case final header?) ...[
               header,
@@ -171,27 +221,34 @@ class SAmountSheet extends StatelessWidget {
         ),
       ),
     );
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: radius),
-      child: ColoredBox(
+    return AnimatedContainer(
+      duration: _dragging || MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : SettloMotion.panel,
+      curve: SettloMotion.curve,
+      transform: Matrix4.translationValues(0, _drag, 0),
+      decoration: BoxDecoration(
         color: c.surface,
-        child: Stack(
-          children: [
-            if (largeText)
-              SingleChildScrollView(
-                key: const ValueKey('amount-sheet-scroll'),
-                child: content,
-              )
-            else
-              Positioned.fill(child: content),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: SettloElevation.hairline,
-              child: ColoredBox(color: c.specular),
-            ),
-          ],
+        borderRadius: const BorderRadius.vertical(top: radius),
+        border: Border.all(
+          color: SettloElevation.border(
+            dark: Theme.of(context).brightness == Brightness.dark,
+          ),
+        ),
+        boxShadow: SettloElevation.ambient(
+          dark: Theme.of(context).brightness == Brightness.dark,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: radius),
+        child: SettloScrollScaffold(
+          key: const ValueKey('amount-sheet-scroll'),
+          title: title,
+          statusInset: 0,
+          expandedHeight: 108,
+          compactHeader: titleRow,
+          slivers: [SliverFillRemaining(hasScrollBody: false, child: content)],
+          children: [navigation],
         ),
       ),
     );
@@ -206,6 +263,7 @@ Future<T?> showSAmountSheet<T>({
 }) => showSettloSheet<T>(
   context: context,
   backgroundColor: Colors.transparent,
+  showDragHandle: false,
   builder: (context) => Padding(
     padding: EdgeInsets.only(
       top: 54 - MediaQuery.paddingOf(context).top.clamp(0, 54),
@@ -261,15 +319,12 @@ class SFormBody extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
   @override
-  Widget build(BuildContext context) =>
-      MediaQuery.textScalerOf(context).scale(14) > 21
-      ? Padding(
-          padding: padding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: children,
-          ),
-        )
-      : ListView(padding: padding, children: children);
+  Widget build(BuildContext context) => Padding(
+    padding: padding,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: children,
+    ),
+  );
 }

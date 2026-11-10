@@ -72,12 +72,17 @@ class _ButtonLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = this.icon;
-    if (icon == null) return Text(label);
+    final large = MediaQuery.textScalerOf(context).scale(1) >= 1.3;
+    final text = Text(label, maxLines: 1, overflow: TextOverflow.ellipsis);
+    final content = large
+        ? FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1))
+        : text;
+    if (icon == null) return content;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: Text(label)),
-        const SizedBox(width: SettloSpacing.x1),
+        Flexible(child: content),
+        const SizedBox(width: SettloSpacing.half),
         IconTheme.merge(data: const IconThemeData(size: 18), child: icon),
       ],
     );

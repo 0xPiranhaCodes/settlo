@@ -60,8 +60,7 @@ class SChip extends StatelessWidget {
               heightFactor: 1,
               child: Text(
                 label,
-                style: SettloTypography.figtree(
-                  13,
+                style: SettloTypography.subheadline(
                   weight: selected ? FontWeight.w500 : FontWeight.w400,
                   color: selected ? c.background : c.textPrimary,
                 ),
@@ -120,15 +119,22 @@ class SSegmentedControl<T> extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 3),
-          child: Wrap(
-            children: [
-              for (final segment in segments)
-                _Segment(
-                  label: segment.label,
-                  selected: segment.value == selected,
-                  onTap: () => onChanged(segment.value),
-                ),
-            ],
+          child: SizedBox(
+            height: (MediaQuery.textScalerOf(context).scale(15) * 1.2 + 24)
+                .clamp(44, double.infinity),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final segment in segments)
+                    _Segment(
+                      label: segment.label,
+                      selected: segment.value == selected,
+                      onTap: () => onChanged(segment.value),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
@@ -168,8 +174,7 @@ class _Segment extends StatelessWidget {
             ),
             child: Text(
               label,
-              style: SettloTypography.figtree(
-                13,
+              style: SettloTypography.subheadline(
                 weight: selected ? FontWeight.w500 : FontWeight.w400,
                 color: selected ? c.textPrimary : c.textSecondary,
               ),

@@ -1,26 +1,21 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 
 /// A Settlo card: surface fill, 1px hairline edge and a 1px specular
-/// highlight along the inside of the top edge. No drop shadow.
+/// highlight along the inside of the top edge and soft ambient depth.
 ///
 /// Canvas: `border: 1px solid hairline; box-shadow: inset 0 1px 0 specular`.
 class SCard extends StatelessWidget {
   /// A card around [child]. [hero] uses the larger radius for the one
   /// headline card on a screen.
-  const new({
-    required this.child,
-    this.padding = const EdgeInsets.all(SettloSpacing.x2),
-    this.hero = false,
-    super.key,
-  });
+  const new({required this.child, this.padding, this.hero = false, super.key});
 
   /// The card's content.
   final Widget child;
 
   /// Space between the edge and [child].
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? padding;
 
   /// Whether this is the screen's hero card (radius 28 rather than 24).
   final bool hero;
@@ -34,7 +29,14 @@ class SCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.surface,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: c.hairline),
+        border: Border.all(
+          color: SettloElevation.border(
+            dark: Theme.of(context).brightness == Brightness.dark,
+          ),
+        ),
+        boxShadow: SettloElevation.ambient(
+          dark: Theme.of(context).brightness == Brightness.dark,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(edge),
@@ -42,7 +44,14 @@ class SCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(radius - edge),
           child: Stack(
             children: [
-              Padding(padding: padding, child: child),
+              Padding(
+                padding:
+                    padding ??
+                    EdgeInsets.all(
+                      hero ? SettloSpacing.x3 : SettloSpacing.screenMargin,
+                    ),
+                child: child,
+              ),
               Positioned(
                 top: 0,
                 left: 0,

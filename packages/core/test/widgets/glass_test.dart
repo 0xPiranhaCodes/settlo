@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -21,38 +24,40 @@ void main() {
     },
   );
 
-  test(
-    'glass and bronze labels retain 4.5 contrast over extreme backdrops',
-    () {
-      double contrast(Color a, Color b) {
-        final x = a.computeLuminance();
-        final y = b.computeLuminance();
-        return (x > y ? x + 0.05 : y + 0.05) / (x > y ? y + 0.05 : x + 0.05);
-      }
+  test('glass and bronze labels retain 4.5 contrast '
+      'over extreme and image backdrops', () async {
+    double contrast(Color a, Color b) {
+      final x = a.computeLuminance();
+      final y = b.computeLuminance();
+      return (x > y ? x + 0.05 : y + 0.05) / (x > y ? y + 0.05 : x + 0.05);
+    }
 
-      for (final c in [SettloColors.dark, SettloColors.light]) {
-        for (final backdrop in [Colors.black, Colors.white]) {
-          final tint = Color.alphaBlend(
-            c.glass.withValues(alpha: 0.7),
-            backdrop,
-          );
-          final glow = Color.alphaBlend(
-            c.specular.withValues(alpha: 0.02),
+    final busy = await _busyBackdrop();
+    for (final c in [SettloColors.dark, SettloColors.light]) {
+      for (final backdrop in [Colors.black, Colors.white, ...busy]) {
+        final tint = Color.alphaBlend(
+          c.glass.withValues(alpha: SettloElevation.glassTint),
+          backdrop,
+        );
+        final glow = Color.alphaBlend(
+          c.specular.withValues(alpha: 0.02),
+          Color.alphaBlend(
+            c.surface.withValues(alpha: SettloElevation.glassLegibility),
             tint,
-          );
-          expect(contrast(c.textPrimary, glow), greaterThanOrEqualTo(4.5));
-        }
-        for (final bronze in [c.navActiveStart, c.navActiveEnd]) {
-          final glow = Color.alphaBlend(
-            c.specular.withValues(alpha: 0.02),
-            bronze,
-          );
-          expect(contrast(c.onNavActive, glow), greaterThanOrEqualTo(4.5));
-        }
-        expect(contrast(c.textPrimary, c.surface), greaterThanOrEqualTo(4.5));
+          ),
+        );
+        expect(contrast(c.textPrimary, glow), greaterThanOrEqualTo(4.5));
       }
-    },
-  );
+      for (final bronze in [c.navActiveStart, c.navActiveEnd]) {
+        final glow = Color.alphaBlend(
+          c.specular.withValues(alpha: 0.02),
+          bronze,
+        );
+        expect(contrast(c.onNavActive, glow), greaterThanOrEqualTo(4.5));
+      }
+      expect(contrast(c.textPrimary, c.surface), greaterThanOrEqualTo(4.5));
+    }
+  });
 
   testWidgets('high contrast removes blur and Reduce Motion removes sliding', (
     tester,
@@ -101,4 +106,27 @@ void main() {
       Duration.zero,
     );
   });
+}
+
+// Sample the real Home image, including money, type and the bronze curve.
+Future<List<Color>> _busyBackdrop() async {
+  final bytes = await File('../../app/test/goldens/home_main_390x844_dark.png')
+      .readAsBytes();
+  final codec = await ui.instantiateImageCodec(bytes, targetWidth: 120);
+  final frame = await codec.getNextFrame();
+  final data = (await frame.image.toByteData())!;
+  final colors = <Color>[];
+  for (var i = 0; i < data.lengthInBytes; i += 16) {
+    colors.add(
+      Color.fromARGB(
+        data.getUint8(i + 3),
+        data.getUint8(i),
+        data.getUint8(i + 1),
+        data.getUint8(i + 2),
+      ),
+    );
+  }
+  frame.image.dispose();
+  codec.dispose();
+  return colors;
 }

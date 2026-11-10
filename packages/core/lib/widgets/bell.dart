@@ -48,7 +48,7 @@ class SBell extends StatelessWidget {
               child: ExcludeSemantics(
                 child: Container(
                   constraints: const BoxConstraints(minWidth: 18),
-                  height: 18,
+                  height: 24,
                   padding: const EdgeInsets.symmetric(horizontal: 5),
                   alignment: Alignment.center,
                   decoration: ShapeDecoration(
@@ -57,8 +57,7 @@ class SBell extends StatelessWidget {
                   ),
                   child: Text(
                     count,
-                    style: SettloTypography.figtree(
-                      11,
+                    style: SettloTypography.caption1(
                       weight: FontWeight.w500,
                       color: c.background,
                     ),

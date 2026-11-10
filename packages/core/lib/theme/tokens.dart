@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/widgets.dart';
 
 /// Spacing on the 8pt grid. [half] is for tight optical gaps only.
@@ -115,19 +117,67 @@ abstract final class SettloHomeMetrics {
 
   /// Diameter of the gold arrow control on an empty-state action card.
   static const double arrowButton = 44;
-
-  /// Scale while a custom Home control is held.
-  static const double pressedScale = 0.98;
-
-  /// Duration of the short press response.
-  static const Duration pressDuration = Duration(milliseconds: 90);
 }
 
-/// Depth. Cards get no drop shadow: a hairline edge plus a 1px specular
-/// highlight along the top. Only floating chrome casts a shadow.
+/// Shared micro-borders and soft layered ambient elevation.
 abstract final class SettloElevation {
   /// Width of card edges, dividers and the specular highlight.
   static const double hairline = 1;
+
+  /// Shared blur and saturation for floating and pinned glass chrome.
+  static ImageFilter get glassFilter => ImageFilter.compose(
+    // A restrained saturation lift of the backdrop only.
+    outer: const ColorFilter.matrix([
+      1.118,
+      -0.107,
+      -0.011,
+      0,
+      0,
+      -0.032,
+      1.043,
+      -0.011,
+      0,
+      0,
+      -0.032,
+      -0.107,
+      1.139,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+    ]),
+    inner: ImageFilter.blur(
+      sigmaX: SettloElevation.glassBlur,
+      sigmaY: SettloElevation.glassBlur,
+    ),
+  );
+
+  /// Glass tint leaves the backdrop visible outside the legibility plates.
+  static const double glassTint = 0.42;
+
+  /// Local backing under navigation glyphs, never the entire capsule.
+  static const double glassLegibility = 0.72;
+
+  /// Low-opacity neutral card edge, without changing palette hues.
+  static Color border({required bool dark}) =>
+      dark ? const Color(0x14FFFFFF) : const Color(0x0F000000);
+
+  /// A broad ambient layer and a close contact layer.
+  static List<BoxShadow> ambient({required bool dark}) => [
+    BoxShadow(
+      color: Color(dark ? 0x14000000 : 0x0A000000),
+      offset: const Offset(0, 4),
+      blurRadius: 16,
+    ),
+    BoxShadow(
+      color: Color(dark ? 0x0A000000 : 0x05000000),
+      offset: const Offset(0, 1),
+      blurRadius: 4,
+    ),
+  ];
 
   /// Floating tab bar height.
   static const double tabBarHeight = 68;

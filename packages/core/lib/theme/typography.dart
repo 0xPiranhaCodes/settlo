@@ -33,21 +33,99 @@ abstract final class SettloTypography {
     color: color,
   ).copyWith(height: 1.05);
 
-  /// Material text theme in [color].
-  ///
-  /// headlineSmall 22/500 (screen titles, wordmark), titleMedium 17/500,
-  /// titleSmall and labelLarge 15/500 (row titles, buttons), bodyLarge
-  /// 15/400, bodyMedium 13/400 (captions), bodySmall and labelMedium 12/400
-  /// (section labels), labelSmall 11/400 (tab bar).
+  /// largeTitle: 34pt, 600 weight in the platform Dynamic Type ramp.
+  static TextStyle largeTitle({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w600,
+  }) => figtree(34, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// title1: 28pt, 600 weight in the platform Dynamic Type ramp.
+  static TextStyle title1({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w600,
+  }) => figtree(28, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// title2: 22pt, 600 weight in the platform Dynamic Type ramp.
+  static TextStyle title2({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w600,
+  }) => figtree(22, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// title3: 20pt, 600 weight in the platform Dynamic Type ramp.
+  static TextStyle title3({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w600,
+  }) => figtree(20, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// headline: 17pt, 600 weight in the platform Dynamic Type ramp.
+  static TextStyle headline({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w600,
+  }) => figtree(17, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// body: 17pt, 400 weight in the platform Dynamic Type ramp.
+  static TextStyle body({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w400,
+  }) => figtree(17, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// callout: 16pt, 400 weight in the platform Dynamic Type ramp.
+  static TextStyle callout({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w400,
+  }) => figtree(16, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// subheadline: 15pt, 400 weight in the platform Dynamic Type ramp.
+  static TextStyle subheadline({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w400,
+  }) => figtree(15, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// footnote: 13pt, 400 weight in the platform Dynamic Type ramp.
+  static TextStyle footnote({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w400,
+  }) => figtree(13, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// caption1: 12pt, 400 weight in the platform Dynamic Type ramp.
+  static TextStyle caption1({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w400,
+  }) => figtree(12, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// caption2: 11pt, 500 weight in the platform Dynamic Type ramp.
+  static TextStyle caption2({
+    Color? color,
+    double? letterSpacing,
+    FontWeight weight = FontWeight.w500,
+  }) => figtree(11, weight: weight, color: color, letterSpacing: letterSpacing);
+
+  /// Material roles backed by the same platform ramp.
   static TextTheme textTheme(Color color) => TextTheme(
-    headlineSmall: figtree(22, weight: FontWeight.w500, letterSpacing: -0.6),
-    titleMedium: figtree(17, weight: FontWeight.w500),
-    titleSmall: figtree(15, weight: FontWeight.w500),
-    bodyLarge: figtree(15),
-    bodyMedium: figtree(13),
-    bodySmall: figtree(12),
-    labelLarge: figtree(15, weight: FontWeight.w500),
-    labelMedium: figtree(12, letterSpacing: 0.3),
-    labelSmall: figtree(11),
+    displayLarge: largeTitle(),
+    displayMedium: title1(),
+    displaySmall: title2(),
+    headlineLarge: largeTitle(),
+    headlineMedium: title1(),
+    headlineSmall: title2(),
+    titleLarge: title3(),
+    titleMedium: headline(),
+    titleSmall: subheadline(),
+    bodyLarge: body(),
+    bodyMedium: body(),
+    bodySmall: subheadline(),
+    labelLarge: callout(weight: FontWeight.w600),
+    labelMedium: footnote(letterSpacing: 0.3),
+    labelSmall: caption2(),
   ).apply(bodyColor: color, displayColor: color);
 }

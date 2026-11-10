@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
+import 'package:settlo_core/widgets/platform_page.dart';
 import 'package:settlo_core/widgets/pressable.dart';
 
 /// Settlo [ThemeData]. Dark is the default.
@@ -39,6 +40,12 @@ abstract final class SettloTheme {
     const buttonSize = Size(SettloSpacing.minTouchTarget, 50);
     return ThemeData(
       brightness: brightness,
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          for (final platform in TargetPlatform.values)
+            platform: const SettloPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: scheme,
       scaffoldBackgroundColor: c.background,
       textTheme: text,

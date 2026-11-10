@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:settlo_core/theme/colors.dart';
@@ -46,9 +44,7 @@ class SGlassTabBar extends StatefulWidget {
   });
 
   /// Extra room for untruncated navigation labels at accessibility text sizes.
-  static double heightFor(TextScaler scaler) =>
-      SettloElevation.tabBarHeight +
-      ((scaler.scale(11) / 11 - 1).clamp(0, 1) * 24);
+  static double heightFor(TextScaler scaler) => SettloElevation.tabBarHeight;
 
   /// The destinations, in order.
   final List<SGlassTab> tabs;
@@ -112,8 +108,10 @@ class _SGlassTabBarState extends State<SGlassTabBar> {
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        // 70% keeps primary-text contrast above 4.5 even over white or black.
-        color: solid ? c.surface : c.glass.withValues(alpha: 0.70),
+        // The capsule stays translucent; each glyph has a local contrast plate.
+        color: solid
+            ? c.surface
+            : c.glass.withValues(alpha: SettloElevation.glassTint),
         borderRadius: radius,
       ),
       child: LayoutBuilder(
@@ -131,7 +129,7 @@ class _SGlassTabBarState extends State<SGlassTabBar> {
                 width: width,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(26),
+                    borderRadius: BorderRadius.circular((height - 16) / 2),
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -171,38 +169,7 @@ class _SGlassTabBarState extends State<SGlassTabBar> {
           foregroundPainter: _GlassEdge(c),
           child: solid
               ? bar
-              : BackdropFilter(
-                  filter: ImageFilter.compose(
-                    // A restrained saturation lift of the backdrop only.
-                    outer: const ColorFilter.matrix([
-                      1.118,
-                      -0.107,
-                      -0.011,
-                      0,
-                      0,
-                      -0.032,
-                      1.043,
-                      -0.011,
-                      0,
-                      0,
-                      -0.032,
-                      -0.107,
-                      1.139,
-                      0,
-                      0,
-                      0,
-                      0,
-                      0,
-                      1,
-                      0,
-                    ]),
-                    inner: ImageFilter.blur(
-                      sigmaX: SettloElevation.glassBlur,
-                      sigmaY: SettloElevation.glassBlur,
-                    ),
-                  ),
-                  child: bar,
-                ),
+              : BackdropFilter(filter: SettloElevation.glassFilter, child: bar),
         ),
       ),
     );
@@ -269,29 +236,55 @@ class _Tab extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final color = selected ? c.onNavActive : c.textPrimary;
-    return SPressable(
-      onTap: onTap,
-      selected: selected,
-      label: tab.label,
-      ringRadius: BorderRadius.circular(26),
-      child: SizedBox(
-        height: height,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconTheme.merge(
-              data: IconThemeData(color: color, size: 22),
-              child: tab.icon,
+    final iconOnly = MediaQuery.textScalerOf(context).scale(1) >= 1.3;
+    return Tooltip(
+      message: tab.label,
+      excludeFromSemantics: true,
+      child: SPressable(
+        onTap: onTap,
+        selected: selected,
+        label: tab.label,
+        ringRadius: BorderRadius.circular(height / 2),
+        child: SizedBox(
+          height: height,
+          child: Center(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: selected
+                    ? null
+                    : c.surface.withValues(
+                        alpha: SettloElevation.glassLegibility,
+                      ),
+                borderRadius: BorderRadius.circular(SettloRadius.compact),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconTheme.merge(
+                      data: IconThemeData(
+                        color: color,
+                        size: iconOnly ? 28 : 22,
+                      ),
+                      child: tab.icon,
+                    ),
+                    if (!iconOnly) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        tab.label,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.labelSmall
+                            ?.copyWith(color: color, height: 1.1),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 3),
-            Text(
-              tab.label,
-              maxLines: height > 52 ? 2 : 1,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.labelSmall
-                  ?.copyWith(color: color, height: 1.1),
-            ),
-          ],
+          ),
         ),
       ),
     );

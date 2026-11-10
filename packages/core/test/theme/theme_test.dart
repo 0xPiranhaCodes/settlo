@@ -62,7 +62,7 @@ void main() {
         );
       }
       expect(text.bodyLarge!.fontWeight, FontWeight.w400);
-      expect(text.labelLarge!.fontWeight, FontWeight.w500);
+      expect(text.labelLarge!.fontWeight, FontWeight.w600);
     });
   });
 
