@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:settlo_core/settlo_core.dart';
 
 /// The four tabs, in canvas order.
@@ -18,7 +20,7 @@ final List<SGlassTab> _tabs = [
 /// (`MediaQuery.padding` and `viewPadding`), so `SafeArea` keeps fixed
 /// content clear of it and scroll views pad their last item above it while
 /// rows still scroll under the glass.
-class SettloShell extends StatelessWidget {
+class SettloShell extends StatefulWidget {
   /// A shell showing [child] with tab [currentIndex] selected.
   const new({
     required this.currentIndex,
@@ -41,6 +43,19 @@ class SettloShell extends StatelessWidget {
   final bool flatChrome;
 
   @override
+  State<SettloShell> createState() => _SettloShellState();
+}
+
+class _SettloShellState extends State<SettloShell> {
+  final _scrolls = SettloScrollRegistry();
+
+  void _select(int index) {
+    if (index == widget.currentIndex && _scrolls.scrollToTop()) return;
+    if (index != widget.currentIndex) unawaited(HapticFeedback.lightImpact());
+    widget.onTabSelected(index);
+  }
+
+  @override
   Widget build(BuildContext context) {
     // The canvas's 22px assumes the 34px iPhone home indicator; keep the bar
     // clear of taller system navigation (e.g. Android three-button).
@@ -57,7 +72,7 @@ class SettloShell extends StatelessWidget {
                 padding: media.padding.copyWith(bottom: inset),
                 viewPadding: media.viewPadding.copyWith(bottom: inset),
               ),
-              child: child,
+              child: SettloScrollScope(registry: _scrolls, child: widget.child),
             ),
           ),
           Positioned(
@@ -66,9 +81,9 @@ class SettloShell extends StatelessWidget {
             bottom: bottom,
             child: SGlassTabBar(
               tabs: _tabs,
-              currentIndex: currentIndex,
-              onTap: onTabSelected,
-              lowEndBlur: flatChrome,
+              currentIndex: widget.currentIndex,
+              onTap: _select,
+              lowEndBlur: widget.flatChrome,
             ),
           ),
         ],

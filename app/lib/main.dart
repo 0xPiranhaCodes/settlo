@@ -65,6 +65,7 @@ class SettloApp extends ConsumerWidget {
       });
     return MaterialApp.router(
       title: 'Settlo',
+      scrollBehavior: const SettloScrollBehavior(),
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: _messenger,
       theme: SettloTheme.light(),
