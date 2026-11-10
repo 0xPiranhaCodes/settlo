@@ -498,6 +498,32 @@ writes the same values.
 POST /rest/v1/rpc/update_profile  {"p_name": "Asha K", "p_upi_id": "asha.k@okaxis"}
 ```
 
+### `delete_account()` (#9, #74)
+Deletes the caller's account. No arguments: it acts on `auth.uid()` only, verified or not; `42501`
+without a session. Security definer. Returns nothing.
+
+- The profile stays as a tombstone, because shared history references it: `name` becomes
+  `'Deleted user'`, `upi_id` and `phone` are cleared, `deleted_at` is set.
+- The caller's `friends` rows are deleted; other people's entries for the caller keep the number they
+  typed and lose `friend_id`. Claims the caller never accepted are unlinked. Invite links the caller
+  issued are revoked.
+- The `auth.users` row is deleted, and with it sessions, refresh tokens, idempotency keys and the
+  lookup quota. The number is free at once.
+- Nothing else changes: memberships the caller accepted, expenses, allocations, loans, repayments,
+  settle-ups, dispute reasons and activity stay as they are for the other members.
+
+Idempotent: the access token outlives the auth user, and a second call returns normally and writes
+nothing. Until that token expires it reads nothing. The client should drop its session locally
+(`signOut(scope: local)`); a server sign-out has no user to act on.
+
+The auth row is locked first, so a concurrent verification of the same user either commits before
+the deletion (which then releases what it linked) or finds no user. The number signing up again is a
+new user: it is linked only to rows nobody had accepted, as pending claims.
+
+```
+POST /rest/v1/rpc/delete_account  {}
+```
+
 ## Loans (#87)
 
 Same rules as the RPCs above: `authenticated` only, verified callers, the same error codes, and

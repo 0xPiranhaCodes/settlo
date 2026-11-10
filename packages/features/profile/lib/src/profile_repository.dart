@@ -29,6 +29,9 @@ abstract interface class ProfileRepository {
 
   /// Ends the current session.
   Future<void> signOut();
+
+  /// Deletes the account through `delete_account`, then drops the session.
+  Future<void> deleteAccount();
 }
 
 /// A validation error safe to show directly to the user.
@@ -86,6 +89,18 @@ final class SupabaseProfileRepository implements ProfileRepository {
 
   @override
   Future<void> signOut() => client.auth.signOut();
+
+  @override
+  Future<void> deleteAccount() async {
+    await client.rpc<void>('delete_account');
+    // This drops the local session first, then tells a server that has no
+    // such user any more; that second half failing means nothing.
+    try {
+      await client.auth.signOut();
+    } on AuthException {
+      // Already signed out here.
+    }
+  }
 }
 
 /// Profile data for the current session. Tests replace this provider.

@@ -9,9 +9,9 @@ final profileProvider = AsyncNotifierProvider<ProfileController, ProfileData>(
 
 /// Loads and updates the signed-in user's profile.
 class ProfileController extends AsyncNotifier<ProfileData> {
-  /// Whether the sign-out row is already asking or signing out, so a
-  /// double tap starts one.
-  bool signingOut = false;
+  /// Whether the sign-out or delete-account row is already asking or
+  /// working, so a double tap starts one.
+  bool leaving = false;
 
   @override
   Future<ProfileData> build() => ref.watch(profileRepositoryProvider).load();
@@ -33,4 +33,9 @@ class ProfileController extends AsyncNotifier<ProfileData> {
 
   /// Signs out. The app's session listener performs navigation.
   Future<void> signOut() => ref.read(profileRepositoryProvider).signOut();
+
+  /// Deletes the account and signs out; the session listener navigates,
+  /// and the offline mirror and queue are wiped as on any sign-out.
+  Future<void> deleteAccount() =>
+      ref.read(profileRepositoryProvider).deleteAccount();
 }

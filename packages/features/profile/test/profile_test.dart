@@ -24,6 +24,8 @@ final class _ProfileRepository implements ProfileRepository {
   ({String name, String? upiId})? saved;
   int signOuts = 0;
   bool get signedOut => signOuts > 0;
+  int deletions = 0;
+  Object? deleteError;
   Object? loadError;
   Object? updateError;
   Object? signOutError;
@@ -38,6 +40,12 @@ final class _ProfileRepository implements ProfileRepository {
   Future<void> signOut() async {
     if (signOutError case final error?) _throw(error);
     signOuts++;
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    if (deleteError case final error?) _throw(error);
+    deletions++;
   }
 
   @override
@@ -223,6 +231,8 @@ void main() {
 
     await container.read(profileProvider.notifier).signOut();
     expect(repository.signedOut, isTrue);
+    await container.read(profileProvider.notifier).deleteAccount();
+    expect(repository.deletions, 1);
   });
 
   testWidgets('every profile glyph paints without a font dependency', (
@@ -490,6 +500,92 @@ void main() {
       await tester.pumpAndSettle();
       expect(profile.signedOut, isFalse);
       expect(drains, 0);
+    });
+
+    testWidgets('Delete account confirms, naming what goes and what stays, '
+        'and deletes once on a no-pump double tap', (tester) async {
+      await open(tester, count: 0);
+      // A double tap on the row opens one sheet.
+      await tester.tap(find.text('Delete account'));
+      await tester.tap(find.text('Delete account'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(find.text('Delete your account?'), findsOneWidget);
+      expect(
+        find.text(
+          'This removes your name, UPI ID, phone number and friends list, '
+          'and signs you out. Expenses, loans and settle-ups you share stay '
+          "in the other people's records. This can't be undone.",
+        ),
+        findsOneWidget,
+      );
+      expect(profile.deletions, 0, reason: 'nothing before the confirmation');
+
+      // The row is under the sheet now; these two hit the sheet's button.
+      await tester.tap(find.text('Delete account').last);
+      await tester.tap(find.text('Delete account').last, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(profile.deletions, 1);
+      expect(profile.signOuts, 0, reason: 'the repository drops the session');
+      expect(find.byType(ProfileScreen), findsOneWidget);
+    });
+
+    testWidgets('Keep my account and dismissing delete nothing', (
+      tester,
+    ) async {
+      await open(tester, count: 0);
+      await tester.tap(find.text('Delete account'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Keep my account'));
+      await tester.tap(find.text('Keep my account'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(find.text('Delete your account?'), findsNothing);
+      expect(find.byType(ProfileScreen), findsOneWidget);
+
+      await tester.tap(find.text('Delete account'));
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(profile.deletions, 0);
+      expect(drains, 0);
+    });
+
+    testWidgets('Delete account warns that unsent changes are lost', (
+      tester,
+    ) async {
+      await open(tester, count: 2);
+      await tester.tap(find.text('Delete account'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Your 2 unsent changes will be lost.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Delete account').last);
+      await tester.pumpAndSettle();
+      expect(profile.deletions, 1);
+    });
+
+    testWidgets('a failed deletion uses safe copy and can be retried', (
+      tester,
+    ) async {
+      await open(tester, count: 0);
+      profile.deleteError = StateError('private');
+      await tester.tap(find.text('Delete account'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete account').last);
+      await tester.pumpAndSettle();
+      expect(
+        find.text("We couldn't delete your account. Try again."),
+        findsOneWidget,
+      );
+      expect(find.textContaining('private'), findsNothing);
+
+      profile.deleteError = null;
+      await tester.tap(find.text('Delete account'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete account').last);
+      await tester.pumpAndSettle();
+      expect(profile.deletions, 1);
     });
   });
 

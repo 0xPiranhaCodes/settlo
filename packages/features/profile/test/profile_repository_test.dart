@@ -48,6 +48,10 @@ void main() {
     expect(requests.last, contains('"p_name":"Asha"'));
     expect(requests.last, contains('"p_upi_id":null'));
     await repository.signOut();
+
+    await repository.deleteAccount();
+    expect(requests, hasLength(3));
+    expect(requests.last, contains('POST /rest/v1/rpc/delete_account'));
   });
 
   test('server errors are translated only for 22023', () async {
