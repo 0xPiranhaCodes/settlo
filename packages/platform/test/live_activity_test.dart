@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_platform/settlo_platform.dart';
@@ -57,6 +58,28 @@ void main() {
         ),
       );
       expect(shown!.confirmPath, '/spaces/space-1/settle-ups/new');
+    });
+
+    test('a different payer or amount is a different state', () {
+      final a = settleUpActivityFor([_settleUp('s1', late)]);
+      expect(a.hashCode, settleUpActivityFor([_settleUp('s1', late)]).hashCode);
+      expect(
+        a,
+        isNot(settleUpActivityFor([_settleUp('s1', late, payer: 'Raj')])),
+      );
+      expect(
+        a,
+        isNot(
+          SettleUpActivity(
+            id: 's1',
+            spaceId: 'space-1',
+            spaceName: 'Flat 402',
+            payer: 'Priya',
+            amount: const Paise(1),
+            recordedAt: late,
+          ),
+        ),
+      );
     });
 
     test('sends the native side formatted, ready-to-draw fields', () {
@@ -122,5 +145,12 @@ void main() {
     test('glass where there is no native side (iOS)', () async {
       expect(await prefersFlatChrome(), isFalse);
     });
+  });
+
+  test('the app defaults: the real channel, glass chrome', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    expect(container.read(liveActivitiesProvider), isA<LiveActivities>());
+    expect(container.read(flatChromeProvider), isFalse);
   });
 }
