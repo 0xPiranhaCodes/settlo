@@ -78,7 +78,7 @@ abstract final class SettloWelcomeMetrics {
   static const Duration actionPressDuration = Duration(milliseconds: 90);
 
   /// Blur radius of the warm shadow beneath Welcome's primary action.
-  static const double actionShadowBlur = 18;
+  static const double actionShadowBlur = 24;
 
   /// Downward offset of the warm shadow beneath Welcome's primary action.
   static const double actionShadowOffset = 8;

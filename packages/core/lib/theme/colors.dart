@@ -149,7 +149,7 @@ class SettloColors extends ThemeExtension<SettloColors> {
       Color.alphaBlend(const Color(0x66FFFFFF), welcomeAction);
 
   /// The warm, low shadow beneath Welcome's action.
-  Color get welcomeActionShadow => welcomeAction.withValues(alpha: 0.24);
+  Color get welcomeActionShadow => welcomeAction.withValues(alpha: 0.25);
 
   /// Text and icons on [action].
   final Color onAction;
