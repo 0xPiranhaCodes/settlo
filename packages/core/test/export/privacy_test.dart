@@ -123,13 +123,26 @@ void main() {
     expect(_pdfText(s), contains('The other party'));
   });
 
-  test("a 12-digit UTR is kept: it is the payer's to reconcile", () {
-    for (final utr in ['432188120099', '4321 8812 0099', '९१२३४५६७८९०१']) {
+  test('a reference that is only a 12-digit UTR is kept: it is the '
+      "payer's to reconcile", () {
+    for (final utr in ['432188120099', ' 919800000009 ', '९१२३४५६७८९०१']) {
       final s = loanStatement(_loan(reference: utr), generatedAt: _at);
-      expect(_pdfText(s), contains('UPI · $utr'));
+      expect(_pdfText(s), contains('UPI · $utr'), reason: utr);
     }
-    // Only as the reference; anywhere else it is just digits, kept too.
-    expect(redactPhones('432188120099'), '432188120099');
+  });
+
+  test('a 12-digit run with anything else in the reference is redacted '
+      'as a phone', () {
+    for (final (reference, printed) in [
+      ('Call 91 98000 00009', 'UPI · Call ••••'),
+      ('UTR 919800000009', 'UPI · UTR ••••'),
+      ('91 98000 00009', 'UPI · ••••'),
+      ('९१ ९८००० ००००९', 'UPI · ••••'),
+    ]) {
+      final s = loanStatement(_loan(reference: reference), generatedAt: _at);
+      expect(_leaks(_pdfText(s)), isFalse, reason: reference);
+      expect(_pdfText(s), contains(printed), reason: reference);
+    }
   });
 
   for (final n in _forms) {

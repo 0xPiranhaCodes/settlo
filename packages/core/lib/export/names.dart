@@ -9,8 +9,8 @@ final _digitRun = RegExp(r'\+?\d(?:[ -]?\d)*');
 /// `+91`, `91` or `0`, with no digit directly before or after.
 final _phone = RegExp(r'(?<!\d)(?:(?:\+91|91|0)[ -]?)?\d(?:[ -]?\d){9}(?!\d)');
 
-/// A UPI transaction reference (UTR): exactly 12 digits.
-final _utr = RegExp(r'^\d(?:[ -]?\d){11}$');
+/// A UPI transaction reference (UTR): exactly 12 contiguous digits.
+final _utr = RegExp(r'^\d{12}$');
 
 final _decimalDigit = RegExp(r'^\p{Nd}$', unicode: true);
 
@@ -49,15 +49,18 @@ bool isPhoneLike(String name) =>
 /// [text] with every Indian phone number (in any script's digits)
 /// replaced by `••••`. Every name and free-text field an export writes goes
 /// through this; amounts and dates are built by the export itself and never
-/// do. With [keepUtr], a 12-digit run is kept: in a repayment's reference it
-/// is the payer's UTR, which they need to reconcile.
+/// do. With [keepUtr], a [text] that is nothing but 12 contiguous digits
+/// (after trimming) is kept: as a repayment's whole reference it is the
+/// payer's UTR, which they need to reconcile. Anything else around or
+/// between the digits, and the usual rules apply.
 String redactPhones(String text, {bool keepUtr = false}) {
   final runes = text.runes.toList();
+  final ascii = _ascii(runes);
+  if (keepUtr && _utr.hasMatch(ascii.trim())) return text;
   final out = StringBuffer();
   var at = 0;
-  for (final run in _digitRun.allMatches(_ascii(runes))) {
+  for (final run in _digitRun.allMatches(ascii)) {
     final digits = run[0]!;
-    if (keepUtr && _utr.hasMatch(digits)) continue;
     for (final phone in _phone.allMatches(digits)) {
       out
         ..write(String.fromCharCodes(runes, at, run.start + phone.start))
