@@ -65,13 +65,14 @@ Real OTPs go out through the `send-sms` hook once the owner's MSG91 account, DLT
 ```sh
 gh workflow run "Supabase hosted" -f action=sms-cutover   # deploy, set secrets, enable; stops at the first failure
 sleep 5; gh run watch --exit-status "$(gh run list --workflow "Supabase hosted" --limit 1 --json databaseId --jq '.[0].databaseId')"
-# Send a real OTP and check it arrives, then:
-gh workflow run "Supabase hosted" -f action=clear-test-otp
+# Send a real OTP and check it arrives, then keep only the App Review number:
+gh secret set HOSTED_TEST_OTP --env production   # paste the single <number>=<code> App Review entry
+gh variable set SMS_LIVE --body true
+gh workflow run "Supabase hosted" -f action=clear-test-otp   # reduces the list to that entry, then checks it
 sleep 5; gh run watch --exit-status "$(gh run list --workflow "Supabase hosted" --limit 1 --json databaseId --jq '.[0].databaseId')"
-gh variable set SMS_LIVE --body true   # only after both runs succeeded
 ```
 
-`deploy-send-sms`, `set-sms-secrets` and `enable-sms-hook` run the cutover's steps singly for recovery; run them one at a time in that order, waiting for each with `gh run watch`. `disable-sms-hook` turns the hook off again. Once `SMS_LIVE` is `true`, `clear-test-otp` and the **Release** workflow (before it builds or uploads) fail if any test number remains on the hosted project; until then both skip the check, so current release candidates keep using test numbers. Details and rotation: [supabase/README.md](../supabase/README.md#enabling-on-the-hosted-project).
+`deploy-send-sms`, `set-sms-secrets` and `enable-sms-hook` run the cutover's steps singly for recovery; run them one at a time in that order, waiting for each with `gh run watch`. `disable-sms-hook` turns the hook off again. Once `SMS_LIVE` is `true`, `clear-test-otp` reduces the hosted test list to the single App Review entry in `HOSTED_TEST_OTP` instead of emptying it, and it and the **Release** workflow (before it builds or uploads) fail unless the hosted list is empty or exactly that entry: any other or extra number fails. The comparison runs inside the script and prints neither value. Until then `clear-test-otp` empties the list and both skip the check, so current release candidates keep using test numbers. Set the **production** `HOSTED_TEST_OTP` (it overrides the repository secret in these jobs) to that one entry before setting `SMS_LIVE`, or **Release** fails. Details and rotation: [supabase/README.md](../supabase/README.md#enabling-on-the-hosted-project).
 
 ### External TestFlight (Family Testers)
 
@@ -81,7 +82,7 @@ Before running:
 
 - Confirm the iOS build is processed (`VALID`), unexpired, and ready for external review; resolve export compliance in App Store Connect if required.
 - Create the named **external** group in App Store Connect and add the intended testers. The workflow fails if the group is missing or internal.
-- Use the existing `production` environment App Store Connect secrets (`APP_STORE_CONNECT_API_KEY_P8`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`). Store `HOSTED_TEST_OTP` in **production** too, using the same value configured on the hosted project; do not introduce repository-level credentials for this workflow. Its format is `number=code,number=code` (country code without `+`, six-digit code). The first pair becomes the review account. Ensure it is still active on the hosted project.
+- Use the existing `production` environment App Store Connect secrets (`APP_STORE_CONNECT_API_KEY_P8`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`). Store `HOSTED_TEST_OTP` in **production** too, using the same value configured on the hosted project; do not introduce repository-level credentials for this workflow. Its format is `number=code,number=code` (country code without `+`, six-digit code). The first pair becomes the review account; after the SMS cutover it is the only pair. Ensure it is still active on the hosted project.
 - Fill in Beta App Review Information's four contact fields in App Store Connect, or provide optional **production** secrets `ASC_REVIEW_CONTACT_FIRST_NAME`, `ASC_REVIEW_CONTACT_LAST_NAME`, `ASC_REVIEW_CONTACT_PHONE`, and `ASC_REVIEW_CONTACT_EMAIL`. Omitted secrets preserve existing fields; incomplete contacts fail before mutations.
 
 The workflow upserts en-US app metadata and What to Test, derives the demo account and review notes at runtime and writes them to Beta App Review Information in App Store Connect, adds group membership if absent, then submits only when review is needed. It masks the number, its sign-in variants and OTP before requests; request/response bodies and credentials are never logged or saved as artifacts. Do not put credentials in workflow inputs. Runs are serialized across all builds because app metadata is shared. App, build validity, external group, complete contacts, review state and group membership are checked before metadata changes. Rejected builds are not resubmitted: resolve the rejection privately in App Store Connect and upload a new build. Expired, processing, export-compliance-blocked and other unsupported states also stop before mutations. Rerun the same inputs after fixing a failure: existing localizations, membership, and pending/approved submissions are reused. HTTP failures omit response bodies; HTTP 409 is explicitly reported as a state/submission conflict and is never automatically retried. Inspect details privately in App Store Connect before rerunning; a conflict after preflight can leave metadata updates applied.
@@ -110,7 +111,7 @@ API references: Apple's [beta app localization attributes](https://developer.app
 
 ## M6 Release gate
 
-- [ ] The test OTP numbers are gone from the hosted project: **Supabase hosted** has run with `clear-test-otp`, the `HOSTED_TEST_OTP` secret is deleted, and the repository variable `SMS_LIVE` is `true` so **Release** fails if one comes back (#119).
+- [ ] Only the App Review test number remains on the hosted project (owner decision, 11 Nov 2026): `HOSTED_TEST_OTP` holds that single `number=code` entry, the repository variable `SMS_LIVE` is `true`, and **Supabase hosted** has run with `clear-test-otp`, so **Release** fails if any other number comes back (#119).
 - [ ] Store listings are complete for iOS and Android.
 - [ ] App Store and Play Store privacy labels match the app's actual data collection and use.
 - [ ] Final release screenshots are approved, including the 390x844 and 360x800 layouts.

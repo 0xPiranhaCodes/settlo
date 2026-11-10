@@ -123,9 +123,12 @@ Also listed in `docs/release.md`.
    For recovery, `deploy-send-sms`, `set-sms-secrets` and `enable-sms-hook` run the steps singly. Run
    them one at a time in that order, waiting for each with `gh run watch`.
 3. Send an OTP to a real number and check the function logs for `sent OTP to ********NNNN`.
-4. Clear the test numbers (`-f action=clear-test-otp`) and wait for that run to succeed, then set
-   the repository variable `gh variable set SMS_LIVE --body true`. From then on `clear-test-otp` and every **Release** run
-   fail if the hosted project still has a test number.
+4. Keep only the App Review number: set the `production` `HOSTED_TEST_OTP` to that single
+   `number=code` entry, set the repository variable `gh variable set SMS_LIVE --body true`, then run
+   `-f action=clear-test-otp` and wait for it to succeed. With `SMS_LIVE` true, `clear-test-otp`
+   reduces the hosted list to that entry instead of emptying it, and it and every **Release** run fail
+   unless the list is empty or exactly that entry. The script compares the two in-process and prints
+   neither.
 
 To rotate the secret or change an MSG91 value, run `disable-sms-hook`, `set-sms-secrets`, then
 `enable-sms-hook`, one at a time, waiting for each with `gh run watch`; phone sign-in fails while

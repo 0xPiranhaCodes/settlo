@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Hosted Send-SMS hook cutover (#119), run by the Supabase hosted and Release workflows:
-#   scripts/supabase-hosted-sms.sh deploy | set-secrets | enable | cutover | disable | check-test-otp
+#   scripts/supabase-hosted-sms.sh deploy | set-secrets | enable | cutover | disable | clear-test-otp | check-test-otp
 # cutover runs deploy, set-secrets and enable in order and stops at the first failure.
+# Once SMS_LIVE is true the hosted test OTP list may hold only the App Review entry in HOSTED_TEST_OTP;
+# clear-test-otp reduces it to that entry (or empties it before then), and check-test-otp enforces it.
 # Needs SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF (set-secrets and cutover also MSG91_AUTH_KEY,
-# MSG91_TEMPLATE_ID, MSG91_SENDER_ID; deploy and cutover the Supabase CLI). Management API bodies can hold the Auth config and secrets,
+# MSG91_TEMPLATE_ID, MSG91_SENDER_ID; deploy and cutover the Supabase CLI; clear-test-otp SMS_LIVE and,
+# with check-test-otp, HOSTED_TEST_OTP). Management API bodies can hold the Auth config and secrets,
 # so they go to a temp file that is parsed with jq and never printed.
 # Off before anything expands a secret: an inherited `bash -x` would trace it ahead of ::add-mask::.
 { set +x; } 2>/dev/null
@@ -104,11 +107,29 @@ disable() {
   echo "Send-SMS hook disabled: phone sign-in has no SMS provider until it is re-enabled."
 }
 
+clear_test_otp() {
+  if [[ "${SMS_LIVE:-}" == true ]]; then
+    jq -en 'env.HOSTED_TEST_OTP // "" | gsub("\\s"; "") | test("^[1-9][0-9]{7,14}=[0-9]{6}$")' >/dev/null 2>&1 ||
+      die "HOSTED_TEST_OTP must hold exactly one number=code entry, the App Review number. The test numbers were not changed."
+    api PATCH /config/auth "$(jq -n '{sms_test_otp: (env.HOSTED_TEST_OTP | gsub("\\s"; ""))}')" ||
+      die "The test numbers were not reduced to the App Review number."
+    echo "Test numbers reduced to the App Review number."
+  else
+    api PATCH /config/auth '{"sms_test_otp": ""}' || die "The test numbers were not cleared."
+    echo "Test numbers cleared."
+  fi
+}
+
 check_test_otp() {
   api GET /config/auth || die "Could not read the hosted Auth config."
-  jq -e '(.sms_test_otp // "") == ""' "$body_file" >/dev/null ||
-    die "Test OTP numbers are still set on the hosted project while SMS_LIVE is true. Run Supabase hosted with clear-test-otp."
-  echo "No test OTP numbers on the hosted project."
+  # Empty, or exactly the single number=code entry in HOSTED_TEST_OTP. Both are compared inside jq,
+  # from the response file and the environment, and neither is printed (jq errors included).
+  jq -e '(.sms_test_otp // "" | gsub("\\s"; "")) as $hosted
+    | (env.HOSTED_TEST_OTP // "" | gsub("\\s"; "")) as $reviewer
+    | $hosted == "" or (($reviewer | test("^[1-9][0-9]{7,14}=[0-9]{6}$")) and $hosted == $reviewer)' \
+    "$body_file" >/dev/null 2>&1 ||
+    die "The hosted project has a test OTP number other than the App Review number in HOSTED_TEST_OTP while SMS_LIVE is true. Run Supabase hosted with clear-test-otp."
+  echo "The hosted project has no test OTP number other than the App Review number."
 }
 
 case "${1:-}" in
@@ -118,6 +139,7 @@ case "${1:-}" in
   # Each step dies on failure, so enable runs only after a successful deploy and set-secrets.
   cutover) deploy; set_secrets; enable ;;
   disable) disable ;;
+  clear-test-otp) clear_test_otp ;;
   check-test-otp) check_test_otp ;;
-  *) die "usage: $0 deploy|set-secrets|enable|cutover|disable|check-test-otp" ;;
+  *) die "usage: $0 deploy|set-secrets|enable|cutover|disable|clear-test-otp|check-test-otp" ;;
 esac

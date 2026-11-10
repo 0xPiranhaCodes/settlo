@@ -98,31 +98,27 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Patch hosted Auth config
+      - name: Set test numbers
+        if: inputs.action == 'set-test-otp'
         shell: bash
         env:
-          ACTION: ${{ inputs.action }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           # "<number>=<code>,<number>=<code>", country code without +. Never committed or echoed.
           HOSTED_TEST_OTP: ${{ secrets.HOSTED_TEST_OTP }}
         run: |
           set -euo pipefail
-          if [[ "$ACTION" == set-test-otp ]]; then
-            [[ -n "$HOSTED_TEST_OTP" ]] || { echo "::error::Secret HOSTED_TEST_OTP is not set."; exit 1; }
-            # The numbers lapse on their own after 60 days; re-run to extend. Placeholder Twilio
-            # values only switch phone login on: test numbers never reach a provider.
-            body="$(jq -n --arg until "$(date -u -d '+60 days' +%Y-%m-%dT%H:%M:%SZ)" '{
-              external_phone_enabled: true,
-              sms_provider: "twilio",
-              sms_twilio_account_sid: "placeholder",
-              sms_twilio_auth_token: "placeholder",
-              sms_twilio_message_service_sid: "placeholder",
-              sms_test_otp: env.HOSTED_TEST_OTP,
-              sms_test_otp_valid_until: $until
-            }')"
-          else
-            body='{"sms_test_otp": ""}'
-          fi
+          [[ -n "$HOSTED_TEST_OTP" ]] || { echo "::error::Secret HOSTED_TEST_OTP is not set."; exit 1; }
+          # The numbers lapse on their own after 60 days; re-run to extend. Placeholder Twilio
+          # values only switch phone login on: test numbers never reach a provider.
+          body="$(jq -n --arg until "$(date -u -d '+60 days' +%Y-%m-%dT%H:%M:%SZ)" '{
+            external_phone_enabled: true,
+            sms_provider: "twilio",
+            sms_twilio_account_sid: "placeholder",
+            sms_twilio_auth_token: "placeholder",
+            sms_twilio_message_service_sid: "placeholder",
+            sms_test_otp: env.HOSTED_TEST_OTP,
+            sms_test_otp_valid_until: $until
+          }')"
 
           # The response repeats the Auth config and an error may echo the submitted list, so the
           # body is discarded: this public log gets the status and a fixed message only.
@@ -137,13 +133,23 @@ jobs:
             echo "::error::The Auth config was not changed. Check the token's access and the format of HOSTED_TEST_OTP."
             exit 1
           fi
-          echo "Hosted Auth config updated ($ACTION)."
+          echo "Hosted Auth config updated (set-test-otp)."
 
-      # Once real SMS is live (repository variable SMS_LIVE=true), no test number may remain (#119).
-      - name: Require no test numbers when SMS is live
+      # Empties the list; once SMS_LIVE is true, reduces it to the App Review entry in HOSTED_TEST_OTP.
+      - name: Clear test numbers
+        if: inputs.action == 'clear-test-otp'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          HOSTED_TEST_OTP: ${{ secrets.HOSTED_TEST_OTP }}
+          SMS_LIVE: ${{ vars.SMS_LIVE }}
+        run: scripts/supabase-hosted-sms.sh clear-test-otp
+
+      # Once real SMS is live (repository variable SMS_LIVE=true), only the App Review number may remain (#119).
+      - name: Require only the App Review number when SMS is live
         if: inputs.action == 'clear-test-otp' && vars.SMS_LIVE == 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          HOSTED_TEST_OTP: ${{ secrets.HOSTED_TEST_OTP }}
         run: scripts/supabase-hosted-sms.sh check-test-otp
 
   # Production SMS through the MSG91 Send-SMS hook (#119). sms-cutover runs deploy-send-sms,

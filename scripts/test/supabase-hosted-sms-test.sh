@@ -73,13 +73,31 @@ fn_secrets() { # fn_secrets <SEND_SMS_HOOK_SECRET digest>: all four names, as GE
     {name: "MSG91_AUTH_KEY", value: "x"}, {name: "MSG91_TEMPLATE_ID", value: "x"}, {name: "MSG91_SENDER_ID", value: "x"}]')"
 }
 
-# check-test-otp
-fixture GET_config_auth '{"sms_test_otp": "919000000001=123456"}'
-expect fail "check-test-otp fails while a test number is set" check-test-otp
+# check-test-otp: empty, or exactly the App Review entry in HOSTED_TEST_OTP. No number or code may be printed.
+reviewer=919000000001=123456
+no_otp_in_output() {
+  if grep -qE '9190000000|123456|654321' "$tmp/out"; then echo "FAIL $1 printed a test number or code"; fails=$((fails + 1)); fi
+}
+export HOSTED_TEST_OTP="$reviewer"
+fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer\"}"
+expect pass "check-test-otp passes with exactly the App Review entry" check-test-otp
+no_otp_in_output check-test-otp
+fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer,919000000002=654321\"}"
+expect fail "check-test-otp fails with an extra entry" check-test-otp
 grep -q 'clear-test-otp' "$tmp/out" || { echo "FAIL check-test-otp message"; fails=$((fails + 1)); }
-grep -q '919000000001' "$tmp/out" && { echo "FAIL check-test-otp printed the number"; fails=$((fails + 1)); }
+no_otp_in_output check-test-otp
+fixture GET_config_auth '{"sms_test_otp": "919000000002=123456"}'
+expect fail "check-test-otp fails with a different entry" check-test-otp
+no_otp_in_output check-test-otp
+fixture GET_config_auth '{"sms_test_otp": "919000000001=654321"}'
+expect fail "check-test-otp fails with a different code" check-test-otp
+fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer\"}"
+HOSTED_TEST_OTP="$reviewer,919000000002=654321" expect fail "check-test-otp fails when HOSTED_TEST_OTP has two entries" check-test-otp
+HOSTED_TEST_OTP='' expect fail "check-test-otp fails with a hosted entry and no HOSTED_TEST_OTP" check-test-otp
+no_otp_in_output check-test-otp
 fixture GET_config_auth '{"sms_test_otp": ""}'
 expect pass "check-test-otp passes with an empty list" check-test-otp
+HOSTED_TEST_OTP='' expect pass "check-test-otp passes with an empty list and no HOSTED_TEST_OTP" check-test-otp
 fixture GET_config_auth '{"sms_test_otp": null}'
 expect pass "check-test-otp passes with no list" check-test-otp
 if grep -q token-sentinel "$tmp/argv"; then echo "FAIL the access token reached curl's argv"; fails=$((fails + 1)); fi
@@ -89,6 +107,23 @@ if grep -v -e '--connect-timeout 10 .*--max-time 60 ' "$tmp/argv" | grep -q .; t
   echo "FAIL a curl call has no connect or overall timeout"; fails=$((fails + 1)); fi
 fixture GET_config_auth '{}' 500
 expect fail "check-test-otp fails when the API errors" check-test-otp
+
+# clear-test-otp: empties the list until SMS_LIVE, then reduces it to the App Review entry
+reset
+expect pass "clear-test-otp empties the list before SMS is live" clear-test-otp
+jq -e '.sms_test_otp == ""' "$tmp/requests" >/dev/null || { echo "FAIL clear-test-otp request body"; fails=$((fails + 1)); }
+reset
+fixture GET_config_auth "{\"sms_test_otp\": \"$reviewer,919000000002=654321\"}"
+SMS_LIVE=true expect pass "clear-test-otp reduces the list to the App Review entry when SMS is live" clear-test-otp
+no_otp_in_output clear-test-otp
+jq -e --arg r "$reviewer" '.sms_test_otp == $r' "$tmp/requests" >/dev/null || { echo "FAIL clear-test-otp live request body"; fails=$((fails + 1)); }
+expect pass "check-test-otp passes after the reduction" check-test-otp
+reset
+SMS_LIVE=true HOSTED_TEST_OTP="$reviewer,919000000002=654321" expect fail "clear-test-otp refuses more than one HOSTED_TEST_OTP entry" clear-test-otp
+no_otp_in_output clear-test-otp
+SMS_LIVE=true HOSTED_TEST_OTP='' expect fail "clear-test-otp refuses an empty HOSTED_TEST_OTP when SMS is live" clear-test-otp
+[[ ! -e "$tmp/requests" ]] || { echo "FAIL clear-test-otp wrote with a bad HOSTED_TEST_OTP"; fails=$((fails + 1)); }
+unset HOSTED_TEST_OTP
 
 # set-secrets
 reset
