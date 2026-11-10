@@ -122,3 +122,14 @@ growth within the Welcome/Home composition to accommodate the new type ramp.
   matches the PR base. Final-head CI and cleanup proof are recorded in the PR
   reply; completion is withheld until pull_request CI (including Android) is
   green, `flutter clean` has run, and the PR reply is posted. Do not merge.
+
+### Coverage gate follow-up
+
+Run 42854066935 passed every workspace test, Android and Supabase, but failed
+coverage at 95.76% against the unchanged 98.11% baseline. Core coverage excludes
+app-package tests, so native-scroll behaviours now have direct core tests too:
+platform physics and page durations, collapse and glass, refresh haptics, hidden
+surface isolation, Reduce Motion, high-contrast header actions, responsive row
+names, and both dismissal and snap-back sheet gestures. The first full rerun
+passed 386 core tests; the final 18-test focused suite and root analyze pass.
+This follow-up changes tests only; the successful Linux renders remain current.
