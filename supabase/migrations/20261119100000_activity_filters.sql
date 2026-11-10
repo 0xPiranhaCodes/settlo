@@ -343,3 +343,9 @@ $$;
 
 revoke all on function public.activity_feed(timestamptz, bigint, int, uuid, boolean) from public, anon, authenticated;
 grant execute on function public.activity_feed(timestamptz, bigint, int, uuid, boolean) to authenticated;
+
+-- The write barrier of delete_account (#74): a deleted account's late mark or question is refused.
+create trigger live_caller before insert or update or delete on public.activity_seen
+  for each statement execute function private.guard_live_caller();
+create trigger live_caller before insert or update or delete on private.activity_questions
+  for each statement execute function private.guard_live_caller();

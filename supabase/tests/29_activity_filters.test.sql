@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(172);
+select plan(174);
 
 insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-000000009301', '919930000001', now()),
@@ -468,6 +468,10 @@ select is((select count(*)::int from public.activity_seen), 0, 'seen: B cannot r
 reset role;
 set local role anon;
 select throws_ok('select public.mark_activity_seen(now())', '42501', null, 'seen: anon cannot mark');
+
+reset role;
+select has_trigger('public', 'activity_seen', 'live_caller', 'barrier: activity_seen takes the delete_account write barrier');
+select has_trigger('private', 'activity_questions', 'live_caller', 'barrier: activity_questions takes it too');
 
 select * from finish();
 rollback;
