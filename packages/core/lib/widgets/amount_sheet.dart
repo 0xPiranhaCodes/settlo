@@ -56,129 +56,134 @@ class SAmountSheet extends StatelessWidget {
     const radius = Radius.circular(SettloRadius.cardHero);
     // The specular edge is a line clipped by the top corners: Flutter
     // cannot round a border drawn on one side only.
+    final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
+    final content = SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: SettloSpacing.screenMargin,
+        ),
+        child: Column(
+          mainAxisSize: largeText ? MainAxisSize.min : MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(top: 10),
+                decoration: BoxDecoration(
+                  color: c.surfaceHighest,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Transform.translate(
+                  offset: const Offset(-12, 0),
+                  child: SPressable(
+                    onTap: onClose,
+                    label: 'Close',
+                    ringRadius: BorderRadius.circular(
+                      SettloSpacing.minTouchTarget / 2,
+                    ),
+                    child: SizedBox.square(
+                      dimension: SettloSpacing.minTouchTarget,
+                      child: Center(
+                        child: CustomPaint(
+                          size: const Size.square(22),
+                          painter: _CrossPainter(c.textPrimary),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    maxLines: largeText ? null : 1,
+                    overflow: largeText
+                        ? TextOverflow.visible
+                        : TextOverflow.ellipsis,
+                    style: text.titleSmall,
+                  ),
+                ),
+                const SizedBox(width: SettloSpacing.minTouchTarget - 12),
+              ],
+            ),
+            const SizedBox(height: 22),
+            if (header case final header?) ...[
+              header,
+              const SizedBox(height: 18),
+            ],
+            Text(
+              amountLabel.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: text.labelMedium?.copyWith(color: c.textSecondary),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // The amount's own semantics say rupees.
+                ExcludeSemantics(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 6, right: 6),
+                    child: Text(
+                      '₹',
+                      style: SettloTypography.figtree(
+                        28,
+                        weight: FontWeight.w500,
+                        color: c.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+                Flexible(
+                  child: DefaultTextStyle(
+                    style: SettloTypography.amount(
+                      _amountSize,
+                      color: c.textPrimary,
+                    ).copyWith(letterSpacing: -1.5),
+                    maxLines: 1,
+                    child: FittedBox(fit: BoxFit.scaleDown, child: amount),
+                  ),
+                ),
+              ],
+            ),
+            if (body case final body?) ...[
+              const SizedBox(height: 18),
+              if (largeText) body else Expanded(child: body),
+            ] else if (!largeText)
+              const Spacer(),
+            if (action case final action?)
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: SettloSpacing.x2,
+                  bottom: 26,
+                ),
+                child: action,
+              ),
+          ],
+        ),
+      ),
+    );
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: radius),
       child: ColoredBox(
         color: c.surface,
         child: Stack(
           children: [
-            Positioned.fill(
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: SettloSpacing.screenMargin,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 36,
-                          height: 4,
-                          margin: const EdgeInsets.only(top: 10),
-                          decoration: BoxDecoration(
-                            color: c.surfaceHighest,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Transform.translate(
-                            offset: const Offset(-12, 0),
-                            child: SPressable(
-                              onTap: onClose,
-                              label: 'Close',
-                              ringRadius: BorderRadius.circular(
-                                SettloSpacing.minTouchTarget / 2,
-                              ),
-                              child: SizedBox.square(
-                                dimension: SettloSpacing.minTouchTarget,
-                                child: Center(
-                                  child: CustomPaint(
-                                    size: const Size.square(22),
-                                    painter: _CrossPainter(c.textPrimary),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              title,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: text.titleSmall,
-                            ),
-                          ),
-                          const SizedBox(
-                            width: SettloSpacing.minTouchTarget - 12,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 22),
-                      if (header case final header?) ...[
-                        header,
-                        const SizedBox(height: 18),
-                      ],
-                      Text(
-                        amountLabel.toUpperCase(),
-                        textAlign: TextAlign.center,
-                        style: text.labelMedium?.copyWith(
-                          color: c.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // The amount's own semantics say rupees.
-                          ExcludeSemantics(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 6, right: 6),
-                              child: Text(
-                                '₹',
-                                style: SettloTypography.figtree(
-                                  28,
-                                  weight: FontWeight.w500,
-                                  color: c.textSecondary,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Flexible(
-                            child: DefaultTextStyle(
-                              style: SettloTypography.amount(
-                                _amountSize,
-                                color: c.textPrimary,
-                              ).copyWith(letterSpacing: -1.5),
-                              maxLines: 1,
-                              child: amount,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (body case final body?) ...[
-                        const SizedBox(height: 18),
-                        Expanded(child: body),
-                      ] else
-                        const Spacer(),
-                      if (action case final action?)
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            top: SettloSpacing.x2,
-                            bottom: 26,
-                          ),
-                          child: action,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            if (largeText)
+              SingleChildScrollView(
+                key: const ValueKey('amount-sheet-scroll'),
+                child: content,
+              )
+            else
+              Positioned.fill(child: content),
             Positioned(
               top: 0,
               left: 0,
@@ -237,4 +242,34 @@ class _CrossPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CrossPainter old) => old.color != color;
+}
+
+/// A form body that joins its sheet's single scroll surface at large text.
+/// At normal text it retains the pinned footer and independently scrolls.
+class SFormBody extends StatelessWidget {
+  /// Content in reading order.
+  const new({
+    required this.children,
+    this.padding = EdgeInsets.zero,
+    super.key,
+  });
+
+  /// Form fields and their labels.
+  final List<Widget> children;
+
+  /// Optional inner inset.
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(14) > 21
+      ? Padding(
+          padding: padding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: children,
+          ),
+        )
+      : ListView(padding: padding, children: children);
 }

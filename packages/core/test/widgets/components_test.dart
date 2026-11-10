@@ -200,7 +200,7 @@ void main() {
         )
         .map((c) => (c.decoration as BoxDecoration?)?.color)
         .first;
-    expect(fill, SettloColors.dark.glassFallback);
+    expect(fill, SettloColors.dark.surface);
   });
 
   testWidgets('the amount sheet opens as a modal and closes', (tester) async {

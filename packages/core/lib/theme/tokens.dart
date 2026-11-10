@@ -30,8 +30,29 @@ abstract final class SettloSpacing {
   static const double minTouchTarget = 44;
 }
 
+/// Shared motion; callers suppress animation when Reduce Motion is enabled.
+abstract final class SettloMotion {
+  /// Short press response.
+  static const press = Duration(milliseconds: 150);
+
+  /// Panels and content transitions.
+  static const panel = Duration(milliseconds: 200);
+
+  /// Sliding selection pill.
+  static const selection = Duration(milliseconds: 250);
+
+  /// Native deceleration without bounce.
+  static const Curve curve = Curves.easeOutCubic;
+
+  /// Subtle compression while held.
+  static const double pressedScale = 0.97;
+}
+
 /// Corner radii.
 abstract final class SettloRadius {
+  /// Compact nested controls.
+  static const double compact = 12;
+
   /// List cards.
   static const double card = 24;
 
@@ -53,6 +74,9 @@ abstract final class SettloRadius {
 /// They live with the design-system tokens so the screen does not grow a
 /// second, private set of visual constants.
 abstract final class SettloWelcomeMetrics {
+  /// Owner-approved mock exception to the standard 20px screen margin.
+  static const double screenMargin = 24;
+
   /// Circular portrait and letter-tile diameter.
   static const double avatar = 52;
 
@@ -75,7 +99,7 @@ abstract final class SettloWelcomeMetrics {
   static const double actionArrowNudge = 3;
 
   /// Duration of Welcome's short press response.
-  static const Duration actionPressDuration = Duration(milliseconds: 90);
+  static const Duration actionPressDuration = SettloMotion.press;
 
   /// Blur radius of the warm shadow beneath Welcome's primary action.
   static const double actionShadowBlur = 24;
@@ -113,11 +137,13 @@ abstract final class SettloElevation {
 
   /// Shadow under the floating tab bar, dark theme.
   static const floatingDark = [
-    BoxShadow(color: Color(0x73000000), offset: Offset(0, 24), blurRadius: 48),
+    BoxShadow(color: Color(0x24000000), offset: Offset(0, 8), blurRadius: 24),
+    BoxShadow(color: Color(0x14000000), offset: Offset(0, 2), blurRadius: 8),
   ];
 
   /// Shadow under the floating tab bar, light theme.
   static const floatingLight = [
-    BoxShadow(color: Color(0x1A1B1B18), offset: Offset(0, 20), blurRadius: 40),
+    BoxShadow(color: Color(0x101B1B18), offset: Offset(0, 8), blurRadius: 24),
+    BoxShadow(color: Color(0x081B1B18), offset: Offset(0, 2), blurRadius: 8),
   ];
 }

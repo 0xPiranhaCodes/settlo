@@ -21,6 +21,12 @@ Future<T?> showSettloSheet<T>({
   return showModalBottomSheet<T>(
     context: context,
     useRootNavigator: true,
+    sheetAnimationStyle: MediaQuery.disableAnimationsOf(context)
+        ? AnimationStyle.noAnimation
+        : const AnimationStyle(
+            duration: SettloMotion.panel,
+            reverseDuration: SettloMotion.panel,
+          ),
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: backgroundColor ?? c.surface,

@@ -61,14 +61,17 @@ class MoneyText extends StatelessWidget {
       return Semantics(
         label: spoken,
         excludeSemantics: true,
-        child: Text(text, style: style, maxLines: 1, softWrap: false),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(text, style: style, maxLines: 1, softWrap: false),
+        ),
       );
     }
     final rupee = text.indexOf('₹');
     assert(rupee >= 0, 'formatInr always includes ₹');
-    // The raise and gap are in ems of the number as rendered, so they
-    // follow the system text scale.
-    final em = MediaQuery.textScalerOf(context).scale(size);
+    // Text.rich scales the WidgetSpan once. Its child must not scale again.
+    final em = size;
     final symbol = SettloTypography.figtree(
       size * 0.66,
       weight: FontWeight.w500,
@@ -78,27 +81,35 @@ class MoneyText extends StatelessWidget {
     return Semantics(
       label: spoken,
       excludeSemantics: true,
-      child: Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(text: text.substring(0, rupee)),
-            WidgetSpan(
-              alignment: PlaceholderAlignment.baseline,
-              baseline: TextBaseline.alphabetic,
-              child: Transform.translate(
-                offset: Offset(0, -0.26 * em),
-                child: Padding(
-                  padding: EdgeInsets.only(right: 0.06 * em),
-                  child: Text('₹', style: symbol),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: text.substring(0, rupee)),
+              WidgetSpan(
+                alignment: PlaceholderAlignment.baseline,
+                baseline: TextBaseline.alphabetic,
+                child: Transform.translate(
+                  offset: Offset(0, -0.26 * em),
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 0.06 * em),
+                    child: Text(
+                      '₹',
+                      style: symbol,
+                      textScaler: TextScaler.noScaling,
+                    ),
+                  ),
                 ),
               ),
-            ),
-            TextSpan(text: text.substring(rupee + 1)),
-          ],
+              TextSpan(text: text.substring(rupee + 1)),
+            ],
+          ),
+          style: style,
+          maxLines: 1,
+          softWrap: false,
         ),
-        style: style,
-        maxLines: 1,
-        softWrap: false,
       ),
     );
   }

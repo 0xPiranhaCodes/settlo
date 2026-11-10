@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/tokens.dart';
+import 'package:settlo_core/widgets/pressable.dart';
 
 /// The one tappable primary action in a view: gold in dark, ink in light.
 ///
@@ -24,9 +25,12 @@ class SPrimaryButton extends StatelessWidget {
   final Widget? icon;
 
   @override
-  Widget build(BuildContext context) => FilledButton(
-    onPressed: onPressed,
-    child: _ButtonLabel(label: label, icon: icon),
+  Widget build(BuildContext context) => SPressFeedback(
+    enabled: onPressed != null,
+    child: FilledButton(
+      onPressed: onPressed,
+      child: _ButtonLabel(label: label, icon: icon),
+    ),
   );
 }
 
@@ -50,9 +54,12 @@ class SSecondaryButton extends StatelessWidget {
   final Widget? icon;
 
   @override
-  Widget build(BuildContext context) => OutlinedButton(
-    onPressed: onPressed,
-    child: _ButtonLabel(label: label, icon: icon),
+  Widget build(BuildContext context) => SPressFeedback(
+    enabled: onPressed != null,
+    child: OutlinedButton(
+      onPressed: onPressed,
+      child: _ButtonLabel(label: label, icon: icon),
+    ),
   );
 }
 
@@ -69,7 +76,7 @@ class _ButtonLabel extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
+        Flexible(child: Text(label)),
         const SizedBox(width: SettloSpacing.x1),
         IconTheme.merge(data: const IconThemeData(size: 18), child: icon),
       ],

@@ -11,7 +11,7 @@ class SCard extends StatelessWidget {
   /// headline card on a screen.
   const new({
     required this.child,
-    this.padding = const EdgeInsets.fromLTRB(20, 18, 20, 20),
+    this.padding = const EdgeInsets.all(SettloSpacing.x2),
     this.hero = false,
     super.key,
   });
