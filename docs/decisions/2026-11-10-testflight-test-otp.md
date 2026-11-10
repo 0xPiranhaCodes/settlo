@@ -10,4 +10,6 @@ The first internal builds (#110) sign in with test phone numbers and fixed codes
 - The numbers expire by themselves 60 days after the workflow last ran (`sms_test_otp_valid_until`). Re-run it to extend.
 - `supabase config push` sends `config.toml`, which declares no test numbers, so a push removes them. Re-run `set-test-otp` after any config push.
 
-**Before M6 (#119):** run the workflow with `clear-test-otp`, delete the `HOSTED_TEST_OTP` secret, and replace the placeholder provider with the Send-SMS hook ([steps](../../supabase/README.md#enabling-on-the-hosted-project)). The M6 gate in [docs/release.md](../release.md) checks this.
+**Before M6 (#119):** replace the placeholder provider with the Send-SMS hook, then reduce the test numbers to the one App Review number ([steps](../../supabase/README.md#enabling-on-the-hosted-project)). The M6 gate in [docs/release.md](../release.md) checks this.
+
+**Update, 11 Nov 2026 (Owner):** one dedicated App Review number stays after cutover; this replaces "every test OTP number is removed". `HOSTED_TEST_OTP` holds that single `number=code` entry and is kept (the TestFlight external workflow's demo account uses it). Once `SMS_LIVE` is `true`, `clear-test-otp` reduces the hosted list to that entry, and it and **Release** fail on any other or extra entry, or when that entry expires within 14 days. `clear-test-otp` renews it for 60 days, as `set-test-otp` does.
