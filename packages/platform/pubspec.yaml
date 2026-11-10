@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^3.5.0
+  settlo_core:
+    path: ../core
   url_launcher: ^6.3.3
 
 dev_dependencies:

@@ -1,6 +1,35 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
+
+/// Mirrors the newest settle-up awaiting you into the Live Activity (iOS)
+/// or ongoing notification (Android), and ends it once nothing waits or
+/// you sign out. No push in v1: it follows [needsYouProvider], which
+/// reloads after your own answers and whenever the app comes back.
+final Provider<void> liveActivitySyncProvider = Provider.autoDispose<void>((
+  ref,
+) {
+  final activities = ref.watch(liveActivitiesProvider);
+  if (ref.watch(sessionProvider) == null) {
+    unawaited(activities.show(null));
+    return;
+  }
+  final lifecycle = AppLifecycleListener(
+    onResume: () => ref.invalidate(needsYouProvider),
+  );
+  ref
+    ..onDispose(lifecycle.dispose)
+    ..listen(needsYouProvider, (_, next) {
+      // On an error keep showing what was last known.
+      if (next case AsyncData(:final value)) {
+        unawaited(activities.show(settleUpActivityFor(value)));
+      }
+    }, fireImmediately: true);
+});
 
 /// Feed entries per page.
 const activityPageSize = 30;

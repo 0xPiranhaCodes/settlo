@@ -27,6 +27,8 @@ dependencies:
     path: ../packages/features/loans
   settlo_local:
     path: ../packages/local
+  settlo_platform:
+    path: ../packages/platform
   settlo_profile:
     path: ../packages/features/profile
   settlo_settle:

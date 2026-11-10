@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo/router/router.dart';
+import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_local/settlo_local.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -10,9 +12,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final config = SupabaseConfig.fromEnvironment();
   await Supabase.initialize(url: config.url, publishableKey: config.anonKey);
+  final flat = flatChromeProvider.overrideWithValue(await prefersFlatChrome());
   runApp(
     ProviderScope(
-      overrides: offlineRepositories,
+      overrides: [...offlineRepositories, flat],
       child: const _SyncNotices(child: SettloApp()),
     ),
   );
@@ -44,13 +47,17 @@ class SettloApp extends ConsumerWidget {
   const new({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
-    title: 'Settlo',
-    debugShowCheckedModeBanner: false,
-    scaffoldMessengerKey: _messenger,
-    theme: SettloTheme.light(),
-    darkTheme: SettloTheme.dark(),
-    themeMode: ref.watch(themeModeProvider).value ?? ThemeMode.dark,
-    routerConfig: ref.watch(routerProvider),
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Keeps the Live Activity / ongoing notification in step with the app.
+    ref.watch(liveActivitySyncProvider);
+    return MaterialApp.router(
+      title: 'Settlo',
+      debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: _messenger,
+      theme: SettloTheme.light(),
+      darkTheme: SettloTheme.dark(),
+      themeMode: ref.watch(themeModeProvider).value ?? ThemeMode.dark,
+      routerConfig: ref.watch(routerProvider),
+    );
+  }
 }

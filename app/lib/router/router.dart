@@ -9,6 +9,7 @@ import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_expenses/settlo_expenses.dart';
 import 'package:settlo_loans/settlo_loans.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:settlo_settle/settlo_settle.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
@@ -30,7 +31,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: signedIn,
     redirect: (_, state) =>
         authRedirect(signedIn: signedIn.value, location: state.matchedLocation),
-    routes: _routes,
+    routes: _routes(flatChrome: ref.read(flatChromeProvider)),
   );
   ref.onDispose(router.dispose);
   return router;
@@ -40,7 +41,7 @@ final _rootKey = GlobalKey<NavigatorState>();
 
 // Each feature exports its routes (ADR 0002); the app only composes them.
 // Full-screen routes sit beside the shell, so they cover the tab bar.
-final _routes = <RouteBase>[
+List<RouteBase> _routes({required bool flatChrome}) => [
   ...authRoutes,
   ...expensesRoutes,
   ...settleRoutes,
@@ -48,6 +49,7 @@ final _routes = <RouteBase>[
   ...spacesRoutes,
   StatefulShellRoute.indexedStack(
     builder: (_, _, shell) => SettloShell(
+      flatChrome: flatChrome,
       currentIndex: shell.currentIndex,
       onTabSelected: (i) =>
           shell.goBranch(i, initialLocation: i == shell.currentIndex),
