@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /settlo/
+
+Sitemap: https://0xpiranhacodes.github.io/settlo/sitemap.xml
