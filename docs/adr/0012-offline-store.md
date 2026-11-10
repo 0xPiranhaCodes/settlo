@@ -22,5 +22,5 @@ ADR [0004](0004-offline-sync.md) puts a drift mirror and a `pending_mutations` q
 
 ## Consequences
 - The lockfile gains `drift`, `drift_flutter`, `sqlite3`, `sqlite3_flutter_libs`, `sqlcipher_flutter_libs`, `path_provider` (+ platform packages), `jni_flutter` and `native_toolchain_c`.
-- The file is not encrypted at rest. It holds what RLS lets the signed-in user read, and it is wiped when the user signs out or changes. Encryption (`sqlcipher_flutter_libs` is already in the tree) is a follow-up if the threat model asks for it; see the proposal filed from #116.
+- The file is not encrypted at rest. It holds what RLS lets the signed-in user read, and it is wiped when the user signs out or changes. Encryption (`sqlcipher_flutter_libs` is already in the tree) is a follow-up if the threat model asks for it; see the proposal in #125.
 - Web, a preview-only platform, would need drift's wasm assets. Web is not shipped (0001), so they are not added.
