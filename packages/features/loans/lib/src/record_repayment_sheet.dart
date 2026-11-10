@@ -86,6 +86,8 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
       _error = 'This repayment was already recorded. Close this to see it.';
     } on LoanRejected catch (e) {
       _error = e.message;
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       _error =
           "We couldn't record it. Check your connection and try again. "

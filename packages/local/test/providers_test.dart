@@ -244,10 +244,17 @@ void main() {
   test('signing out deletes everything and stops syncing', () async {
     await container.read(syncEngineProvider)!.sync();
     expect(await db.mirror(_me), isNotEmpty);
+    final held = container.read(spaceLedgerRepositoryProvider);
     (container.read(sessionProvider.notifier) as _Session).signOut();
     expect(container.read(syncEngineProvider), isNull);
     await pumpEventQueue();
     expect(await db.mirror(_me), isEmpty);
+    // A tap that lands late on a screen still holding its repository.
+    await expectLater(
+      held.deleteExpense('e1', idempotencyKey: 'k9'),
+      throwsA(isA<SessionEnded>()),
+    );
+    expect(server.calls, isEmpty);
     expect(
       () => container.read(homeRepositoryProvider),
       throwsA(predicate((e) => '$e'.contains('needs a signed-in user'))),

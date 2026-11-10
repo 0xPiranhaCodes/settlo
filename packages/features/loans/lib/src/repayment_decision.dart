@@ -48,6 +48,8 @@ final class RepaymentDecisionController extends ChangeNotifier {
       return true;
     } on LoanRejected catch (e) {
       error = e.message;
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       error =
           "We couldn't confirm it. Check your connection and try again. "
@@ -77,6 +79,8 @@ final class RepaymentDecisionController extends ChangeNotifier {
       return true;
     } on LoanRejected catch (e) {
       error = e.message;
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       error = "We couldn't send it. Check your connection and try again.";
     }

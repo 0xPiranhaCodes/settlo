@@ -208,6 +208,30 @@ void main() {
       });
     }
 
+    for (final button in ['Accept', "This isn't me"]) {
+      testWidgets('signing out while "$button" is queued says nothing', (
+        tester,
+      ) async {
+        final repository = FakeHomeRepository(homeFound);
+        await _pump(tester, repository);
+
+        // The tap is in flight when the session ends under it.
+        repository.gate = Completer();
+        await tester.tap(find.text(button).first);
+        await tester.pump();
+        repository
+          ..failure = const SessionEnded()
+          ..gate!.complete();
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(SnackBar), findsNothing);
+        expect(find.textContaining("couldn't"), findsNothing);
+        expect(find.textContaining('SessionEnded'), findsNothing);
+        expect(repository.calls, isEmpty);
+      });
+    }
+
     testWidgets('a retry reuses its key; each button has its own', (
       tester,
     ) async {

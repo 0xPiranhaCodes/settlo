@@ -889,6 +889,8 @@ class _ClaimRowState extends ConsumerState<_ClaimRow> {
     final messenger = ScaffoldMessenger.of(context);
     try {
       await call(ref.read(homeProvider.notifier));
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       messenger.showSnackBar(
         const SnackBar(

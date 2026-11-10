@@ -130,6 +130,8 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
           'entered. Close this to see it.';
     } on LoanRejected catch (e) {
       _error = e.message;
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       _error =
           "We couldn't create the loan. Check your connection and try "

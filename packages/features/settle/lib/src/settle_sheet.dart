@@ -135,6 +135,8 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
       _error =
           "This doesn't match the space any more. Someone may have left. "
           'Close this and check the balances.';
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       _error =
           "We couldn't record it. Check your connection and try again. "

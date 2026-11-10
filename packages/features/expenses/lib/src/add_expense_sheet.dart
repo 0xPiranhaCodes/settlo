@@ -218,6 +218,8 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
       _error =
           "This expense doesn't match the space any more. Someone may have "
           'left. Check who paid and who it is split with, then save again.';
+    } on SessionEnded {
+      // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
       _error =
           "We couldn't save the expense. Check your connection and try "

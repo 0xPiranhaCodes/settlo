@@ -130,7 +130,7 @@ final class SyncEngine {
     String key,
   ) async {
     if (!await _write(() => _db.enqueue(owner, key, kind, params, now()))) {
-      throw StateError('Signed out');
+      throw const SessionEnded();
     }
     final done = _waiting[key] = Completer<String?>();
     unawaited(sync());

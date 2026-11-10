@@ -170,6 +170,13 @@ final class IdempotencyConflict implements Exception {
   const new();
 }
 
+/// The user signed out (or another signed in) before the write was queued,
+/// so it was not made. Screens say nothing: the user has already left.
+final class SessionEnded implements Exception {
+  /// An ended session.
+  const new();
+}
+
 /// A fresh random (v4) UUID, generated once per mutation on device and
 /// reused on every retry of it (ADR 0004).
 String newIdempotencyKey([Random? random]) {

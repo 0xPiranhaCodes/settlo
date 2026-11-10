@@ -573,7 +573,7 @@ void main() {
     // Nor does it take anything new.
     await expectLater(
       engine.submit('delete_expense', const {}, 'k2'),
-      throwsStateError,
+      throwsA(isA<SessionEnded>()),
     );
     expect(await db.mutations(_me), isEmpty);
   });
