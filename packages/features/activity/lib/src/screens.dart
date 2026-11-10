@@ -22,8 +22,13 @@ String _dayMonth(DateTime d) {
 /// The Activity tab (canvas Activity, note n30): what waits for your
 /// confirmation on top, then everything that happened in your spaces and
 /// loans, edits with their before and after values. 'Needs you' narrows
-/// it to what waits for you. Answering opens the space's or loan's own
-/// confirmation, so the rules live in one place.
+/// it to what waits for you; a space's chip or Loans narrows the feed
+/// (#109). Answering opens the space's or loan's own confirmation, so the
+/// rules live in one place.
+///
+/// The bell counts what arrived since Activity was last open, on any of
+/// your devices; opening the tab marks it seen. Someone else's edit can be
+/// questioned with a short note that the space's members see on its row.
 class ActivityScreen extends ConsumerStatefulWidget {
   /// The Activity screen.
   const new({super.key});
@@ -38,6 +43,14 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   /// Answering is open; another tap must not open a second one.
   bool _opening = false;
 
+  /// How many entries were new when the tab was last opened or refreshed.
+  int _newSinceOpen = 0;
+
+  /// Whether the tab is the one showing; the shell keeps the others built.
+  bool _showing = false;
+
+  final _scroll = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +64,40 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     }, fireImmediately: true);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The shell turns tickers off for the tabs it hides, so this is true
+    // exactly while Activity is the tab on screen.
+    final showing = TickerMode.valuesOf(context).enabled;
+    if (showing && !_showing) unawaited(_seen());
+    _showing = showing;
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  /// Puts what arrived since Activity was last open on the bell, then
+  /// marks it seen for every device.
+  Future<void> _seen() async {
+    // Called while the tab builds; providers may only change after it.
+    await Future<void>.value();
+    if (!mounted) return;
+    try {
+      final unread = await ref.refresh(activityUnreadProvider.future);
+      if (!mounted) return;
+      setState(() => _newSinceOpen = unread);
+      if (unread == 0) return;
+      await ref.read(activityRepositoryProvider).markSeen();
+      if (mounted) ref.invalidate(activityUnreadProvider);
+    } on Exception {
+      // The bell stays as it was; the next open tries again.
+    }
+  }
+
   Future<void> _refresh() async {
     ref
       ..invalidate(needsYouProvider)
@@ -59,6 +106,38 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
       ref.read(needsYouProvider.future),
       ref.read(activityFeedProvider.future),
     ]).catchError((_) => const <Object>[]);
+    if (mounted) await _seen();
+  }
+
+  /// Shows the feed through [filter].
+  void _show(ActivityFilter filter) {
+    setState(() => _needsYouOnly = false);
+    ref.read(activityFilterProvider.notifier).show(filter);
+  }
+
+  /// The bell: back to everything, from the newest.
+  void _showNewest() {
+    _show(allActivity);
+    _scroll.animateTo(
+      0,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+    );
+  }
+
+  Future<void> _question(ActivityEntry e) async {
+    if (_opening) return;
+    _opening = true;
+    try {
+      final sent = await showSettloSheet<bool>(
+        context: context,
+        builder: (_) => _QuestionSheet(e),
+      );
+      // The note is on the row now, from the server or from the queue.
+      if (sent ?? false) ref.invalidate(activityFeedProvider);
+    } finally {
+      _opening = false;
+    }
   }
 
   Future<void> _review(PendingAnswer a) async {
@@ -85,8 +164,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     final media = MediaQuery.of(context);
     final needs = ref.watch(needsYouProvider);
     final feed = ref.watch(activityFeedProvider);
+    final filter = ref.watch(activityFilterProvider);
+    final spaces = ref.watch(activitySpacesProvider).value ?? const [];
     final pending = needs.value ?? const <PendingAnswer>[];
-    final entries = feed.value?.entries;
+    // Never another filter's rows while this one loads.
+    final entries = feed.value?.filter == filter ? feed.value?.entries : null;
     final muted = SettloTypography.figtree(13, color: c.textSecondary);
 
     Widget empty(String title, String body) => SCard(
@@ -111,32 +193,54 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     );
 
     final children = <Widget>[
-      Text(
-        'Activity',
-        style: SettloTypography.figtree(
-          24,
-          weight: FontWeight.w500,
-          letterSpacing: -0.6,
-          color: c.textPrimary,
-        ),
+      Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Activity',
+              style: SettloTypography.figtree(
+                24,
+                weight: FontWeight.w500,
+                letterSpacing: -0.6,
+                color: c.textPrimary,
+              ),
+            ),
+          ),
+          SBell(unread: _newSinceOpen, onPressed: _showNewest),
+        ],
       ),
       const SizedBox(height: 12),
-      Wrap(
-        spacing: 8,
-        children: [
-          SChip(
-            label: 'All',
-            selected: !_needsYouOnly,
-            onSelected: (_) => setState(() => _needsYouOnly = false),
-          ),
-          SChip(
-            label: pending.isEmpty
-                ? 'Needs you'
-                : 'Needs you · ${pending.length}',
-            selected: _needsYouOnly,
-            onSelected: (_) => setState(() => _needsYouOnly = true),
-          ),
-        ],
+      // One row, as on the canvas; it scrolls once the spaces outgrow it.
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          spacing: 8,
+          children: [
+            SChip(
+              label: 'All',
+              selected: !_needsYouOnly && filter == allActivity,
+              onSelected: (_) => _show(allActivity),
+            ),
+            SChip(
+              label: pending.isEmpty
+                  ? 'Needs you'
+                  : 'Needs you · ${pending.length}',
+              selected: _needsYouOnly,
+              onSelected: (_) => setState(() => _needsYouOnly = true),
+            ),
+            for (final s in spaces)
+              SChip(
+                label: s.name,
+                selected: !_needsYouOnly && filter.spaceId == s.id,
+                onSelected: (_) => _show((spaceId: s.id, loansOnly: false)),
+              ),
+            SChip(
+              label: 'Loans',
+              selected: !_needsYouOnly && filter.loansOnly,
+              onSelected: (_) => _show((spaceId: null, loansOnly: true)),
+            ),
+          ],
+        ),
       ),
       const SizedBox(height: 14),
       if (pending.isNotEmpty) ...[
@@ -161,9 +265,14 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
         )
       else if (entries.isEmpty)
         empty(
-          'No activity yet',
-          'Expenses, settle-ups and repayments in your spaces and loans '
-              'show up here, edits included.',
+          filter == allActivity ? 'No activity yet' : 'Nothing here yet',
+          filter.loansOnly
+              ? 'Loans and repayments you are part of show up here.'
+              : filter.spaceId != null
+              ? 'Expenses and settle-ups in this space show up here, '
+                    'edits included.'
+              : 'Expenses, settle-ups and repayments in your spaces and '
+                    'loans show up here, edits included.',
         )
       else
         ..._sections(context, entries),
@@ -174,12 +283,19 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
         onRefresh: _refresh,
         child: NotificationListener<ScrollNotification>(
           onNotification: (n) {
-            if (!_needsYouOnly && n.metrics.extentAfter < 600) {
+            // The chips scroll sideways; only the feed's end loads more.
+            if (!_needsYouOnly &&
+                n.metrics.axis == Axis.vertical &&
+                n.metrics.extentAfter < 600) {
               unawaited(ref.read(activityFeedProvider.notifier).loadMore());
             }
             return false;
           },
           child: ListView(
+            controller: _scroll,
+            // With its own controller a short feed would not scroll, and
+            // so could not be pulled down to refresh.
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(
               SettloSpacing.screenMargin,
               math.max(media.padding.top, 44) + 16,
@@ -226,7 +342,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
         );
       }
       final last = i == entries.length - 1 || heading(entries[i + 1].at) != h;
-      out.add(_EntryRow(e, divider: !last));
+      out.add(
+        _EntryRow(
+          e,
+          divider: !last,
+          onQuestion: e.canQuestion ? () => unawaited(_question(e)) : null,
+        ),
+      );
     }
     return out;
   }
@@ -364,19 +486,24 @@ class _ReviewPill extends StatelessWidget {
   }
 }
 
-/// One feed line: who did what, where, and the amount in its tone.
+/// One feed line: who did what, where, and the amount in its tone, with
+/// members' questions under it. With [onQuestion] the whole row is the
+/// target for 'Question this', so the link in its detail need not be.
 class _EntryRow extends StatelessWidget {
-  const new(this.entry, {required this.divider});
+  const new(this.entry, {required this.divider, this.onQuestion});
 
   final ActivityEntry entry;
   final bool divider;
+  final VoidCallback? onQuestion;
 
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final e = entry;
-    final (title, detail, spokenDetail) = _describe(e);
-    return Container(
+    final (title, detail, spoken) = _describe(e);
+    final spokenDetail = onQuestion == null ? spoken : '$spoken, Question this';
+    final small = SettloTypography.figtree(12, color: c.textSecondary);
+    final row = Container(
       constraints: const BoxConstraints(
         minHeight: SettloSpacing.minTouchTarget,
       ),
@@ -411,14 +538,35 @@ class _EntryRow extends StatelessWidget {
                   Semantics(
                     label: spokenDetail,
                     excludeSemantics: true,
-                    child: Text(
-                      detail,
-                      style: SettloTypography.figtree(
-                        12,
-                        color: c.textSecondary,
+                    child: Text.rich(
+                      TextSpan(
+                        text: detail,
+                        children: [
+                          if (onQuestion != null) ...[
+                            const TextSpan(text: ' · '),
+                            TextSpan(
+                              text: 'Question this',
+                              style: SettloTypography.figtree(
+                                12,
+                                weight: FontWeight.w500,
+                                color: c.action,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
+                      style: small,
                     ),
                   ),
+                  for (final q in e.questions)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '${q.byYou ? 'You' : q.name ?? 'Someone'} asked: '
+                        '“${q.note}”',
+                        style: small.copyWith(color: c.textPrimary),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -427,6 +575,119 @@ class _EntryRow extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 8),
                 child: MoneyText(amount, tone: e.tone, size: 14),
               ),
+          ],
+        ),
+      ),
+    );
+    return switch (onQuestion) {
+      final onTap? => SPressable(
+        onTap: onTap,
+        ringRadius: BorderRadius.circular(SettloRadius.button),
+        child: row,
+      ),
+      null => row,
+    };
+  }
+}
+
+/// 'Question this': a short note to whoever made the edit.
+class _QuestionSheet extends ConsumerStatefulWidget {
+  const new(this.entry);
+
+  final ActivityEntry entry;
+
+  @override
+  ConsumerState<_QuestionSheet> createState() => _QuestionSheetState();
+}
+
+class _QuestionSheetState extends ConsumerState<_QuestionSheet> {
+  final _note = TextEditingController();
+  bool _busy = false;
+  bool _failed = false;
+
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    setState(() {
+      _busy = true;
+      _failed = false;
+    });
+    try {
+      await ref
+          .read(activityRepositoryProvider)
+          .question(widget.entry, _note.text);
+      if (mounted) Navigator.of(context).pop(true);
+    } on Exception {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _failed = true;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final e = widget.entry;
+    final editor = e.actor ?? 'them';
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Question this edit',
+              style: SettloTypography.figtree(
+                17,
+                weight: FontWeight.w500,
+                color: c.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Ask $editor about the change to '
+              '${e.description ?? 'this expense'}. Everyone in '
+              '${e.spaceName ?? 'the space'} sees your note here in '
+              'Activity.',
+              style: SettloTypography.figtree(13, color: c.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            Semantics(
+              label: 'Your question',
+              child: TextField(
+                controller: _note,
+                autofocus: true,
+                maxLength: questionMaxLength,
+                textCapitalization: TextCapitalization.sentences,
+                onChanged: (_) => setState(() => _failed = false),
+                style: SettloTypography.figtree(15, color: c.textPrimary),
+                decoration: const InputDecoration(
+                  hintText: 'Why did this change?',
+                  counterText: '',
+                ),
+              ),
+            ),
+            if (_failed) ...[
+              const SizedBox(height: 12),
+              Text(
+                "We couldn't send that. Try again.",
+                style: SettloTypography.figtree(13, color: c.textPrimary),
+              ),
+            ],
+            const SizedBox(height: 16),
+            SPrimaryButton(
+              label: _busy ? 'Sending…' : 'Send',
+              onPressed: _busy || _note.text.trim().isEmpty ? null : _send,
+            ),
           ],
         ),
       ),

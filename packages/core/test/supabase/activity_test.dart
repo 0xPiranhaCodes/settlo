@@ -1,12 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Rows as PostgREST returns them from the views.
-final _views = <String, List<Map<String, Object?>>>{
+final _views = <String, List<Map<String, Object?>>?>{
+  // You last looked on 6 Nov: Rahul's edit is new, your own entry is not.
+  'activity_seen': [
+    {'seen_at': '2026-11-06T00:00:00+00:00'},
+  ],
+  'rpc/mark_activity_seen': null,
+  'rpc/question_activity': null,
   'rpc/activity_feed': [
     // Rahul edited the wifi bill.
     {
@@ -27,6 +34,9 @@ final _views = <String, List<Map<String, Object?>>>{
       'status': null,
       'my_side': null,
       'link_only': true,
+      'questions': [
+        {'by_me': false, 'name': 'Priya', 'note': 'Why? Call ९८००० ००००९'},
+      ],
     },
     // Arjun repaid you, and you confirmed.
     {
@@ -73,6 +83,11 @@ final _views = <String, List<Map<String, Object?>>>{
     },
   ],
 };
+
+class _NoSession extends SessionNotifier {
+  @override
+  Session? build() => null;
+}
 
 void main() {
   late HttpServer server;
@@ -213,6 +228,138 @@ void main() {
         MoneyTone.neutral,
       );
       expect(entry(ActivityStatus.confirmed).tone, MoneyTone.neutral);
+    });
+  });
+
+  group('filters, unread and questions (#109)', () {
+    test('a filter goes to the server with the same cursor', () async {
+      final [edit, _] = await repository().feed(limit: 30);
+      requests.clear();
+      await repository().feed(
+        limit: 30,
+        filter: (spaceId: 's1', loansOnly: false),
+      );
+      await repository().feed(
+        limit: 30,
+        before: edit,
+        filter: (spaceId: null, loansOnly: true),
+      );
+      expect(requests, [
+        'POST rpc/activity_feed  {"p_limit":30,"p_space_id":"s1"}',
+        'POST rpc/activity_feed  ${jsonEncode({'p_limit': 30, 'p_loans_only': true, 'p_before_at': '2026-11-09T08:30:00.123456Z', 'p_before_id': 42})}',
+      ]);
+    });
+
+    test('an entry is in a filter as the server decides it', () async {
+      final [edit, repaid] = await repository().feed(limit: 30);
+      const flat = (spaceId: 's1', loansOnly: false);
+      const trip = (spaceId: 's2', loansOnly: false);
+      const loans = (spaceId: null, loansOnly: true);
+      expect(
+        [
+          for (final f in [allActivity, flat, trip, loans]) edit.isIn(f),
+        ],
+        [true, true, false, false],
+      );
+      expect(
+        [
+          for (final f in [allActivity, flat, trip, loans]) repaid.isIn(f),
+        ],
+        [true, false, false, true],
+      );
+      // A space and loans together match nothing, as on the server.
+      expect(repaid.isIn((spaceId: 's1', loansOnly: true)), isFalse);
+      expect(edit.isIn((spaceId: 's1', loansOnly: true)), isFalse);
+    });
+
+    test('unread counts what is not yours since you last looked', () async {
+      expect(await repository().unread(), 1);
+      expect(requests, [
+        'GET activity_seen select=seen_at',
+        'POST rpc/activity_feed  {"p_limit":100}',
+      ]);
+      final entries = await repository().feed(limit: 30);
+      // Never looked: everything of other people's. Looked since: nothing.
+      expect(unreadIn(entries, null), 1);
+      expect(unreadIn(entries, DateTime.utc(2026, 11, 9, 9)), 0);
+      expect(seenAtFromRows(const []), isNull);
+    });
+
+    test("markSeen sends the newest entry's exact time", () async {
+      await repository().markSeen();
+      expect(requests, [
+        'POST rpc/activity_feed  {"p_limit":1}',
+        'POST rpc/mark_activity_seen  {"p_at":"2026-11-09T08:30:00.123456Z"}',
+      ]);
+    });
+
+    test('markSeen with an empty feed sends nothing', () async {
+      final feed = _views['rpc/activity_feed'];
+      _views['rpc/activity_feed'] = [];
+      addTearDown(() => _views['rpc/activity_feed'] = feed);
+      await repository().markSeen();
+      expect(requests, ['POST rpc/activity_feed  {"p_limit":1}']);
+    });
+
+    test('a question is trimmed and loses its phone numbers before it is '
+        'sent, and again when read', () async {
+      final [edit, repaid] = await repository().feed(limit: 30);
+      expect(edit.questions.single, (
+        byYou: false,
+        name: 'Priya',
+        note: 'Why? Call ••••',
+      ));
+      expect(repaid.questions, isEmpty);
+      requests.clear();
+
+      await repository().question(edit, '  Why ₹100 more? +91 98000 00009 ');
+      expect(
+        requests.single,
+        'POST rpc/question_activity  '
+        '${jsonEncode({'p_activity_id': 42, 'p_note': 'Why ₹100 more? ••••'})}',
+      );
+    });
+
+    test('the bell provider counts through the repository', () async {
+      final container = ProviderContainer(
+        overrides: [
+          supabaseClientProvider.overrideWithValue(client),
+          sessionProvider.overrideWith(_NoSession.new),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(await container.read(activityUnreadProvider.future), 1);
+    });
+
+    test("only someone else's edit in a space, not yet questioned by you, "
+        'can be questioned', () {
+      ActivityEntry entry({
+        ActivityAction action = ActivityAction.edited,
+        bool byYou = false,
+        String? spaceId = 's1',
+        List<ActivityQuestion> questions = const [],
+      }) => ActivityEntry(
+        id: 1,
+        at: DateTime(2026, 11, 9),
+        kind: ActivityKind.expense,
+        action: action,
+        byYou: byYou,
+        spaceId: spaceId,
+        questions: questions,
+      );
+      expect(entry().canQuestion, isTrue);
+      expect(
+        entry(questions: [(byYou: false, name: 'Priya', note: 'Why?')])
+            .canQuestion,
+        isTrue,
+      );
+      expect(entry(action: ActivityAction.created).canQuestion, isFalse);
+      expect(entry(byYou: true).canQuestion, isFalse);
+      expect(entry(spaceId: null).canQuestion, isFalse);
+      expect(
+        entry(questions: [(byYou: true, name: null, note: 'Why?')]).canQuestion,
+        isFalse,
+      );
     });
   });
 }

@@ -133,10 +133,12 @@ final class LocalDb extends GeneratedDatabase {
   }
 
   /// How many of [owner]'s queued writes the server has not accepted.
+  /// Having seen the feed is not one: nothing is lost with it.
   Future<int> unsent(String owner) async {
     final row = await customSelect(
       'SELECT COUNT(*) AS n FROM pending_mutations '
-      "WHERE owner = ? AND status = 'pending'",
+      "WHERE owner = ? AND status = 'pending' "
+      "AND kind != 'mark_activity_seen'",
       variables: [Variable(owner)],
     ).getSingle();
     return row.read<int>('n');

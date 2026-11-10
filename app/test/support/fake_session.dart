@@ -51,7 +51,7 @@ class FakeSessionNotifier extends SessionNotifier {
 
 /// [SettloApp] with the session faked to [session], an empty Home and the
 /// SpacesList spaces with their ledgers, and the Loans tab's loans; [home],
-/// [loans] and [overrides] replace those.
+/// [loans], [activity] and [overrides] replace those.
 Widget fakeSessionApp(
   Session? session, {
   ThemeMode themeMode = ThemeMode.dark,
@@ -59,6 +59,7 @@ Widget fakeSessionApp(
   HomeRepository? home,
   LoansRepository? loans,
   InvitesRepository? invites,
+  ActivityRepository? activity,
   List<Override> overrides = const [],
 }) => ProviderScope(
   overrides: [
@@ -77,7 +78,9 @@ Widget fakeSessionApp(
       loans ?? FakeLoansRepository(loansList()),
     ),
     profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
-    activityRepositoryProvider.overrideWithValue(FakeActivityRepository()),
+    activityRepositoryProvider.overrideWithValue(
+      activity ?? FakeActivityRepository(),
+    ),
     invitesRepositoryProvider.overrideWithValue(
       invites ?? FakeInvitesRepository(),
     ),

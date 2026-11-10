@@ -3,9 +3,6 @@ import 'package:flutter/widgets.dart';
 /// The line glyphs the Home artboards use, on a 24-unit grid. House and
 /// banknote come from `STabIcon`.
 enum HomeGlyph {
-  /// Notifications bell.
-  bell,
-
   /// Plus on Add expense.
   plus,
 
@@ -66,19 +63,6 @@ class _GlyphPainter extends CustomPainter {
 
   // Paths transcribed from the canvas SVGs (viewBox 0 0 24 24).
   Path get _path => switch (glyph) {
-    HomeGlyph.bell =>
-      Path()
-        ..moveTo(6, 8)
-        ..arcToPoint(const Offset(18, 8), radius: const Radius.circular(6))
-        ..cubicTo(18, 15, 21, 17, 21, 17)
-        ..lineTo(3, 17)
-        ..cubicTo(3, 17, 6, 15, 6, 8)
-        ..moveTo(10.3, 21)
-        ..arcToPoint(
-          const Offset(13.7, 21),
-          radius: const Radius.circular(1.94),
-          clockwise: false,
-        ),
     HomeGlyph.plus =>
       Path()
         ..moveTo(12, 5)

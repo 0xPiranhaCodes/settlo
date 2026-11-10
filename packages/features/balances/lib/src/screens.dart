@@ -153,17 +153,13 @@ class _Header extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        IconButton(
-          tooltip: 'Notifications',
-          onPressed: () => context.go(SettloRoutes.activity),
-          style: IconButton.styleFrom(
-            fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            backgroundColor: c.surface,
-            side: BorderSide(color: c.hairline),
+        // What is new in Activity since you last opened it; on an error,
+        // a plain bell.
+        Consumer(
+          builder: (context, ref, _) => SBell(
+            unread: ref.watch(activityUnreadProvider).value ?? 0,
+            onPressed: () => context.go(SettloRoutes.activity),
           ),
-          icon: HomeIcon(HomeGlyph.bell, color: c.textPrimary, size: 22),
         ),
         const SizedBox(width: SettloSpacing.x1),
         // Neutral, as every avatar is; the canvas's gold avatar waits on

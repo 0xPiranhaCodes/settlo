@@ -269,20 +269,25 @@ final class DriftActivityRepository implements ActivityRepository {
   Future<List<ActivityEntry>> feed({
     required int limit,
     ActivityEntry? before,
+    ActivityFilter filter = allActivity,
   }) async {
     final rows = (await _sync.snapshot(now()))['activity_feed'] ?? const [];
     final page = [
       for (final e in activityFromRows(rows))
-        if (before == null ||
-            e.at.isBefore(before.at) ||
-            (e.at.isAtSameMomentAs(before.at) && e.id < before.id))
+        if (e.isIn(filter) &&
+            (before == null ||
+                e.at.isBefore(before.at) ||
+                (e.at.isAtSameMomentAs(before.at) && e.id < before.id)))
           e,
     ];
+    // A mirror that is not full holds the whole feed, so the filtered page
+    // is complete too; a full one holds the newest matches, which make a
+    // page only when there are enough of them.
     if (page.length >= limit || rows.length < mirroredActivity) {
       return page.take(limit).toList();
     }
     try {
-      return await _online.feed(limit: limit, before: before);
+      return await _online.feed(limit: limit, before: before, filter: filter);
     } on Exception {
       // Offline: what the mirror has left; the rest loads once back.
       return page;
@@ -292,4 +297,33 @@ final class DriftActivityRepository implements ActivityRepository {
   @override
   Future<List<PendingAnswer>> needsYou() async =>
       needsYouFromRows((await _sync.snapshot(now()))['needs_you'] ?? const []);
+
+  @override
+  Future<int> unread() async {
+    final t = await _sync.snapshot(now());
+    return unreadIn(
+      activityFromRows(t['activity_feed'] ?? const []),
+      seenAtFromRows(t['activity_seen'] ?? const []),
+    );
+  }
+
+  @override
+  Future<void> markSeen() async {
+    final t = await _sync.snapshot(now());
+    final newest = activityFromRows(t['activity_feed'] ?? const []).firstOrNull;
+    final seen = seenAtFromRows(t['activity_seen'] ?? const []);
+    if (newest == null || (seen != null && !newest.at.isAfter(seen))) return;
+    final params = markSeenParams(newest.at);
+    // The call is idempotent on the server; the key only names it in the
+    // queue.
+    await _sync.submit('mark_activity_seen', params, 'seen:${params['p_at']}');
+  }
+
+  @override
+  Future<void> question(ActivityEntry entry, String note) => _sync.submit(
+    'question_activity',
+    questionParams(entry, note),
+    // One note per edit, as on the server.
+    'question:${entry.id}',
+  );
 }

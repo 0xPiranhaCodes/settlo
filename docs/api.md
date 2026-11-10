@@ -105,7 +105,7 @@ schedule column (`installments_*`, `expected_minor`, `next_due_on`, `ends_on`, `
 GET /rest/v1/loan_summaries?loan_id=eq.<id>
 ```
 
-### `activity_feed(p_before_at timestamptz, p_before_id bigint, p_limit int)`
+### `activity_feed(p_before_at timestamptz, p_before_id bigint, p_limit int, p_space_id uuid, p_loans_only boolean)`
 An RPC, listed with the views it reads beside. The Activity tab (#91): one row per `activity` row,
 newest first, with what the app needs to say it in one line. It shows only spaces the caller is an
 accepted, active member of and loans they are an accepted party to. A departed member, an outsider,
@@ -131,6 +131,7 @@ makes the membership checks itself and names a person only where `profiles` RLS 
 | `before_description`, `before_amount_minor` | text, bigint | `edited` rows only: the values before |
 | `status` | text | Settle-ups and repayments as they stand now: `pending`, `confirmed`, `disputed`, or `deleted` |
 | `my_side` | text | Settle-ups and repayments: `in` (to the caller), `out` (from the caller), else null |
+| `questions` | jsonb | `edited` rows in a space: members' 'Question this' notes, oldest first, as `[{"by_me": bool, "name": text, "note": text}]`; null when there are none |
 
 Rows are ordered by `(created_at, id)` descending. `created_at` is when the change happened (its
 transaction's start), so a transaction that began earlier but committed later still sorts by its
@@ -146,9 +147,28 @@ The paging contract:
   the first page likewise appear only on refresh.
 `p_limit` defaults to 30 and is held to 1–100; both cursor arguments null means the first page.
 
+Filters (#109), both optional: `p_space_id` keeps one space's rows and `p_loans_only` keeps loan rows
+(loans and repayments). They narrow the caller's own spaces and loans before the page is built, so a
+filter never shows more than the unfiltered feed does (a space the caller is not in gives no rows),
+`p_limit` counts matching rows, and the order, cursor and paging contract above are unchanged. Both
+together match nothing. A call that names only the first three arguments is unfiltered.
+
 ```
 POST /rest/v1/rpc/activity_feed  {"p_limit": 30}
 POST /rest/v1/rpc/activity_feed  {"p_limit": 30, "p_before_at": "2026-11-09T08:30:00.123456+00:00", "p_before_id": 4211}
+POST /rest/v1/rpc/activity_feed  {"p_limit": 30, "p_space_id": "<space id>"}
+POST /rest/v1/rpc/activity_feed  {"p_limit": 30, "p_loans_only": true}
+```
+
+### `activity_seen`
+A table, listed with the feed it belongs to (#109): one row per user, `seen_at`, the `created_at` of
+the newest feed entry they have seen. RLS shows a user only their own row, and only
+`mark_activity_seen` writes it. The bell counts feed entries that are not the caller's own with
+`created_at > seen_at` (every such entry when there is no row), among the newest 100. It is on the
+server, not the device, so opening Activity on one phone clears the bell on the caller's others.
+
+```
+GET /rest/v1/activity_seen?select=seen_at
 ```
 
 ### `needs_you`
@@ -744,6 +764,32 @@ expense id and the trimmed reason.
 ```
 POST /rest/v1/rpc/dispute_settlement
 {"p_expense_id": "0b9d…", "p_reason": "Not received yet", "p_idempotency_key": "e5f6…"}
+```
+
+## Activity (#109)
+
+### `mark_activity_seen(p_at timestamptz)`
+Records that the caller has seen the feed up to `p_at`, the `created_at` of the newest entry shown.
+The cursor only moves forward and is held to now, so the call is idempotent: a replay, or two phones
+answering out of order, changes nothing. No idempotency key. An unverified caller gets `42501`, a
+null time `22023`; anon cannot call it.
+
+### `question_activity(p_activity_id bigint, p_note text)`
+'Question this': leaves a short note on an `edited` row for whoever made the edit. The caller must
+be an accepted, active member of the row's space and not the editor; anything else, a missing row
+included, gets the same `42501`, so the call cannot probe for rows. The note is trimmed and must be
+1 to 280 characters (`22023`). Indian phone numbers in it are replaced with `••••` by the app's
+rule (`redactPhones`); the server applies it to ASCII digits, and the app also applies it to other
+scripts' digits before sending and when showing a note.
+
+One note per member per row: asking again replaces the caller's note, so a replay is harmless and
+there is no idempotency key. Notes are stored outside the API schema and are read only as
+`activity_feed.questions`, which shows them to exactly the people who see the row: accepted, active
+members of that space. A member who leaves stops seeing them; their own note stays for the others.
+
+```
+POST /rest/v1/rpc/mark_activity_seen  {"p_at": "2026-11-09T08:30:00.123456+00:00"}
+POST /rest/v1/rpc/question_activity   {"p_activity_id": 4211, "p_note": "Why did this go up?"}
 ```
 
 ## Claims (#9, #116)

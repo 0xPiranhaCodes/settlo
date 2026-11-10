@@ -101,9 +101,14 @@ final rahulSettleUpAnswer = PendingAnswer(
 /// `needs_you` view would.
 class FakeActivityRepository implements ActivityRepository {
   /// Serves [entries] (newest first) and [pending].
-  new({List<ActivityEntry>? entries, List<PendingAnswer>? pending, this.ledger})
-    : entries = entries ?? activityFeed,
-      pending = pending ?? [arjunRepaymentAnswer];
+  new({
+    List<ActivityEntry>? entries,
+    List<PendingAnswer>? pending,
+    this.ledger,
+    DateTime? seenAt,
+  }) : entries = entries ?? [...activityFeed],
+       seenAt = seenAt ?? (entries ?? activityFeed).firstOrNull?.at,
+       pending = pending ?? [arjunRepaymentAnswer];
 
   /// The feed, newest first.
   final List<ActivityEntry> entries;
@@ -114,17 +119,76 @@ class FakeActivityRepository implements ActivityRepository {
   /// The space ledgers settle-ups are answered in.
   final FakeSpaceLedgerRepository? ledger;
 
-  /// Every read, as `feed <limit> <before id>` or `needsYou`.
+  /// When the feed was last seen: everything, unless the constructor was
+  /// given an earlier time.
+  DateTime? seenAt;
+
+  /// Whether [question] fails, as it would offline without the mirror.
+  bool questionFails = false;
+
+  /// Every call, as `feed <limit> <before id>`, with ` <space id>` or
+  /// ` loans` when filtered, `needsYou`, `unread`, `markSeen` or
+  /// `question <id> <note>`.
   final calls = <String>[];
 
   @override
   Future<List<ActivityEntry>> feed({
     required int limit,
     ActivityEntry? before,
+    ActivityFilter filter = allActivity,
   }) async {
-    calls.add('feed $limit ${before?.id}');
-    final from = before == null ? 0 : entries.indexOf(before) + 1;
-    return entries.skip(from).take(limit).toList();
+    calls.add(
+      [
+        'feed $limit ${before?.id}',
+        ?filter.spaceId,
+        if (filter.loansOnly) 'loans',
+      ].join(' '),
+    );
+    final matching = entries.where((e) => e.isIn(filter)).toList();
+    final from = before == null ? 0 : matching.indexOf(before) + 1;
+    return matching.skip(from).take(limit).toList();
+  }
+
+  @override
+  Future<int> unread() async {
+    calls.add('unread');
+    return unreadIn(entries, seenAt);
+  }
+
+  @override
+  Future<void> markSeen() async {
+    calls.add('markSeen');
+    seenAt = entries.firstOrNull?.at;
+  }
+
+  @override
+  Future<void> question(ActivityEntry entry, String note) async {
+    calls.add('question ${entry.id} $note');
+    if (questionFails) throw Exception('offline');
+    final e = entry;
+    entries[entries.indexOf(e)] = ActivityEntry(
+      id: e.id,
+      at: e.at,
+      kind: e.kind,
+      action: e.action,
+      byYou: e.byYou,
+      spaceId: e.spaceId,
+      spaceName: e.spaceName,
+      actor: e.actor,
+      description: e.description,
+      amount: e.amount,
+      beforeDescription: e.beforeDescription,
+      beforeAmount: e.beforeAmount,
+      questions: [
+        ...e.questions,
+        (
+          byYou: true,
+          name: null,
+          // Redacted as the real repositories send it.
+          note: questionParams(e, note)['p_note']! as String,
+        ),
+      ],
+    );
   }
 
   @override

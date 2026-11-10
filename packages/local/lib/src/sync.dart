@@ -253,7 +253,8 @@ final class SyncEngine {
     final waiting = _waiting.remove(m.key);
     if (waiting != null) {
       waiting.completeError(_exception(m.kind, e));
-    } else {
+    } else if (m.kind != 'mark_activity_seen') {
+      // Nothing the user made was lost with a refused 'seen'.
       _notices.add(rejection(m, e));
     }
   }
@@ -318,6 +319,7 @@ String rejection(Mutation m, PostgrestException e) {
     'dispute_repayment' => 'Your dispute of that repayment',
     'accept_claim' => 'Accepting that invite',
     'reject_claim' => 'Declining that invite',
+    'question_activity' => 'Your question about that edit',
     _ => 'A change',
   };
   final loan = _loanKinds.contains(m.kind);
@@ -334,6 +336,8 @@ String rejection(Mutation m, PostgrestException e) {
     (_, 'not_pending') => 'the repayment was already answered',
     ('42501', _) when m.kind.endsWith('_claim') =>
       'it was already answered or withdrawn',
+    ('42501', _) when m.kind == 'question_activity' =>
+      'you can’t question that edit any more',
     ('42501', _) when loan => 'you can’t change this loan any more',
     ('42501', _) => 'you can’t change this space any more',
     _ when loan => 'the details didn’t match the loan',
@@ -482,6 +486,12 @@ Future<Tables> fetchMirror(
             'amount_minor, paid_on, created_at',
           ),
       order: [('created_at', ascending: false), ('id', ascending: true)],
+      bySpace: false,
+    ),
+    // The caller's own row, if any: what the bell counts from.
+    'activity_seen': (
+      select: () => db.from('activity_seen').select('seen_at'),
+      order: [('seen_at', ascending: true)],
       bySpace: false,
     ),
   };
