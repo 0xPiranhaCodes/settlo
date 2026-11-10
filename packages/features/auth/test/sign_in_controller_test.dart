@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'fake_phone_auth.dart';
 
@@ -36,6 +37,24 @@ final class _Invites implements InvitesRepository {
   }) => throw UnimplementedError();
 }
 
+final _session = Session(
+  accessToken: 'test-access-token',
+  tokenType: 'bearer',
+  user: const User(
+    id: '00000000-0000-0000-0000-000000000001',
+    appMetadata: {},
+    userMetadata: {},
+    aud: 'authenticated',
+    createdAt: '2026-11-10T00:00:00Z',
+    phone: '919000000001',
+  ),
+);
+
+final class _Session extends SessionNotifier {
+  @override
+  Session? build() => _session;
+}
+
 void main() {
   late FakePhoneAuth auth;
   late _Invites invites;
@@ -50,6 +69,7 @@ void main() {
       overrides: [
         phoneAuthProvider.overrideWithValue(auth),
         invitesRepositoryProvider.overrideWithValue(invites),
+        sessionProvider.overrideWith(_Session.new),
       ],
     )..listen(signInProvider, (_, _) {});
   });

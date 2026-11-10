@@ -195,6 +195,9 @@ class SignInController extends Notifier<SignInState> {
         : ref.read(invitesRepositoryProvider);
     final pendingInviteNotifier = ref.read(pendingInviteTokenProvider.notifier);
     final noticeNotifier = ref.read(inviteSignInNoticeProvider.notifier);
+    final sessionNotifier = pendingInvite == null
+        ? null
+        : ref.read(sessionProvider.notifier);
     final country = state.country;
     state = state._next(busy: true);
     final error = await _call(
@@ -203,13 +206,22 @@ class SignInController extends Notifier<SignInState> {
     );
     var finalError = error;
     if (error == null && pendingInvite != null) {
+      final redeemingUserId = sessionNotifier!.userId;
       try {
         await invites!.redeem(
           pendingInvite.token,
           idempotencyKey: pendingInvite.idempotencyKey,
         );
+        if (redeemingUserId == null ||
+            sessionNotifier.userId != redeemingUserId) {
+          return;
+        }
         pendingInviteNotifier.clear();
       } on InviteException catch (inviteError) {
+        if (redeemingUserId == null ||
+            sessionNotifier.userId != redeemingUserId) {
+          return;
+        }
         finalError = signInErrorForInvite(inviteError.failure);
         noticeNotifier.show(finalError, country);
         if (inviteError.failure
@@ -217,6 +229,10 @@ class SignInController extends Notifier<SignInState> {
           pendingInviteNotifier.clear();
         }
       } on Exception {
+        if (redeemingUserId == null ||
+            sessionNotifier.userId != redeemingUserId) {
+          return;
+        }
         finalError = SignInError.network;
         noticeNotifier.show(finalError, country);
       }

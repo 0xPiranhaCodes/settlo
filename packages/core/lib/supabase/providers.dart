@@ -16,6 +16,9 @@ final sessionProvider = NotifierProvider<SessionNotifier, Session?>(
 
 /// Holds the current [Session]; see [sessionProvider].
 class SessionNotifier extends Notifier<Session?> {
+  /// The current auth identity, for work that must reject stale completions.
+  String? get userId => state?.user.id;
+
   @override
   Session? build() {
     final auth = ref.watch(supabaseClientProvider).auth;

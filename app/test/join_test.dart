@@ -8,6 +8,7 @@ import 'package:settlo/main.dart';
 import 'package:settlo/router/router.dart';
 import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'support/fake_phone_auth.dart';
 import 'support/fake_session.dart';
@@ -18,6 +19,19 @@ const _coldToken =
     'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 const _warmToken =
     'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
+
+final _otherSession = Session(
+  accessToken: 'other-access-token',
+  tokenType: 'bearer',
+  user: const User(
+    id: '00000000-0000-0000-0000-000000000002',
+    appMetadata: {},
+    userMetadata: {},
+    aud: 'authenticated',
+    createdAt: '2026-11-10T00:00:00Z',
+    phone: '919876543211',
+  ),
+);
 
 final class _Invites implements InvitesRepository {
   new({this.redeemCompleter, this.redeemFailure});
@@ -80,11 +94,12 @@ final class _Links implements DeepLinkSource {
 
 final class _SigningInAuth extends FakePhoneAuth {
   late FakeSessionNotifier session;
+  Session signedInSession = fakeSession;
 
   @override
   Future<void> verifyCode({required String phone, required String code}) async {
     await super.verifyCode(phone: phone, code: code);
-    session.signIn();
+    session.switchTo(signedInSession);
   }
 }
 
@@ -109,7 +124,7 @@ Future<void> _pump(
   await tester.pumpAndSettle();
 }
 
-Future<ProviderContainer> _startDelayedOtpRedeem(
+Future<(ProviderContainer, _SigningInAuth)> _startDelayedOtpRedeem(
   WidgetTester tester,
   _Invites invites,
 ) async {
@@ -147,7 +162,24 @@ Future<ProviderContainer> _startDelayedOtpRedeem(
 
   expect(container.read(routerProvider).state.uri.path, SettloRoutes.home);
   expect(invites.redeemCalls, 1);
-  return container;
+  return (container, auth);
+}
+
+Future<void> _signInFromWelcome(
+  WidgetTester tester, {
+  required ProviderContainer container,
+  required String phone,
+}) async {
+  tester.testTextInput.hide();
+  container.read(routerProvider).go(SettloRoutes.phone);
+  await tester.pumpAndSettle();
+  await tester.pump(const Duration(seconds: 5));
+  await tester.pumpAndSettle();
+  await tester.enterText(find.byKey(const ValueKey('phone-number')), phone);
+  await tester.tap(find.text('Send code'));
+  await tester.pumpAndSettle();
+  await tester.enterText(find.byKey(const ValueKey('otp-code')), '123456');
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -293,7 +325,7 @@ void main() {
       redeemCompleter: completer,
       redeemFailure: InviteFailure.wrongPhone,
     );
-    final container = await _startDelayedOtpRedeem(tester, invites);
+    final (container, _) = await _startDelayedOtpRedeem(tester, invites);
     expect(find.textContaining('different number'), findsNothing);
 
     completer.complete();
@@ -309,13 +341,61 @@ void main() {
   ) async {
     final completer = Completer<void>();
     final invites = _Invites(redeemCompleter: completer);
-    final container = await _startDelayedOtpRedeem(tester, invites);
+    final (container, _) = await _startDelayedOtpRedeem(tester, invites);
     expect(container.read(pendingInviteTokenProvider), isNotNull);
 
     completer.complete();
     await tester.pumpAndSettle();
 
     expect(container.read(pendingInviteTokenProvider), isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a late redeem result is dropped after another user signs in', (
+    tester,
+  ) async {
+    final completer = Completer<void>();
+    final invites = _Invites(
+      redeemCompleter: completer,
+      redeemFailure: InviteFailure.wrongPhone,
+    );
+    final (container, _) = await _startDelayedOtpRedeem(tester, invites);
+    container.read(sessionProvider.notifier) as FakeSessionNotifier
+      ..signOut()
+      ..switchTo(_otherSession);
+    await tester.pumpAndSettle();
+    completer.complete();
+    await tester.pumpAndSettle();
+
+    expect(container.read(sessionProvider)?.user.id, _otherSession.user.id);
+    expect(container.read(pendingInviteTokenProvider), isNull);
+    expect(find.textContaining('different number'), findsNothing);
+    expect(container.read(inviteSignInNoticeProvider), isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a retained rate-limit invite is not tried by another user', (
+    tester,
+  ) async {
+    final completer = Completer<void>();
+    final invites = _Invites(
+      redeemCompleter: completer,
+      redeemFailure: InviteFailure.rateLimited,
+    );
+    final (container, auth) = await _startDelayedOtpRedeem(tester, invites);
+    completer.complete();
+    await tester.pumpAndSettle();
+    expect(container.read(pendingInviteTokenProvider), isNotNull);
+
+    (container.read(sessionProvider.notifier) as FakeSessionNotifier).signOut();
+    await tester.pumpAndSettle();
+    expect(container.read(pendingInviteTokenProvider), isNull);
+    auth.signedInSession = _otherSession;
+    await _signInFromWelcome(tester, container: container, phone: '9000000002');
+
+    expect(container.read(sessionProvider)?.user.id, _otherSession.user.id);
+    expect(container.read(pendingInviteTokenProvider), isNull);
+    expect(invites.redeemCalls, 1);
     expect(tester.takeException(), isNull);
   });
 

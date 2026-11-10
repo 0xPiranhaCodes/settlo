@@ -194,7 +194,17 @@ final pendingInviteTokenProvider =
 final class PendingInviteToken extends Notifier<PendingInvite?> {
   /// Starts without an invite.
   @override
-  PendingInvite? build() => null;
+  PendingInvite? build() {
+    ref.listen(sessionProvider.select((session) => session?.user.id), (
+      previous,
+      next,
+    ) {
+      // Keep a link across the signed-out Join -> OTP flow, but never carry it
+      // out of an authenticated user's session or into another user's session.
+      if (previous != null && previous != next) clear();
+    });
+    return null;
+  }
 
   /// Remembers a token and the idempotency key for its eventual redemption.
   void remember(String token, {required String idempotencyKey}) =>
