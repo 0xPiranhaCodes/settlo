@@ -279,8 +279,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
           );
         },
       ),
-      body: ListView(
-        padding: EdgeInsets.zero,
+      body: SFormBody(
         children: [
           Semantics(
             label: 'What for',
@@ -298,7 +297,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: SettloSpacing.x1),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -322,7 +321,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
               ],
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: SettloSpacing.x3),
           Text('PAID BY', style: label),
           const SizedBox(height: SettloSpacing.x1),
           Row(
@@ -371,10 +370,12 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
                 child: Text(payersProblem, style: note),
               ),
           ],
-          const SizedBox(height: 18),
-          Row(
+          const SizedBox(height: SettloSpacing.x3),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: Text('SPLIT', style: label)),
+              Text('SPLIT', style: label),
+              const SizedBox(height: SettloSpacing.x1),
               SSegmentedControl<SplitType>(
                 segments: const [
                   (value: SplitType.equal, label: 'Equally'),
@@ -446,7 +447,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
       void toggle() =>
           setState(() => on ? _included.remove(m.id) : _included.add(m.id));
       return MergeSemantics(
-        child: InkWell(
+        child: SPressable(
           onTap: toggle,
           child: _Line(
             divider: divider,
@@ -454,8 +455,8 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
               Checkbox(
                 value: on,
                 onChanged: (_) => toggle(),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.padded,
+                visualDensity: VisualDensity.standard,
               ),
               const SizedBox(width: 4),
               Expanded(child: _Name(name)),
@@ -480,7 +481,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
         Expanded(child: _Name(name)),
         if (_type != SplitType.exact && amount != null)
           MoneyText(amount, size: 13, tone: MoneyTone.settled),
-        const SizedBox(width: 12),
+        const SizedBox(width: SettloSpacing.x2),
         _Input(
           // Keyed by type: each split type keeps its own entries.
           key: ValueKey<(SplitType?, String)>((_type, m.id)),
@@ -576,7 +577,7 @@ class _Input extends StatelessWidget {
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
-            vertical: 12,
+            vertical: SettloSpacing.x2,
           ),
         ),
       ),
@@ -604,7 +605,7 @@ class _Option extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final radius = BorderRadius.circular(14);
+    final radius = BorderRadius.circular(SettloRadius.iconTile);
     return Semantics(
       button: true,
       selected: selected,
@@ -617,7 +618,7 @@ class _Option extends StatelessWidget {
           side: selected ? BorderSide.none : BorderSide(color: c.hairline),
         ),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(
+        child: SPressable(
           onTap: onTap,
           child: Container(
             height: 46,

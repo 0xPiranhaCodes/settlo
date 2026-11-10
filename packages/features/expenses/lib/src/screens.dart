@@ -158,7 +158,7 @@ class _Frame extends StatelessWidget {
                 const SizedBox(width: SettloSpacing.minTouchTarget - 12),
               ],
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: SettloSpacing.x3),
             if (label case final label?) ...[
               Text(
                 label,
@@ -197,13 +197,13 @@ class _SpaceRow extends StatelessWidget {
     final c = SettloColors.of(context);
     final others = [for (final m in space.others) m.name];
     return MergeSemantics(
-      child: InkWell(
+      child: SPressable(
         onTap: onTap,
         child: Container(
           constraints: const BoxConstraints(
             minHeight: SettloSpacing.minTouchTarget,
           ),
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
           decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: c.hairline)),
           ),
