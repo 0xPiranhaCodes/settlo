@@ -1,6 +1,10 @@
 name: Supabase hosted
 
 on:
+  # TEMPORARY (#110): dry run only, from the branch. Removed before review.
+  push:
+    branches:
+      - 110-testflight
   workflow_dispatch:
     inputs:
       action:
@@ -32,7 +36,7 @@ env:
 jobs:
   db-push:
     name: Migrations
-    if: github.event_name == 'workflow_dispatch' && inputs.action == 'db-push'
+    if: github.event_name == 'push' || inputs.action == 'db-push'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
