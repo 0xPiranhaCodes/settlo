@@ -200,26 +200,24 @@ class SignInController extends Notifier<SignInState> {
         : ref.read(sessionProvider.notifier);
     final country = state.country;
     state = state._next(busy: true);
-    final error = await _call(
-      () => phoneAuth.verifyCode(phone: phone, code: code),
-      rejected: SignInError.codeRejected,
-    );
+    String? verifiedUserId;
+    final error = await _call(() async {
+      verifiedUserId = await phoneAuth.verifyCode(phone: phone, code: code);
+    }, rejected: SignInError.codeRejected);
     var finalError = error;
     if (error == null && pendingInvite != null) {
-      final redeemingUserId = sessionNotifier!.userId;
+      final redeemingUserId = verifiedUserId;
       try {
         await invites!.redeem(
           pendingInvite.token,
           idempotencyKey: pendingInvite.idempotencyKey,
         );
-        if (redeemingUserId == null ||
-            sessionNotifier.userId != redeemingUserId) {
+        if (_isAnotherUser(sessionNotifier!, redeemingUserId)) {
           return;
         }
         pendingInviteNotifier.clear();
       } on InviteException catch (inviteError) {
-        if (redeemingUserId == null ||
-            sessionNotifier.userId != redeemingUserId) {
+        if (_isAnotherUser(sessionNotifier!, redeemingUserId)) {
           return;
         }
         finalError = signInErrorForInvite(inviteError.failure);
@@ -229,8 +227,7 @@ class SignInController extends Notifier<SignInState> {
           pendingInviteNotifier.clear();
         }
       } on Exception {
-        if (redeemingUserId == null ||
-            sessionNotifier.userId != redeemingUserId) {
+        if (_isAnotherUser(sessionNotifier!, redeemingUserId)) {
           return;
         }
         finalError = SignInError.network;
@@ -238,6 +235,13 @@ class SignInController extends Notifier<SignInState> {
       }
     }
     if (ref.mounted) state = state._next(busy: false, error: finalError);
+  }
+
+  static bool _isAnotherUser(SessionNotifier session, String? redeemingUserId) {
+    final currentUserId = session.userId;
+    return redeemingUserId != null &&
+        currentUserId != null &&
+        currentUserId != redeemingUserId;
   }
 
   Future<bool> _send(String phone) async {

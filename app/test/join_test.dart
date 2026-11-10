@@ -97,9 +97,13 @@ final class _SigningInAuth extends FakePhoneAuth {
   Session signedInSession = fakeSession;
 
   @override
-  Future<void> verifyCode({required String phone, required String code}) async {
+  Future<String?> verifyCode({
+    required String phone,
+    required String code,
+  }) async {
     await super.verifyCode(phone: phone, code: code);
     session.switchTo(signedInSession);
+    return signedInSession.user.id;
   }
 }
 

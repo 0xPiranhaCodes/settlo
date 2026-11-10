@@ -2,6 +2,9 @@ import 'package:settlo_core/settlo_core.dart';
 
 /// A [PhoneAuth] that records calls and fails with [failure] when set.
 class FakePhoneAuth implements PhoneAuth {
+  /// The identity returned by a successful verification.
+  String? verifiedUserId = '00000000-0000-0000-0000-000000000001';
+
   /// The next calls fail with this, until cleared.
   PhoneAuthFailure? failure;
 
@@ -18,8 +21,12 @@ class FakePhoneAuth implements PhoneAuth {
   }
 
   @override
-  Future<void> verifyCode({required String phone, required String code}) async {
+  Future<String?> verifyCode({
+    required String phone,
+    required String code,
+  }) async {
     if (failure case final f?) throw PhoneAuthException(f);
     verified.add((phone, code));
+    return verifiedUserId;
   }
 }
