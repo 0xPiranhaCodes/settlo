@@ -12,6 +12,11 @@ on:
         required: false
         type: boolean
         default: false
+      golden_base_ref:
+        description: Optional base commit for UI before images during regeneration
+        required: false
+        type: string
+        default: ''
       supabase_only:
         description: Run only the Supabase job
         required: false
@@ -364,6 +369,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
 
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
@@ -374,6 +381,12 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
+
+      - name: Render optional base UI evidence
+        if: inputs.golden_base_ref != ''
+        env:
+          GOLDEN_BASE_REF: ${{ inputs.golden_base_ref }}
+        run: scripts/capture-ui-baseline.sh "$GOLDEN_BASE_REF"
 
       - name: Regenerate app and core goldens
         shell: bash
@@ -388,10 +401,20 @@ jobs:
             flutter test --update-goldens
           )
 
+      - name: Compose UI comparisons from Linux captures
+        if: inputs.golden_base_ref != ''
+        run: |
+          python3 -m venv /tmp/settlo-evidence-python
+          /tmp/settlo-evidence-python/bin/pip install Pillow==11.3.0
+          /tmp/settlo-evidence-python/bin/python scripts/compose-ui-evidence.py
+
       - name: Commit app and core goldens
         shell: bash
         run: |
           set -euo pipefail
+          if [[ -d docs/design/145/before ]]; then
+            git add docs/design/145/before docs/design/145/comparisons
+          fi
           git add app/test/goldens/*.png
           git add packages/core/test/theme/goldens/*.png
           git add packages/core/test/widgets/goldens/*.png

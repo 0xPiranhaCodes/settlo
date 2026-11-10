@@ -27,8 +27,9 @@ const _homeIndicator = 34.0;
 Future<void> _pump(
   WidgetTester tester,
   GoldenDevice device,
-  String location,
-) async {
+  String location, {
+  ThemeData? theme,
+}) async {
   await loadSettloFonts();
   tester.view
     ..physicalSize = device.size
@@ -36,6 +37,8 @@ Future<void> _pump(
     ..viewPadding = const FakeViewPadding(bottom: _homeIndicator)
     ..padding = const FakeViewPadding(bottom: _homeIndicator);
   addTearDown(tester.view.reset);
+  tester.platformDispatcher.textScaleFactorTestValue = device.textScale;
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
   final router = GoRouter(
     initialLocation: location,
     routes: [
@@ -58,24 +61,30 @@ Future<void> _pump(
   );
   addTearDown(router.dispose);
   await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
-        homeRepositoryProvider.overrideWithValue(FakeHomeRepository(homeMain)),
-        profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
-        themeModeRepositoryProvider.overrideWithValue(
-          FakeThemeModeRepository(),
+    RepaintBoundary(
+      key: settloGoldenSurfaceKey,
+      child: ProviderScope(
+        overrides: [
+          sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
+          homeRepositoryProvider.overrideWithValue(
+            FakeHomeRepository(homeMain),
+          ),
+          profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
+          themeModeRepositoryProvider.overrideWithValue(
+            FakeThemeModeRepository(),
+          ),
+          spacesRepositoryProvider.overrideWithValue(
+            FakeSpacesRepository(spacesList),
+          ),
+          spaceLedgerRepositoryProvider.overrideWithValue(
+            FakeSpaceLedgerRepository(),
+          ),
+        ],
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          theme: theme ?? SettloTheme.dark(),
+          routerConfig: router,
         ),
-        spacesRepositoryProvider.overrideWithValue(
-          FakeSpacesRepository(spacesList),
-        ),
-        spaceLedgerRepositoryProvider.overrideWithValue(
-          FakeSpaceLedgerRepository(),
-        ),
-      ],
-      child: MaterialApp.router(
-        theme: SettloTheme.dark(),
-        routerConfig: router,
       ),
     ),
   );
@@ -92,6 +101,9 @@ Future<void> _raiseKeyboard(WidgetTester tester) async {
 }
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
+  if (finder.evaluate().isEmpty) {
+    await tester.scrollUntilVisible(finder, 200);
+  }
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
   await tester.tap(finder);
@@ -128,6 +140,33 @@ final _sheets = <({String name, String location, Finder open, Finder action})>[
 ];
 
 void main() {
+  for (final device in SettloGoldenDevices.accessible) {
+    for (final (themeName, theme) in [
+      ('dark', SettloTheme.dark()),
+      ('light', SettloTheme.light()),
+    ]) {
+      for (final (name, location, open) in [
+        for (final sheet in _sheets) (sheet.name, sheet.location, sheet.open),
+        ('export', SettloRoutes.profile, find.text('Export')),
+        ('delete account', SettloRoutes.profile, find.text('Delete account')),
+      ]) {
+        testWidgets('$name ${device.name} $themeName panel golden', (
+          tester,
+        ) async {
+          await _pump(tester, device, location, theme: theme);
+          await _tap(tester, open);
+          expectSettloTapTargets(tester);
+          await expectLater(
+            find.byKey(settloGoldenSurfaceKey),
+            matchesGoldenFile(
+              'goldens/sheet_${name.replaceAll(' ', '_')}_${device.name}_$themeName.png',
+            ),
+          );
+        });
+      }
+    }
+  }
+
   for (final device in SettloGoldenDevices.all) {
     for (final sheet in _sheets) {
       for (final keyboard in [false, true]) {

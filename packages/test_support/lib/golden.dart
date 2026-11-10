@@ -40,7 +40,10 @@ Future<void> _loadSettloFonts() async {
 @immutable
 final class GoldenDevice {
   /// Creates a named golden viewport.
-  const new({required this.name, required this.size});
+  const new({required this.name, required this.size, this.textScale = 1});
+
+  /// Accessibility text scale exercised by this viewport.
+  final double textScale;
 
   /// File-name-safe device identifier.
   final String name;
@@ -59,6 +62,14 @@ abstract final class SettloGoldenDevices {
 
   /// All supported golden devices.
   static const all = <GoldenDevice>[canvas390, compact360];
+
+  /// Both phone viewports at standard and 200% accessibility text.
+  static const accessible = <GoldenDevice>[
+    canvas390,
+    compact360,
+    GoldenDevice(name: '390x844_text200', size: Size(390, 844), textScale: 2),
+    GoldenDevice(name: '360x800_text200', size: Size(360, 800), textScale: 2),
+  ];
 }
 
 /// Stable key for capturing only the configured device surface.
@@ -83,7 +94,7 @@ Future<void> pumpSettloGolden(
     ..physicalSize = device.size
     ..devicePixelRatio = 1;
   tester.platformDispatcher
-    ..textScaleFactorTestValue = 1
+    ..textScaleFactorTestValue = device.textScale
     ..accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
       disableAnimations: true,
     );
@@ -103,7 +114,7 @@ Future<void> pumpSettloGolden(
     home: MediaQuery(
       data: MediaQueryData(
         size: device.size,
-        textScaler: TextScaler.noScaling,
+        textScaler: TextScaler.linear(device.textScale),
         disableAnimations: true,
       ),
       child: TickerMode(
@@ -126,4 +137,39 @@ Future<void> pumpSettloGolden(
   });
   await tester.pumpWidget(surface(tickers: false));
   await tester.pump();
+  expectSettloTapTargets(tester);
+}
+
+/// Walks each screen's widget tree and measures actual tap detector bounds.
+/// Measures layout bounds rather than clipped semantics bounds: partially
+/// scrolled rows must retain full targets when brought into view.
+void expectSettloTapTargets(WidgetTester tester) {
+  final failures = <String>[];
+  for (final element in tester.allElements) {
+    final widget = element.widget;
+    final tappable = switch (widget) {
+      GestureDetector(:final onTap, :final onTapUp, :final onTapDown) =>
+        onTap != null || onTapUp != null || onTapDown != null,
+      InkResponse(:final onTap) => onTap != null,
+      _ => false,
+    };
+    if (!tappable) continue;
+    // Flutter's platform text-selection handles are not app controls.
+    var selectionHandle = false;
+    element.visitAncestorElements((ancestor) {
+      if (ancestor.widget.runtimeType.toString().contains('SelectionHandle')) {
+        selectionHandle = true;
+        return false;
+      }
+      return true;
+    });
+    if (selectionHandle) continue;
+    final render = element.findRenderObject();
+    if (render is! RenderBox || !render.hasSize) continue;
+    final size = render.size;
+    if (size.width < 44 || size.height < 44) {
+      failures.add('${widget.runtimeType} ${widget.key}: $size');
+    }
+  }
+  expect(failures, isEmpty, reason: 'Tap targets must be at least 44x44');
 }
