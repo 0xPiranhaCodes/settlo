@@ -12,8 +12,11 @@ final GoRoute loansTabRoute = GoRoute(
   routes: [
     GoRoute(
       path: ':loanId',
-      builder: (_, state) =>
-          LoanDetailScreen(loanId: state.pathParameters['loanId']!),
+      // Explicit pages: go_router's default here has no iOS swipe back.
+      pageBuilder: (_, state) => SettloPage<void>(
+        key: state.pageKey,
+        child: LoanDetailScreen(loanId: state.pathParameters['loanId']!),
+      ),
     ),
   ],
 );
@@ -29,8 +32,11 @@ final List<RouteBase> loansRoutes = [
   ),
   GoRoute(
     path: SettloRoutes.confirmRepaymentPattern,
-    builder: (_, state) => ConfirmRepaymentScreen(
-      repaymentId: state.pathParameters['repaymentId']!,
+    pageBuilder: (_, state) => SettloPage<void>(
+      key: state.pageKey,
+      child: ConfirmRepaymentScreen(
+        repaymentId: state.pathParameters['repaymentId']!,
+      ),
     ),
   ),
 ];

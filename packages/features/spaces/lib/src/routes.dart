@@ -11,13 +11,18 @@ final GoRoute spacesTabRoute = GoRoute(
   routes: [
     GoRoute(
       path: ':spaceId',
-      builder: (_, state) =>
-          SpaceExpensesScreen(spaceId: state.pathParameters['spaceId']!),
+      // Explicit pages: go_router's default here has no iOS swipe back.
+      pageBuilder: (_, state) => SettloPage<void>(
+        key: state.pageKey,
+        child: SpaceExpensesScreen(spaceId: state.pathParameters['spaceId']!),
+      ),
       routes: [
         GoRoute(
           path: 'balances',
-          builder: (_, state) =>
-              SpaceScreen(spaceId: state.pathParameters['spaceId']!),
+          pageBuilder: (_, state) => SettloPage<void>(
+            key: state.pageKey,
+            child: SpaceScreen(spaceId: state.pathParameters['spaceId']!),
+          ),
         ),
       ],
     ),

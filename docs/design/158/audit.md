@@ -248,6 +248,13 @@ scroll. It is not repeated here.
   delete expense use the action sheet; delete account uses the alert. They
   answer once on a double tap and tint non-destructive buttons with primary
   text. Android keeps the Settlo sheets and the tap-again delete.
+- **Swipe back, corrected.** The audit's "keep it" row for edge swipe back
+  was wrong for routes declared with `builder:`. go_router falls back to its
+  plain `CustomTransitionPage` for them, which has no back gesture, so
+  swiping back from a space did nothing on iOS. Space, balances, loan detail,
+  confirm repayment and Profile now declare `pageBuilder: SettloPage`.
+  `app/test/ios_navigation_test.dart` swipes back through the production
+  router. Only the route files change, not #159's screens.
 - **Not in PR 1.** Haptics (X5) need a channel registered in `AppDelegate`,
   which #160 is changing, so they move to PR 3. A2 and A4 (auth back
   controls), C3 (Create space as a page sheet) and the "Discard expense?"

@@ -1,10 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:settlo/main.dart';
+import 'package:settlo/router/router.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_expenses/settlo_expenses.dart';
 import 'package:settlo_loans/settlo_loans.dart';
@@ -13,7 +16,9 @@ import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_expenses.dart';
+import 'support/fake_home.dart';
 import 'support/fake_loans.dart';
+import 'support/fake_session.dart';
 import 'support/fake_space_ledger.dart';
 import 'support/fake_spaces.dart';
 
@@ -139,4 +144,49 @@ void main() {
     expect(find.byType(AddExpenseScreen), findsNothing);
     expect(router.state.uri.toString(), SettloRoutes.home);
   });
+
+  // go_router's default page for `builder:` routes has no iOS back gesture,
+  // so pushed detail routes use SettloPage (#158).
+  for (final (name, from, to) in [
+    ('a space', SettloRoutes.spaces, SettloRoutes.space('s1')),
+    (
+      'a loan',
+      SettloRoutes.loans,
+      SettloRoutes.loan(loansList().loans.first.id),
+    ),
+    ('Profile', SettloRoutes.home, SettloRoutes.profile),
+  ]) {
+    testWidgets('on iOS, edge swipe back from $name in the app router', (
+      tester,
+    ) async {
+      await loadSettloFonts();
+      tester.view
+        ..physicalSize = SettloGoldenDevices.canvas390.size
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      // SettloApp builds its own theme, so the platform comes from here.
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      try {
+        await tester.pumpWidget(
+          fakeSessionApp(fakeSession, home: FakeHomeRepository(homeMain)),
+        );
+        await tester.pumpAndSettle();
+        final router = ProviderScope.containerOf(
+          tester.element(find.byType(SettloApp)),
+        ).read(routerProvider)..go(to);
+        await tester.pumpAndSettle();
+
+        await tester.flingFrom(
+          const Offset(2, 420),
+          const Offset(330, 0),
+          1200,
+        );
+        await tester.pumpAndSettle();
+
+        expect(router.state.uri.toString(), from);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+  }
 }
