@@ -6,30 +6,31 @@ Future<void> _pump(
   WidgetTester tester, {
   required ThemeData theme,
   String? semanticsLabel = 'Settlo',
-  Color? color,
 }) => tester.pumpWidget(
   MaterialApp(
     theme: theme,
-    home: Scaffold(
-      body: SettloMark(semanticsLabel: semanticsLabel, color: color),
-    ),
+    home: Scaffold(body: SettloMark(semanticsLabel: semanticsLabel)),
   ),
 );
 
 void main() {
-  testWidgets('announces Settlo and uses dark-theme gold', (tester) async {
+  testWidgets('announces Settlo and is white on the dark theme', (
+    tester,
+  ) async {
     final semantics = tester.ensureSemantics();
     await _pump(tester, theme: SettloTheme.dark());
 
     expect(find.bySemanticsLabel('Settlo'), findsOneWidget);
     expect(
       tester.widget<Image>(find.byType(Image)).color,
-      SettloColors.dark.action,
+      SettloColors.dark.textPrimary,
     );
     semantics.dispose();
   });
 
-  testWidgets('can be decorative and uses light-theme ink', (tester) async {
+  testWidgets('can be decorative and is ink on the light theme', (
+    tester,
+  ) async {
     final semantics = tester.ensureSemantics();
     await _pump(tester, theme: SettloTheme.light(), semanticsLabel: null);
 
@@ -41,14 +42,10 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('a composition can supply gold and the fallback keeps the mark', (
-    tester,
-  ) async {
-    const gold = Color(0xFFF2C77F);
-    await _pump(tester, theme: SettloTheme.light(), color: gold);
+  testWidgets('the fallback keeps the mark', (tester) async {
+    await _pump(tester, theme: SettloTheme.light());
 
     final image = tester.widget<Image>(find.byType(Image));
-    expect(image.color, gold);
     final fallback = image.errorBuilder!(
       tester.element(find.byType(Image)),
       Exception('missing'),
