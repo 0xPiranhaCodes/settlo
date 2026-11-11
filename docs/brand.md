@@ -44,21 +44,21 @@ Source of truth: `packages/core/lib/theme/colors.dart`, `typography.dart`, `toke
 | touch target | at least 44px | Navigation and actions |
 | wordmark | `SETTLO`, Figtree 500, tracked 0.08em | Header, footer and social card; the app's Home lockup (`packages/features/balances/lib/src/screens.dart`, `letterSpacing: 1.8`). Markup says “Settlo”; CSS uppercases it so screen readers say the name |
 
-The website extends the app type scale for product headings (42–132px) and body copy (16–21px). Gold arcs frame the product; they are not badges or status indicators. The existing S mark remains intact. No stock photography, decorative financial graphs or synthetic product screens. Steps that happen outside a captured app screen (the payment in the user's own UPI app, a settle-up awaiting confirmation) are typeset sketch cards in site styles, captioned as illustrations; they never imitate a named UPI app or Settlo's own UI. The landing page defaults to warm paper (#faf9f6), charcoal text (#17191b), and accessible muted gold links (#806025), with two near-black sections. The system dark preference restores the app palette throughout. Phones rise gently on native CSS view timelines; a small IntersectionObserver supplies the fallback. Reduced motion disables animations, transitions, smooth scrolling and sticky positioning. The landing page avoids eyebrow labels and slogan-with-full-stop headings; each section carries one real moment (the Goa trip, Flat 402, the loan to Arjun) shown with its app screen. Native HTML disclosure elements work without JavaScript.
+The website extends the app type scale for product headings (42–132px) and body copy (16–21px). Gold arcs frame the product; they are not badges or status indicators. The existing S mark remains intact. No stock photography, decorative financial graphs or synthetic product screens. Steps that happen outside a captured app screen (the payment in the user's own UPI app, a settle-up awaiting confirmation) are typeset sketch cards in site styles, captioned as illustrations; they never imitate a named UPI app or Settlo's own UI. The landing page defaults to warm paper (#faf9f6), charcoal text (#17191b), and accessible muted gold links (#806025), with two near-black sections. The system dark preference restores the app palette throughout. Phones rise gently on native CSS view timelines; a small IntersectionObserver supplies the fallback. Reduced motion disables animations, transitions, smooth scrolling and sticky positioning. The landing page uses restrained gold eyebrow labels and short headings; each section carries one real moment (the Goa trip, Flat 402, the loan to Arjun) shown with its app screen. Native HTML disclosure elements work without JavaScript.
 
 ## Regenerating imagery
 
-Use one script for both real app images, the S mark, provenance manifest and 1200×630 social card:
+The opt-in marketing export shares the golden fixtures and screen builders. Run it from `app/`; it does not match or write CI golden PNGs and is not named `_test.dart`, so normal test discovery does not run it.
 
 ```sh
-python3 -m venv /tmp/settlo-images
-/tmp/settlo-images/bin/pip install Pillow==13.0.0
-git fetch origin main
-/tmp/settlo-images/bin/python scripts/site-images.py --ref origin/main
-/tmp/settlo-images/bin/python scripts/site-phones.py
+(cd app && flutter test test/marketing_export.dart)
+python scripts/site-images.py --ref HEAD
+python scripts/site-phones.py
 ```
 
-`--ref` defaults to `HEAD`. The script exports five real screens from `app/test/goldens/*_390x844_dark.png` (Home, Goa trip settle-up, Flat 402 balances, loan detail and repayment confirmation) as lossless WebP. The page shows them at their real 390px width or smaller, so text stays crisp. `site/images/sources.json` records the resolved commit, original dimensions, source hashes and crop row. Screens that continue below a floating navigation bar are cropped at a blank gap under the last whole card, then given 24px of the screen's own background so the rounded frame clips nothing; no row or line of text is cut. Nothing is reconstructed or retouched. Re-check the crop rows in the script whenever those goldens change. The social card uses bundled Figtree and the same Home screen. Review both viewport screenshots after regeneration.
+Use Pillow 13.0.0 with AVIF support. The export renders a 390×844 logical viewport at devicePixelRatio 3 and captures 1170×2532 pixels directly from Flutter, in `build/marketing/`. The shared golden harness and all committed golden PNGs remain unchanged. `site-images.py` maintains the logo, social card and golden provenance; `site-phones.py` consumes the separate 3x export for the actual page imagery. `sources.json` records both source hashes, the DPR, crop rectangles, output dimensions and encoding recipe.
+
+Phone composites have 1x, 2x and 3x AVIF alternatives in `srcset`. The image budget is the total unique images selected by one page at each density, including all below-fold phone images, detail crops and the mark: at most 350 KiB at every density. Alternate density files and the social sharing card are not fetched together. Crop images contain complete UI controls or cards, and are capped at their logical source widths to preserve 3x sharpness. No generated app UI or retyped screenshot text is used.
 
 ## Claim evidence
 
@@ -83,4 +83,13 @@ Privacy/support policy wording is preserved from merged PR #143. Their `<main>` 
 
 `site-phones.py` wraps the approved screen crops in the committed generic studio frame (`site/images/device/studio-frame.png`). The frame was generated with the built-in image-generation tool; its complete prompt is beside it. No app screen was sent to the model. The recipe records the measured opening, hardware source hash, rotations and output dimensions in `sources.json`. It scales hardware uniformly around each full golden, pastes the real screen, then rotates the complete composition by 0 or ±3 degrees. A 24px corner mask clips blank screen corners only. Generated hardware is desaturated to remove coloured edge fringes; the screen is never colour-graded.
 
-Each phone uses the full pinned 390×844 golden (not the older standalone crops), with one lossy WebP output: quality 80 for Home and 88 for the others. Hardware uses a uniform scale derived from the actual screen width and measured opening. Final downsampling uses the upright canvas as the reference for every angle: tilted canvases expand to 433px rather than shrinking the device into 390px. HTML dimensions reserve the exact bitmap ratio; paired CSS columns preserve the common physical scale. No artificial 2x assets are shipped. Home and repayment remain straight; the trip, flat and loan-detail images tilt. Native scroll motion adds at most 2 degrees temporarily within generous section spacing.
+Each phone uses the full 3x marketing export, with a common physical scale. Hardware is scaled uniformly around the screen. Real screen pixels are composited last; only geometric resampling and AVIF encoding follow. The trip, flat and loan-detail frames tilt by ±3 degrees. Home and repayment remain upright. The manifest gives each logical canvas size; HTML reserves that exact ratio.
+
+The Goa story pins the complete phone beside three compact steps on wide screens, with its height bounded below the sticky nav. At tablet and phone widths the full-size phone flows above the steps, avoiding a sticky image taller than the viewport. Reduced motion removes sticky positioning and all animated transitions. The slim nav uses a solid background by default, enhances with backdrop-filter, and returns to solid under prefers-reduced-transparency.
+
+### Feature tile evidence
+
+- UPI: `packages/features/settle/lib/src/upi.dart` hands off to the user's own app; the recipient confirms separately.
+- Reminders: `packages/features/loans/lib/src/remind_button.dart`, `packages/core/lib/supabase/reminders.dart` and the `remind_loan` SQL function enforce a 24-hour shared cooldown and recipient opt-out. Reminders are online-only.
+- Offline: `packages/local/lib/src/repositories.dart` and `sync.dart` keep saved records and queue supported writes. Initial sign-in needs connectivity; the tile does not promise offline reminders or payments.
+- Instalments: `packages/features/loans/lib/src/loan_detail.dart` renders the same schedule and outstanding amount shown in the tile; repayments count after confirmation.

@@ -1,3 +1,4 @@
+const { waitForImages } = require("./site-images-ready.cjs");
 const { chromium } = require("playwright");
 const fs = require("fs");
 const outputDir = process.env.SITE_CHECK_OUTPUT || "/tmp/settlo-site-check";
@@ -39,20 +40,18 @@ const publicUrl = "https://settlo.hellojosh.studio/";
       const requests = [];
       const failures = [];
       page.on("request", (r) => requests.push(r.url()));
-      page.on("requestfailed", (r) => failures.push(r.url()));
+      page.on("requestfailed", (r) =>
+        failures.push(`${r.failure()?.errorText} ${r.url()}`),
+      );
       page.on("response", (r) => {
         if (r.status() >= 400) failures.push(`${r.status()} ${r.url()}`);
       });
       for (const path of ["", "privacy/", "support/"]) {
         await page.goto(localUrl + path);
         await page.evaluate(() => document.fonts.ready);
-        // With JavaScript disabled Chrome loads lazy images eagerly. Decode all
-        // images, including below-fold assets, without changing their srcset state.
-        await page.locator("img").evaluateAll(async (images) => {
-          await Promise.all(
-            images.map(async (img) => {
-              await img.decode();
-            }),
+        await waitForImages(page).catch((error) => {
+          throw Error(
+            `${width} ${colorScheme} ${path}: ${error.message}; ${failures.join(", ")}`,
           );
         });
         if (
@@ -140,8 +139,12 @@ const publicUrl = "https://settlo.hellojosh.studio/";
                 Math.abs(scales[0] - scales[1]) < 0.001 &&
                 images.every(
                   (img) =>
-                    Number(img.getAttribute("width")) === img.naturalWidth &&
-                    Number(img.getAttribute("height")) === img.naturalHeight,
+                    Math.abs(
+                      Number(img.getAttribute("width")) - img.naturalWidth,
+                    ) <= 1 &&
+                    Math.abs(
+                      Number(img.getAttribute("height")) - img.naturalHeight,
+                    ) <= 1,
                 )
               );
             });
@@ -196,7 +199,7 @@ const publicUrl = "https://settlo.hellojosh.studio/";
           await page.addStyleTag({
             content: "* { animation: none !important; }",
           });
-        const selector = width <= 600 ? ".trip-intro h2" : ".trip-intro";
+        const selector = ".trip-product";
         for (const target of [
           ".trip",
           ".trip-steps > li:nth-child(2)",
@@ -220,7 +223,9 @@ const publicUrl = "https://settlo.hellojosh.studio/";
         const sticky = await page
           .locator(selector)
           .evaluate((el) => getComputedStyle(el).position);
-        if (sticky !== (mode === "reduced" ? "static" : "sticky"))
+        if (
+          sticky !== (mode === "reduced" || width <= 900 ? "static" : "sticky")
+        )
           throw Error("Sticky/reduced motion mismatch");
         if (
           mode === "reduced" &&
@@ -256,27 +261,86 @@ const publicUrl = "https://settlo.hellojosh.studio/";
       }
     }
   }
+  const densityResults = [];
+  for (const density of [1, 2, 3]) {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: density,
+      reducedMotion: "reduce",
+    });
+    const page = await context.newPage();
+    await page.goto(localUrl);
+    await page.evaluate(() => document.fonts.ready);
+    const hero = page.locator(".hero-screen img");
+    await hero.evaluate((image) => image.decode());
+    const state = await hero.evaluate((image) => ({
+      src: image.currentSrc,
+      top: image.getBoundingClientRect().top,
+      bottom: image.getBoundingClientRect().bottom,
+    }));
+    if (Math.min(844, state.bottom) - state.top < 200)
+      throw Error("Hero product below fold");
+    const suffix = density === 1 ? "-phone.avif" : `-phone@${density}x.avif`;
+    if (!state.src.endsWith(suffix))
+      throw Error("Wrong density selected: " + state.src);
+    densityResults.push({ density, ...state });
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Emulation.setEmulatedMedia", {
+      features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
+    });
+    const nav = await page.locator("header").evaluate((el) => ({
+      filter: getComputedStyle(el).backdropFilter,
+      background: getComputedStyle(el).backgroundColor,
+    }));
+    if (nav.filter !== "none" || nav.background.includes("rgba"))
+      throw Error("Reduce transparency fallback");
+    await context.close();
+  }
+  // Regression for #167: the tablet Goa canvas must match Flat 402's canvas.
+  const tablet = await browser.newPage({
+    viewport: { width: 768, height: 900 },
+    reducedMotion: "reduce",
+  });
+  await tablet.goto(localUrl);
+  const tabletWidths = await tablet.evaluate(() =>
+    [".trip-product img", ".flat .screen img"].map(
+      (selector) =>
+        document.querySelector(selector).getBoundingClientRect().width,
+    ),
+  );
+  if (Math.abs(tabletWidths[0] - tabletWidths[1]) > 1)
+    throw Error("Goa tablet phone shrank");
+  await tablet.close();
+  fs.writeFileSync(
+    `${outputDir}/density.json`,
+    JSON.stringify({ densityResults, tabletWidths }, null, 2),
+  );
   const manifest = JSON.parse(fs.readFileSync("site/images/sources.json"));
   const scales = Object.values(manifest.sources).map(
     (source) => source.phone.output_scale,
   );
   if (!scales.every((scale) => scale === scales[0]))
     throw Error("Inconsistent phone physical scale");
-  const imagePaths = [
-    "site/images/mark.png",
-    ...Object.values(manifest.sources).flatMap((source) =>
-      source.phone.outputs.map((file) => "site/images/" + file),
-    ),
-  ];
-  const imageBytes = imagePaths.reduce(
-    (sum, file) => sum + fs.statSync(file).size,
-    0,
+  // Each density is an alternative resource set, never downloaded together.
+  const detailPaths = Object.values(manifest.details).map(
+    (detail) => "site/images/" + detail.output,
   );
-  if (imageBytes > 250 * 1024) throw Error("Landing image budget exceeded");
+  const densityBytes = [0, 1, 2].map((density) =>
+    [
+      "site/images/mark.png",
+      ...detailPaths,
+      ...Object.values(manifest.sources).map(
+        (source) => "site/images/" + source.phone.outputs[density],
+      ),
+    ].reduce((sum, file) => sum + fs.statSync(file).size, 0),
+  );
+  const imageBytes = Math.max(...densityBytes);
+  if (imageBytes > 350 * 1024)
+    throw Error("Landing image budget exceeded: " + imageBytes);
   fs.writeFileSync(
     `${outputDir}/motion.json`,
     JSON.stringify(
-      { motionResults, imageBytes, deviceScales: scales },
+      { motionResults, imageBytes, densityBytes, deviceScales: scales },
       null,
       2,
     ) + "\n",

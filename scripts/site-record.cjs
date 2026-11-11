@@ -12,10 +12,13 @@ const url = process.env.SITE_CHECK_URL || "http://127.0.0.1:8765/";
   });
   for (const width of [390, 1440]) {
     const context = await browser.newContext({
-      viewport: { width, height: 900 },
+      viewport: { width, height: width === 390 ? 844 : 900 },
       colorScheme: "light",
       reducedMotion: "no-preference",
-      recordVideo: { dir: output, size: { width, height: 900 } },
+      recordVideo: {
+        dir: output,
+        size: { width, height: width === 390 ? 844 : 900 },
+      },
     });
     const page = await context.newPage();
     await page.goto(url);

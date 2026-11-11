@@ -381,7 +381,7 @@ figcaption {
   margin-bottom: 16px;
 }
 .trip-steps .screen {
-  width: min(100%, 433px);
+  width: min(100%, 432px);
   margin: auto;
 }
 .trip-steps strong {
@@ -427,7 +427,7 @@ figcaption {
 }
 .flat {
   display: grid;
-  grid-template-columns: 1fr 433px;
+  grid-template-columns: 1fr 432px;
   gap: 100px;
   align-items: center;
   padding: 160px 0;
@@ -457,7 +457,7 @@ figcaption {
 }
 .loan-screens {
   display: grid;
-  grid-template-columns: 433fr 390fr;
+  grid-template-columns: 432fr 390fr;
   gap: 48px;
   align-items: center;
   width: min(871px, 100%);
@@ -536,7 +536,7 @@ body:not(.landing) .wordmark::before {
     gap: 48px;
   }
   .flat .screen {
-    width: min(433px, 100%);
+    width: min(432px, 100%);
     margin: auto;
   }
   .trip {
@@ -626,10 +626,10 @@ body:not(.landing) .wordmark::before {
   .loan-screens {
     grid-template-columns: 1fr;
     gap: 40px;
-    width: min(433px, 100%);
+    width: min(432px, 100%);
   }
   .loan-screens .screen:last-child {
-    width: calc(100% * 390 / 433);
+    width: calc(100% * 390 / 432);
     margin: auto;
   }
   .loan h2 {
@@ -710,4 +710,317 @@ body:not(.landing) .wordmark::before {
   .trip-intro h2 {
     background: #15171a;
   }
+}
+
+/* Premium product pass: compact chrome, early product, readable story. */
+:root {
+  --nav: #faf9f6;
+}
+html {
+  scroll-padding-top: 80px;
+}
+.landing header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  width: 100%;
+  max-width: none;
+  padding: 8px max(var(--gutter), calc((100% - 1200px) / 2));
+  background: var(--nav);
+}
+header .wordmark img {
+  width: 28px;
+  height: 28px;
+}
+@supports (backdrop-filter: blur(20px)) {
+  .landing header {
+    background: color-mix(in srgb, var(--nav) 82%, transparent);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+  }
+}
+.landing .eyebrow {
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin: 0 0 20px;
+}
+.hero {
+  padding: 48px 0 88px;
+}
+.hero h1 {
+  font-size: clamp(60px, 7.5vw, 108px);
+  max-width: 12ch;
+  margin-bottom: 24px;
+}
+.intro {
+  max-width: 490px;
+  font-size: 19px;
+  margin-bottom: 24px;
+}
+.hero-screen {
+  margin-top: 32px;
+  width: min(390px, 90%);
+}
+.availability {
+  margin-top: 12px;
+}
+.landing main > .trip {
+  padding-block: 88px;
+}
+.trip {
+  display: block;
+}
+.trip-heading {
+  max-width: 900px;
+  margin: 0 auto 64px;
+  text-align: center;
+}
+.trip-heading p {
+  font-size: 20px;
+}
+.trip-story {
+  display: grid;
+  grid-template-columns: 432px minmax(0, 1fr);
+  gap: 100px;
+  align-items: start;
+}
+.trip-product {
+  position: sticky;
+  top: 80px;
+}
+.trip-product .screen {
+  width: min(432px, 100%);
+  margin: auto;
+}
+.trip-product img {
+  max-height: calc(100svh - 160px);
+  object-fit: contain;
+}
+.aside-caption {
+  font-size: 13px;
+  text-align: center;
+  margin: 20px 0 0;
+}
+.trip-steps > li {
+  min-height: 0;
+  padding: 40px 0;
+  border-bottom: 1px solid var(--line);
+}
+.trip-steps > li:first-child {
+  padding-top: 64px;
+}
+.trip-steps > li:last-child {
+  border-bottom: 0;
+}
+.trip-steps p {
+  margin: 0;
+  font-size: 18px;
+  max-width: 34ch;
+}
+.trip-steps .step-note {
+  margin-top: 16px;
+  font-size: 15px;
+}
+.trip-steps .step-note::before {
+  content: none;
+}
+.trip-steps strong {
+  font-size: 32px;
+}
+.features {
+  padding: 112px 0 32px;
+}
+.features > h2 {
+  max-width: 19ch;
+}
+.bento {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+.tile {
+  grid-column: span 2;
+  padding: 40px;
+  border-radius: 32px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.tile-wide {
+  grid-column: span 3;
+}
+.tile h3 {
+  font-size: 36px;
+  line-height: 1.08;
+  margin: 0 0 20px;
+  max-width: 15ch;
+}
+.tile p {
+  max-width: 36ch;
+}
+.tile img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 36px;
+  border-radius: 16px;
+  background: #0a0b0d;
+}
+.tile .eyebrow {
+  font-size: 11px;
+}
+.flat {
+  padding-block: 112px;
+}
+.loan {
+  padding: 0 0 112px;
+  align-items: center;
+}
+.flat-copy p,
+.loan-copy p {
+  max-width: 47ch;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --nav: #0a0b0d;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .landing header {
+    background: var(--nav);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+@media (max-width: 1100px) {
+  .trip-story {
+    gap: 48px;
+    grid-template-columns: minmax(0, 432px) minmax(0, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .trip-story {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .trip-product {
+    position: static;
+  }
+  .trip-product img {
+    max-height: none;
+  }
+  .trip-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+  .trip-steps > li,
+  .trip-steps > li:first-child {
+    padding: 24px 0;
+    border: 0;
+  }
+  .trip-steps strong {
+    font-size: 24px;
+  }
+  .trip-steps p {
+    font-size: 16px;
+  }
+  .tile {
+    padding: 28px;
+  }
+  .tile h3 {
+    font-size: 30px;
+  }
+}
+@media (max-width: 600px) {
+  .hero {
+    padding: 32px 0 64px;
+  }
+  .hero h1 {
+    font-size: 60px;
+  }
+  .hero .eyebrow {
+    font-size: 11px;
+    margin-bottom: 16px;
+  }
+  .intro {
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .hero-screen {
+    margin-top: 28px;
+  }
+  .landing main > .trip {
+    padding-block: 64px;
+  }
+  .trip-heading {
+    margin-bottom: 40px;
+    text-align: left;
+  }
+  .trip-heading p {
+    font-size: 17px;
+  }
+  .trip-heading h2 {
+    font-size: 44px;
+  }
+  .trip-steps {
+    display: block;
+  }
+  .trip-steps > li {
+    border-bottom: 1px solid var(--line);
+    padding-block: 32px;
+  }
+  .trip-steps p {
+    max-width: none;
+  }
+  .trip-steps strong {
+    font-size: 28px;
+  }
+  .features {
+    padding-top: 72px;
+  }
+  .features > h2 {
+    font-size: 42px;
+  }
+  .bento {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .tile,
+  .tile-wide {
+    grid-column: auto;
+    padding: 28px;
+    border-radius: 24px;
+  }
+  .tile img {
+    margin-top: 24px;
+  }
+  .flat {
+    padding-block: 72px;
+  }
+  .loan {
+    padding-bottom: 72px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trip-product {
+    position: static;
+  }
+}
+
+.tile img {
+  max-width: 350px;
+  margin-inline: auto;
+}
+.tile img[src*="remind"] {
+  width: 110px;
+  margin-top: 48px;
+}
+.tile img[src*="instalments"] {
+  max-width: 302px;
 }
