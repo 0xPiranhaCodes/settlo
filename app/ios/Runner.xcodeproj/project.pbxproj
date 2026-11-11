@@ -13,6 +13,7 @@
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		78800805918A5E2860EEECA3 /* LiveActivityChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE9A34C909F6DD8F16DDD56 /* LiveActivityChannel.swift */; };
+		A15700000000000000000001 /* NativeTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15700000000000000000002 /* NativeTabBar.swift */; };
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -87,6 +88,7 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E2EA97B5FEFF501958587355 /* SettleUpLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettleUpLiveActivity.swift; sourceTree = "<group>"; };
 		EBE9A34C909F6DD8F16DDD56 /* LiveActivityChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveActivityChannel.swift; sourceTree = "<group>"; };
+		A15700000000000000000002 /* NativeTabBar.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeTabBar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -170,6 +172,7 @@
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				EBE9A34C909F6DD8F16DDD56 /* LiveActivityChannel.swift */,
+				A15700000000000000000002 /* NativeTabBar.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -386,6 +389,7 @@
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				78800805918A5E2860EEECA3 /* LiveActivityChannel.swift in Sources */,
+				A15700000000000000000001 /* NativeTabBar.swift in Sources */,
 				98F033294AF7432CC6DFC2C2 /* SettleUpAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
