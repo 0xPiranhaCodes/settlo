@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(120);
+select plan(126);
 
 -- Rows a statement touched, run as the current role so RLS filtering is visible.
 create function pg_temp.affected(q text) returns int language plpgsql as $$
@@ -487,6 +487,29 @@ select pg_temp.tagged(is((select count(*)::int from public.activity_seen), 1,
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000008002", "role": "authenticated"}';
 select pg_temp.tagged(is((select count(*)::int from public.activity_seen), 0,
   'activity_seen: B does not read A''s cursor [-activity_seen_select]'));
+reset role;
+
+-- Reminder policies (#107): construct recipient-only history as the server would.
+insert into public.reminder_preferences(user_id,enabled) values('00000000-0000-0000-0000-000000008001',true);
+insert into public.loan_reminders values('00000000-0000-0000-0000-000000008501',now());
+insert into public.activity(loan_id,recipient_id,action) values
+ ('00000000-0000-0000-0000-000000008501','00000000-0000-0000-0000-000000008001','reminded');
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000008001","role":"authenticated"}';
+select pg_temp.tagged(is((select count(*)::int from public.reminder_preferences),1,
+ 'own reminder preference [+reminder_preferences_select]'));
+select pg_temp.tagged(is((select count(*)::int from public.loan_reminders),1,
+ 'party reads cooldown [+loan_reminders_select]'));
+select pg_temp.tagged(is((select count(*)::int from public.activity where action='reminded'),1,
+ 'recipient reads nudge [+activity_recipient]'));
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000008003","role":"authenticated"}';
+select pg_temp.tagged(is((select count(*)::int from public.reminder_preferences),0,
+ 'other preference hidden [-reminder_preferences_select]'));
+select pg_temp.tagged(is((select count(*)::int from public.loan_reminders),0,
+ 'outsider cooldown hidden [-loan_reminders_select]'));
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000008005","role":"authenticated"}';
+select pg_temp.tagged(is((select count(*)::int from public.activity where action='reminded'),0,
+ 'other loan party nudge hidden [-activity_recipient]'));
 reset role;
 
 select pg_temp.tagged(is(
