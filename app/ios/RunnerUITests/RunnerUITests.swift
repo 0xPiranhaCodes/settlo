@@ -85,6 +85,73 @@ final class RunnerUITests: XCTestCase {
     }
   }
 
+  /// A plain touch at an absolute point in the part of the tab's frame no
+  /// neighbour's frame overlaps, as a finger lands.
+  private func touch(_ tab: String, _ bar: XCUIElement, at point: CGVector) {
+    let i = tabs.firstIndex(of: tab)!
+    let frame = bar.buttons[tab].frame
+    let minX = i > 0 ? bar.buttons[tabs[i - 1]].frame.maxX : frame.minX
+    let maxX = i < tabs.count - 1 ? bar.buttons[tabs[i + 1]].frame.minX : frame.maxX
+    XCUIApplication().coordinate(withNormalizedOffset: .zero).withOffset(CGVector(
+      dx: minX + (maxX - minX) * point.dx, dy: frame.minY + frame.height * point.dy)).tap()
+  }
+
+  private func becomes(_ tab: String, _ bar: XCUIElement) -> Bool {
+    let moved = NSPredicate { _, _ in self.selected(bar) == [tab] }
+    return XCTWaiter().wait(for: [expectation(for: moved, evaluatedWith: nil)], timeout: 5) == .completed
+  }
+
+  /// Every part of each tab's frame selects it (#174): the label band at 0.75
+  /// and the lower corners were dead while icon-height taps worked.
+  func testEveryPointOfEveryTabSelectsIt() {
+    let grid = [0.08, 0.5, 0.92].flatMap { x in
+      [0.08, 0.5, 0.75, 0.92].map { y in CGVector(dx: x, dy: y) }
+    }
+    for screen in ["Home", "Profile", "Space", "Balances", "Loan"] {
+      let (app, bar) = launch()
+      let owner = screen == "Home" ? "Home" : open(screen, app, bar)
+      dismissPrompt(app)
+      for tab in tabs where tab != owner {
+        for point in grid {
+          touch(tab, bar, at: point)
+          XCTAssertTrue(becomes(tab, bar), "\(screen): \(tab) at \(point)")
+          touch(owner, bar)
+          XCTAssertTrue(becomes(owner, bar), "\(screen): back to \(owner)")
+        }
+      }
+    }
+  }
+
+  /// A drag that starts on the bar selects nothing, as only a touch lifted on
+  /// an item does, and still scrolls what is under the bar. It starts at the
+  /// bar's centre, where Spaces and Loans overlap.
+  func testDragFromTheBarKeepsTheTab() {
+    for screen in ["Home", "Profile"] {
+      let (app, bar) = launch()
+      if screen != "Home" { _ = open(screen, app, bar) }
+      dismissPrompt(app)
+      let name = app.descendants(matching: .any)
+        .matching(NSPredicate(format: "label CONTAINS 'Add your name'")).firstMatch
+      let before = screen == "Profile" && name.waitForExistence(timeout: 10) ? name.frame.minY : nil
+      let start = bar.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+      start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -260)))
+      sleep(1)
+      XCTAssertEqual(selected(bar), ["Home"], screen)
+      if let before { XCTAssertTrue(!name.exists || name.frame.minY < before, "Profile scrolls") }
+    }
+  }
+
+  func testEdgeSwipeBackFromProfile() {
+    let (app, bar) = launch()
+    _ = open("Profile", app, bar)
+    let title = app.staticTexts["You"]
+    XCTAssertTrue(title.waitForExistence(timeout: 10))
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.005, dy: 0.5)).press(
+      forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5)))
+    wait(for: [expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: title)], timeout: 5)
+    XCTAssertEqual(selected(bar), ["Home"])
+  }
+
   func testHomeTabFromProfileReturnsHome() {
     let (app, bar) = launch()
     _ = open("Profile", app, bar)
