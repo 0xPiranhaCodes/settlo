@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/supabase/providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// Shared cooldown and whether the current user sent the last nudge.
+typedef ReminderCooldown = ({DateTime next, bool sentByYou});
+
 /// Online-only, time-sensitive reminders. Never queued for a later surprise
 /// send.
 abstract interface class ReminderRepository {
@@ -12,7 +15,7 @@ abstract interface class ReminderRepository {
   Future<void> setEnabled({required bool enabled});
 
   /// Next allowed send time, or null before the first reminder.
-  Future<DateTime?> nextAllowed(String loanId);
+  Future<ReminderCooldown?> nextAllowed(String loanId);
 
   /// Sends once, or returns the existing 24-hour deadline on a replay.
   Future<DateTime> remind(String loanId);
@@ -21,7 +24,10 @@ abstract interface class ReminderRepository {
 /// The server is the authority for recipient, opt-out and cooldown.
 class SupabaseReminderRepository implements ReminderRepository {
   /// Uses the current authenticated client.
-  const new(this.client);
+  const new(this.client, {this.userId});
+
+  /// Current authenticated account, captured with the repository.
+  final String? userId;
 
   /// Scoped API client.
   final SupabaseClient client;
@@ -37,15 +43,20 @@ class SupabaseReminderRepository implements ReminderRepository {
       client.rpc<void>('set_reminders', params: {'p_enabled': enabled});
 
   @override
-  Future<DateTime?> nextAllowed(String loanId) async {
+  Future<ReminderCooldown?> nextAllowed(String loanId) async {
     final rows = await client
         .from('loan_reminders')
-        .select('sent_at')
+        .select('sent_at, sender_id')
         .eq('loan_id', loanId);
     final at = rows.firstOrNull?['sent_at'] as String?;
     return at == null
         ? null
-        : DateTime.parse(at).add(const Duration(hours: 24));
+        : (
+            next: DateTime.parse(at).add(const Duration(hours: 24)),
+            sentByYou:
+                rows.first['sender_id'] ==
+                (userId ?? client.auth.currentUser?.id),
+          );
   }
 
   @override
@@ -56,8 +67,11 @@ class SupabaseReminderRepository implements ReminderRepository {
 
 /// Injectable reminder API, rebuilt when the account changes.
 final reminderRepositoryProvider = Provider<ReminderRepository>((ref) {
-  ref.watch(sessionProvider.select((s) => s?.user.id));
-  return SupabaseReminderRepository(ref.watch(supabaseClientProvider));
+  final userId = ref.watch(sessionProvider.select((s) => s?.user.id));
+  return SupabaseReminderRepository(
+    ref.watch(supabaseClientProvider),
+    userId: userId,
+  );
 });
 
 /// Persisted preference; callers invalidate after a successful change.

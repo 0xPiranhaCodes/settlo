@@ -855,12 +855,13 @@ with `42501`, so new callers must pass a key.
 `remind_loan(p_loan_id uuid)` sends a polite reminder to the other accepted party of an
 open loan. Both parties must have accepted, the recipient must still have an account and
 have reminders enabled. Verified accepted parties only; strangers and pending claimants
-receive `42501`. Unavailable loans or an opted-out recipient return `22023`.
+receive `42501`. Unavailable loans return `22023`. Opt-out silently suppresses delivery
+while consuming the same cooldown and returning the same deadline as a delivered nudge.
 
 The loan row serializes sends. One reminder per loan (both directions together) per 24
 hours; a retry within that window returns the existing `timestamptz` deadline without
-sending again or extending it. `loan_reminders.sent_at` is readable only by accepted
-parties and cannot be written by clients. The button reloads it on opening Loan.
+sending again or extending it. `loan_reminders.sent_at` and `sender_id` are readable only by accepted
+parties and cannot be written by clients. The button reloads them on opening Loan, distinguishing your sent nudge from one received.
 
 `set_reminders(p_enabled boolean)` persists the caller's preference. The caller may read
 only their own `reminder_preferences` row; a missing row means on. The preference controls
@@ -879,7 +880,8 @@ The private date parameter exists for deterministic tests; clients cannot invoke
 
 On iOS, native UserNotifications schedules at 09:00 Asia/Kolkata the day after an unpaid
 instalment. Resume, ledger sync and preference changes replace the pending schedule; logout
-clears it. Notifications contain generic copy only. Local schedules use the last synced
+clears it. Sync never requests permission: enabling Reminders in Profile shows an explanation
+and only Continue opens the iOS permission prompt. Notifications contain generic copy only. Local schedules use the last synced
 repayment state: payments or preference changes on another device cannot cancel an offline
 phone's pending notifications until it reconnects. Manual nudges arrive in Activity on sync
 and may then produce one local notification; there is no background remote delivery yet.

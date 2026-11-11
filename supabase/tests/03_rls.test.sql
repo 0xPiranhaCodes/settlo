@@ -491,7 +491,8 @@ reset role;
 
 -- Reminder policies (#107): construct recipient-only history as the server would.
 insert into public.reminder_preferences(user_id,enabled) values('00000000-0000-0000-0000-000000008001',true);
-insert into public.loan_reminders values('00000000-0000-0000-0000-000000008501',now());
+insert into public.loan_reminders(loan_id,sent_at,sender_id)
+ values('00000000-0000-0000-0000-000000008501',now(),'00000000-0000-0000-0000-000000008005');
 insert into public.activity(loan_id,recipient_id,action) values
  ('00000000-0000-0000-0000-000000008501','00000000-0000-0000-0000-000000008001','reminded');
 set local role authenticated;

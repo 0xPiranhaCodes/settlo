@@ -40,7 +40,7 @@ class _Preferences implements ReminderRepository {
   }
 
   @override
-  Future<DateTime?> nextAllowed(String loanId) async => null;
+  Future<ReminderCooldown?> nextAllowed(String loanId) async => null;
   @override
   Future<DateTime> remind(String loanId) async => DateTime.utc(2027);
 }
@@ -134,9 +134,14 @@ void main() {
       expect(await repo.enabled(), isFalse);
       expect(await repo.nextAllowed('loan'), isNull);
       cooldown = [
-        {'sent_at': '2026-12-31T00:00:00Z'},
+        {'sent_at': '2026-12-31T00:00:00Z', 'sender_id': fakeSession.user.id},
       ];
-      expect(await repo.nextAllowed('loan'), DateTime.utc(2027));
+      expect(await repo.nextAllowed('loan'), (
+        next: DateTime.utc(2027),
+        sentByYou: true,
+      ));
+      cooldown.first['sender_id'] = 'other';
+      expect((await repo.nextAllowed('loan'))!.sentByYou, isFalse);
       await repo.setEnabled(enabled: false);
       expect(await repo.remind('loan'), DateTime.utc(2027));
       expect(requests, containsAll(['rpc/set_reminders', 'rpc/remind_loan']));

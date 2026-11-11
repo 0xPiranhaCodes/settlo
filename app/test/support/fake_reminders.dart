@@ -6,6 +6,8 @@ import 'package:settlo_core/supabase/reminders.dart';
 class FakeReminders implements ReminderRepository {
   bool on = true;
   bool fail = false;
+  Exception? sendError;
+  bool sentByYou = true;
   bool failRead = false;
   int sends = 0;
   DateTime? next;
@@ -23,16 +25,19 @@ class FakeReminders implements ReminderRepository {
   }
 
   @override
-  Future<DateTime?> nextAllowed(String loanId) async {
+  Future<ReminderCooldown?> nextAllowed(String loanId) async {
     if (failRead) throw Exception('offline');
-    return next;
+    return next == null ? null : (next: next!, sentByYou: sentByYou);
   }
 
   @override
   Future<DateTime> remind(String loanId) async {
     sends++;
+    if (sendError != null) throw sendError!;
     if (fail) throw Exception('offline');
-    return await (held?.future ??
-        Future.value(DateTime.now().add(const Duration(hours: 24))));
+    next =
+        await (held?.future ??
+            Future.value(DateTime.now().add(const Duration(hours: 24))));
+    return next!;
   }
 }

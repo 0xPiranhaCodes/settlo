@@ -32,7 +32,8 @@ create policy activity_recipient on public.activity as restrictive for select to
 
 create table public.loan_reminders (
   loan_id uuid primary key references public.loans(id),
-  sent_at timestamptz not null
+  sent_at timestamptz not null,
+  sender_id uuid not null references public.profiles(id)
 );
 alter table public.loan_reminders enable row level security;
 create policy loan_reminders_select on public.loan_reminders for select to authenticated
@@ -49,7 +50,7 @@ create trigger live_caller before insert or update or delete on public.loan_remi
 create function public.remind_loan(p_loan_id uuid) returns timestamptz
 language plpgsql security definer set search_path = '' as $$
 declare
-  me uuid := public.verified_uid(); l public.loans; recipient uuid; last_at timestamptz;
+  me uuid := public.verified_uid(); l public.loans; recipient uuid; last_at timestamptz; accepts_reminders boolean;
 begin
   select * into l from public.loans where id = p_loan_id for update;
   if me is null or l.id is null or not coalesce((
@@ -66,12 +67,14 @@ begin
   if last_at > now() - interval '24 hours' then return last_at + interval '24 hours'; end if;
   -- Serialize opt-out and delivery on the preference row; absence means on.
   insert into public.reminder_preferences(user_id) values(recipient) on conflict do nothing;
-  perform from public.reminder_preferences where user_id = recipient and enabled for update;
-  if not found then raise exception 'Reminder unavailable' using errcode = '22023'; end if;
-  insert into public.loan_reminders values(l.id, now())
-    on conflict(loan_id) do update set sent_at = excluded.sent_at;
-  insert into public.activity(loan_id, actor_id, recipient_id, action, after)
-    values(l.id, me, recipient, 'reminded', jsonb_build_object('description', 'A gentle reminder to check your loan when you have a moment.'));
+  select enabled into accepts_reminders from public.reminder_preferences where user_id = recipient for update;
+  insert into public.loan_reminders values(l.id, now(), me)
+    on conflict(loan_id) do update set sent_at = excluded.sent_at, sender_id = excluded.sender_id;
+  -- Opt-out consumes the same cooldown and response without revealing the preference.
+  if accepts_reminders then
+    insert into public.activity(loan_id, actor_id, recipient_id, action, after)
+      values(l.id, me, recipient, 'reminded', jsonb_build_object('description', 'A gentle reminder to check your loan when you have a moment.'));
+  end if;
   return now() + interval '24 hours';
 end $$;
 revoke all on function public.remind_loan(uuid) from public, anon;

@@ -23,9 +23,29 @@ import UserNotifications
 // Local reminders use Apple's notification centre; no push SDK or credentials.
 // Generic copy deliberately keeps names and amounts off the lock screen.
 enum ReminderChannel {
+  // Activity IDs are bigint sequence values; lexical order fails at 9/10 and 999/1000.
+  static func recentSeen(_ seen: Set<String>) -> [String] {
+    seen.sorted {
+      (Int64($0.dropFirst("manual:".count)) ?? 0) < (Int64($1.dropFirst("manual:".count)) ?? 0)
+    }.suffix(500).map { $0 }
+  }
+
   static func register(with messenger: FlutterBinaryMessenger) {
     FlutterMethodChannel(name: "app.settlo/reminders", binaryMessenger: messenger)
       .setMethodCallHandler { call, result in
+        if call.method == "permissionNeeded" || call.method == "requestPermission" {
+          Task { @MainActor in
+            let centre = UNUserNotificationCenter.current()
+            if call.method == "permissionNeeded" {
+              let settings = await centre.notificationSettings()
+              result(settings.authorizationStatus == .notDetermined)
+            } else {
+              _ = try? await centre.requestAuthorization(options: [.alert, .sound])
+              result(nil)
+            }
+          }
+          return
+        }
         if call.method == "owner" {
           let owner = call.arguments as? String
           let defaults = UserDefaults.standard
@@ -61,8 +81,8 @@ enum ReminderChannel {
             return result(nil)
           }
           let settings = await centre.notificationSettings()
-          if settings.authorizationStatus == .notDetermined {
-            _ = try? await centre.requestAuthorization(options: [.alert, .sound])
+          guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else {
+            return result(nil)
           }
           var seen = Set(UserDefaults.standard.stringArray(forKey: "reminder.seen") ?? [])
           for row in rows {
@@ -85,7 +105,7 @@ enum ReminderChannel {
               if id.hasPrefix("manual:") { seen.insert(id) }
             } catch { /* A denied notification never interrupts the app. */ }
           }
-          UserDefaults.standard.set(Array(seen).sorted().suffix(500).map { $0 }, forKey: "reminder.seen")
+          UserDefaults.standard.set(Self.recentSeen(seen), forKey: "reminder.seen")
           result(nil)
         }
       }

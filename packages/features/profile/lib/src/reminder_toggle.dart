@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_core/supabase/reminders.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 
 /// Server-persisted reminder preference, with failed writes left visible.
 class ReminderToggle extends ConsumerStatefulWidget {
@@ -25,6 +26,46 @@ class _ReminderToggleState extends ConsumerState<ReminderToggle> {
     final repository = ref.read(reminderRepositoryProvider);
     try {
       await repository.setEnabled(enabled: enabled);
+      if (!mounted ||
+          !identical(repository, ref.read(reminderRepositoryProvider))) {
+        return;
+      }
+      if (enabled) {
+        final notifications = ref.read(reminderNotificationsProvider);
+        final needsPermission = await notifications.permissionNeeded();
+        if (!mounted ||
+            !identical(repository, ref.read(reminderRepositoryProvider))) {
+          return;
+        }
+        if (needsPermission) {
+          final allow = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Get reminder notifications?'),
+              content: const Text(
+                'Settlo can notify you about loan nudges '
+                'and missed instalments. '
+                'Names and amounts stay off your lock screen.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Not now'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Continue'),
+                ),
+              ],
+            ),
+          );
+          if (!mounted ||
+              !identical(repository, ref.read(reminderRepositoryProvider))) {
+            return;
+          }
+          if (allow ?? false) await notifications.requestPermission();
+        }
+      }
       if (!mounted ||
           !identical(repository, ref.read(reminderRepositoryProvider))) {
         return;

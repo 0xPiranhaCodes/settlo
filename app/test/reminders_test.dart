@@ -11,6 +11,7 @@ import 'package:settlo_core/supabase/reminders.dart';
 import 'package:settlo_loans/src/remind_button.dart';
 import 'package:settlo_profile/src/reminder_toggle.dart';
 import 'package:settlo_test_support/golden.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'support/fake_reminders.dart';
 
@@ -84,6 +85,64 @@ void main() {
     expect(find.text('Reminder sent'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
+  testWidgets('received nudge and losing send never claim you sent it', (
+    tester,
+  ) async {
+    final repo = FakeReminders()
+      ..sentByYou = false
+      ..next = DateTime.now().add(const Duration(hours: 2));
+    await pump(tester, repo, const RemindButton(loanId: 'loan'));
+    expect(find.text('Reminded recently'), findsOneWidget);
+    expect(find.text('Reminder sent'), findsNothing);
+    await tester.tap(find.text('Reminded recently'));
+    expect(repo.sends, 0);
+    await tester.pumpWidget(const SizedBox());
+    repo.next = null;
+    await pump(tester, repo, const RemindButton(loanId: 'loan'));
+    await tester.tap(find.text('Remind'));
+    await tester.pumpAndSettle();
+    expect(find.text('Reminded recently'), findsOneWidget);
+    expect(find.text('Reminder sent'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+  });
+  testWidgets('unavailable loan disables Remind with no retry instruction', (
+    tester,
+  ) async {
+    final repo = FakeReminders()
+      ..sendError = const PostgrestException(
+        message: 'Reminder unavailable',
+        code: '22023',
+      );
+    await pump(tester, repo, const RemindButton(loanId: 'loan'));
+    await tester.tap(find.text('Remind'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Reminders aren’t available for this loan yet.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('try again'), findsNothing);
+    await tester.tap(find.text('Remind'));
+    expect(repo.sends, 1);
+    expect(
+      tester.widget<SSecondaryButton>(find.byType(SSecondaryButton)).onPressed,
+      isNull,
+    );
+  });
+  testWidgets('other server errors remain retryable', (tester) async {
+    final repo = FakeReminders()
+      ..sendError = const PostgrestException(message: 'Offline', code: '503');
+    await pump(tester, repo, const RemindButton(loanId: 'loan'));
+    await tester.tap(find.text('Remind'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text("Couldn't send a reminder. Please try again."),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<SSecondaryButton>(find.byType(SSecondaryButton)).onPressed,
+      isNotNull,
+    );
+  });
   testWidgets('send failure is retryable', (tester) async {
     final repo = FakeReminders()..fail = true;
     await pump(tester, repo, const RemindButton(loanId: 'loan'));
@@ -104,7 +163,7 @@ void main() {
     tester,
   ) async {
     final repo = FakeReminders();
-    await pump(tester, repo, const ReminderToggle());
+    await pump(tester, repo, const ReminderToggle(), height: 260);
     expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
     await tester.runAsync(() => screenshot('profile-reminders-on'));
     await tester.tap(find.byType(Switch));

@@ -20,6 +20,26 @@ Loan loan({int repaid = 0, bool youLent = false, bool closed = false}) => Loan(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  test('permission checks tolerate absent and denied native channel', () async {
+    final notifications = ReminderNotifications();
+    expect(await notifications.permissionNeeded(), isFalse);
+    await notifications.requestPermission();
+    const channel = MethodChannel('test/permission');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          channel,
+          (_) async => throw PlatformException(code: 'denied'),
+        );
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+    expect(
+      await ReminderNotifications(channel: channel).permissionNeeded(),
+      isFalse,
+    );
+    await ReminderNotifications(channel: channel).requestPermission();
+  });
   test(
     'account change follows an in-flight native write and drops stale writes',
     () async {

@@ -78,6 +78,20 @@ class ReminderNotifications {
   Future<void> _tail = Future<void>.value();
   int _generation = 0;
 
+  /// Whether iOS has not yet asked for notification permission.
+  Future<bool> permissionNeeded() async {
+    try {
+      return await channel.invokeMethod<bool>('permissionNeeded') ?? false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
+  /// Called only after an explained, explicit user action.
+  Future<void> requestPermission() => _call('requestPermission', null);
+
   /// Changes ownership; the same user keeps native state across restarts.
   Future<void> setOwner(String? userId) {
     ++_generation;

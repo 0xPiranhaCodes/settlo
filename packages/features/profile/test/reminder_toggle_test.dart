@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -28,7 +29,7 @@ class _Repository implements ReminderRepository {
   }
 
   @override
-  Future<DateTime?> nextAllowed(String loanId) async => null;
+  Future<ReminderCooldown?> nextAllowed(String loanId) async => null;
   @override
   Future<DateTime> remind(String loanId) async => DateTime.utc(2027);
 }
@@ -49,6 +50,40 @@ Future<void> _pump(WidgetTester tester, _Repository repo) async {
 }
 
 void main() {
+  for (final accept in [false, true]) {
+    testWidgets(
+      'permission requires enabling and pre-prompt choice ($accept)',
+      (tester) async {
+        const channel = MethodChannel('app.settlo/reminders');
+        final calls = <String>[];
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (call) async {
+              calls.add(call.method);
+              return call.method == 'permissionNeeded' ? true : null;
+            });
+        addTearDown(
+          () => TestDefaultBinaryMessengerBinding
+              .instance
+              .defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, null),
+        );
+        final repo = _Repository();
+        await _pump(tester, repo);
+        expect(calls, isEmpty);
+        await tester.tap(find.byType(Switch));
+        await tester.pumpAndSettle();
+        expect(calls, isEmpty);
+        await tester.tap(find.byType(Switch));
+        await tester.pumpAndSettle();
+        expect(find.text('Get reminder notifications?'), findsOneWidget);
+        expect(calls, ['permissionNeeded']);
+        await tester.tap(find.text(accept ? 'Continue' : 'Not now'));
+        await tester.pumpAndSettle();
+        expect(calls, ['permissionNeeded', if (accept) 'requestPermission']);
+        expect(repo.on, isTrue);
+      },
+    );
+  }
   testWidgets('one pending write, saved preference survives reopening', (
     tester,
   ) async {
