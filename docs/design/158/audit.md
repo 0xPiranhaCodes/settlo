@@ -241,8 +241,9 @@ scroll. It is not repeated here.
   `previousPageTitle` and `trailing`. On iOS it renders a
   `CupertinoSliverNavigationBar` themed with Figtree and Settlo tokens, and
   leaves out the custom header. Space detail (expenses, balances, empty) uses
-  it: the space's name collapses, and back reads "Spaces". Loan detail and
-  Profile wait for #159.
+  it: the space's name collapses, and back reads "Spaces". After #159
+  merged, Loan detail ("Loan", back to "Loans", Statement as the trailing
+  item) and Profile ("You", back to "Home") use it too.
 - **X3 (C7, G7).** `showSettloActionSheet` and `showSettloAlert` in
   `core/lib/widgets/confirm.dart`. On iOS, sign out with unsent changes and
   delete expense use the action sheet; delete account uses the alert. They
