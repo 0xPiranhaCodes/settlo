@@ -191,9 +191,23 @@ void main() {
       expect(find.text('No activity matches "zzz".'), findsOneWidget);
     });
 
-    testWidgets('Android: no search field', (tester) async {
+    testWidgets('iOS: day headings are pinned slivers', (tester) async {
+      await _pump(tester, SettloRoutes.activity, _ios);
+      for (final heading in ['Today', 'This week']) {
+        expect(
+          find.ancestor(
+            of: find.text(heading),
+            matching: find.byType(PinnedHeaderSliver),
+          ),
+          findsOneWidget,
+        );
+      }
+    });
+
+    testWidgets('Android: no search field or pinned headings', (tester) async {
       await _pump(tester, SettloRoutes.activity, _android);
       expect(find.byType(CupertinoSearchTextField), findsNothing);
+      expect(find.byType(PinnedHeaderSliver), findsNothing);
     });
   });
 
