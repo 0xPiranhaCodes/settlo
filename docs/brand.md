@@ -55,6 +55,7 @@ python3 -m venv /tmp/settlo-images
 /tmp/settlo-images/bin/pip install Pillow==13.0.0
 git fetch origin main
 /tmp/settlo-images/bin/python scripts/site-images.py --ref origin/main
+/tmp/settlo-images/bin/python scripts/site-phones.py
 ```
 
 `--ref` defaults to `HEAD`. The script exports five real screens from `app/test/goldens/*_390x844_dark.png` (Home, Goa trip settle-up, Flat 402 balances, loan detail and repayment confirmation) as lossless WebP. The page shows them at their real 390px width or smaller, so text stays crisp. `site/images/sources.json` records the resolved commit, original dimensions, source hashes and crop row. Screens that continue below a floating navigation bar are cropped at a blank gap under the last whole card, then given 24px of the screen's own background so the rounded frame clips nothing; no row or line of text is cut. Nothing is reconstructed or retouched. Re-check the crop rows in the script whenever those goldens change. The social card uses bundled Figtree and the same Home screen. Review both viewport screenshots after regeneration.
@@ -77,3 +78,9 @@ Read against the implementation at landing-page base `0f610060b640b23f0a7a7b73f7
 | iPhone TestFlight beta; Android later; operator/contact | Issue #140 and owner assignment; no unsupported public installation link |
 
 Privacy/support policy wording is preserved from merged PR #143. Their `<main>` stays byte-identical (checked by `scripts/site-check.cjs`); the shared header, footer and CSS restyle the pages without rewriting the policy.
+
+### Phone compositions
+
+`site-phones.py` wraps the approved screen crops in the committed generic studio frame (`site/images/device/studio-frame.png`). The frame was generated with the built-in image-generation tool; its complete prompt is beside it. No app screen was sent to the model. The recipe records the measured opening, hardware source hash, rotations and output dimensions in `sources.json`. It scales hardware around each crop, pastes the real screen, then rotates the complete composition by 0 or ±3 degrees. A 24px corner mask clips blank screen corners only. Generated hardware is desaturated to remove coloured edge fringes; the screen is never colour-graded.
+
+Each image has lossless 390px and 780px WebP variants, referenced as 1x/2x in HTML. The 2x variant uses integer pixel replication for small lossless transfers; it does not invent extra detail in a 390px source golden. Rounded corners, reflections and tilt are already in the bitmap; CSS must not crop the frame or rotate it beyond its layout box. Home and repayment remain straight; the trip, flat and loan-detail images tilt. The existing short crops are preserved to avoid showing partial cards beneath the app navigation bar.

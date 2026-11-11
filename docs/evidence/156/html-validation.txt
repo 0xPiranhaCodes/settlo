@@ -1,0 +1,1 @@
+html-validate --preset standard site/index.html site/privacy/index.html site/support/index.html: exit 0

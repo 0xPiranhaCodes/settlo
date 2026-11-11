@@ -1,0 +1,11 @@
+{
+  "byteIdentical": true,
+  "sha256": {
+    "site/images/home_main-phone.webp": "177fa4a4475de8be26e96633d301da39301694aa9034cccb546654c568f52f2c",
+    "site/images/confirm_repayment-phone.webp": "0380fc2493c701d3139cc5b7ea6691add670f8c19c8dcc7219113efecfb0c5f2",
+    "site/images/spaces_balances-phone.webp": "1a16d01b04beff09799ef850a92eaac5c8e70d6c1c27eb9c2b11c6c5ae6a34ce",
+    "site/images/settle_pay-phone.webp": "9ac2da68cfc58a530fa95afe558887f0d3effa9170e69fa9d7e5571019e166f8",
+    "site/images/loans_detail-phone.webp": "5d6eb37ed76005ab095de5189309833858a40fbdd674f86d2ac9584bf519ea85",
+    "site/images/sources.json": "83bf90c9d0cc957651fbe2e286384a0dcf6b5b5f25e23eca7bff19d3053296b1"
+  }
+}

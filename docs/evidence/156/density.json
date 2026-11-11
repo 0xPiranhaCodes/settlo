@@ -1,0 +1,37 @@
+{
+  "deviceScaleFactor": 2,
+  "images": [
+    {
+      "src": "http://127.0.0.1:8767/images/home_main-phone.webp",
+      "width": 390,
+      "height": 837,
+      "renderedWidth": 350
+    },
+    {
+      "src": "http://127.0.0.1:8767/images/settle_pay-phone.webp",
+      "width": 390,
+      "height": 771,
+      "renderedWidth": 287
+    },
+    {
+      "src": "http://127.0.0.1:8767/images/spaces_balances-phone.webp",
+      "width": 390,
+      "height": 771,
+      "renderedWidth": 350
+    },
+    {
+      "src": "http://127.0.0.1:8767/images/loans_detail-phone.webp",
+      "width": 390,
+      "height": 771,
+      "renderedWidth": 350
+    },
+    {
+      "src": "http://127.0.0.1:8767/images/confirm_repayment-phone.webp",
+      "width": 390,
+      "height": 837,
+      "renderedWidth": 350
+    }
+  ],
+  "tripPanels": 3,
+  "overflow": false
+}
