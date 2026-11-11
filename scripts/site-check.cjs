@@ -121,10 +121,16 @@ const publicUrl = "https://settlo.hellojosh.studio/";
               images.every((image) =>
                 copies.every((copy) => !intersects(rect(image), rect(copy))),
               ) &&
+              // Phones may overlap only inside their composed group (#181).
               images.every((image, i) =>
                 images
                   .slice(i + 1)
-                  .every((other) => !intersects(rect(image), rect(other))),
+                  .every(
+                    (other) =>
+                      image.closest(".hero-screen, .loan-screens") ===
+                        other.closest(".hero-screen, .loan-screens") ||
+                      !intersects(rect(image), rect(other)),
+                  ),
               )
             );
           });
@@ -271,7 +277,7 @@ const publicUrl = "https://settlo.hellojosh.studio/";
     const page = await context.newPage();
     await page.goto(localUrl);
     await page.evaluate(() => document.fonts.ready);
-    const hero = page.locator(".hero-screen img");
+    const hero = page.locator(".hero-front");
     await hero.evaluate((image) => image.decode());
     const state = await hero.evaluate((image) => ({
       src: image.currentSrc,
@@ -280,6 +286,8 @@ const publicUrl = "https://settlo.hellojosh.studio/";
     }));
     if (Math.min(844, state.bottom) - state.top < 200)
       throw Error("Hero product below fold");
+    if ((await page.locator(".hero .button").boundingBox()).y + 56 > 844)
+      throw Error("Hero CTA below fold");
     const suffix = density === 1 ? "-phone.avif" : `-phone@${density}x.avif`;
     if (!state.src.endsWith(suffix))
       throw Error("Wrong density selected: " + state.src);
