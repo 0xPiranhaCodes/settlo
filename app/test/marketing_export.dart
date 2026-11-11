@@ -21,6 +21,7 @@ import 'support/fake_home.dart';
 import 'support/fake_loans.dart';
 import 'support/fake_reminders.dart';
 import 'support/fake_settle.dart';
+import 'support/fake_space_ledger.dart';
 import 'support/fake_spaces.dart';
 
 void main() {
@@ -42,7 +43,16 @@ void main() {
         late Widget child;
         if (name == 'home_main') {
           child = await homeInShell(
-            homeMain,
+            width == 430
+                ? HomeData(
+                    phone: homeMain.phone,
+                    name: homeMain.name,
+                    month: homeMain.month,
+                    monthSpend: homeMain.monthSpend,
+                    spaces: [homeMain.spaces.first],
+                    loans: homeMain.loans,
+                  )
+                : homeMain,
             // End the phone still at Loans; keep detail crops unchanged.
             activityEntries: width == 430 ? [] : null,
           );
@@ -50,6 +60,16 @@ void main() {
           child = await spacesInShell(
             spacesList,
             SpaceScreen(spaceId: spacesList.first.id),
+            // Keep the complete fairness and settlement cards in the still.
+            ledgers: width == 430
+                ? {
+                    spacesList.first.id: SpaceLedger(
+                      today: flatLedger.today,
+                      expenses: flatLedger.expenses,
+                      fairness: flatLedger.fairness,
+                    ),
+                  }
+                : null,
           );
         } else {
           final container = ProviderContainer(
@@ -122,12 +142,12 @@ void main() {
           theme: theme,
         );
         if (width == 430 && name == 'home_main') {
-          // Show the whole Loans card, including its progress indicator.
-          tester
-              .state<ScrollableState>(find.byType(Scrollable).first)
-              .position
-              .jumpTo(72);
-          await tester.pump();
+          // A shorter fixture preserves the full header and Loans card.
+          expect(find.byType(SettloMark), findsOneWidget);
+          expect(
+            tester.getRect(find.byType(SettloMark)).top,
+            greaterThanOrEqualTo(insets.top),
+          );
           final card = find.ancestor(
             of: find.text('LOANS'),
             matching: find.byType(SCard),
@@ -139,14 +159,6 @@ void main() {
             ),
             reason: 'Leave a clean gap below the complete Home Loans card',
           );
-        }
-        if (width == 430 && name == 'spaces_balances') {
-          // Include the category card in full instead of slicing its first row.
-          tester
-              .state<ScrollableState>(find.byType(Scrollable).first)
-              .position
-              .jumpTo(300);
-          await tester.pump();
         }
         if (width == 430 && name == 'loans_detail') {
           final lastRow = find.byKey(const ValueKey('r3'));
@@ -166,7 +178,12 @@ void main() {
           expect(button.top, greaterThanOrEqualTo(0));
         }
         if (width == 430) {
-          _expectContentClearOfTabBar(tester, name, Size(width, height));
+          _expectContentClearOfChrome(
+            tester,
+            name,
+            Size(width, height),
+            insets.top,
+          );
         }
         // Same logical geometry, rerasterised at 3x; no PNG enlargement.
         tester.view
@@ -199,13 +216,30 @@ void main() {
 }
 
 // Inspect geometry, not hitTestable(): an occluded control must still fail.
-void _expectContentClearOfTabBar(WidgetTester tester, String name, Size size) {
+void _expectContentClearOfChrome(
+  WidgetTester tester,
+  String name,
+  Size size,
+  double statusInset,
+) {
   final bars = find.byType(SGlassTabBar);
-  if (bars.evaluate().isEmpty) return;
-  final bar = tester.getRect(bars);
+  final headers = find.byType(SliverPersistentHeader);
+  final headerRects = [
+    for (final header in headers.evaluate())
+      tester.getRect(
+        find
+            .descendant(
+              of: find.byWidget(header.widget),
+              matching: find.byType(ClipRect),
+            )
+            .first,
+      ),
+  ];
   // Reserve the full width from the glass top through the home indicator.
   // Non-interactive labels/icons can otherwise peek around or below the bar.
-  final obscured = Rect.fromLTRB(0, bar.top, size.width, size.height);
+  final obscured = bars.evaluate().isEmpty
+      ? null
+      : Rect.fromLTRB(0, tester.getRect(bars).top, size.width, size.height);
   final controls = find.byWidgetPredicate(
     (widget) =>
         widget is Text ||
@@ -220,16 +254,36 @@ void _expectContentClearOfTabBar(WidgetTester tester, String name, Size size) {
   for (final element in controls.evaluate()) {
     // Navigation's own controls belong inside its surface.
     var inTabBar = false;
+    var inHeader = false;
     element.visitAncestorElements((ancestor) {
       if (ancestor.widget is SGlassTabBar) inTabBar = true;
-      return !inTabBar;
+      if (ancestor.widget is SliverPersistentHeader) inHeader = true;
+      return true;
     });
     if (inTabBar) continue;
     final rect = tester.getRect(find.byWidget(element.widget));
-    expect(
-      rect.overlaps(obscured),
-      isFalse,
-      reason: '$name: ${element.widget.runtimeType} $rect intersects $obscured',
-    );
+    final widget = element.widget;
+    if (widget is Text || widget is RichText || widget is Icon) {
+      final topRegions = [
+        Rect.fromLTRB(0, 0, size.width, statusInset),
+        if (!inHeader) ...headerRects,
+      ];
+      for (final region in topRegions) {
+        expect(
+          rect.overlaps(region),
+          isFalse,
+          reason:
+              '$name: ${widget.runtimeType} $rect '
+              'intersects top chrome $region',
+        );
+      }
+    }
+    if (obscured != null) {
+      expect(
+        rect.overlaps(obscured),
+        isFalse,
+        reason: '$name: ${widget.runtimeType} $rect intersects $obscured',
+      );
+    }
   }
 }

@@ -2,21 +2,21 @@
   "runs": [
     {
       "run": 1,
-      "performance": 97.0,
+      "performance": 99.0,
       "cls": 0,
-      "lcp_ms": 2272.9831
+      "lcp_ms": 2186.866
     },
     {
       "run": 2,
       "performance": 99.0,
       "cls": 0,
-      "lcp_ms": 2188.1776999999997
+      "lcp_ms": 2178.8985999999995
     },
     {
       "run": 3,
       "performance": 99.0,
       "cls": 0,
-      "lcp_ms": 2181.9368999999997
+      "lcp_ms": 2180.6295999999998
     }
   ],
   "median_performance": 99.0,
