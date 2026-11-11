@@ -30,6 +30,8 @@ class ProfileScreen extends ConsumerWidget {
         style: const TextStyle(letterSpacing: 0, height: 1.2),
         child: SettloScrollScaffold(
           title: 'You',
+          largeTitle: 'You',
+          previousPageTitle: 'Home',
           padding: EdgeInsets.fromLTRB(
             SettloSpacing.screenMargin,
             math.max(media.padding.top, 44) + 16,

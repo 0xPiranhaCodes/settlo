@@ -157,14 +157,15 @@ void main() {
 
   // go_router's default page for `builder:` routes has no iOS back gesture,
   // so pushed detail routes use SettloPage (#158).
-  for (final (name, from, to) in [
-    ('a space', SettloRoutes.spaces, SettloRoutes.space('s1')),
+  for (final (name, from, to, back) in [
+    ('a space', SettloRoutes.spaces, SettloRoutes.space('s1'), 'Spaces'),
     (
       'a loan',
       SettloRoutes.loans,
       SettloRoutes.loan(loansList().loans.first.id),
+      'Loans',
     ),
-    ('Profile', SettloRoutes.home, SettloRoutes.profile),
+    ('Profile', SettloRoutes.home, SettloRoutes.profile, 'Home'),
   ]) {
     testWidgets('on iOS, edge swipe back from $name in the app router', (
       tester,
@@ -185,6 +186,14 @@ void main() {
           tester.element(find.byType(SettloApp)),
         ).read(routerProvider)..go(to);
         await tester.pumpAndSettle();
+        expect(find.byType(CupertinoSliverNavigationBar), findsOne);
+        expect(
+          find.descendant(
+            of: find.byType(CupertinoNavigationBarBackButton),
+            matching: find.text(back),
+          ),
+          findsOne,
+        );
 
         await tester.flingFrom(
           const Offset(2, 420),

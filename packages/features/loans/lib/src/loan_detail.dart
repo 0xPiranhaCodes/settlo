@@ -34,6 +34,9 @@ class LoanDetailScreen extends ConsumerWidget {
     return Scaffold(
       body: SettloScrollScaffold(
         title: 'Loan',
+        largeTitle: 'Loan',
+        previousPageTitle: 'Loans',
+        trailing: StatementButton(loan, yourName: data.yourName),
         onRefresh: () => ref.refresh(loansProvider.future),
         padding: EdgeInsets.fromLTRB(
           SettloSpacing.screenMargin,
