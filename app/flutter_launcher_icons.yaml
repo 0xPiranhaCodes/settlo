@@ -1,10 +1,14 @@
-# App icon (#32). Regenerate with: dart run flutter_launcher_icons
-# Foreground comes from design/brand/derived/derive.sh.
+# Owner artwork (#192). From repo root: python3 scripts/regenerate-app-icons.py
+# The wrapper preserves Xcode settings around flutter_launcher_icons 0.14.4.
 flutter_launcher_icons:
-  image_path: ../design/brand/mark-gold-on-black.png
+  image_path: assets/icon/opaque.png
   android: true
   adaptive_icon_background: "#0A0B0D"
-  adaptive_icon_foreground: ../design/brand/derived/adaptive-foreground.png
+  adaptive_icon_foreground: assets/icon/adaptive-foreground.png
+  # Foreground is already fitted inside the centered 66% safe circle.
+  adaptive_icon_foreground_inset: 0
+  adaptive_icon_monochrome: assets/icon/monochrome.png
   min_sdk_android: 26
   ios: true
   remove_alpha_ios: true
+  background_color_ios: "#0A0B0D"

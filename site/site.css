@@ -97,9 +97,7 @@ summary:focus-visible {
 }
 .wordmark img {
   object-fit: contain;
-  background: #0a0b0d;
-  padding: 4px;
-  border-radius: 8px;
+  display: block;
 }
 main {
   max-width: 720px;
@@ -523,12 +521,8 @@ details[open] summary::after {
   margin: 0 auto 32px;
   font-size: 21px;
 }
-body:not(.landing) .wordmark::before {
-  content: "";
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: #0a0b0d url(images/mark.png) center/80% no-repeat;
+.wordmark picture {
+  display: flex;
 }
 @media (max-width: 900px) {
   .flat {

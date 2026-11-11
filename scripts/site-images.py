@@ -35,9 +35,8 @@ for name, crop in crops.items():
         img = shown
     img.save(out / f'{name}.webp', lossless=True, method=6)
     manifest['sources'][name] = {'path': source, 'sha256': hashlib.sha256(raw).hexdigest(), 'size': size, 'crop_rows': crop}
-mark = Image.open(ROOT / 'packages/core/assets/brand/3.0x/settlo_mark.png').convert('RGBA')
-mark.thumbnail((192, 192), Image.Resampling.LANCZOS)
-mark.save(out / 'mark.png', optimize=True)
+subprocess.run([os.sys.executable, str(ROOT / 'scripts/site-icons.py')], check=True)
+mark = Image.open(out / 'mark.png').convert('RGBA')
 # Social card: deterministic composition, real app screen, bundled brand font.
 card = Image.new('RGB', (1200, 630), '#0a0b0d')
 draw = ImageDraw.Draw(card)
