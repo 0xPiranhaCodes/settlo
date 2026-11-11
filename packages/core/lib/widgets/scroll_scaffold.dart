@@ -353,20 +353,11 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
     final collapsed = shrinkOffset >= (maxExtent - minExtent).clamp(0, 28);
     final dark = Theme.of(context).brightness == Brightness.dark;
     final solid = MediaQuery.highContrastOf(context) || forceSolid;
-    return ClipRect(
+    final bar = ClipRect(
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (scrolled && glass)
-            _SoftEdge(
-              // Fades in over the first 16pt of scroll, so it never pops.
-              strength: overlapsContent
-                  ? 1
-                  : (shrinkOffset / 16).clamp(0.0, 1.0),
-              color: solid ? c.surface : c.background,
-              blur: !solid,
-            )
-          else if (scrolled)
+          if (scrolled && !glass)
             BackdropFilter(
               enabled: !solid,
               filter: SettloElevation.glassFilter,
@@ -423,6 +414,28 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
         ],
       ),
     );
+    if (!(scrolled && glass)) return bar;
+    // The edge hangs below the bar, so the bar itself is fully covered and
+    // the fade happens over the content under it, as on iOS 26.
+    return Stack(
+      clipBehavior: Clip.none,
+      fit: StackFit.expand,
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: -_softEdgeFade,
+          child: _SoftEdge(
+            // Fades in over the first 16pt of scroll, so it never pops.
+            strength: overlapsContent ? 1 : (shrinkOffset / 16).clamp(0.0, 1.0),
+            color: solid ? c.surface : c.background,
+            blur: !solid,
+          ),
+        ),
+        bar,
+      ],
+    );
   }
 
   @override
@@ -431,6 +444,9 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
 
 /// The page colour behind the bar's title on iOS 26.
 const _softEdgeAlpha = 0.86;
+
+/// How far below the bar the iOS 26 edge fades out.
+const _softEdgeFade = 24.0;
 
 /// iOS 26's soft scroll edge (#191): the page colour and a blur, strongest
 /// under the status bar and fading out downwards, with no band, plate or
@@ -443,27 +459,54 @@ class _SoftEdge extends StatelessWidget {
   final bool blur;
 
   @override
-  Widget build(BuildContext context) => ShaderMask(
-    key: const ValueKey('scroll-navigation-soft-edge'),
-    blendMode: BlendMode.dstIn,
-    shaderCallback: (rect) => LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        Colors.black.withValues(alpha: strength),
-        Colors.black.withValues(alpha: strength * 0.9),
-        Colors.transparent,
-      ],
-      stops: const [0, 0.6, 1],
-    ).createShader(rect),
-    child: BackdropFilter(
-      enabled: blur,
-      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-      child: ColoredBox(
-        color: blur ? color.withValues(alpha: _softEdgeAlpha) : color,
-      ),
-    ),
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) =>
+        _edge((box.maxHeight - _softEdgeFade) / box.maxHeight),
   );
+
+  /// Full down to [full] of the height, then fading out.
+  Widget _edge(double full) {
+    final page = blur ? color.withValues(alpha: _softEdgeAlpha) : color;
+    return Stack(
+      key: const ValueKey('scroll-navigation-soft-edge'),
+      fit: StackFit.expand,
+      children: [
+        // The blur stops where the colour is still near full, which hides
+        // its edge. No mask layer: Impeller drew nothing for a ShaderMask
+        // over a BackdropFilter.
+        if (blur && strength > 0)
+          FractionallySizedBox(
+            alignment: Alignment.topCenter,
+            heightFactor: full,
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: 20 * strength,
+                  sigmaY: 20 * strength,
+                ),
+                child: const SizedBox.expand(),
+              ),
+            ),
+          ),
+        // Full under the status bar and title row, so neither the clock nor
+        // the title sits on content.
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                page.withValues(alpha: page.a * strength),
+                page.withValues(alpha: page.a * strength),
+                page.withValues(alpha: 0),
+              ],
+              stops: [0, full, 1],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// Header layout shared by tab titles and their persistent trailing actions.
