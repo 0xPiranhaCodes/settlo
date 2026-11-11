@@ -3,6 +3,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:settlo_core/theme/colors.dart';
@@ -192,7 +193,9 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
   Widget _largeTitleBar(BuildContext context, String title) {
     final c = SettloColors.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
-    // iOS 26 has no tinted band or hairline under the bar (#191).
+    final solid = MediaQuery.highContrastOf(context);
+    // iOS 26 has no tinted band or hairline under the bar (#191); the soft
+    // edge sliver after it draws the page colour instead.
     final glass = liquidGlass(context);
     return CupertinoTheme(
       // Settlo tokens, never system blue: the chevron and bar items are
@@ -213,11 +216,13 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
         largeTitle: Text(title),
         previousPageTitle: widget.previousPageTitle,
         trailing: widget.trailing,
-        backgroundColor: MediaQuery.highContrastOf(context)
+        // Clear keeps the page colour's luminance for the status bar style.
+        backgroundColor: solid
             ? c.surface
             : glass
-            ? c.background.withValues(alpha: _softEdgeAlpha)
+            ? c.background.withValues(alpha: 0)
             : c.glass.withValues(alpha: SettloElevation.glassTint),
+        enableBackgroundFilterBlur: !glass,
         border: glass
             ? null
             : Border(
@@ -259,9 +264,24 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
       physics: const SettloScrollBehavior().getScrollPhysics(context),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
-        if (largeTitle != null)
-          _largeTitleBar(context, largeTitle)
-        else
+        if (largeTitle != null) _largeTitleBar(context, largeTitle),
+        if (largeTitle != null &&
+            liquidGlass(context) &&
+            !MediaQuery.highContrastOf(context))
+          _SliverSoftEdge(
+            child: LayoutBuilder(
+              builder: (context, box) => _SoftEdge(
+                // Fades in over the first 16pt of content under the bar.
+                strength: ((box.maxHeight - _softEdgeFade) / 16).clamp(
+                  0.0,
+                  1.0,
+                ),
+                color: SettloColors.of(context).background,
+                blur: true,
+              ),
+            ),
+          ),
+        if (largeTitle == null)
           SliverPersistentHeader(
             pinned: true,
             delegate: _NavigationHeader(
@@ -414,9 +434,10 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
         ],
       ),
     );
-    if (!(scrolled && glass)) return bar;
+    if (!glass) return bar;
     // The edge hangs below the bar, so the bar itself is fully covered and
-    // the fade happens over the content under it, as on iOS 26.
+    // the fade happens over the content under it, as on iOS 26. The tree is
+    // the same at rest, so the header's native glass views are never rebuilt.
     return Stack(
       clipBehavior: Clip.none,
       fit: StackFit.expand,
@@ -442,8 +463,11 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(_NavigationHeader oldDelegate) => true;
 }
 
-/// The page colour behind the bar's title on iOS 26.
-const _softEdgeAlpha = 0.86;
+/// The page colour's opacity at the top of the iOS 26 edge and at the bar's
+/// bottom. Light mode thins out towards the title row, as natively, so it
+/// reads as frosted glass rather than a grey band.
+(double, double) _softEdgeAlpha(Color page) =>
+    page.computeLuminance() > 0.5 ? (0.94, 0.78) : (0.86, 0.86);
 
 /// How far below the bar the iOS 26 edge fades out.
 const _softEdgeFade = 24.0;
@@ -459,46 +483,52 @@ class _SoftEdge extends StatelessWidget {
   final bool blur;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, box) =>
-        _edge((box.maxHeight - _softEdgeFade) / box.maxHeight),
-  );
+  Widget build(BuildContext context) => strength == 0
+      ? const SizedBox.expand()
+      : LayoutBuilder(
+          builder: (context, box) =>
+              _edge((box.maxHeight - _softEdgeFade) / box.maxHeight),
+        );
 
   /// Full down to [full] of the height, then fading out.
   Widget _edge(double full) {
-    final page = blur ? color.withValues(alpha: _softEdgeAlpha) : color;
+    final (top, bottom) = blur ? _softEdgeAlpha(color) : (1.0, 1.0);
     return Stack(
       key: const ValueKey('scroll-navigation-soft-edge'),
       fit: StackFit.expand,
       children: [
-        // The blur stops where the colour is still near full, which hides
-        // its edge. No mask layer: Impeller drew nothing for a ShaderMask
-        // over a BackdropFilter.
-        if (blur && strength > 0)
-          FractionallySizedBox(
-            alignment: Alignment.topCenter,
-            heightFactor: full,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 20 * strength,
-                  sigmaY: 20 * strength,
+        // A progressive blur: each layer also blurs the ones before it, so
+        // the blur thins out down the fade with only small steps. No mask
+        // layer: Impeller drew nothing for a ShaderMask over a BackdropFilter.
+        if (blur)
+          for (final (end, sigma) in [
+            (1.0, 3.0),
+            ((1 + full) / 2, 6.0),
+            (full, 14.0),
+          ])
+            FractionallySizedBox(
+              alignment: Alignment.topCenter,
+              heightFactor: end,
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: sigma * strength,
+                    sigmaY: sigma * strength,
+                  ),
+                  child: const SizedBox.expand(),
                 ),
-                child: const SizedBox.expand(),
               ),
             ),
-          ),
-        // Full under the status bar and title row, so neither the clock nor
-        // the title sits on content.
+        // Strongest under the status bar, so the clock never sits on content.
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                page.withValues(alpha: page.a * strength),
-                page.withValues(alpha: page.a * strength),
-                page.withValues(alpha: 0),
+                color.withValues(alpha: top * strength),
+                color.withValues(alpha: bottom * strength),
+                color.withValues(alpha: 0),
               ],
               stops: [0, full, 1],
             ),
@@ -506,6 +536,32 @@ class _SoftEdge extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Takes no scroll space after a pinned bar and paints its child from the
+/// top of the content under that bar to [_softEdgeFade] below it, beneath the
+/// bar's title and buttons, so large-title screens fade like Home (#191).
+class _SliverSoftEdge extends SingleChildRenderObjectWidget {
+  const new({required Widget super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderSliverSoftEdge();
+}
+
+class _RenderSliverSoftEdge extends RenderSliverSingleBoxAdapter {
+  @override
+  void performLayout() {
+    final under = constraints.overlap;
+    child!.layout(
+      BoxConstraints.tightFor(
+        width: constraints.crossAxisExtent,
+        height: under + _softEdgeFade,
+      ),
+    );
+    // Zero extent and hit area; painted only while content is under the bar.
+    geometry = SliverGeometry(visible: under > 0);
   }
 }
 

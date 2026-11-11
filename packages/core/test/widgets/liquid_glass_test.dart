@@ -233,6 +233,45 @@ void main() {
       expect(find.text('Home').hitTestable(), findsOneWidget);
     });
 
+    testWidgets('scrolling keeps the native view IDs', (tester) async {
+      final glass = _FakeGlass(tester);
+      await tester.pumpWidget(
+        _app(
+          TargetPlatform.iOS,
+          _page(trailing: SBell(unread: 0, onPressed: () {})),
+        ),
+      );
+      final before = glass.created.keys.toList();
+      expect(before, hasLength(1));
+      for (var cycle = 0; cycle < 3; cycle++) {
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const ValueKey('scroll-navigation-soft-edge')),
+          findsOneWidget,
+        );
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, 1200));
+        await tester.pumpAndSettle();
+      }
+      expect(glass.created.keys.toList(), before);
+    });
+
+    testWidgets('a large-title screen fades under its bar too', (tester) async {
+      await tester.pumpWidget(
+        _app(TargetPlatform.iOS, _page(largeTitle: 'Flat 402')),
+      );
+      final edge = find.byKey(const ValueKey('scroll-navigation-soft-edge'));
+      expect(edge, findsNothing);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      expect(edge, findsOneWidget);
+      // From the top of the screen to 24pt below the 44pt collapsed bar.
+      final fade = tester.getRect(edge);
+      expect(fade.top, 0);
+      expect(fade.bottom, 44 + 24);
+      expect(find.text('Flat 402').hitTestable(), findsWidgets);
+    });
+
     testWidgets('a decorative mark is glass that never takes a touch', (
       tester,
     ) async {

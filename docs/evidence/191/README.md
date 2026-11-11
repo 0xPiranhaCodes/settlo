@@ -14,10 +14,12 @@ Flutter has no profile mode on the simulator (`Profile mode is not supported for
 | Run | Frames | Build p50 / p90 / p99 (ms) | Raster p50 / p90 / p99 (ms) | Frames over 16.7 ms |
 |---|---|---|---|---|
 | before, dark | 486 | 1.3 / 1.7 / 6.2 | 2.9 / 3.9 / 5.1 | 0 |
-| after, dark | 491 | 1.1 / 1.4 / 5.8 | 2.8 / 3.8 / 4.8 | 0 |
+| after, dark | 447 | 1.0 / 1.4 / 5.6 | 3.4 / 4.2 / 5.9 | 0 |
 | before, light | 495 | 1.3 / 1.7 / 6.4 | 3.0 / 3.9 / 4.8 | 0 |
-| after, light | 448 | 1.0 / 1.5 / 5.9 | 2.9 / 3.7 / 4.7 | 1 |
+| after, light | 462 | 1.0 / 1.4 / 5.1 | 3.5 / 4.6 / 6.9 | 0 |
 
 ## Notes
 - **Taps, drags and the gesture policy.** Under the eager blocking policy, an HID tap on the glass button did nothing, the same iOS 26 problem #174 hit with the tab bar. The factory uses `DoNotBlockGesture`, and Flutter holds only a `TapGestureRecognizer`, so a drag that starts on a button still scrolls the page. That was checked with HID: a drag down from the bell opened the refresh control, and the tap didn't fire.
-- **Soft edge.** A `ShaderMask` over a `BackdropFilter` rendered nothing under Impeller, and content showed straight through the bar. The edge is now a clipped blur under a page-colour gradient. It covers the whole bar and fades out over 24pt of the content below.
+- **Soft edge.** A `ShaderMask` over a `BackdropFilter` rendered nothing under Impeller, and content showed straight through the bar. The edge is now three clipped blurs, each longer and weaker than the last, under a page-colour gradient. It covers the whole bar and fades out over 24pt of the content below, without a visible line where the blur stops. Light mode thins from 94% at the top to 78% at the bar's bottom, so it reads as frosted rather than a flat grey band. The two extra blur layers cost about 0.5 ms of raster time at p50 in these debug runs.
+- **Large-title screens.** Space, Balances, Profile and loan detail keep the native collapsing bar, made clear, and get the same edge from a sliver that takes no space and paints under the bar.
+- **Native views.** The header keeps the same widget tree at rest and when scrolled, so scrolling never recreates the glass buttons (`scrolling keeps the native view IDs` in `liquid_glass_test.dart`).
