@@ -246,6 +246,95 @@ class RunnerTests: XCTestCase {
   }
 }
 
+/// The header actions' glass button (#191).
+class GlassButtonTests: XCTestCase {
+  private let messenger = FakeMessenger()
+
+  private func make(_ args: [String: Any]) -> GlassButton {
+    GlassButtonFactory(messenger: messenger).create(
+      withFrame: .zero, viewIdentifier: 4, arguments: args) as! GlassButton
+  }
+
+  private let bell: [String: Any] = [
+    "label": "Notifications, 3 new", "symbol": "bell", "badge": "3", "enabled": true,
+    "dark": true, "foreground": 0xFFF2EEE6, "badgeColor": 0xFFF2EEE6, "badgeText": 0xFF0B0B0C,
+  ]
+
+  func testFactoryBuildsAGlassButtonFromFlutter() throws {
+    let glass = make(bell)
+    let config = try XCTUnwrap(glass.button.configuration)
+    XCTAssertNotNil(config.image)
+    XCTAssertEqual(config.cornerStyle, .capsule)
+    XCTAssertEqual(glass.view().overrideUserInterfaceStyle, .dark)
+    XCTAssertEqual(glass.badge.text, "3")
+    XCTAssertFalse(glass.badge.isHidden)
+    XCTAssertTrue(glass.button.isEnabled)
+  }
+
+  func testTitleInsteadOfSymbol() {
+    let glass = make(["label": "Profile", "title": "S"])
+    XCTAssertEqual(glass.button.configuration?.title, "S")
+    XCTAssertNil(glass.button.configuration?.image)
+    XCTAssertTrue(glass.badge.isHidden)
+  }
+
+  func testTapIsSentToFlutter() {
+    let glass = make(bell)
+    glass.button.sendActions(for: .primaryActionTriggered)
+    XCTAssertEqual(messenger.sent.map(\.method), ["tap"])
+  }
+
+  func testUpdateChangesBadgeStateAndAppearance() {
+    let glass = make(bell)
+    messenger.call(
+      "app.settlo/glass_button/4", "update",
+      ["label": "Notifications", "symbol": "bell", "enabled": false, "dark": false])
+    XCTAssertTrue(glass.badge.isHidden)
+    XCTAssertFalse(glass.button.isEnabled)
+    XCTAssertEqual(glass.button.accessibilityLabel, "Notifications")
+    XCTAssertEqual(glass.view().overrideUserInterfaceStyle, .light)
+  }
+
+  /// Home's mark: the supplied artwork, untinted, as a non-interactive header.
+  func testDecorativeMarkIsAnUntouchableHeaderWithTheArtwork() throws {
+    enableAccessibilityRuntime()
+    let glass = make([
+      "label": "Settlo", "asset": "assets/brand/settlo_mark_dark.png", "decorative": true,
+    ])
+    let image = try XCTUnwrap(glass.button.configuration?.image)
+    XCTAssertEqual(image.scale, 3)
+    XCTAssertEqual(image.size, CGSize(width: 30, height: 30))
+    XCTAssertEqual(image.renderingMode, .alwaysOriginal)
+    XCTAssertFalse(glass.button.isUserInteractionEnabled)
+    XCTAssertTrue(glass.button.accessibilityTraits.contains(.header))
+    XCTAssertFalse(glass.button.accessibilityTraits.contains(.button))
+    XCTAssertEqual(glass.button.accessibilityLabel, "Settlo")
+  }
+
+  /// What VoiceOver reads: one labelled button, 44pt, with the count in the
+  /// label and the badge itself skipped; a disabled one reads as dimmed.
+  func testVoiceOverReadsOneLabelledButton() {
+    enableAccessibilityRuntime()
+    let glass = make(bell)
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 402, height: 874))
+    glass.view().frame = CGRect(x: 338, y: 62, width: 44, height: 44)
+    window.addSubview(glass.view())
+    window.isHidden = false
+    glass.view().layoutIfNeeded()
+
+    func all(_ view: UIView) -> [UIView] { [view] + view.subviews.flatMap(all) }
+    let elements = all(glass.view()).filter(\.isAccessibilityElement)
+    XCTAssertEqual(elements, [glass.button])
+    XCTAssertEqual(glass.button.accessibilityLabel, "Notifications, 3 new")
+    XCTAssertTrue(glass.button.accessibilityTraits.contains(.button))
+    XCTAssertGreaterThanOrEqual(glass.button.accessibilityFrame.width, 44)
+    XCTAssertGreaterThanOrEqual(glass.button.accessibilityFrame.height, 44)
+
+    messenger.call("app.settlo/glass_button/4", "update", ["label": "Download statement", "enabled": false])
+    XCTAssertTrue(glass.button.accessibilityTraits.contains(.notEnabled))
+  }
+}
+
 /// Turns on UIKit's accessibility runtime, as an assistive client such as
 /// VoiceOver would, so views answer with what VoiceOver reads (as KIF does).
 private func enableAccessibilityRuntime() {

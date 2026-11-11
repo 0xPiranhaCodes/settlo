@@ -162,26 +162,23 @@ class _Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = SettloColors.of(context);
-    final lockup = Semantics(
+    // The owner's S mark is the header title: in a glass circle on iOS 26,
+    // as supplied elsewhere, and no wordmark (#191).
+    final lockup = GlassAction(
       label: 'Settlo',
-      excludeSemantics: true,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!compact) const SettloMark(semanticsLabel: null, size: 42),
-          if (!compact) const SizedBox(width: 12),
-          Text(
-            'SETTLO',
-            textScaler: MediaQuery.textScalerOf(context)
-                .clamp(maxScaleFactor: 1.3),
-            style: SettloTypography.title2(
-              letterSpacing: 1.8,
-              color: c.textPrimary,
-            ),
-          ),
-        ],
+      asset: settloMarkAsset(Theme.of(context).brightness),
+      decorative: true,
+      onPressed: null,
+      fallback: Semantics(
+        header: true,
+        label: 'Settlo',
+        excludeSemantics: true,
+        child: const SettloMark(semanticsLabel: null, size: 30),
       ),
     );
+    final initial = (name?.trim().isNotEmpty ?? false)
+        ? name!.trim().characters.first.toUpperCase()
+        : 'Y';
     final controls = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -190,23 +187,26 @@ class _Header extends ConsumerWidget {
           onPressed: () => context.go(SettloRoutes.activity),
         ),
         const SizedBox(width: SettloSpacing.x1),
-        IconButton(
-          tooltip: 'Profile',
+        GlassAction(
+          label: 'Profile',
+          title: initial,
           onPressed: () => context.go(SettloRoutes.profile),
-          style: IconButton.styleFrom(
-            fixedSize: const Size.square(SettloHomeMetrics.headerControl),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            backgroundColor: SettloColors.dark.surfaceRaised,
-            side: BorderSide(color: c.hairline),
-          ),
-          icon: Text(
-            (name?.trim().isNotEmpty ?? false)
-                ? name!.trim().characters.first.toUpperCase()
-                : 'Y',
-            textScaler: MediaQuery.textScalerOf(context)
-                .clamp(maxScaleFactor: 1.3),
-            style: SettloTypography.headline(color: Colors.white),
+          fallback: IconButton(
+            tooltip: 'Profile',
+            onPressed: () => context.go(SettloRoutes.profile),
+            style: IconButton.styleFrom(
+              fixedSize: const Size.square(SettloHomeMetrics.headerControl),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              backgroundColor: SettloColors.dark.surfaceRaised,
+              side: BorderSide(color: c.hairline),
+            ),
+            icon: Text(
+              initial,
+              textScaler: MediaQuery.textScalerOf(context)
+                  .clamp(maxScaleFactor: 1.3),
+              style: SettloTypography.headline(color: Colors.white),
+            ),
           ),
         ),
       ],

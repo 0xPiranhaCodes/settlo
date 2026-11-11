@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 
+/// The mark's asset in package `settlo_core` for [brightness].
+String settloMarkAsset(Brightness brightness) =>
+    'assets/brand/settlo_mark_${brightness == Brightness.dark ? 'dark' : 'light'}.png';
+
 /// The owner-supplied Settlo S-mark.
 ///
-/// In the app the mark is monochrome: ink on the light theme and white on the
-/// dark theme. The gold mark is for marketing only (site, social card, store).
+/// In the app the mark is the owner's glossy artwork, used as supplied: black
+/// on the light theme and white on the dark theme (#191). The gold mark is for
+/// marketing only (site, social card, store).
 class SettloMark extends StatelessWidget {
   /// Creates a Settlo mark with an optional screen-reader [semanticsLabel].
   ///
@@ -21,13 +26,11 @@ class SettloMark extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = SettloColors.of(context).textPrimary;
     final image = Image.asset(
-      'assets/brand/settlo_mark.png',
+      settloMarkAsset(Theme.of(context).brightness),
       package: 'settlo_core',
       width: size,
       height: size,
       fit: BoxFit.contain,
-      color: color,
-      colorBlendMode: BlendMode.srcIn,
       filterQuality: FilterQuality.high,
       excludeFromSemantics: true,
       errorBuilder: (context, error, stackTrace) => SizedBox.square(

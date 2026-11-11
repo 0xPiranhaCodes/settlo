@@ -180,9 +180,8 @@ void main() {
       late BuildContext context;
       await tester.pumpWidget(
         MediaQuery(
-          data: MediaQueryData.fromView(
-            tester.view,
-          ).copyWith(disableAnimations: true),
+          data: MediaQueryData.fromView(tester.view)
+              .copyWith(disableAnimations: true),
           child: MaterialApp(
             theme: SettloTheme.dark().copyWith(platform: TargetPlatform.iOS),
             home: Builder(

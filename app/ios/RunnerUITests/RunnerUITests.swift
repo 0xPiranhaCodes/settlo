@@ -157,6 +157,25 @@ final class RunnerUITests: XCTestCase {
     wait(for: [expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: title)], timeout: 5)
   }
 
+  /// Home's glass bell and avatar are UIKit buttons on iOS 26 (#191): each
+  /// is a labelled 44pt button that opens its screen.
+  func testHeaderGlassButtonsOpenTheirScreens() {
+    for (label, title) in [("Notifications", "Activity"), ("Profile", "You")] {
+      let (app, bar) = launch()
+      dismissPrompt(app)
+      let button = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", label)).firstMatch
+      XCTAssertTrue(button.waitForExistence(timeout: 10), label)
+      XCTAssertGreaterThanOrEqual(button.frame.width, 44, label)
+      XCTAssertGreaterThanOrEqual(button.frame.height, 44, label)
+      button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+      dismissPrompt(app)  // Profile asks about reminders on a fresh install.
+      // Activity is a tab, so the bar moving proves the screen opened.
+      XCTAssertTrue(
+        title == "Activity" ? becomes(title, bar) : app.staticTexts[title].waitForExistence(timeout: 10),
+        label)
+    }
+  }
+
   func testProfileLastRowClearsTheBar() {
     let (app, bar) = launch()
     _ = open("Profile", app, bar)

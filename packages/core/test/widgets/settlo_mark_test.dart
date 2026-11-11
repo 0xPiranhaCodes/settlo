@@ -13,32 +13,32 @@ Future<void> _pump(
   ),
 );
 
+/// The artwork used as supplied, untinted (#191).
+String _asset(WidgetTester tester) =>
+    (tester.widget<Image>(find.byType(Image)).image as AssetImage).assetName;
+
 void main() {
-  testWidgets('announces Settlo and is white on the dark theme', (
+  testWidgets('announces Settlo and is the white artwork on the dark theme', (
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
     await _pump(tester, theme: SettloTheme.dark());
 
     expect(find.bySemanticsLabel('Settlo'), findsOneWidget);
-    expect(
-      tester.widget<Image>(find.byType(Image)).color,
-      SettloColors.dark.textPrimary,
-    );
+    expect(_asset(tester), 'assets/brand/settlo_mark_dark.png');
+    expect(tester.widget<Image>(find.byType(Image)).color, isNull);
     semantics.dispose();
   });
 
-  testWidgets('can be decorative and is ink on the light theme', (
+  testWidgets('can be decorative and is the black artwork on the light theme', (
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
     await _pump(tester, theme: SettloTheme.light(), semanticsLabel: null);
 
     expect(find.bySemanticsLabel('Settlo'), findsNothing);
-    expect(
-      tester.widget<Image>(find.byType(Image)).color,
-      SettloColors.light.textPrimary,
-    );
+    expect(_asset(tester), 'assets/brand/settlo_mark_light.png');
+    expect(tester.widget<Image>(find.byType(Image)).color, isNull);
     semantics.dispose();
   });
 

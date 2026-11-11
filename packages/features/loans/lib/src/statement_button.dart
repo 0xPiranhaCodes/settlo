@@ -64,21 +64,28 @@ class _StatementButtonState extends ConsumerState<StatementButton> {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return IconButton(
-      tooltip: 'Download statement',
+    return GlassAction(
+      label: 'Download statement',
+      symbol: 'arrow.down.to.line',
       onPressed: _busy ? null : _share,
-      style: IconButton.styleFrom(
-        fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        backgroundColor: c.surface,
-        disabledBackgroundColor: c.surface,
-        side: BorderSide(color: c.hairline),
-      ),
-      icon: LoanGlyph(
-        LoanGlyph.download,
-        color: _busy ? c.textMuted : c.textPrimary,
-      ),
+      fallback: _fallback(c),
     );
   }
+
+  Widget _fallback(SettloColors c) => IconButton(
+    tooltip: 'Download statement',
+    onPressed: _busy ? null : _share,
+    style: IconButton.styleFrom(
+      fixedSize: const Size.square(SettloSpacing.minTouchTarget),
+      minimumSize: Size.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      backgroundColor: c.surface,
+      disabledBackgroundColor: c.surface,
+      side: BorderSide(color: c.hairline),
+    ),
+    icon: LoanGlyph(
+      LoanGlyph.download,
+      color: _busy ? c.textMuted : c.textPrimary,
+    ),
+  );
 }

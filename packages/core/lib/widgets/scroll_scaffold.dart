@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
+import 'package:settlo_core/widgets/glass_action.dart';
 import 'package:settlo_core/widgets/glass_tab_bar.dart';
 
 /// Native scrolling and keyboard dismissal for every application scroll view.
@@ -190,6 +192,8 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
   Widget _largeTitleBar(BuildContext context, String title) {
     final c = SettloColors.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
+    // iOS 26 has no tinted band or hairline under the bar (#191).
+    final glass = liquidGlass(context);
     return CupertinoTheme(
       // Settlo tokens, never system blue: the chevron and bar items are
       // primary text, and the titles stay on Figtree's HIG ramp.
@@ -211,10 +215,14 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
         trailing: widget.trailing,
         backgroundColor: MediaQuery.highContrastOf(context)
             ? c.surface
+            : glass
+            ? c.background.withValues(alpha: _softEdgeAlpha)
             : c.glass.withValues(alpha: SettloElevation.glassTint),
-        border: Border(
-          bottom: BorderSide(color: SettloElevation.border(dark: dark)),
-        ),
+        border: glass
+            ? null
+            : Border(
+                bottom: BorderSide(color: SettloElevation.border(dark: dark)),
+              ),
       ),
     );
   }
@@ -259,6 +267,7 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
             delegate: _NavigationHeader(
               top: top,
               forceSolid: _budget.exceeded,
+              glass: liquidGlass(context),
               expandedHeight: widget.expandedHeight,
               title: widget.title,
               expanded: header,
@@ -312,6 +321,7 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
   new({
     required this.top,
     required this.forceSolid,
+    required this.glass,
     required this.expandedHeight,
     required this.title,
     required this.expanded,
@@ -319,6 +329,9 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
   });
   final double top;
   final bool forceSolid;
+
+  /// iOS 26: a soft scroll edge instead of the band, strip and plate.
+  final bool glass;
   final double expandedHeight;
   final String title;
   final Widget expanded;
@@ -344,7 +357,16 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (scrolled)
+          if (scrolled && glass)
+            _SoftEdge(
+              // Fades in over the first 16pt of scroll, so it never pops.
+              strength: overlapsContent
+                  ? 1
+                  : (shrinkOffset / 16).clamp(0.0, 1.0),
+              color: solid ? c.surface : c.background,
+              blur: !solid,
+            )
+          else if (scrolled)
             BackdropFilter(
               enabled: !solid,
               filter: SettloElevation.glassFilter,
@@ -362,13 +384,14 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
                 ),
               ),
             ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: top,
-            child: ColoredBox(color: c.background),
-          ),
+          if (!glass)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: top,
+              child: ColoredBox(color: c.background),
+            ),
           Positioned(
             left: 20,
             right: 20,
@@ -377,7 +400,7 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
             child: Center(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: scrolled
+                  color: scrolled && !glass
                       ? c.surface.withValues(
                           alpha: SettloElevation.glassLegibility,
                         )
@@ -404,6 +427,43 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(_NavigationHeader oldDelegate) => true;
+}
+
+/// The page colour behind the bar's title on iOS 26.
+const _softEdgeAlpha = 0.86;
+
+/// iOS 26's soft scroll edge (#191): the page colour and a blur, strongest
+/// under the status bar and fading out downwards, with no band, plate or
+/// hairline. [strength] scales the whole edge from none to full.
+class _SoftEdge extends StatelessWidget {
+  const new({required this.strength, required this.color, required this.blur});
+
+  final double strength;
+  final Color color;
+  final bool blur;
+
+  @override
+  Widget build(BuildContext context) => ShaderMask(
+    key: const ValueKey('scroll-navigation-soft-edge'),
+    blendMode: BlendMode.dstIn,
+    shaderCallback: (rect) => LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        Colors.black.withValues(alpha: strength),
+        Colors.black.withValues(alpha: strength * 0.9),
+        Colors.transparent,
+      ],
+      stops: const [0, 0.6, 1],
+    ).createShader(rect),
+    child: BackdropFilter(
+      enabled: blur,
+      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+      child: ColoredBox(
+        color: blur ? color.withValues(alpha: _softEdgeAlpha) : color,
+      ),
+    ),
+  );
 }
 
 /// Header layout shared by tab titles and their persistent trailing actions.

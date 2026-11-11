@@ -345,6 +345,21 @@ void main() {
       });
     }
 
+    testWidgets('the S mark is the header title; no wordmark (#191)', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await _pump(tester, FakeHomeRepository(homeMain));
+      expect(find.text('SETTLO'), findsNothing);
+      expect(find.byType(SettloMark), findsOneWidget);
+      expect(find.byType(UiKitView), findsNothing);
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('Settlo')),
+        matchesSemantics(label: 'Settlo', isHeader: true),
+      );
+      semantics.dispose();
+    });
+
     testWidgets('pending repayment opens its confirmation receipt', (
       tester,
     ) async {

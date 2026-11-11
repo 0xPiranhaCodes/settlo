@@ -31,6 +31,7 @@ export 'widgets/buttons.dart';
 export 'widgets/chips.dart';
 export 'widgets/confirm.dart';
 export 'widgets/controls.dart';
+export 'widgets/glass_action.dart';
 export 'widgets/glass_tab_bar.dart';
 export 'widgets/money_text.dart';
 export 'widgets/notice.dart';
