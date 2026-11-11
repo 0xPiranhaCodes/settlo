@@ -10,31 +10,42 @@ Future<bool?> showSettloActionSheet({
   required String cancel,
   String? title,
   String? message,
+}) => showSettloPopup<bool>(
+  context: context,
+  builder: (context) => _Tinted(
+    child: CupertinoActionSheet(
+      title: title == null ? null : Text(title),
+      message: message == null ? null : Text(message),
+      actions: [
+        CupertinoActionSheetAction(
+          isDestructiveAction: true,
+          onPressed: () => _answer(context, true),
+          child: Text(destructive),
+        ),
+      ],
+      cancelButton: CupertinoActionSheetAction(
+        isDefaultAction: true,
+        onPressed: () => _answer(context, false),
+        child: Text(cancel),
+      ),
+    ),
+  ),
+);
+
+/// Shows [builder] from the bottom of the screen, as
+/// [showCupertinoModalPopup] does: action sheets and pickers. Under Reduce
+/// Motion it appears in place.
+Future<T?> showSettloPopup<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
 }) => Navigator.of(context, rootNavigator: true).push(
-  _Popup<bool>(
+  _Popup<T>(
     barrierColor: CupertinoDynamicColor.resolve(
       kCupertinoModalBarrierColor,
       context,
     ),
     reduced: MediaQuery.disableAnimationsOf(context),
-    builder: (context) => _Tinted(
-      child: CupertinoActionSheet(
-        title: title == null ? null : Text(title),
-        message: message == null ? null : Text(message),
-        actions: [
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            onPressed: () => _answer(context, true),
-            child: Text(destructive),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          isDefaultAction: true,
-          onPressed: () => _answer(context, false),
-          child: Text(cancel),
-        ),
-      ),
-    ),
+    builder: builder,
   ),
 );
 

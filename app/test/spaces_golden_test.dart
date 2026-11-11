@@ -88,55 +88,55 @@ void main() {
     }
   }
 
-  // #158: on iOS the space has the native large-title navigation bar.
-  for (final device in SettloGoldenDevices.all) {
-    for (final themeName in ['dark', 'light']) {
-      testWidgets('${device.name} $themeName spaces expenses iOS golden', (
-        tester,
-      ) async {
-        final theme = themeName == 'dark'
-            ? SettloTheme.dark()
-            : SettloTheme.light();
-        // The iOS shell's tab bar is a native platform view (#160): accept
-        // it and its updates. It draws nothing in a widget test.
-        final messenger = tester.binding.defaultBinaryMessenger;
-        messenger.setMockMethodCallHandler(SystemChannels.platform_views, (
-          call,
-        ) async {
-          if (call.method == 'create') {
-            final id = (call.arguments as Map<Object?, Object?>)['id']! as int;
+  // #158: on iOS the space has the native large-title navigation bar, and
+  // the list a search field and a plain + bar button.
+  for (final (name, screen) in [
+    ('spaces_expenses_ios', SpaceExpensesScreen(spaceId: spacesList.first.id)),
+    ('spaces_list_ios', const SpacesListScreen()),
+  ]) {
+    for (final device in SettloGoldenDevices.all) {
+      for (final themeName in ['dark', 'light']) {
+        testWidgets('${device.name} $themeName $name golden', (tester) async {
+          final theme = themeName == 'dark'
+              ? SettloTheme.dark()
+              : SettloTheme.light();
+          // The iOS shell's tab bar is a native platform view (#160): accept
+          // it and its updates. It draws nothing in a widget test.
+          final messenger = tester.binding.defaultBinaryMessenger;
+          messenger.setMockMethodCallHandler(SystemChannels.platform_views, (
+            call,
+          ) async {
+            if (call.method == 'create') {
+              final id =
+                  (call.arguments as Map<Object?, Object?>)['id']! as int;
+              messenger.setMockMethodCallHandler(
+                MethodChannel(nativeTabBarChannel(id)),
+                (_) async => null,
+              );
+            }
+            return null;
+          });
+          addTearDown(() async {
+            // Unmount first: the view is disposed through the same channel.
+            await tester.pumpWidget(const SizedBox());
             messenger.setMockMethodCallHandler(
-              MethodChannel(nativeTabBarChannel(id)),
-              (_) async => null,
+              SystemChannels.platform_views,
+              null,
             );
-          }
-          return null;
-        });
-        addTearDown(() async {
-          // Unmount first: the view is disposed through the same channel.
-          await tester.pumpWidget(const SizedBox());
-          messenger.setMockMethodCallHandler(
-            SystemChannels.platform_views,
-            null,
+          });
+          await pumpSettloGolden(
+            tester,
+            device: device,
+            theme: theme.copyWith(platform: TargetPlatform.iOS),
+            child: await spacesInShell(spacesList, screen),
+          );
+
+          await expectLater(
+            find.byKey(settloGoldenSurfaceKey),
+            matchesGoldenFile('goldens/${name}_${device.name}_$themeName.png'),
           );
         });
-        await pumpSettloGolden(
-          tester,
-          device: device,
-          theme: theme.copyWith(platform: TargetPlatform.iOS),
-          child: await spacesInShell(
-            spacesList,
-            SpaceExpensesScreen(spaceId: spacesList.first.id),
-          ),
-        );
-
-        await expectLater(
-          find.byKey(settloGoldenSurfaceKey),
-          matchesGoldenFile(
-            'goldens/spaces_expenses_ios_${device.name}_$themeName.png',
-          ),
-        );
-      });
+      }
     }
   }
 

@@ -78,7 +78,7 @@ class ProfileScreen extends ConsumerWidget {
             ] else
               const Padding(
                 padding: EdgeInsets.only(top: 120),
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(child: CircularProgressIndicator.adaptive()),
               ),
           ],
         ),

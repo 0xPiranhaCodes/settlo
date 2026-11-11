@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,13 +29,18 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
   /// The chosen filter chip; null is All.
   SpaceKind? _filter;
 
+  /// iOS search by name; empty shows every space.
+  String _query = '';
+
   @override
   Widget build(BuildContext context) {
     final spaces = ref.watch(spacesProvider);
     final all = spaces.value;
     final shown = [
       for (final s in all ?? const <SpaceSummary>[])
-        if (_filter == null || s.kind == _filter) s,
+        if ((_filter == null || s.kind == _filter) &&
+            searchMatches(_query, s.name))
+          s,
     ];
     final pending = [
       for (final s in shown)
@@ -43,6 +49,7 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
     ];
     final c = SettloColors.of(context);
     final media = MediaQuery.of(context);
+    final ios = Theme.of(context).platform == TargetPlatform.iOS;
     return Scaffold(
       body: DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0, height: 1.2),
@@ -58,26 +65,52 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
           children: [
             SettloNavigationHeader(
               title: 'Spaces',
-              trailing: IconButton(
-                tooltip: 'New space',
-                onPressed: () => showCreateSpaceSheet(context),
-                style: IconButton.styleFrom(
-                  fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  backgroundColor: c.surface,
-                  side: BorderSide(color: c.hairline),
-                ),
-                icon: SpacesIcon(
-                  SpacesGlyph.plus,
-                  color: c.textPrimary,
-                  size: 22,
-                ),
-              ),
+              // iOS: a plain bar button, as in Apple's lists.
+              trailing: ios
+                  ? Semantics(
+                      label: 'New space',
+                      button: true,
+                      excludeSemantics: true,
+                      child: CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size.square(
+                          SettloSpacing.minTouchTarget,
+                        ),
+                        onPressed: () => showCreateSpaceSheet(context),
+                        child: Icon(
+                          CupertinoIcons.add,
+                          color: c.textPrimary,
+                          size: 28,
+                        ),
+                      ),
+                    )
+                  : IconButton(
+                      tooltip: 'New space',
+                      onPressed: () => showCreateSpaceSheet(context),
+                      style: IconButton.styleFrom(
+                        fixedSize: const Size.square(
+                          SettloSpacing.minTouchTarget,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        backgroundColor: c.surface,
+                        side: BorderSide(color: c.hairline),
+                      ),
+                      icon: SpacesIcon(
+                        SpacesGlyph.plus,
+                        color: c.textPrimary,
+                        size: 22,
+                      ),
+                    ),
             ),
-            // Chips are 36 drawn inside a 44 target: 4 less above and
-            // below keeps the canvas's 24 and 18.
-            const SizedBox(height: SettloSpacing.x3),
+            if (ios) ...[
+              const SizedBox(height: SettloSpacing.x1),
+              SSearchField(onChanged: (q) => setState(() => _query = q)),
+              const SizedBox(height: SettloSpacing.x1),
+            ] else
+              // Chips are 36 drawn inside a 44 target: 4 less above and
+              // below keeps the canvas's 24 and 18.
+              const SizedBox(height: SettloSpacing.x3),
             Row(
               children: [
                 for (final (kind, label) in const [
@@ -104,6 +137,11 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
               )
             else if (all.isEmpty)
               const _NoSpaces()
+            else if (shown.isEmpty && _query.isNotEmpty)
+              Text(
+                'No space matches "$_query".',
+                style: SettloTypography.subheadline(color: c.textSecondary),
+              )
             else
               for (final (i, s) in shown.indexed) ...[
                 if (i > 0) const SizedBox(height: SettloSpacing.x2),
@@ -337,15 +375,11 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
         }),
       );
       if (!opened && mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Couldn't open WhatsApp")));
+        showSettloNotice(context, "Couldn't open WhatsApp");
       }
     } on Exception {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Couldn't create the invite")),
-        );
+        showSettloNotice(context, "Couldn't create the invite");
       }
     }
     if (mounted) setState(() => _busy = false);

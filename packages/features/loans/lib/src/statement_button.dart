@@ -54,11 +54,7 @@ class _StatementButtonState extends ConsumerState<StatementButton> {
       }, origin);
     } on Object {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("We couldn't make the statement. Try again."),
-          ),
-        );
+        showSettloNotice(context, "We couldn't make the statement. Try again.");
       }
     } finally {
       if (mounted) setState(() => _busy = false);

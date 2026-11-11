@@ -36,12 +36,11 @@ class RecordRepaymentSheet extends ConsumerStatefulWidget {
 class _RecordState extends ConsumerState<RecordRepaymentSheet> {
   final String _key = newIdempotencyKey();
   late final DateTime _today = ref.read(indiaTodayProvider);
-  late final _amount = TextEditingController(
-    text: switch (widget.loan.installment) {
-      final i? when i.value <= widget.loan.outstanding.value => _typed(i),
-      _ => '',
-    },
-  );
+  late final String _suggested = switch (widget.loan.installment) {
+    final i? when i.value <= widget.loan.outstanding.value => _typed(i),
+    _ => '',
+  };
+  late final _amount = TextEditingController(text: _suggested);
   final _reference = TextEditingController();
   DateTime? _paidOn;
   RepaymentMethod _method = RepaymentMethod.upi;
@@ -97,7 +96,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
+    final picked = await showSettloDatePicker(
       context: context,
       initialDate: _paidOn ?? _today,
       firstDate: DateUtils.dateOnly(widget.loan.startOn),
@@ -118,6 +117,12 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
     return SAmountSheet(
       title: 'Record repayment · $who',
       onClose: widget.onClose,
+      dirty:
+          _amount.text != _suggested ||
+          _reference.text.isNotEmpty ||
+          _paidOn != null ||
+          _method != RepaymentMethod.upi,
+      saving: _busy,
       amountLabel: loan.youLent ? '$who paid you' : 'You paid $who',
       amount: Builder(
         builder: (context) {

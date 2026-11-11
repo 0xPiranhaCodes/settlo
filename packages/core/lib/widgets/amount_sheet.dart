@@ -289,17 +289,29 @@ class _SAmountSheetState extends State<SAmountSheet> {
           dark: Theme.of(context).brightness == Brightness.dark,
         ),
       ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: radius),
-        child: SettloScrollScaffold(
-          key: const ValueKey('amount-sheet-scroll'),
-          title: title,
-          statusInset: 0,
-          expandedHeight: 108,
-          compactHeader: titleRow,
-          slivers: [SliverFillRemaining(hasScrollBody: false, child: content)],
-          children: [navigation],
-        ),
+      child: Column(
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: radius),
+              child: SettloScrollScaffold(
+                key: const ValueKey('amount-sheet-scroll'),
+                title: title,
+                statusInset: 0,
+                expandedHeight: 108,
+                compactHeader: titleRow,
+                slivers: [
+                  SliverFillRemaining(hasScrollBody: false, child: content),
+                ],
+                children: [navigation],
+              ),
+            ),
+          ),
+          // iOS's decimal keypad has no return key: a bar above it closes it.
+          if (Theme.of(context).platform == TargetPlatform.iOS &&
+              MediaQuery.viewInsetsOf(context).bottom > 0)
+            const _KeyboardDone(),
+        ],
       ),
     );
     return PopScope(
@@ -328,6 +340,39 @@ Future<T?> showSAmountSheet<T>({
     child: builder(context),
   ),
 );
+
+/// Done above the keyboard, as a keyboard toolbar would show it.
+class _KeyboardDone extends StatelessWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.surfaceRaised,
+        border: Border(top: BorderSide(color: c.hairline)),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: CupertinoButton(
+            key: const ValueKey('keyboard-done'),
+            onPressed: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: Text(
+              'Done',
+              style: SettloTypography.body(
+                weight: FontWeight.w600,
+                color: c.textPrimary,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// The canvas close icon: an X in a 24 box, stroke 1.6, round caps.
 class _CrossPainter extends CustomPainter {

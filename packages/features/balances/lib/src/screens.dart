@@ -1042,19 +1042,18 @@ class _ClaimRowState extends ConsumerState<_ClaimRow> {
     // Not state: a second tap in the same frame must see it.
     if (_busy) return;
     _busy = true;
-    final messenger = ScaffoldMessenger.of(context);
+    final root = Navigator.of(context, rootNavigator: true).context;
     try {
       await call(ref.read(homeProvider.notifier));
     } on SessionEnded {
       // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text(
-            "We couldn't save that. Check your connection and try again.",
-          ),
-        ),
-      );
+      if (root.mounted) {
+        showSettloNotice(
+          root,
+          "We couldn't save that. Check your connection and try again.",
+        );
+      }
     } finally {
       _busy = false;
     }
