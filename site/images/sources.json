@@ -1,5 +1,5 @@
 {
-  "commit": "889c59c8fc52dd11a4bbbd4b91af5a6da0566910",
+  "commit": "9428aac5de73136d76822975cd7264a0a6e9f2e6",
   "sources": {
     "home_main": {
       "path": "app/test/goldens/home_main_390x844_dark.png",
@@ -11,7 +11,7 @@
       "crop_rows": 662,
       "marketing": {
         "path": "build/marketing/home_main-phone.png",
-        "sha256": "8f346447884ab58c7ae2152ceca3edf258b4199eea9386c8b385e5e02eff1cda",
+        "sha256": "404c67cf3a6e0883b7bb5ca97fcbc1604b1bbfd302ce6ce0c4c8999664ef34f2",
         "size": [
           1290,
           2796
@@ -89,7 +89,7 @@
       "crop_rows": 754,
       "marketing": {
         "path": "build/marketing/spaces_balances-phone.png",
-        "sha256": "ac6b28945efed7a13b35ce2463a91ac4256bd6b3d91090fc2198e724d886eb41",
+        "sha256": "65c29d7d1d6e18d083157c706a7836d44237975a18f285ccb4c69eb1805ec87a",
         "size": [
           1290,
           2796

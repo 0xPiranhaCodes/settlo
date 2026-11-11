@@ -41,7 +41,11 @@ void main() {
         final theme = SettloTheme.dark();
         late Widget child;
         if (name == 'home_main') {
-          child = await homeInShell(homeMain);
+          child = await homeInShell(
+            homeMain,
+            // End the phone still at Loans; keep detail crops unchanged.
+            activityEntries: width == 430 ? [] : null,
+          );
         } else if (name == 'spaces_balances') {
           child = await spacesInShell(
             spacesList,
@@ -118,11 +122,30 @@ void main() {
           theme: theme,
         );
         if (width == 430 && name == 'home_main') {
-          // Keep the pending-repayment action above the floating bar too.
+          // Show the whole Loans card, including its progress indicator.
           tester
               .state<ScrollableState>(find.byType(Scrollable).first)
               .position
-              .jumpTo(24);
+              .jumpTo(72);
+          await tester.pump();
+          final card = find.ancestor(
+            of: find.text('LOANS'),
+            matching: find.byType(SCard),
+          );
+          expect(
+            tester.getRect(card).bottom,
+            lessThanOrEqualTo(
+              tester.getRect(find.byType(SGlassTabBar)).top - 16,
+            ),
+            reason: 'Leave a clean gap below the complete Home Loans card',
+          );
+        }
+        if (width == 430 && name == 'spaces_balances') {
+          // Include the category card in full instead of slicing its first row.
+          tester
+              .state<ScrollableState>(find.byType(Scrollable).first)
+              .position
+              .jumpTo(300);
           await tester.pump();
         }
         if (width == 430 && name == 'loans_detail') {
@@ -143,7 +166,7 @@ void main() {
           expect(button.top, greaterThanOrEqualTo(0));
         }
         if (width == 430) {
-          _expectControlsClearOfTabBar(tester, name);
+          _expectContentClearOfTabBar(tester, name, Size(width, height));
         }
         // Same logical geometry, rerasterised at 3x; no PNG enlargement.
         tester.view
@@ -176,12 +199,19 @@ void main() {
 }
 
 // Inspect geometry, not hitTestable(): an occluded control must still fail.
-void _expectControlsClearOfTabBar(WidgetTester tester, String name) {
+void _expectContentClearOfTabBar(WidgetTester tester, String name, Size size) {
   final bars = find.byType(SGlassTabBar);
   if (bars.evaluate().isEmpty) return;
   final bar = tester.getRect(bars);
+  // Reserve the full width from the glass top through the home indicator.
+  // Non-interactive labels/icons can otherwise peek around or below the bar.
+  final obscured = Rect.fromLTRB(0, bar.top, size.width, size.height);
   final controls = find.byWidgetPredicate(
     (widget) =>
+        widget is Text ||
+        widget is RichText ||
+        widget is Icon ||
+        widget is LinearProgressIndicator ||
         widget is ButtonStyleButton ||
         widget is IconButton ||
         (widget is InkWell && widget.onTap != null) ||
@@ -197,9 +227,9 @@ void _expectControlsClearOfTabBar(WidgetTester tester, String name) {
     if (inTabBar) continue;
     final rect = tester.getRect(find.byWidget(element.widget));
     expect(
-      rect.overlaps(bar),
+      rect.overlaps(obscured),
       isFalse,
-      reason: '$name: ${element.widget.runtimeType} $rect intersects $bar',
+      reason: '$name: ${element.widget.runtimeType} $rect intersects $obscured',
     );
   }
 }
