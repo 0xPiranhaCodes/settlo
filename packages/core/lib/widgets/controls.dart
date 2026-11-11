@@ -97,6 +97,13 @@ Future<DateTime?> showSettloDatePicker({
       minimumDate: firstDate,
       maximumDate: lastDate,
       onDateTimeChanged: (d) => onChanged(DateUtils.dateOnly(d)),
+      selectionOverlayBuilder:
+          (context, {required selectedIndex, required columnCount}) =>
+              _selectionOverlay(
+                context,
+                capStart: selectedIndex == 0,
+                capEnd: selectedIndex == columnCount - 1,
+              ),
     ),
   );
 }
@@ -117,8 +124,20 @@ Future<T?> showSettloPicker<T>({
       initialItem: values.indexOf(selected),
     ),
     onSelectedItemChanged: (i) => onChanged(values[i]),
+    selectionOverlay: _selectionOverlay(context),
     children: [for (final v in values) Center(child: Text(label(v)))],
   ),
+);
+
+/// The band behind the selected row: a Settlo surface, not system fill.
+Widget _selectionOverlay(
+  BuildContext context, {
+  bool capStart = true,
+  bool capEnd = true,
+}) => CupertinoPickerDefaultSelectionOverlay(
+  background: SettloColors.of(context).surfaceHighest,
+  capStartEdge: capStart,
+  capEndEdge: capEnd,
 );
 
 Future<T?> _showWheel<T>(

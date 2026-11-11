@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show CheckedState;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -148,6 +149,18 @@ void main() {
       expect(find.byType(CupertinoSearchTextField), findsOneWidget);
     });
 
+    testWidgets('iOS: VoiceOver can activate New space', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await _pump(tester, SettloRoutes.spaces, _ios);
+      tester.semantics.tap(find.semantics.byLabel('New space'));
+      await tester.pumpAndSettle();
+      expect(
+        ModalRoute.of(tester.element(find.text('New space').last)),
+        isA<CupertinoSheetRoute<void>>(),
+      );
+      semantics.dispose();
+    });
+
     testWidgets('iOS: an untouched Create space closes on Cancel', (
       tester,
     ) async {
@@ -229,6 +242,26 @@ void main() {
       );
     });
 
+    testWidgets('iOS: VoiceOver can toggle a split row and open the date', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await _pump(tester, location, _ios);
+      final checks = find.byIcon(CupertinoIcons.checkmark_alt);
+      final before = checks.evaluate().length;
+      final row = find.semantics.byPredicate(
+        (n) => n.flagsCollection.isChecked == CheckedState.isTrue,
+      );
+      tester.semantics.tap(row.first);
+      await tester.pumpAndSettle();
+      expect(checks.evaluate().length, before - 1);
+
+      tester.semantics.tap(find.semantics.byLabel(RegExp('Today')));
+      await tester.pumpAndSettle();
+      expect(find.byType(CupertinoDatePicker), findsOneWidget);
+      semantics.dispose();
+    });
+
     testWidgets('iOS: the date opens a Cupertino wheel', (tester) async {
       await _pump(tester, location, _ios);
       await _tap(tester, find.text('Today'));
@@ -283,6 +316,34 @@ void main() {
 
       await _tap(tester, _pressable('Starts'));
       expect(find.byType(CupertinoDatePicker), findsOneWidget);
+    });
+
+    testWidgets('iOS: VoiceOver can pick a direction and open both wheels', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await _pump(tester, SettloRoutes.newLoan, _ios);
+      tester.semantics.tap(find.semantics.byLabel('I borrowed'));
+      await tester.pumpAndSettle();
+      expect(find.text('FROM'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).first, '10000');
+      await tester.enterText(find.byType(TextField).at(3), '1000');
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(_pressable('Due day'));
+      await tester.pumpAndSettle();
+      tester.semantics.tap(find.semantics.byLabel(RegExp('Due day')));
+      await tester.pumpAndSettle();
+      expect(find.byType(CupertinoPicker), findsOneWidget);
+      tester.semantics.tap(find.semantics.byLabel('Done'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(_pressable('Starts'));
+      await tester.pumpAndSettle();
+      tester.semantics.tap(find.semantics.byLabel(RegExp('Starts')));
+      await tester.pumpAndSettle();
+      expect(find.byType(CupertinoDatePicker), findsOneWidget);
+      semantics.dispose();
     });
 
     testWidgets('Android: Material switch and dropdown stay', (tester) async {

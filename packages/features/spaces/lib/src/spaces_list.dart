@@ -71,6 +71,7 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
                       label: 'New space',
                       button: true,
                       excludeSemantics: true,
+                      onTap: () => showCreateSpaceSheet(context),
                       child: CupertinoButton(
                         padding: EdgeInsets.zero,
                         minimumSize: const Size.square(

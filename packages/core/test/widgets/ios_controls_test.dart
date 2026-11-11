@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsFlag;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -392,6 +394,137 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Discard changes?'), findsNothing);
       expect(find.text('Edit expense'), findsNothing);
+    });
+  });
+
+  group('wheel selection band', () {
+    for (final light in [false, true]) {
+      final colors = light ? SettloColors.light : SettloColors.dark;
+      final pickers = <String, Future<Object?> Function(BuildContext)>{
+        'date': (context) => showSettloDatePicker(
+          context: context,
+          initialDate: DateTime(2026, 11, 10),
+          firstDate: DateTime(2026),
+          lastDate: DateTime(2026, 11, 11),
+        ),
+        'value': (context) => showSettloPicker<int>(
+          context: context,
+          values: const [1, 2, 3],
+          selected: 2,
+          label: (d) => 'Day $d',
+        ),
+      };
+      for (final MapEntry(key: name, value: open) in pickers.entries) {
+        testWidgets('is a Settlo surface on the $name wheel, '
+            '${light ? 'light' : 'dark'}', (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: (light ? SettloTheme.light() : SettloTheme.dark())
+                  .copyWith(platform: _ios),
+              home: Scaffold(
+                body: Builder(
+                  builder: (context) => TextButton(
+                    onPressed: () => open(context),
+                    child: const Text('Open'),
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.tap(find.text('Open'));
+          await tester.pumpAndSettle();
+          final bands = tester
+              .widgetList<CupertinoPickerDefaultSelectionOverlay>(
+                find.byType(CupertinoPickerDefaultSelectionOverlay),
+              );
+          expect(bands, isNotEmpty);
+          for (final band in bands) {
+            expect(band.background, colors.surfaceHighest);
+          }
+        });
+      }
+    }
+  });
+
+  group('VoiceOver can activate', () {
+    testWidgets('a switch, a segment and the wheel Done', (tester) async {
+      final semantics = tester.ensureSemantics();
+      var on = false;
+      String? segment;
+      final answers = <Object?>[];
+      await tester.pumpWidget(
+        _app(
+          _ios,
+          Builder(
+            builder: (context) => Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                StatefulBuilder(
+                  builder: (context, setState) => SSwitch(
+                    value: on,
+                    onChanged: (v) => setState(() => on = v),
+                  ),
+                ),
+                SSegmentedControl<String>(
+                  segments: const [
+                    (value: 'equal', label: 'Equally'),
+                    (value: 'exact', label: 'Exact'),
+                  ],
+                  selected: 'equal',
+                  onChanged: (v) => segment = v,
+                ),
+                TextButton(
+                  onPressed: () async => answers.add(
+                    await showSettloPicker<int>(
+                      context: context,
+                      values: const [1, 2],
+                      selected: 2,
+                      label: (d) => 'Day $d',
+                    ),
+                  ),
+                  child: const Text('Open'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      tester.semantics.tap(
+        find.semantics.byFlag(SemanticsFlag.hasToggledState),
+      );
+      await tester.pumpAndSettle();
+      expect(on, isTrue);
+      tester.semantics.tap(find.semantics.byLabel('Exact'));
+      await tester.pumpAndSettle();
+      expect(segment, 'exact');
+      tester.semantics.tap(find.semantics.byLabel('Open'));
+      await tester.pumpAndSettle();
+      tester.semantics.tap(find.semantics.byLabel('Done'));
+      await tester.pumpAndSettle();
+      expect(answers, [2]);
+      semantics.dispose();
+    });
+
+    testWidgets('the notice banner, to dismiss it', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _app(
+          _ios,
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showSettloNotice(context, 'Saved'),
+              child: const Text('Notify'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Notify'));
+      await tester.pumpAndSettle();
+      tester.semantics.tap(find.semantics.byLabel('Saved'));
+      await tester.pump();
+      expect(find.text('Saved'), findsNothing);
+      await tester.pump(const Duration(seconds: 4));
+      semantics.dispose();
     });
   });
 }
