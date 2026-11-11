@@ -775,6 +775,8 @@ String _who(ActivityEntry e) => e.byYou ? 'You' : e.actor ?? 'Someone';
       _ => line('$who recorded a repayment'),
     },
     ActivityKind.loan => switch (e.action) {
+      ActivityAction.reminded => line('A gentle reminder to check your loan'),
+      ActivityAction.due => line('An instalment was due yesterday'),
       ActivityAction.closed => line('$loan is fully repaid'),
       _ => line('$who recorded a loan'),
     },

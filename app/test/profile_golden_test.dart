@@ -3,14 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/supabase/reminders.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_profile.dart';
+import 'support/fake_reminders.dart';
 
 Future<Widget> _profileInShell(ThemeMode mode) async {
   final container = ProviderContainer(
     overrides: [
+      reminderRepositoryProvider.overrideWithValue(FakeReminders()),
       profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
       themeModeRepositoryProvider.overrideWithValue(
         FakeThemeModeRepository(mode),

@@ -16,3 +16,4 @@ dependencies:
     path: ../../core
   settlo_platform:
     path: ../../platform
+  supabase_flutter: ^2.18.3

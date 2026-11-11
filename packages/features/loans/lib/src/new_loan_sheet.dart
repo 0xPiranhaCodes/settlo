@@ -103,6 +103,14 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
       final id = await ref
           .read(loansRepositoryProvider)
           .createLoan(loan, idempotencyKey: _key);
+      if (loan.installment != null && mounted) {
+        await showReminderPermission(
+          context,
+          ref,
+          ReminderPermissionTrigger.instalmentLoan,
+        );
+      }
+      if (!mounted) return;
       final token = await ref
           .read(invitesRepositoryProvider)
           .issueLoan(id, idempotencyKey: _inviteKey);

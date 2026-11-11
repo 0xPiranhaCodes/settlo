@@ -10,11 +10,10 @@ import 'package:settlo_profile/src/export_sheet.dart';
 import 'package:settlo_profile/src/glyphs.dart';
 import 'package:settlo_profile/src/profile_controller.dart';
 import 'package:settlo_profile/src/profile_repository.dart';
+import 'package:settlo_profile/src/reminder_toggle.dart';
 import 'package:settlo_profile/src/theme_mode.dart';
 
-final Uri _supportUri = Uri.parse(
-  'https://settlo.hellojosh.studio/support/',
-);
+final Uri _supportUri = Uri.parse('https://settlo.hellojosh.studio/support/');
 
 /// Profile and settings (canvas Profile, note n31).
 class ProfileScreen extends ConsumerWidget {
@@ -46,6 +45,8 @@ class ProfileScreen extends ConsumerWidget {
               _UpiCard(data),
               const SizedBox(height: SettloSpacing.x3),
               const _SectionLabel('Preferences'),
+              const SizedBox(height: SettloSpacing.x2),
+              const ReminderToggle(),
               const SizedBox(height: SettloSpacing.x2),
               const _QuietPreferences(),
               const SizedBox(height: 16),
@@ -216,11 +217,6 @@ class _QuietPreferences extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _SettingsCard(
     rows: [
-      const _SettingRowData(
-        ProfileGlyph.bell,
-        'Reminders',
-        'Gentle nudges before due dates',
-      ),
       const _SettingRowData(
         ProfileGlyph.person,
         'Contacts matching',

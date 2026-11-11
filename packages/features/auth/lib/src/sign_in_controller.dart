@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_auth/src/phone_number.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 
 /// Length of a Supabase SMS code.
 const otpLength = 6;
@@ -198,6 +199,7 @@ class SignInController extends Notifier<SignInState> {
     final sessionNotifier = pendingInvite == null
         ? null
         : ref.read(sessionProvider.notifier);
+    final reminder = ref.read(acceptedLoanReminderProvider.notifier);
     final country = state.country;
     state = state._next(busy: true);
     String? verifiedUserId;
@@ -208,9 +210,11 @@ class SignInController extends Notifier<SignInState> {
     if (error == null && pendingInvite != null) {
       final redeemingUserId = verifiedUserId;
       try {
-        await invites!.redeem(
-          pendingInvite.token,
-          idempotencyKey: pendingInvite.idempotencyKey,
+        await reminder.redeem(
+          () => invites!.redeem(
+            pendingInvite.token,
+            idempotencyKey: pendingInvite.idempotencyKey,
+          ),
         );
         if (_isAnotherUser(sessionNotifier!, redeemingUserId)) {
           return;

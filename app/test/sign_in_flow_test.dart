@@ -5,6 +5,7 @@ import 'package:settlo/main.dart';
 import 'package:settlo/router/router.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 
 import 'support/fake_home.dart';
 import 'support/fake_phone_auth.dart';
@@ -35,6 +36,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          reminderSyncProvider.overrideWith((ref) {}),
           sessionProvider.overrideWith(() => FakeSessionNotifier(null)),
           phoneAuthProvider.overrideWithValue(auth),
           homeRepositoryProvider.overrideWithValue(

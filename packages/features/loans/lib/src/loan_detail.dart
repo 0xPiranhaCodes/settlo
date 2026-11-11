@@ -8,6 +8,7 @@ import 'package:settlo_loans/src/glyphs.dart';
 import 'package:settlo_loans/src/loan_ring.dart';
 import 'package:settlo_loans/src/loans_provider.dart';
 import 'package:settlo_loans/src/record_repayment_sheet.dart';
+import 'package:settlo_loans/src/remind_button.dart';
 import 'package:settlo_loans/src/repayment_decision.dart';
 import 'package:settlo_loans/src/statement_button.dart';
 
@@ -81,6 +82,8 @@ class LoanDetailScreen extends ConsumerWidget {
               ),
               onPressed: () => showRecordRepaymentSheet(context, loan),
             ),
+            const SizedBox(height: SettloSpacing.x1),
+            RemindButton(loanId: loan.id),
           ],
           const SizedBox(height: SettloSpacing.x3),
           Wrap(

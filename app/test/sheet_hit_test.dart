@@ -7,6 +7,7 @@ import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/supabase/reminders.dart';
 import 'package:settlo_loans/settlo_loans.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
@@ -17,6 +18,7 @@ import 'support/fake_home.dart';
 import 'support/fake_loans.dart';
 import 'support/fake_phone_auth.dart';
 import 'support/fake_profile.dart';
+import 'support/fake_reminders.dart';
 import 'support/fake_session.dart';
 import 'support/fake_space_ledger.dart';
 import 'support/fake_spaces.dart';
@@ -79,6 +81,7 @@ Future<void> _pump(
         child: ProviderScope(
           overrides: [
             phoneAuthProvider.overrideWithValue(FakePhoneAuth()),
+            reminderRepositoryProvider.overrideWithValue(FakeReminders()),
             loansRepositoryProvider.overrideWithValue(
               FakeLoansRepository(loansList()),
             ),

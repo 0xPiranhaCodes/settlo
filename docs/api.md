@@ -849,3 +849,49 @@ writing even though the claim is no longer pending. A refused call rolls its key
 The two-argument `accept_claim(p_kind, p_id)` and `reject_claim(p_kind, p_id)` remain for
 `redeem_invite` and older clients. They are not idempotent: a retry after a lost response is refused
 with `42501`, so new callers must pass a key.
+
+## Reminders (#107)
+
+`remind_loan(p_loan_id uuid)` sends a polite reminder to the other accepted party of an
+open loan. Both parties must have accepted, the recipient must still have an account and
+have reminders enabled. Verified accepted parties only; strangers and pending claimants
+receive `42501`. Unavailable loans return `22023`. Opt-out silently suppresses delivery
+while consuming the same cooldown and returning the same deadline as a delivered nudge.
+
+The loan row serializes sends. One reminder per loan (both directions together) per 24
+hours; a retry within that window returns the existing `timestamptz` deadline without
+sending again or extending it. `loan_reminders.sent_at` and `sender_id` are readable only by accepted
+parties and cannot be written by clients. The button reloads them on opening Loan, distinguishing your sent nudge from one received.
+
+`set_reminders(p_enabled boolean)` persists the caller's preference. The caller may read
+only their own `reminder_preferences` row; a missing row means on. The preference controls
+manual and due-date nudges, and local scheduling. These time-sensitive actions are online
+repository calls, like profile settings; they are never queued to surprise someone later.
+
+Activity actions `reminded` and `due` have `recipient_id`. Direct table RLS and the feed's
+per-loan query both restrict them to that recipient, before pagination. The existing offline
+Activity mirror receives them on sync with the same cursor contract.
+
+A private daily cron runs at 03:30 UTC (09:00 Asia/Kolkata). On the day after each monthly
+instalment, confirmed principal is compared with cumulative scheduled principal (capped at
+the loan total). If short, the borrower receives one `due` Activity entry for that loan/date.
+Prepayment, closed loans, pending claims, deleted accounts and opt-out suppress delivery.
+The private date parameter exists for deterministic tests; clients cannot invoke the job.
+
+On iOS, native UserNotifications schedules at 09:00 Asia/Kolkata the day after an unpaid
+instalment. Resume, ledger sync and preference changes replace the pending schedule; logout
+clears it. Sync never requests permission: enabling Reminders in Profile shows an explanation
+and only Continue opens the iOS permission prompt. Notifications contain generic copy only. Local schedules use the last synced
+repayment state: payments or preference changes on another device cannot cancel an offline
+phone's pending notifications until it reconnects. Manual nudges arrive in Activity on sync
+and may then produce one local notification; there is no background remote delivery yet.
+Android remains buildable and the local notification channel is a no-op there for now.
+
+`SETTLO_REMOTE_REMINDERS` defaults to false. `RemoteReminderTransport` is an injectable
+registration boundary, deliberately uninstalled without an APNs/FCM delivery service and
+owner credentials. No Firebase/push SDK, token or credential is included. Enabling the flag
+alone does not enable push: a transport and server sender must be installed first.
+
+Space detail's existing Remind affordance is unchanged: a simplified space balance can
+span expenses and counterparties and is not a loan, so its recipient and rate-limit key
+need a separate model.
