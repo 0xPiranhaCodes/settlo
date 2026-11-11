@@ -84,7 +84,9 @@ final class GlassButton: NSObject, FlutterPlatformView {
     let decorative = args["decorative"] as? Bool ?? false
     button.isUserInteractionEnabled = !decorative
     // A decorative mark reads as the header it stands for, not a button.
-    button.accessibilityTraits = decorative ? .header : .button
+    // Setting traits replaces UIKit's own, so a disabled one says so.
+    button.accessibilityTraits =
+      decorative ? .header : button.isEnabled ? .button : [.button, .notEnabled]
     if let dark = args["dark"] as? Bool { host.overrideUserInterfaceStyle = dark ? .dark : .light }
     let count = args["badge"] as? String
     badge.text = count

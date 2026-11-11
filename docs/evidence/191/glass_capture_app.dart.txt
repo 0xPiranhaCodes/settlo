@@ -1,0 +1,58 @@
+// #191 capture app (local only): fakes, with THEME, ROUTE and UNREAD read
+// from Documents/capture.txt (`key=value` lines).
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:settlo/router/router.dart';
+import 'package:settlo_core/settlo_core.dart';
+
+import '../test/support/fake_home.dart';
+import '../test/support/fake_session.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final file = File(
+    '${(await getApplicationDocumentsDirectory()).path}/capture.txt',
+  );
+  final env = {
+    for (final line in file.existsSync() ? file.readAsLinesSync() : <String>[])
+      if (line.split('=') case [final k, final v]) k: v,
+  };
+  final scope = fakeSessionApp(
+    fakeSession,
+    themeMode: env['THEME'] == 'light' ? ThemeMode.light : ThemeMode.dark,
+    home: FakeHomeRepository(homeMain),
+    overrides: [
+      activityUnreadProvider.overrideWith(
+        (ref) async => int.parse(env['UNREAD'] ?? '0'),
+      ),
+    ],
+  ) as ProviderScope;
+  final container = ProviderContainer(overrides: scope.overrides);
+  runApp(UncontrolledProviderScope(container: container, child: scope.child));
+  // FRAMES=<seconds>: records every frame's build and raster time from 4s
+  // after launch for that long, then writes Documents/frames.txt.
+  if (env['FRAMES'] case final secs?) {
+    final frames = <String>[];
+    Future.delayed(const Duration(seconds: 4), () {
+      void cb(List<FrameTiming> t) => frames.addAll([
+        for (final f in t)
+          '${f.buildDuration.inMicroseconds},${f.rasterDuration.inMicroseconds},${f.totalSpan.inMicroseconds}',
+      ]);
+      SchedulerBinding.instance.addTimingsCallback(cb);
+      Future.delayed(Duration(seconds: int.parse(secs)), () {
+        SchedulerBinding.instance.removeTimingsCallback(cb);
+        File('${file.parent.path}/frames.txt').writeAsStringSync(frames.join('\n'));
+      });
+    });
+  }
+  final route = env['ROUTE'];
+  if (route != null) {
+    Future.delayed(const Duration(milliseconds: 800), () {
+      container.read(routerProvider).go(route);
+    });
+  }
+}
