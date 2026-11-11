@@ -122,22 +122,18 @@ final class RunnerUITests: XCTestCase {
     }
   }
 
-  /// A drag that starts on the bar selects nothing, as only a touch lifted on
-  /// an item does, and still scrolls what is under the bar. It starts at the
-  /// bar's centre, where Spaces and Loans overlap.
-  func testDragFromTheBarKeepsTheTab() {
+  /// A drag that starts on a tab and leaves the bar selects that tab, as a
+  /// native tab bar does (#188).
+  func testDragOffTheBarSelectsTheTab() {
     for screen in ["Home", "Profile"] {
       let (app, bar) = launch()
       if screen != "Home" { _ = open(screen, app, bar) }
       dismissPrompt(app)
-      let name = app.descendants(matching: .any)
-        .matching(NSPredicate(format: "label CONTAINS 'Add your name'")).firstMatch
-      let before = screen == "Profile" && name.waitForExistence(timeout: 10) ? name.frame.minY : nil
-      let start = bar.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-      start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -260)))
-      sleep(1)
-      XCTAssertEqual(selected(bar), ["Home"], screen)
-      if let before { XCTAssertTrue(!name.exists || name.frame.minY < before, "Profile scrolls") }
+      let start = bar.buttons["Activity"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+      start.press(
+        forDuration: 0.4, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -220)),
+        withVelocity: XCUIGestureVelocity(150), thenHoldForDuration: 0.3)
+      XCTAssertTrue(becomes("Activity", bar), screen)
     }
   }
 

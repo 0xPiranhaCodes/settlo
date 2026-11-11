@@ -28,11 +28,11 @@ final class NativeTabBarFactory: NSObject, FlutterPlatformViewFactory {
 /// sent as `tap`, and `update` sets what is selected.
 /// `height` reports the size UIKit wants, home indicator included.
 ///
-/// A touch selects the item it lifts on, decided here rather than by UIKit
-/// (#174). Near the home indicator UIKit holds a touch until the system
-/// gesture fails, so iOS 26's selection only starts once the finger is up and
-/// selects nothing: the lower band of every tab, labels included, was dead.
-/// And its selection lens selects on a drag that leaves the bar.
+/// UIKit's own selection always counts, drag-off included, as in a native
+/// tab bar. Near the home indicator UIKit holds a touch until the system
+/// gesture fails, so iOS 26 selects nothing there (#174); only then does the
+/// item under the lifted finger, found by its button's frame, count (#188).
+/// Each touch sends one `tap`.
 final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate,
   UIGestureRecognizerDelegate
 {
@@ -41,6 +41,9 @@ final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate,
   private let channel: FlutterMethodChannel
   private let finger = Finger()
   private var selected = 0
+  /// Whether a touch is on the bar, and the tab it has sent, if any.
+  private var touching = false
+  private var sent: Int?
 
   init(_ args: [String: Any], channel: FlutterMethodChannel) {
     self.channel = channel
@@ -59,8 +62,9 @@ final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate,
     bar.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     host.addSubview(bar)
     finger.delegate = self
+    finger.onBegin = { [weak self] in self?.began() }
     finger.onEnd = { [weak self] point in
-      // After UIKit's own selection for this touch, which is overruled.
+      // After UIKit's own selection for this touch, if it makes one.
       DispatchQueue.main.async { self?.lifted(at: point) }
     }
     bar.addGestureRecognizer(finger)
@@ -91,23 +95,44 @@ final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate,
     }
   }
 
-  /// Only selections without a touch, such as VoiceOver's.
-  func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-    if !finger.tracking { channel.invokeMethod("tap", arguments: item.tag) }
+  /// UIKit's own selection: a tap, a slide, a drag off the bar, or VoiceOver's.
+  func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) { send(item.tag) }
+
+  private func send(_ tag: Int) {
+    if touching {
+      guard sent == nil else { return }
+      sent = tag
+    }
+    channel.invokeMethod("tap", arguments: tag)
   }
 
-  private func lifted(at point: CGPoint?) {
-    finger.tracking = false
-    guard let items = bar.items, items.indices.contains(selected) else { return }
-    var view = point.flatMap { bar.hitTest($0, with: nil) }
-    while let found = view, found !== bar {
-      if let item = items.first(where: { $0.title == found.accessibilityLabel }) {
-        bar.selectedItem = item
-        return channel.invokeMethod("tap", arguments: item.tag)
-      }
-      view = found.superview
-    }
-    bar.selectedItem = items[selected]
+  func began() {
+    touching = true
+    sent = nil
+  }
+
+  /// A cancelled touch has no point and selects nothing, leaving UIKit's
+  /// selection, if any, in place.
+  func lifted(at point: CGPoint?) {
+    defer { touching = false }
+    guard sent == nil, let point, let tag = tag(at: point), let items = bar.items else { return }
+    bar.selectedItem = items[tag]
+    send(tag)
+  }
+
+  /// The item whose button is nearest across, anywhere on the bar, as the
+  /// band under the buttons belongs to them. Accessibility labels can't be
+  /// used: UIKit fills them only while VoiceOver or XCUITest runs (#188).
+  func tag(at point: CGPoint) -> Int? {
+    guard let count = bar.items?.count, bar.bounds.contains(point) else { return nil }
+    func all(_ view: UIView) -> [UIView] { view.subviews.flatMap { [$0] + all($0) } }
+    // iOS 26 draws each button twice (content and selection lens).
+    let centres = Set(
+      all(bar).compactMap { $0 is UIControl ? $0.convert($0.bounds, to: bar).midX.rounded() : nil }
+    ).sorted()
+    guard centres.count == count else { return nil }
+    let nearest = centres.indices.min { abs(centres[$0] - point.x) < abs(centres[$1] - point.x) }!
+    return bar.effectiveUserInterfaceLayoutDirection == .rightToLeft ? count - 1 - nearest : nearest
   }
 
   func gestureRecognizer(
@@ -117,11 +142,11 @@ final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate,
 
   /// Follows a touch on the bar to where it lifts, without recognizing.
   private final class Finger: UIGestureRecognizer {
-    var tracking = false
+    var onBegin: (() -> Void)?
     var onEnd: ((CGPoint?) -> Void)?
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
-      tracking = true
+      onBegin?()
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
