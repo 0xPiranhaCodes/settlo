@@ -18,7 +18,7 @@
         "outputs": [
           "home_main-phone.webp"
         ],
-        "density_note": "Single 390px composite for the maximum rendered width; no artificial 2x.",
+        "density_note": "Common physical device scale; rotated canvas expands without shrinking the phone.",
         "screen_crop_rows": null,
         "encoding": {
           "format": "WebP",
@@ -26,7 +26,8 @@
           "method": 6,
           "exact": true
         },
-        "uniform_frame_scale": 1.0563002680965148
+        "uniform_frame_scale": 1.0563002680965148,
+        "output_scale": 0.425764192139738
       }
     },
     "settle_pay": {
@@ -40,13 +41,13 @@
       "phone": {
         "angle_degrees": 3,
         "size_1x": [
-          390,
-          771
+          433,
+          857
         ],
         "outputs": [
           "settle_pay-phone.webp"
         ],
-        "density_note": "Single 390px composite for the maximum rendered width; no artificial 2x.",
+        "density_note": "Common physical device scale; rotated canvas expands without shrinking the phone.",
         "screen_crop_rows": null,
         "encoding": {
           "format": "WebP",
@@ -54,7 +55,8 @@
           "method": 6,
           "exact": true
         },
-        "uniform_frame_scale": 1.0563002680965148
+        "uniform_frame_scale": 1.0563002680965148,
+        "output_scale": 0.425764192139738
       }
     },
     "spaces_balances": {
@@ -68,13 +70,13 @@
       "phone": {
         "angle_degrees": -3,
         "size_1x": [
-          390,
-          771
+          433,
+          857
         ],
         "outputs": [
           "spaces_balances-phone.webp"
         ],
-        "density_note": "Single 390px composite for the maximum rendered width; no artificial 2x.",
+        "density_note": "Common physical device scale; rotated canvas expands without shrinking the phone.",
         "screen_crop_rows": null,
         "encoding": {
           "format": "WebP",
@@ -82,7 +84,8 @@
           "method": 6,
           "exact": true
         },
-        "uniform_frame_scale": 1.0563002680965148
+        "uniform_frame_scale": 1.0563002680965148,
+        "output_scale": 0.425764192139738
       }
     },
     "loans_detail": {
@@ -96,13 +99,13 @@
       "phone": {
         "angle_degrees": 3,
         "size_1x": [
-          390,
-          771
+          433,
+          857
         ],
         "outputs": [
           "loans_detail-phone.webp"
         ],
-        "density_note": "Single 390px composite for the maximum rendered width; no artificial 2x.",
+        "density_note": "Common physical device scale; rotated canvas expands without shrinking the phone.",
         "screen_crop_rows": null,
         "encoding": {
           "format": "WebP",
@@ -110,7 +113,8 @@
           "method": 6,
           "exact": true
         },
-        "uniform_frame_scale": 1.0563002680965148
+        "uniform_frame_scale": 1.0563002680965148,
+        "output_scale": 0.425764192139738
       }
     },
     "confirm_repayment": {
@@ -130,7 +134,7 @@
         "outputs": [
           "confirm_repayment-phone.webp"
         ],
-        "density_note": "Single 390px composite for the maximum rendered width; no artificial 2x.",
+        "density_note": "Common physical device scale; rotated canvas expands without shrinking the phone.",
         "screen_crop_rows": null,
         "encoding": {
           "format": "WebP",
@@ -138,7 +142,8 @@
           "method": 6,
           "exact": true
         },
-        "uniform_frame_scale": 1.0563002680965148
+        "uniform_frame_scale": 1.0563002680965148,
+        "output_scale": 0.425764192139738
       }
     }
   },

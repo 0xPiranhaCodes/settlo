@@ -1,0 +1,146 @@
+[
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "path": "",
+    "violations": []
+  },
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "violations": []
+  },
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "path": "support/",
+    "violations": []
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "",
+    "violations": []
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "violations": []
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "support/",
+    "violations": []
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "",
+    "violations": []
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "violations": []
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "support/",
+    "violations": []
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "",
+    "violations": []
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "violations": []
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "support/",
+    "violations": []
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "path": "",
+    "violations": []
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "violations": []
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "path": "support/",
+    "violations": []
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "",
+    "violations": []
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "violations": []
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "support/",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "support/",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "support/",
+    "violations": []
+  }
+]

@@ -1,0 +1,50 @@
+{
+  "runs": [
+    {
+      "run": 1,
+      "lighthouse_version": "13.6.0",
+      "fetch_time": "2026-11-11T05:17:53.460Z",
+      "performance": 100,
+      "accessibility": 100,
+      "lcp_ms": 1878.1946000000003,
+      "cls": 0,
+      "tbt_ms": 0
+    },
+    {
+      "run": 2,
+      "lighthouse_version": "13.6.0",
+      "fetch_time": "2026-11-11T05:18:19.931Z",
+      "performance": 100,
+      "accessibility": 100,
+      "lcp_ms": 1879.4250000000002,
+      "cls": 0,
+      "tbt_ms": 13
+    },
+    {
+      "run": 3,
+      "lighthouse_version": "13.6.0",
+      "fetch_time": "2026-11-11T05:18:54.657Z",
+      "performance": 100,
+      "accessibility": 100,
+      "lcp_ms": 1877.9855000000002,
+      "cls": 0,
+      "tbt_ms": 0
+    }
+  ],
+  "median_performance": 100,
+  "median_accessibility": 100,
+  "total_landing_image_bytes": 191080,
+  "images": {
+    "site/images/mark.png": 6344,
+    "site/images/home_main-phone.webp": 29022,
+    "site/images/confirm_repayment-phone.webp": 32406,
+    "site/images/spaces_balances-phone.webp": 42172,
+    "site/images/settle_pay-phone.webp": 38936,
+    "site/images/loans_detail-phone.webp": 42200
+  },
+  "site_sha256": {
+    "site/index.html": "ddd39c3ecf25a50c955c86e793f3d2065e84f48d3ca85a5228aa3842c9b4f5f2",
+    "site/site.css": "7e43b9ac1d385e72eb0dad7ae97dfa3c729a982dfdc434721787c002faa1c5cd",
+    "site/motion.js": "e68370f5e8a695c322b624b168bd28292a33f2d96ad3976a4a79e11a526dd875"
+  }
+}
