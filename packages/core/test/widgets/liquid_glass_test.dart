@@ -265,10 +265,10 @@ void main() {
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
       await tester.pumpAndSettle();
       expect(edge, findsOneWidget);
-      // From the top of the screen to 24pt below the 44pt collapsed bar.
+      // From the top of the screen to 32pt below the 44pt collapsed bar.
       final fade = tester.getRect(edge);
       expect(fade.top, 0);
-      expect(fade.bottom, 44 + 24);
+      expect(fade.bottom, 44 + 32);
       expect(find.text('Flat 402').hitTestable(), findsWidgets);
     });
 

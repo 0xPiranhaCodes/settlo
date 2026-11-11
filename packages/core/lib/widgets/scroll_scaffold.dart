@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -277,7 +276,7 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
                   1.0,
                 ),
                 color: SettloColors.of(context).background,
-                blur: true,
+                solid: false,
               ),
             ),
           ),
@@ -451,7 +450,7 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
             // Fades in over the first 16pt of scroll, so it never pops.
             strength: overlapsContent ? 1 : (shrinkOffset / 16).clamp(0.0, 1.0),
             color: solid ? c.surface : c.background,
-            blur: !solid,
+            solid: solid,
           ),
         ),
         bar,
@@ -463,24 +462,26 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(_NavigationHeader oldDelegate) => true;
 }
 
-/// The page colour's opacity at the top of the iOS 26 edge and at the bar's
-/// bottom. Light mode thins out towards the title row, as natively, so it
-/// reads as frosted glass rather than a grey band.
-(double, double) _softEdgeAlpha(Color page) =>
-    page.computeLuminance() > 0.5 ? (0.94, 0.78) : (0.86, 0.86);
-
 /// How far below the bar the iOS 26 edge fades out.
-const _softEdgeFade = 24.0;
+const _softEdgeFade = 32.0;
 
-/// iOS 26's soft scroll edge (#191): the page colour and a blur, strongest
-/// under the status bar and fading out downwards, with no band, plate or
-/// hairline. [strength] scales the whole edge from none to full.
+/// iOS 26's soft scroll edge (#191): a page-colour scrim, strongest under the
+/// status bar and easing out to nothing below the bar, with no band, plate or
+/// hairline. [strength] scales the whole edge from none to full. No blur:
+/// Impeller can't mask a BackdropFilter, so a clipped blur always ends on a
+/// visible line.
 class _SoftEdge extends StatelessWidget {
-  const new({required this.strength, required this.color, required this.blur});
+  const new({
+    required this.strength,
+    required this.color,
+    required this.solid,
+  });
 
   final double strength;
   final Color color;
-  final bool blur;
+
+  /// Opaque down to the bar's bottom, for high contrast and slow devices.
+  final bool solid;
 
   @override
   Widget build(BuildContext context) => strength == 0
@@ -490,51 +491,28 @@ class _SoftEdge extends StatelessWidget {
               _edge((box.maxHeight - _softEdgeFade) / box.maxHeight),
         );
 
-  /// Full down to [full] of the height, then fading out.
+  /// From `top` at the status bar to `bar` at [full] of the height, then
+  /// easing out to 0, so the fade has no visible start or end.
   Widget _edge(double full) {
-    final (top, bottom) = blur ? _softEdgeAlpha(color) : (1.0, 1.0);
-    return Stack(
+    final (top, bar) = solid ? (1.0, 1.0) : (0.94, 0.9);
+    final tail = [for (var i = 1; i <= 6; i++) i / 6];
+    return DecoratedBox(
       key: const ValueKey('scroll-navigation-soft-edge'),
-      fit: StackFit.expand,
-      children: [
-        // A progressive blur: each layer also blurs the ones before it, so
-        // the blur thins out down the fade with only small steps. No mask
-        // layer: Impeller drew nothing for a ShaderMask over a BackdropFilter.
-        if (blur)
-          for (final (end, sigma) in [
-            (1.0, 3.0),
-            ((1 + full) / 2, 6.0),
-            (full, 14.0),
-          ])
-            FractionallySizedBox(
-              alignment: Alignment.topCenter,
-              heightFactor: end,
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: sigma * strength,
-                    sigmaY: sigma * strength,
-                  ),
-                  child: const SizedBox.expand(),
-                ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            color.withValues(alpha: top * strength),
+            color.withValues(alpha: bar * strength),
+            for (final t in tail)
+              color.withValues(
+                alpha: bar * strength * (1 - Curves.easeInOut.transform(t)),
               ),
-            ),
-        // Strongest under the status bar, so the clock never sits on content.
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                color.withValues(alpha: top * strength),
-                color.withValues(alpha: bottom * strength),
-                color.withValues(alpha: 0),
-              ],
-              stops: [0, full, 1],
-            ),
-          ),
+          ],
+          stops: [0, full, for (final t in tail) full + (1 - full) * t],
         ),
-      ],
+      ),
     );
   }
 }
