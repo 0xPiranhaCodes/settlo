@@ -14,7 +14,7 @@ There was no iOS 17 runtime installed, so iOS 18.2 stands in for an earlier iOS.
 
 ## Review fixes (PR #160)
 
-Captured on 11 Nov 2026 on a dedicated iOS 26.1 iPhone 17 Pro simulator (`settlo-157`, deleted afterwards), with `glass_probe.dart`. The probe runs the real `SettloShell` and native bar over Settlo cards. For 10 seconds only the background is under the bar, then the "Goa trip" card scrolls under it and stays there.
+Captured on 11 Nov 2026 on a dedicated iOS 26.1 iPhone 17 Pro simulator (`settlo-157`, deleted afterwards), with `glass_probe.dart.txt`. The probe runs the real `SettloShell` and native bar over Settlo cards. For 10 seconds only the background is under the bar, then the "Goa trip" card scrolls under it and stays there.
 
 | File | What it shows |
 | --- | --- |
