@@ -5,6 +5,7 @@ import 'package:settlo_auth/src/phone_number.dart';
 import 'package:settlo_auth/src/sign_in_controller.dart';
 import 'package:settlo_auth/src/widgets.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 
 /// Placeholder for the Splash artboard.
 class SplashScreen extends StatelessWidget {
@@ -51,7 +52,11 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
     final invites = ref.read(invitesRepositoryProvider);
     if (mounted) setState(() => _error = null);
     try {
-      await invites.redeem(widget.token, idempotencyKey: _redeemKey);
+      await ref
+          .read(acceptedLoanReminderProvider.notifier)
+          .redeem(
+            () => invites.redeem(widget.token, idempotencyKey: _redeemKey),
+          );
       pendingInviteNotifier.clear();
       if (mounted) context.go(SettloRoutes.home);
     } on InviteException catch (error) {

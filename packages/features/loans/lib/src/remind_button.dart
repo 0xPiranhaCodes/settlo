@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_core/supabase/reminders.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// A server-limited nudge with explicit loading, cooldown and retry states.
@@ -62,6 +63,15 @@ class _RemindButtonState extends ConsumerState<RemindButton> {
     });
     final repository = ref.read(reminderRepositoryProvider);
     try {
+      await showReminderPermission(
+        context,
+        ref,
+        ReminderPermissionTrigger.remind,
+      );
+      if (!mounted ||
+          !identical(repository, ref.read(reminderRepositoryProvider))) {
+        return;
+      }
       await repository.remind(widget.loanId);
       final cooldown = await repository.nextAllowed(widget.loanId);
       if (!mounted ||

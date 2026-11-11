@@ -79,6 +79,9 @@ Widget fakeSessionApp(
       FakeSpaceLedgerRepository(),
     ),
     reminderRepositoryProvider.overrideWithValue(FakeReminders()),
+    acceptedLoanSnapshotProvider.overrideWithValue(
+      (loans ?? FakeLoansRepository(loansList())).load,
+    ),
     loansRepositoryProvider.overrideWithValue(
       loans ?? FakeLoansRepository(loansList()),
     ),

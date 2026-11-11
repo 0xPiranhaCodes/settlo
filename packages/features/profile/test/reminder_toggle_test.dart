@@ -50,39 +50,66 @@ Future<void> _pump(WidgetTester tester, _Repository repo) async {
 }
 
 void main() {
-  for (final accept in [false, true]) {
-    testWidgets(
-      'permission requires enabling and pre-prompt choice ($accept)',
-      (tester) async {
+  for (final status in ['notDetermined', 'denied', 'granted']) {
+    for (final accept in [false, true]) {
+      testWidgets('opening default-on reminders: $status, continue=$accept', (
+        tester,
+      ) async {
         const channel = MethodChannel('app.settlo/reminders');
         final calls = <String>[];
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, (call) async {
-              calls.add(call.method);
-              return call.method == 'permissionNeeded' ? true : null;
-            });
+        final seen = <String>{};
+        var permission = status;
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          channel,
+          (call) async {
+            calls.add(call.method);
+            if (call.method == 'permissionStatus') return permission;
+            if (call.method == 'claimPrompt') {
+              return seen.add(call.arguments as String);
+            }
+            if (call.method == 'requestPermission') permission = 'granted';
+            return null;
+          },
+        );
         addTearDown(
-          () => TestDefaultBinaryMessengerBinding
-              .instance
-              .defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, null),
+          () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            channel,
+            null,
+          ),
         );
         final repo = _Repository();
         await _pump(tester, repo);
-        expect(calls, isEmpty);
+        expect(
+          find.text('Get reminder notifications?'),
+          status == 'notDetermined' ? findsOneWidget : findsNothing,
+        );
+        if (status == 'notDetermined') {
+          await tester.tap(find.text(accept ? 'Continue' : 'Not now'));
+          await tester.pumpAndSettle();
+        }
+        expect(
+          calls.where((c) => c == 'requestPermission').length,
+          status == 'notDetermined' && accept ? 1 : 0,
+        );
+        if (status == 'denied') {
+          expect(
+            find.text('Notifications are off in iOS Settings.'),
+            findsOneWidget,
+          );
+          await tester.tap(find.text('Open Settings'));
+          await tester.pumpAndSettle();
+          expect(calls, contains('openSettings'));
+        }
+        await tester.pumpWidget(const SizedBox());
+        await _pump(tester, repo);
+        expect(find.text('Get reminder notifications?'), findsNothing);
         await tester.tap(find.byType(Switch));
         await tester.pumpAndSettle();
-        expect(calls, isEmpty);
         await tester.tap(find.byType(Switch));
         await tester.pumpAndSettle();
-        expect(find.text('Get reminder notifications?'), findsOneWidget);
-        expect(calls, ['permissionNeeded']);
-        await tester.tap(find.text(accept ? 'Continue' : 'Not now'));
-        await tester.pumpAndSettle();
-        expect(calls, ['permissionNeeded', if (accept) 'requestPermission']);
-        expect(repo.on, isTrue);
-      },
-    );
+        expect(find.text('Get reminder notifications?'), findsNothing);
+      });
+    }
   }
   testWidgets('one pending write, saved preference survives reopening', (
     tester,

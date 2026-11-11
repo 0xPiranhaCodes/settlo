@@ -13,6 +13,7 @@ import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_home.dart';
 import 'support/fake_loans.dart';
+import 'support/fake_notification_permission.dart';
 import 'support/fake_reminders.dart';
 import 'support/fake_session.dart';
 
@@ -102,6 +103,7 @@ Finder _said(String label) =>
     find.bySemanticsLabel(RegExp(RegExp.escape(label)));
 
 void main() {
+  setUp(() => FakeNotificationPermission('granted').install());
   test('India date crosses midnight independently of a UTC-8 device', () {
     final justAfterIstMidnight = DateTime.parse('2026-11-09T10:45:00-08:00');
 
@@ -471,6 +473,35 @@ void main() {
 
     Finder create() =>
         find.widgetWithText(FilledButton, 'Create loan and share');
+
+    for (final permission in ['notDetermined', 'denied', 'granted']) {
+      testWidgets('creating an instalment loan: $permission', (tester) async {
+        final native = FakeNotificationPermission(permission)..install();
+        final (:router, :loans) = await _pump(tester);
+        await _tap(tester, find.byTooltip('New loan'));
+        await fill(tester);
+        expect(native.requests, 0);
+        await _tap(tester, create());
+        if (permission == 'notDetermined') {
+          expect(find.text('Get reminder notifications?'), findsOneWidget);
+          expect(loans.created?.installment, isNotNull);
+          await _tap(tester, find.text('Continue'));
+        }
+        expect(native.requests, permission == 'notDetermined' ? 1 : 0);
+        expect(router.state.uri.path, startsWith('/loans/'));
+      });
+    }
+    testWidgets('flexible loan never asks for instalment permission', (
+      tester,
+    ) async {
+      final native = FakeNotificationPermission('notDetermined')..install();
+      await _pump(tester);
+      await _tap(tester, find.byTooltip('New loan'));
+      await fill(tester, installment: '');
+      await _tap(tester, create());
+      expect(native.seen, isEmpty);
+      expect(find.text('Get reminder notifications?'), findsNothing);
+    });
 
     testWidgets('the + opens it; it creates the loan, tells them on '
         'WhatsApp and lands on it', (tester) async {

@@ -107,12 +107,14 @@ List<RouteBase> _routes({required bool flatChrome}) => [
   ...loansRoutes,
   ...spacesRoutes,
   StatefulShellRoute.indexedStack(
-    builder: (_, _, shell) => SettloShell(
-      flatChrome: flatChrome,
-      currentIndex: shell.currentIndex,
-      onTabSelected: (i) =>
-          shell.goBranch(i, initialLocation: i == shell.currentIndex),
-      child: shell,
+    builder: (_, _, shell) => AcceptedLoanReminderPrompt(
+      child: SettloShell(
+        flatChrome: flatChrome,
+        currentIndex: shell.currentIndex,
+        onTabSelected: (i) =>
+            shell.goBranch(i, initialLocation: i == shell.currentIndex),
+        child: shell,
+      ),
     ),
     branches: [
       for (final route in [

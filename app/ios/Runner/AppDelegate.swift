@@ -30,17 +30,48 @@ enum ReminderChannel {
     }.suffix(500).map { $0 }
   }
 
+  static func claimPrompt(_ trigger: String, notDetermined: Bool,
+                          defaults: UserDefaults = .standard) -> Bool {
+    guard notDetermined, ["remind", "instalmentLoan", "profile"].contains(trigger) else { return false }
+    let key = "reminder.prompt." + trigger
+    guard !defaults.bool(forKey: "reminder.prompt.answered"),
+      !defaults.bool(forKey: key) else { return false }
+    defaults.set(true, forKey: key)
+    return true
+  }
+
   static func register(with messenger: FlutterBinaryMessenger) {
     FlutterMethodChannel(name: "app.settlo/reminders", binaryMessenger: messenger)
       .setMethodCallHandler { call, result in
-        if call.method == "permissionNeeded" || call.method == "requestPermission" {
+        if call.method == "openSettings" {
+          DispatchQueue.main.async {
+            guard let url = URL(string: UIApplication.openSettingsURLString) else {
+              return result(nil)
+            }
+            UIApplication.shared.open(url) { _ in result(nil) }
+          }
+          return
+        }
+        if ["permissionNeeded", "permissionStatus", "claimPrompt", "requestPermission"].contains(call.method) {
           Task { @MainActor in
             let centre = UNUserNotificationCenter.current()
+            let settings = await centre.notificationSettings()
+            let status = settings.authorizationStatus
             if call.method == "permissionNeeded" {
-              let settings = await centre.notificationSettings()
-              result(settings.authorizationStatus == .notDetermined)
+              result(status == .notDetermined)
+            } else if call.method == "permissionStatus" {
+              result(status == .notDetermined ? "notDetermined" : status == .denied ? "denied" : "granted")
+            } else if call.method == "claimPrompt" {
+              result(Self.claimPrompt(call.arguments as? String ?? "",
+                                      notDetermined: status == .notDetermined))
             } else {
-              _ = try? await centre.requestAuthorization(options: [.alert, .sound])
+              if status == .notDetermined {
+                _ = try? await centre.requestAuthorization(options: [.alert, .sound])
+              }
+              let answered = await centre.notificationSettings()
+              if answered.authorizationStatus != .notDetermined {
+                UserDefaults.standard.set(true, forKey: "reminder.prompt.answered")
+              }
               result(nil)
             }
           }

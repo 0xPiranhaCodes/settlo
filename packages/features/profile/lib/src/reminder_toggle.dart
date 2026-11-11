@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -16,6 +18,37 @@ class ReminderToggle extends ConsumerStatefulWidget {
 class _ReminderToggleState extends ConsumerState<ReminderToggle> {
   bool _busy = false;
   String? _error;
+  String? _permission;
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: () => unawaited(_status()));
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await showReminderPermission(
+        context,
+        ref,
+        ReminderPermissionTrigger.profile,
+      );
+      await _status();
+    });
+  }
+
+  Future<void> _status() async {
+    if (!mounted) return;
+    final status = await ref
+        .read(reminderNotificationsProvider)
+        .permissionStatus();
+    if (mounted) setState(() => _permission = status);
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
 
   Future<void> _save(bool enabled) async {
     if (_busy) return;
@@ -31,40 +64,12 @@ class _ReminderToggleState extends ConsumerState<ReminderToggle> {
         return;
       }
       if (enabled) {
-        final notifications = ref.read(reminderNotificationsProvider);
-        final needsPermission = await notifications.permissionNeeded();
-        if (!mounted ||
-            !identical(repository, ref.read(reminderRepositoryProvider))) {
-          return;
-        }
-        if (needsPermission) {
-          final allow = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Get reminder notifications?'),
-              content: const Text(
-                'Settlo can notify you about loan nudges '
-                'and missed instalments. '
-                'Names and amounts stay off your lock screen.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Not now'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Continue'),
-                ),
-              ],
-            ),
-          );
-          if (!mounted ||
-              !identical(repository, ref.read(reminderRepositoryProvider))) {
-            return;
-          }
-          if (allow ?? false) await notifications.requestPermission();
-        }
+        await showReminderPermission(
+          context,
+          ref,
+          ReminderPermissionTrigger.profile,
+        );
+        await _status();
       }
       if (!mounted ||
           !identical(repository, ref.read(reminderRepositoryProvider))) {
@@ -119,6 +124,14 @@ class _ReminderToggleState extends ConsumerState<ReminderToggle> {
               ),
             ],
           ),
+          if (_permission == 'denied') ...[
+            const Text('Notifications are off in iOS Settings.'),
+            TextButton(
+              onPressed: () =>
+                  ref.read(reminderNotificationsProvider).openSettings(),
+              child: const Text('Open Settings'),
+            ),
+          ],
           if (_error != null || enabled.hasError) ...[
             Text(
               _error ?? "Couldn't load reminders.",

@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_core/supabase/reminders.dart';
+import 'package:settlo_platform/src/reminder_permission.dart';
 
 /// Remote delivery remains off until an owner supplies a transport and
 /// credentials.
@@ -91,6 +92,54 @@ class ReminderNotifications {
 
   /// Called only after an explained, explicit user action.
   Future<void> requestPermission() => _call('requestPermission', null);
+
+  /// Current OS permission; unavailable platforms never prompt.
+  Future<String> permissionStatus() async =>
+      await _query<String>('permissionStatus') ?? 'unavailable';
+
+  /// Atomically persists this context before displaying its explanation.
+  Future<bool> claimPrompt(ReminderPermissionTrigger trigger) async =>
+      await _query<bool>('claimPrompt', trigger.name) ?? false;
+
+  Future<T?> _query<T>(String method, [Object? arguments]) async {
+    try {
+      return await channel.invokeMethod<T>(method, arguments);
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
+    }
+  }
+
+  /// Opens this app's OS settings after permission has been denied.
+  Future<void> openSettings() => _call('openSettings', null);
+
+  bool _prompting = false;
+
+  /// Serializes contextual prompts and never requests after a known answer.
+  Future<void> promptInContext(
+    ReminderPermissionTrigger trigger, {
+    required Future<bool> Function() enabled,
+    required Future<bool> Function() explain,
+    required bool Function() active,
+  }) async {
+    if (_prompting) return;
+    _prompting = true;
+    try {
+      if (!await enabled() || !active()) return;
+      if (await permissionStatus() != 'notDetermined' || !active()) return;
+      if (!await claimPrompt(trigger) || !active()) return;
+      if (!await explain() || !active()) return;
+      if (!await enabled() || !active()) return;
+      if (await permissionStatus() == 'notDetermined' && active()) {
+        await requestPermission();
+      }
+    } on Exception {
+      // Permission UX must never fail a loan operation or a preference save.
+    } finally {
+      _prompting = false;
+    }
+  }
 
   /// Changes ownership; the same user keeps native state across restarts.
   Future<void> setOwner(String? userId) {

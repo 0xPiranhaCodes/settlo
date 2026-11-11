@@ -13,9 +13,11 @@ import 'package:settlo_profile/src/reminder_toggle.dart';
 import 'package:settlo_test_support/golden.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'support/fake_notification_permission.dart';
 import 'support/fake_reminders.dart';
 
 void main() {
+  setUp(() => FakeNotificationPermission('granted').install());
   final capture = GlobalKey();
   Future<void> pump(
     WidgetTester tester,
@@ -53,6 +55,45 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  for (final permission in ['notDetermined', 'denied', 'granted']) {
+    testWidgets('first Remind tap requests in context: $permission', (
+      tester,
+    ) async {
+      final native = FakeNotificationPermission(permission)..install();
+      final repo = FakeReminders();
+      await pump(tester, repo, const RemindButton(loanId: 'loan'));
+      expect(native.calls, isEmpty);
+      await tester.tap(find.text('Remind'));
+      await tester.pumpAndSettle();
+      if (permission == 'notDetermined') {
+        expect(find.text('Get reminder notifications?'), findsOneWidget);
+        expect(repo.sends, 0);
+        await tester.tap(find.text('Continue'));
+        await tester.pumpAndSettle();
+      }
+      expect(repo.sends, 1);
+      expect(native.requests, permission == 'notDetermined' ? 1 : 0);
+    });
+  }
+  testWidgets('dismissing Remind explanation does not nag on another loan', (
+    tester,
+  ) async {
+    final native = FakeNotificationPermission('notDetermined')..install();
+    await pump(tester, FakeReminders(), const RemindButton(loanId: 'first'));
+    await tester.tap(find.text('Remind'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Not now'));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+    final repo = FakeReminders();
+    await pump(tester, repo, const RemindButton(loanId: 'second'));
+    await tester.tap(find.text('Remind'));
+    await tester.pumpAndSettle();
+    expect(find.text('Get reminder notifications?'), findsNothing);
+    expect(native.requests, 0);
+    expect(repo.sends, 1);
+  });
+
   Future<void> screenshot(String name) async {
     if (!const bool.fromEnvironment('REMINDER_EVIDENCE')) return;
     final boundary =
@@ -73,6 +114,7 @@ void main() {
     await tester.runAsync(() => screenshot('remind-enabled'));
     await tester.tap(find.text('Remind'));
     await tester.tap(find.text('Remind'));
+    await tester.pump();
     expect(repo.sends, 1);
     repo.held!.complete(DateTime.now().add(const Duration(hours: 24)));
     await tester.pumpAndSettle();

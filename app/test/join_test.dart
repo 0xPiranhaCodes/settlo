@@ -8,8 +8,11 @@ import 'package:settlo/main.dart';
 import 'package:settlo/router/router.dart';
 import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'support/fake_loans.dart';
+import 'support/fake_notification_permission.dart';
 import 'support/fake_phone_auth.dart';
 import 'support/fake_session.dart';
 
@@ -34,7 +37,9 @@ final _otherSession = Session(
 );
 
 final class _Invites implements InvitesRepository {
-  new({this.redeemCompleter, this.redeemFailure});
+  new({this.redeemCompleter, this.redeemFailure, this.onRedeem});
+
+  final void Function()? onRedeem;
 
   final Completer<void>? redeemCompleter;
   final InviteFailure? redeemFailure;
@@ -62,6 +67,7 @@ final class _Invites implements InvitesRepository {
     final completer = redeemCompleter;
     if (completer != null) await completer.future;
     if (redeemFailure case final failure?) throw InviteException(failure);
+    onRedeem?.call();
   }
 
   @override
@@ -187,6 +193,147 @@ Future<void> _signInFromWelcome(
 }
 
 void main() {
+  for (final scheduled in [false, true]) {
+    test('acceptance event only for new scheduled loan ($scheduled)', () async {
+      final loans = FakeLoansRepository(LoansData(today: DateTime(2026)));
+      final container = ProviderContainer(
+        overrides: [
+          acceptedLoanSnapshotProvider.overrideWithValue(loans.load),
+          sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(acceptedLoanReminderProvider), isNull);
+      await container.read(acceptedLoanReminderProvider.notifier).redeem(
+        () async {
+          loans.data = LoansData(
+            today: DateTime(2026),
+            loans: [if (scheduled) arjunLoan() else loansList().loans[1]],
+          );
+        },
+      );
+      expect(
+        container.read(acceptedLoanReminderProvider),
+        scheduled ? fakeSession.user.id : null,
+      );
+      container.read(acceptedLoanReminderProvider.notifier).clear();
+      await container
+          .read(acceptedLoanReminderProvider.notifier)
+          .redeem(() async {});
+      expect(container.read(acceptedLoanReminderProvider), isNull);
+    });
+  }
+  test(
+    'account switch during the pre-acceptance snapshot fences redemption',
+    () async {
+      final snapshot = Completer<LoansData>();
+      final container = ProviderContainer(
+        overrides: [
+          acceptedLoanSnapshotProvider.overrideWithValue(() => snapshot.future),
+          sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
+        ],
+      );
+      addTearDown(container.dispose);
+      var redeemed = false;
+      final pending = container
+          .read(acceptedLoanReminderProvider.notifier)
+          .redeem(() async {
+            redeemed = true;
+          });
+      (container.read(sessionProvider.notifier) as FakeSessionNotifier)
+          .signOut();
+      final assertion = expectLater(pending, throwsA(isA<SessionEnded>()));
+      snapshot.complete(LoansData(today: DateTime(2026)));
+      await assertion;
+      expect(redeemed, isFalse);
+      expect(container.read(acceptedLoanReminderProvider), isNull);
+    },
+  );
+  test('failed redemption and sign-out never publish acceptance', () async {
+    final loans = FakeLoansRepository(LoansData(today: DateTime(2026)));
+    final container = ProviderContainer(
+      overrides: [
+        acceptedLoanSnapshotProvider.overrideWithValue(loans.load),
+        sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
+      ],
+    );
+    addTearDown(container.dispose);
+    final notifier = container.read(acceptedLoanReminderProvider.notifier);
+    await expectLater(
+      notifier.redeem(() async => throw Exception('offline')),
+      throwsException,
+    );
+    expect(container.read(acceptedLoanReminderProvider), isNull);
+    await notifier.redeem(() async {
+      loans.data = LoansData(today: DateTime(2026), loans: [arjunLoan()]);
+      (container.read(sessionProvider.notifier) as FakeSessionNotifier)
+          .signOut();
+    });
+    expect(container.read(acceptedLoanReminderProvider), isNull);
+  });
+
+  for (final permission in ['notDetermined', 'denied', 'granted']) {
+    for (final signedIn in [false, true]) {
+      testWidgets(
+        'accepted instalment loan permission $permission signedIn=$signedIn',
+        (tester) async {
+          final native = FakeNotificationPermission(permission)..install();
+          final loans = FakeLoansRepository(LoansData(today: DateTime(2026)));
+          final invites = _Invites(
+            onRedeem: () {
+              loans.data = LoansData(
+                today: DateTime(2026),
+                loans: [arjunLoan()],
+              );
+            },
+          );
+          final auth = _SigningInAuth();
+          await tester.pumpWidget(
+            fakeSessionApp(
+              signedIn ? fakeSession : null,
+              loans: loans,
+              invites: invites,
+              overrides: [phoneAuthProvider.overrideWithValue(auth)],
+            ),
+          );
+          await tester.pumpAndSettle();
+          final container = ProviderScope.containerOf(
+            tester.element(find.byType(SettloApp)),
+          );
+          auth.session =
+              container.read(sessionProvider.notifier) as FakeSessionNotifier;
+          expect(native.requests, 0);
+          expect(find.text('Get reminder notifications?'), findsNothing);
+          container.read(routerProvider).go(SettloRoutes.join(_token));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Verify my number to see the ledger'));
+          await tester.pumpAndSettle();
+          if (!signedIn) {
+            await tester.enterText(
+              find.byKey(const ValueKey('phone-number')),
+              '9000000001',
+            );
+            await tester.tap(find.text('Send code'));
+            await tester.pumpAndSettle();
+            await tester.enterText(
+              find.byKey(const ValueKey('otp-code')),
+              '123456',
+            );
+            await tester.pumpAndSettle();
+          }
+          expect(invites.redeemCalls, 1);
+          if (permission == 'notDetermined') {
+            expect(find.text('Get reminder notifications?'), findsOneWidget);
+            await tester.tap(find.text('Continue'));
+            await tester.pumpAndSettle();
+          }
+          expect(native.requests, permission == 'notDetermined' ? 1 : 0);
+          expect(container.read(acceptedLoanReminderProvider), isNull);
+        },
+      );
+    }
+  }
+
   testWidgets('shows only Join trust copy before verification', (tester) async {
     await _pump(tester, _Invites(), signedIn: false);
 
