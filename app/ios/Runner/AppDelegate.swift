@@ -18,7 +18,14 @@ import UserNotifications
     LiveActivityChannel.register(
       with: engineBridge.pluginRegistry.registrar(forPlugin: "LiveActivityChannel")!.messenger())
     let tabBar = engineBridge.pluginRegistry.registrar(forPlugin: "NativeTabBar")!
-    tabBar.register(NativeTabBarFactory(messenger: tabBar.messenger()), withId: "app.settlo/tab_bar")
+    // Under the default eager policy, iOS 26's UITabBar never selected a tab
+    // even when Flutter's arena accepted the tap (#174, see flutter#175099).
+    // Hit testing decides instead: the bar gets a touch unless a Flutter
+    // widget, such as a dialog's barrier, covers it.
+    tabBar.register(
+      NativeTabBarFactory(messenger: tabBar.messenger()), withId: "app.settlo/tab_bar",
+      gestureRecognizersBlockingPolicy:
+        FlutterPlatformViewGestureRecognizersBlockingPolicyDoNotBlockGesture)
   }
 }
 

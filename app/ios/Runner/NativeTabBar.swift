@@ -27,10 +27,20 @@ final class NativeTabBarFactory: NSObject, FlutterPlatformViewFactory {
 /// item takes Settlo's tint. Flutter's router owns the selection: a tap is
 /// sent as `tap`, and `update` sets what is selected.
 /// `height` reports the size UIKit wants, home indicator included.
-final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate {
+///
+/// A touch selects the item it lifts on, decided here rather than by UIKit
+/// (#174). Near the home indicator UIKit holds a touch until the system
+/// gesture fails, so iOS 26's selection only starts once the finger is up and
+/// selects nothing: the lower band of every tab, labels included, was dead.
+/// And its selection lens selects on a drag that leaves the bar.
+final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate,
+  UIGestureRecognizerDelegate
+{
   let bar = UITabBar()
   private let host = Host()
   private let channel: FlutterMethodChannel
+  private let finger = Finger()
+  private var selected = 0
 
   init(_ args: [String: Any], channel: FlutterMethodChannel) {
     self.channel = channel
@@ -48,6 +58,12 @@ final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate {
     bar.frame = host.bounds
     bar.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     host.addSubview(bar)
+    finger.delegate = self
+    finger.onEnd = { [weak self] point in
+      // After UIKit's own selection for this touch, which is overruled.
+      DispatchQueue.main.async { self?.lifted(at: point) }
+    }
+    bar.addGestureRecognizer(finger)
     host.bar = bar
     host.onHeight = { [weak channel] height in channel?.invokeMethod("height", arguments: height) }
     apply(args)
@@ -62,6 +78,7 @@ final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate {
 
   private func apply(_ state: [String: Any]) {
     if let index = state["selected"] as? Int, let items = bar.items, items.indices.contains(index) {
+      selected = index
       bar.selectedItem = items[index]
     }
     // The app's theme can differ from the system's.
@@ -74,8 +91,48 @@ final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate {
     }
   }
 
+  /// Only selections without a touch, such as VoiceOver's.
   func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-    channel.invokeMethod("tap", arguments: item.tag)
+    if !finger.tracking { channel.invokeMethod("tap", arguments: item.tag) }
+  }
+
+  private func lifted(at point: CGPoint?) {
+    finger.tracking = false
+    guard let items = bar.items, items.indices.contains(selected) else { return }
+    var view = point.flatMap { bar.hitTest($0, with: nil) }
+    while let found = view, found !== bar {
+      if let item = items.first(where: { $0.title == found.accessibilityLabel }) {
+        bar.selectedItem = item
+        return channel.invokeMethod("tap", arguments: item.tag)
+      }
+      view = found.superview
+    }
+    bar.selectedItem = items[selected]
+  }
+
+  func gestureRecognizer(
+    _ recognizer: UIGestureRecognizer,
+    shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer
+  ) -> Bool { true }
+
+  /// Follows a touch on the bar to where it lifts, without recognizing.
+  private final class Finger: UIGestureRecognizer {
+    var tracking = false
+    var onEnd: ((CGPoint?) -> Void)?
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+      tracking = true
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+      onEnd?(touches.first?.location(in: view))
+      state = .failed
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+      onEnd?(nil)
+      state = .failed
+    }
   }
 
   /// Reports the bar's preferred height whenever layout or the safe area changes it.
