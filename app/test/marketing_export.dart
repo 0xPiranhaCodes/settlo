@@ -21,101 +21,269 @@ import 'support/fake_home.dart';
 import 'support/fake_loans.dart';
 import 'support/fake_reminders.dart';
 import 'support/fake_settle.dart';
+import 'support/fake_space_ledger.dart';
 import 'support/fake_spaces.dart';
 
 void main() {
-  for (final name in [
-    'home_main',
-    'settle_pay',
-    'spaces_balances',
-    'loans_detail',
-    'confirm_repayment',
-  ]) {
-    testWidgets('marketing 3x $name', (tester) async {
-      final theme = SettloTheme.dark();
-      late Widget child;
-      if (name == 'home_main') {
-        child = await homeInShell(homeMain);
-      } else if (name == 'spaces_balances') {
-        child = await spacesInShell(
-          spacesList,
-          SpaceScreen(spaceId: spacesList.first.id),
-        );
-      } else {
-        final container = ProviderContainer(
-          overrides: [
-            if (name == 'settle_pay') ...[
-              spacesRepositoryProvider.overrideWithValue(
-                FakeSpacesRepository(settleSpaces()),
-              ),
-              expensesRepositoryProvider.overrideWithValue(
-                FakeExpensesRepository(),
-              ),
-            ] else ...[
-              reminderRepositoryProvider.overrideWithValue(FakeReminders()),
-              loansRepositoryProvider.overrideWithValue(
-                FakeLoansRepository(loansList()),
-              ),
-            ],
-          ],
-        );
-        addTearDown(container.dispose);
-        if (name == 'settle_pay') {
-          container.listen(settleSpacesProvider, (_, _) {});
-          await container.read(settleSpacesProvider.future);
-          child = ColoredBox(
-            color: theme.scaffoldBackgroundColor,
-            child: const SettlePayScreen(spaceId: 's2', memberId: 'm5'),
+  // Preserve 390px detail crops; phones use the 430px iPhone display width.
+  for (final width in [390.0, 430.0]) {
+    final height = width == 430 ? 932.0 : 844.0;
+    final insets = width == 430
+        ? const EdgeInsets.only(top: 54, bottom: 34)
+        : EdgeInsets.zero;
+    for (final name in [
+      'home_main',
+      'settle_pay',
+      'spaces_balances',
+      'loans_detail',
+      'confirm_repayment',
+    ]) {
+      testWidgets('marketing 3x $name at $width', (tester) async {
+        final theme = SettloTheme.dark();
+        late Widget child;
+        if (name == 'home_main') {
+          child = await homeInShell(
+            width == 430
+                ? HomeData(
+                    phone: homeMain.phone,
+                    name: homeMain.name,
+                    month: homeMain.month,
+                    monthSpend: homeMain.monthSpend,
+                    spaces: [homeMain.spaces.first],
+                    loans: homeMain.loans,
+                  )
+                : homeMain,
+            // End the phone still at Loans; keep detail crops unchanged.
+            activityEntries: width == 430 ? [] : null,
+          );
+        } else if (name == 'spaces_balances') {
+          child = await spacesInShell(
+            spacesList,
+            SpaceScreen(spaceId: spacesList.first.id),
+            // Keep the complete fairness and settlement cards in the still.
+            ledgers: width == 430
+                ? {
+                    spacesList.first.id: SpaceLedger(
+                      today: flatLedger.today,
+                      expenses: flatLedger.expenses,
+                      fairness: flatLedger.fairness,
+                    ),
+                  }
+                : null,
           );
         } else {
-          container.listen(loansProvider, (_, _) {});
-          await container.read(loansProvider.future);
-          child = name == 'confirm_repayment'
-              ? const ConfirmRepaymentScreen(repaymentId: 'r3')
-              : SettloShell(
-                  currentIndex: 2,
-                  onTabSelected: (_) {},
-                  child: const LoanDetailScreen(loanId: 'l1'),
-                );
+          final container = ProviderContainer(
+            overrides: [
+              if (name == 'settle_pay') ...[
+                spacesRepositoryProvider.overrideWithValue(
+                  FakeSpacesRepository(settleSpaces()),
+                ),
+                expensesRepositoryProvider.overrideWithValue(
+                  FakeExpensesRepository(),
+                ),
+              ] else ...[
+                reminderRepositoryProvider.overrideWithValue(FakeReminders()),
+                loansRepositoryProvider.overrideWithValue(
+                  FakeLoansRepository(
+                    width == 430 && name == 'loans_detail'
+                        ? LoansData(
+                            today: loansList().today,
+                            yourName: loansList().yourName,
+                            loans: [
+                              // A still image ends at the pending repayment;
+                              // older history must not ghost under the glass.
+                              arjunLoan(
+                                repayments: arjunLoan().repayments
+                                    .where((repayment) => repayment.id == 'r3')
+                                    .toList(),
+                              ),
+                            ],
+                          )
+                        : loansList(),
+                  ),
+                ),
+              ],
+            ],
+          );
+          addTearDown(container.dispose);
+          if (name == 'settle_pay') {
+            container.listen(settleSpacesProvider, (_, _) {});
+            await container.read(settleSpacesProvider.future);
+            child = ColoredBox(
+              color: theme.scaffoldBackgroundColor,
+              child: const SettlePayScreen(spaceId: 's2', memberId: 'm5'),
+            );
+          } else {
+            container.listen(loansProvider, (_, _) {});
+            await container.read(loansProvider.future);
+            child = name == 'confirm_repayment'
+                ? const ConfirmRepaymentScreen(repaymentId: 'r3')
+                : SettloShell(
+                    currentIndex: 2,
+                    onTabSelected: (_) {},
+                    child: const LoanDetailScreen(loanId: 'l1'),
+                  );
+          }
+          child = UncontrolledProviderScope(container: container, child: child);
         }
-        child = UncontrolledProviderScope(container: container, child: child);
-      }
-      await pumpSettloGolden(
-        tester,
-        child: MediaQuery(
-          data: const MediaQueryData(
-            size: Size(390, 844),
-            devicePixelRatio: 3,
-            disableAnimations: true,
+        await pumpSettloGolden(
+          tester,
+          child: MediaQuery(
+            data: MediaQueryData(
+              size: Size(width, height),
+              devicePixelRatio: 3,
+              padding: insets,
+              viewPadding: insets,
+              disableAnimations: true,
+            ),
+            child: child,
           ),
-          child: child,
-        ),
-        device: SettloGoldenDevices.canvas390,
-        theme: theme,
-      );
-      // Same logical geometry, rerasterised at 3x; no PNG enlargement.
-      tester.view
-        ..physicalSize = const Size(1170, 2532)
-        ..devicePixelRatio = 3;
-      await tester.pump();
-      expect(
-        MediaQuery.devicePixelRatioOf(tester.element(find.byWidget(child))),
-        3,
-      );
-      final boundary = tester.renderObject<RenderRepaintBoundary>(
-        find.byKey(settloGoldenSurfaceKey),
-      );
-      await tester.runAsync(() async {
-        final image = await boundary.toImage(pixelRatio: 3);
-        expect(image.width, 1170);
-        expect(image.height, 2532);
-        final bytes = (await image.toByteData(format: ui.ImageByteFormat.png))!;
-        final directory = Directory('../build/marketing')
-          ..createSync(recursive: true);
-        File('${directory.path}/$name.png')
-            .writeAsBytesSync(bytes.buffer.asUint8List());
-        image.dispose();
+          device: GoldenDevice(name: 'marketing', size: Size(width, height)),
+          theme: theme,
+        );
+        if (width == 430 && name == 'home_main') {
+          // A shorter fixture preserves the full header and Loans card.
+          expect(find.byType(SettloMark), findsOneWidget);
+          expect(
+            tester.getRect(find.byType(SettloMark)).top,
+            greaterThanOrEqualTo(insets.top),
+          );
+          final card = find.ancestor(
+            of: find.text('LOANS'),
+            matching: find.byType(SCard),
+          );
+          expect(
+            tester.getRect(card).bottom,
+            lessThanOrEqualTo(
+              tester.getRect(find.byType(SGlassTabBar)).top - 16,
+            ),
+            reason: 'Leave a clean gap below the complete Home Loans card',
+          );
+        }
+        if (width == 430 && name == 'loans_detail') {
+          final lastRow = find.byKey(const ValueKey('r3'));
+          final card = find.ancestor(of: lastRow, matching: find.byType(SCard));
+          expect(
+            tester.getRect(card).bottom,
+            lessThanOrEqualTo(
+              tester.getRect(find.byType(SGlassTabBar)).top - 16,
+            ),
+            reason: 'Leave a clean gap below the complete repayment card',
+          );
+        }
+        if (width == 430 && name == 'confirm_repayment') {
+          // The original 390px export cut this control off at its bottom edge.
+          final button = tester.getRect(find.byType(SSecondaryButton));
+          expect(button.bottom, lessThanOrEqualTo(height - insets.bottom));
+          expect(button.top, greaterThanOrEqualTo(0));
+        }
+        if (width == 430) {
+          _expectContentClearOfChrome(
+            tester,
+            name,
+            Size(width, height),
+            insets.top,
+          );
+        }
+        // Same logical geometry, rerasterised at 3x; no PNG enlargement.
+        tester.view
+          ..physicalSize = Size(width * 3, height * 3)
+          ..devicePixelRatio = 3;
+        await tester.pump();
+        expect(
+          MediaQuery.devicePixelRatioOf(tester.element(find.byWidget(child))),
+          3,
+        );
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(settloGoldenSurfaceKey),
+        );
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 3);
+          expect(image.width, (width * 3).round());
+          expect(image.height, (height * 3).round());
+          final bytes = (await image.toByteData(
+            format: ui.ImageByteFormat.png,
+          ))!;
+          final directory = Directory('../build/marketing')
+            ..createSync(recursive: true);
+          File('${directory.path}/$name${width == 430 ? '-phone' : ''}.png')
+              .writeAsBytesSync(bytes.buffer.asUint8List());
+          image.dispose();
+        });
       });
+    }
+  }
+}
+
+// Inspect geometry, not hitTestable(): an occluded control must still fail.
+void _expectContentClearOfChrome(
+  WidgetTester tester,
+  String name,
+  Size size,
+  double statusInset,
+) {
+  final bars = find.byType(SGlassTabBar);
+  final headers = find.byType(SliverPersistentHeader);
+  final headerRects = [
+    for (final header in headers.evaluate())
+      tester.getRect(
+        find
+            .descendant(
+              of: find.byWidget(header.widget),
+              matching: find.byType(ClipRect),
+            )
+            .first,
+      ),
+  ];
+  // Reserve the full width from the glass top through the home indicator.
+  // Non-interactive labels/icons can otherwise peek around or below the bar.
+  final obscured = bars.evaluate().isEmpty
+      ? null
+      : Rect.fromLTRB(0, tester.getRect(bars).top, size.width, size.height);
+  final controls = find.byWidgetPredicate(
+    (widget) =>
+        widget is Text ||
+        widget is RichText ||
+        widget is Icon ||
+        widget is LinearProgressIndicator ||
+        widget is ButtonStyleButton ||
+        widget is IconButton ||
+        (widget is InkWell && widget.onTap != null) ||
+        (widget is GestureDetector && widget.onTap != null),
+  );
+  for (final element in controls.evaluate()) {
+    // Navigation's own controls belong inside its surface.
+    var inTabBar = false;
+    var inHeader = false;
+    element.visitAncestorElements((ancestor) {
+      if (ancestor.widget is SGlassTabBar) inTabBar = true;
+      if (ancestor.widget is SliverPersistentHeader) inHeader = true;
+      return true;
     });
+    if (inTabBar) continue;
+    final rect = tester.getRect(find.byWidget(element.widget));
+    final widget = element.widget;
+    if (widget is Text || widget is RichText || widget is Icon) {
+      final topRegions = [
+        Rect.fromLTRB(0, 0, size.width, statusInset),
+        if (!inHeader) ...headerRects,
+      ];
+      for (final region in topRegions) {
+        expect(
+          rect.overlaps(region),
+          isFalse,
+          reason:
+              '$name: ${widget.runtimeType} $rect '
+              'intersects top chrome $region',
+        );
+      }
+    }
+    if (obscured != null) {
+      expect(
+        rect.overlaps(obscured),
+        isFalse,
+        reason: '$name: ${widget.runtimeType} $rect intersects $obscured',
+      );
+    }
   }
 }
