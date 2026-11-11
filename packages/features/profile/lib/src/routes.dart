@@ -5,5 +5,7 @@ import 'package:settlo_profile/src/screens.dart';
 /// Profile, nested under the Home tab ([SettloRoutes.profile]).
 final GoRoute profileRoute = GoRoute(
   path: 'profile',
-  builder: (_, _) => const ProfileScreen(),
+  // An explicit page: go_router's default here has no iOS swipe back.
+  pageBuilder: (_, state) =>
+      SettloPage<void>(key: state.pageKey, child: const ProfileScreen()),
 );

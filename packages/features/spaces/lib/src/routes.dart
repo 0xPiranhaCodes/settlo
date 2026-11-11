@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_spaces/src/confirm_settlement_screen.dart';
@@ -11,15 +12,19 @@ final GoRoute spacesTabRoute = GoRoute(
   routes: [
     GoRoute(
       path: ':spaceId',
-      builder: (_, state) =>
-          SpaceExpensesScreen(spaceId: state.pathParameters['spaceId']!),
-      routes: [
-        GoRoute(
-          path: 'balances',
-          builder: (_, state) =>
-              SpaceScreen(spaceId: state.pathParameters['spaceId']!),
-        ),
-      ],
+      pageBuilder: (_, state) => _spacePage(
+        state,
+        SpaceExpensesScreen(spaceId: state.pathParameters['spaceId']!),
+      ),
+    ),
+    // A sibling, not a child: Expenses and Balances are segments of one
+    // destination, so Back from either returns to Spaces.
+    GoRoute(
+      path: ':spaceId/balances',
+      pageBuilder: (_, state) => _spacePage(
+        state,
+        SpaceScreen(spaceId: state.pathParameters['spaceId']!),
+      ),
     ),
   ],
 );
@@ -29,7 +34,7 @@ final GoRoute spacesTabRoute = GoRoute(
 final List<RouteBase> spacesRoutes = [
   GoRoute(
     path: SettloRoutes.confirmSettlementPattern,
-    pageBuilder: (context, state) => SettloPage<void>(
+    pageBuilder: (context, state) => SettloSheetPage<void>(
       key: state.pageKey,
       child: ConfirmSettlementScreen(
         spaceId: state.pathParameters['spaceId']!,
@@ -38,3 +43,11 @@ final List<RouteBase> spacesRoutes = [
     ),
   ),
 ];
+
+/// A space's page. Explicit pages: go_router's default has no iOS swipe
+/// back. Both segments share its key, so switching updates it in place
+/// instead of pushing.
+Page<void> _spacePage(GoRouterState state, Widget child) => SettloPage<void>(
+  key: ValueKey('space ${state.pathParameters['spaceId']}'),
+  child: child,
+);

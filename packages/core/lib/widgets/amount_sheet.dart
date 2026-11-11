@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
+import 'package:settlo_core/widgets/confirm.dart';
 import 'package:settlo_core/widgets/pressable.dart';
 import 'package:settlo_core/widgets/scroll_scaffold.dart';
 import 'package:settlo_core/widgets/sheet.dart';
@@ -24,6 +28,8 @@ class SAmountSheet extends StatefulWidget {
     this.header,
     this.body,
     this.action,
+    this.dirty = false,
+    this.saving = false,
     super.key,
   });
 
@@ -50,6 +56,14 @@ class SAmountSheet extends StatefulWidget {
   /// The sheet's primary action, such as `Save expense`.
   final Widget? action;
 
+  /// Input the user has not saved. On iOS, Close or a drag down then asks
+  /// before discarding it.
+  final bool dirty;
+
+  /// A save is in flight. On iOS the sheet then stays put: closing it now
+  /// would pop again once the save lands.
+  final bool saving;
+
   @override
   State<SAmountSheet> createState() => _SAmountSheetState();
 }
@@ -66,11 +80,41 @@ class _SAmountSheetState extends State<SAmountSheet> {
   Widget? get action => widget.action;
   VoidCallback get onClose => widget.onClose;
 
+  /// Android keeps closing straight away, as before.
+  bool get _guarded =>
+      Theme.of(context).platform == TargetPlatform.iOS &&
+      (widget.dirty || widget.saving);
+  bool _asking = false;
+
+  /// Closes, first asking whether to discard unsaved input.
+  Future<void> _close() async {
+    if (!_guarded) return onClose();
+    if (_dismissed || _asking || widget.saving) return;
+    _asking = true;
+    final discard = await showSettloActionSheet(
+      context: context,
+      title: 'Discard changes?',
+      destructive: 'Discard',
+      cancel: 'Keep editing',
+    );
+    _asking = false;
+    if (discard != true || !mounted || _dismissed) return;
+    _dismissed = true;
+    onClose();
+  }
+
   void _endDrag(DragEndDetails details) {
     if (_dismissed) return;
     if (_drag > 100 || (details.primaryVelocity ?? 0) > 700) {
-      _dismissed = true;
-      onClose();
+      if (!_guarded) {
+        _dismissed = true;
+        return onClose();
+      }
+      setState(() {
+        _dragging = false;
+        _drag = 0;
+      });
+      unawaited(_close());
     } else {
       setState(() {
         _dragging = false;
@@ -92,7 +136,7 @@ class _SAmountSheetState extends State<SAmountSheet> {
         Transform.translate(
           offset: const Offset(-12, 0),
           child: SPressable(
-            onTap: onClose,
+            onTap: _close,
             label: 'Close',
             ringRadius: BorderRadius.circular(SettloSpacing.minTouchTarget / 2),
             child: SizedBox.square(
@@ -123,18 +167,24 @@ class _SAmountSheetState extends State<SAmountSheet> {
         const SizedBox(width: SettloSpacing.minTouchTarget - 12),
       ],
     );
+    // Inside an iOS task sheet the route owns drag to dismiss.
+    final routeDrags = CupertinoSheetRoute.hasParentSheet(context);
     final navigation = GestureDetector(
       excludeFromSemantics: true,
       behavior: HitTestBehavior.opaque,
-      onVerticalDragUpdate: (details) => setState(() {
-        _dragging = true;
-        _drag = (_drag + details.delta.dy).clamp(0, double.infinity);
-      }),
-      onVerticalDragEnd: _endDrag,
-      onVerticalDragCancel: () => setState(() {
-        _dragging = false;
-        _drag = 0;
-      }),
+      onVerticalDragUpdate: routeDrags
+          ? null
+          : (details) => setState(() {
+              _dragging = true;
+              _drag = (_drag + details.delta.dy).clamp(0, double.infinity);
+            }),
+      onVerticalDragEnd: routeDrags ? null : _endDrag,
+      onVerticalDragCancel: routeDrags
+          ? null
+          : () => setState(() {
+              _dragging = false;
+              _drag = 0;
+            }),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -221,7 +271,7 @@ class _SAmountSheetState extends State<SAmountSheet> {
         ),
       ),
     );
-    return AnimatedContainer(
+    final sheet = AnimatedContainer(
       duration: _dragging || MediaQuery.disableAnimationsOf(context)
           ? Duration.zero
           : SettloMotion.panel,
@@ -251,6 +301,13 @@ class _SAmountSheetState extends State<SAmountSheet> {
           children: [navigation],
         ),
       ),
+    );
+    return PopScope(
+      canPop: !_guarded,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_close());
+      },
+      child: sheet,
     );
   }
 }

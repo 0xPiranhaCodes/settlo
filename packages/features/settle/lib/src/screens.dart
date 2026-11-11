@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -130,7 +128,7 @@ class _SettleRoute extends ConsumerWidget {
     ];
     return Padding(
       padding: EdgeInsets.only(
-        top: math.max(54, media.padding.top),
+        top: settloSheetTop(context),
         bottom: media.viewInsets.bottom,
       ),
       child: Material(

@@ -42,6 +42,9 @@ class SpaceEmptyView extends StatelessWidget {
         style: const TextStyle(letterSpacing: 0, height: 1.2),
         child: SettloScrollScaffold(
           title: 'Space',
+          largeTitle: space.name,
+          previousPageTitle: 'Spaces',
+          trailing: SpaceAvatars(space),
           padding: EdgeInsets.fromLTRB(
             SettloSpacing.screenMargin,
             math.max(media.padding.top, 44) + 16,
@@ -162,7 +165,6 @@ class SpaceHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final members = [space.you, ...space.others];
     return Row(
       children: [
         SizedBox(
@@ -202,28 +204,40 @@ class SpaceHeader extends StatelessWidget {
           width: 96,
           child: Align(
             alignment: Alignment.centerRight,
-            child: ExcludeSemantics(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (final (i, m) in members.take(3).indexed)
-                    // Overlap by 8 and stay flush with the margin.
-                    Transform.translate(
-                      offset: Offset(
-                        8.0 * (math.min(members.length, 3) - 1 - i),
-                        0,
-                      ),
-                      child: Opacity(
-                        opacity: m.joined ? 1 : 0.5,
-                        child: SAvatar(m.name, size: 30),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+            child: SpaceAvatars(space),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Up to three of [space]'s members, overlapping; dimmed until they join.
+class SpaceAvatars extends StatelessWidget {
+  /// The members of [space].
+  const new(this.space, {super.key});
+
+  /// The space shown.
+  final SpaceSummary space;
+
+  @override
+  Widget build(BuildContext context) {
+    final members = [space.you, ...space.others];
+    return ExcludeSemantics(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final (i, m) in members.take(3).indexed)
+            // Overlap by 8 and stay flush with the margin.
+            Transform.translate(
+              offset: Offset(8.0 * (math.min(members.length, 3) - 1 - i), 0),
+              child: Opacity(
+                opacity: m.joined ? 1 : 0.5,
+                child: SAvatar(m.name, size: 30),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

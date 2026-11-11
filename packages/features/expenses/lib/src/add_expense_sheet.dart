@@ -247,7 +247,19 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
     final label = _sectionLabel(c);
     final note = SettloTypography.footnote(color: c.textMuted);
 
+    final dirty =
+        _amount.text.isNotEmpty ||
+        _description.text.isNotEmpty ||
+        _category != null ||
+        _spentOn != null ||
+        _payer != widget.space.you.id ||
+        _multiPayer ||
+        _type != SplitType.equal ||
+        _included.length != _members.length ||
+        _fields.values.any((f) => f.text.isNotEmpty);
     return SAmountSheet(
+      dirty: dirty,
+      saving: _saving,
       title: 'New expense · ${widget.space.name}',
       onClose: widget.onClose,
       amount: Builder(

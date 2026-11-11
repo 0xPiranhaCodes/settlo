@@ -195,13 +195,26 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
           );
     return Padding(
       padding: EdgeInsets.only(
-        top: math.max(54, media.padding.top),
+        top: settloSheetTop(context),
         bottom: media.viewInsets.bottom,
       ),
       child: Material(
         type: MaterialType.transparency,
         child: SAmountSheet(
           title: 'New loan',
+          // Every editable field, against its value when the sheet opened.
+          dirty:
+              !_youLent ||
+              _who != null ||
+              _start != _today ||
+              _dueDay != math.min(_today.day, 28) ||
+              [
+                _principal,
+                _installment,
+                _phone,
+                _person,
+              ].any((c) => c.text.isNotEmpty),
+          saving: _busy,
           onClose: _close,
           header: _Direction(
             youLent: _youLent,
@@ -267,6 +280,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                   controller: _phone,
                   keyboardType: TextInputType.phone,
                   autofillHints: const [AutofillHints.telephoneNumber],
+                  onChanged: (_) => setState(() {}),
                   onSubmitted: (_) => _add(),
                   decoration: InputDecoration(
                     labelText: 'Phone number',
@@ -278,6 +292,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                 TextField(
                   controller: _person,
                   textCapitalization: TextCapitalization.words,
+                  onChanged: (_) => setState(() {}),
                   onSubmitted: (_) => _add(),
                   decoration: const InputDecoration(labelText: 'Their name'),
                 ),

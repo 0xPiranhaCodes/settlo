@@ -7,7 +7,7 @@ import 'package:settlo_expenses/src/screens.dart';
 final List<RouteBase> expensesRoutes = [
   GoRoute(
     path: SettloRoutes.addExpense,
-    pageBuilder: (context, state) => SettloPage<void>(
+    pageBuilder: (context, state) => SettloSheetPage<void>(
       key: state.pageKey,
       child: AddExpenseScreen(spaceId: state.uri.queryParameters['space']),
     ),
