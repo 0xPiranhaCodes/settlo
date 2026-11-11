@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -29,6 +30,7 @@ class NativeTabBar extends StatefulWidget {
     required this.tabs,
     required this.currentIndex,
     required this.dark,
+    required this.tint,
     required this.onTap,
     required this.onHeight,
     super.key,
@@ -42,6 +44,9 @@ class NativeTabBar extends StatefulWidget {
 
   /// Whether the app's theme is dark, which may differ from the system's.
   final bool dark;
+
+  /// The selected tab's colour: Settlo's action token, never system blue.
+  final Color tint;
 
   /// Called with the tapped tab's index, also when it is already selected.
   final ValueChanged<int> onTap;
@@ -59,6 +64,7 @@ class _NativeTabBarState extends State<NativeTabBar> {
   Map<String, Object> get _state => {
     'selected': widget.currentIndex,
     'dark': widget.dark,
+    'tint': widget.tint.toARGB32(),
   };
 
   void _created(int id) {
@@ -68,7 +74,10 @@ class _NativeTabBarState extends State<NativeTabBar> {
           case 'tap':
             widget.onTap(call.arguments as int);
             // The router may keep the old tab; the native bar already moved.
-            WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+            // Schedule the frame too, as a refusal rebuilds nothing.
+            WidgetsBinding.instance
+              ..addPostFrameCallback((_) => _sync())
+              ..scheduleFrame();
           case 'height':
             widget.onHeight((call.arguments as num).toDouble());
         }
@@ -83,7 +92,9 @@ class _NativeTabBarState extends State<NativeTabBar> {
   @override
   void didUpdateWidget(NativeTabBar old) {
     super.didUpdateWidget(old);
-    if (old.currentIndex != widget.currentIndex || old.dark != widget.dark) {
+    if (old.currentIndex != widget.currentIndex ||
+        old.dark != widget.dark ||
+        old.tint != widget.tint) {
       _sync();
     }
   }
@@ -106,9 +117,12 @@ class _NativeTabBarState extends State<NativeTabBar> {
     },
     creationParamsCodec: const StandardMessageCodec(),
     onPlatformViewCreated: _created,
-    // Every touch on the bar is UIKit's, never a Flutter scroll's.
+    // The view spans the bottom edge but the glass floats inside it, so
+    // only a tap is UIKit's. Drags go to the back swipe or to the scroll
+    // behind, which translucent hit testing lets see the touch.
+    hitTestBehavior: PlatformViewHitTestBehavior.translucent,
     gestureRecognizers: const {
-      Factory<OneSequenceGestureRecognizer>(EagerGestureRecognizer.new),
+      Factory<OneSequenceGestureRecognizer>(TapGestureRecognizer.new),
     },
   );
 }

@@ -7,6 +7,7 @@ import 'package:settlo_core/settlo_core.dart';
 
 const _codec = StandardMethodCodec();
 const _lastRow = Key('last-row');
+final int _lightTint = SettloColors.light.action.toARGB32();
 
 /// Stands in for `NativeTabBar.swift`: records what Flutter sends and lets a
 /// test tap a tab or report a height as UIKit would.
@@ -15,6 +16,7 @@ class _FakeNativeBar {
     _messenger.setMockMethodCallHandler(SystemChannels.platform_views, (
       call,
     ) async {
+      gestures.add(call.method);
       if (call.method == 'create') {
         final args = call.arguments as Map<Object?, Object?>;
         expect(args['viewType'], nativeTabBarViewType);
@@ -36,25 +38,32 @@ class _FakeNativeBar {
   late Map<Object?, Object?> created;
   final updates = <Map<Object?, Object?>>[];
 
+  /// Platform view calls, including whether UIKit got a touch
+  /// (`acceptGesture`) or had it cancelled (`rejectGesture`).
+  final gestures = <String>[];
+
   TestDefaultBinaryMessenger get _messenger =>
       tester.binding.defaultBinaryMessenger;
 
-  Future<void> send(String method, Object arguments) async {
+  Future<void> send(String method, Object arguments, {bool pump = true}) async {
     await _messenger.handlePlatformMessage(
       nativeTabBarChannel(id),
       _codec.encodeMethodCall(MethodCall(method, arguments)),
       (_) {},
     );
-    await tester.pumpAndSettle();
+    if (pump) await tester.pumpAndSettle();
   }
 }
 
 /// A shell that, like the router, selects whatever tab it is told to.
 class _Host extends StatefulWidget {
-  const new({required this.child, this.theme, this.taps});
+  const new({required this.child, this.theme, this.taps, this.refuse = false});
   final Widget child;
   final ThemeData? theme;
   final List<int>? taps;
+
+  /// Keeps the current tab, as a router guard would.
+  final bool refuse;
 
   @override
   State<_Host> createState() => _HostState();
@@ -75,7 +84,7 @@ class _HostState extends State<_Host> {
       currentIndex: index,
       onTabSelected: (i) {
         widget.taps?.add(i);
-        setState(() => index = i);
+        if (!widget.refuse) setState(() => index = i);
       },
       child: widget.child,
     ),
@@ -102,6 +111,7 @@ void main() {
       ],
       'selected': 0,
       'dark': false,
+      'tint': SettloColors.light.action.toARGB32(),
     });
   });
 
@@ -116,7 +126,11 @@ void main() {
     await native.send('tap', 2);
 
     expect(taps, [2]);
-    expect(native.updates.last, {'selected': 2, 'dark': false});
+    expect(native.updates.last, {
+      'selected': 2,
+      'dark': false,
+      'tint': _lightTint,
+    });
   });
 
   testWidgets('a router change (back, deep link) moves the native bar', (
@@ -129,7 +143,11 @@ void main() {
     tester.state<_HostState>(find.byType(_Host)).go(3);
     await tester.pumpAndSettle();
 
-    expect(native.updates.last, {'selected': 3, 'dark': false});
+    expect(native.updates.last, {
+      'selected': 3,
+      'dark': false,
+      'tint': _lightTint,
+    });
   });
 
   testWidgets('the app theme, not the system, sets the bar appearance', (
@@ -142,6 +160,73 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(native.created['dark'], isTrue);
+    expect(native.created['tint'], SettloColors.dark.action.toARGB32());
+  });
+
+  testWidgets('a refused tap snaps the native bar back without a rebuild', (
+    tester,
+  ) async {
+    final native = _FakeNativeBar(tester);
+    final taps = <int>[];
+    await tester.pumpWidget(
+      _Host(taps: taps, refuse: true, child: const SizedBox()),
+    );
+    await tester.pumpAndSettle();
+    native.updates.clear();
+
+    // UIKit has already selected 2; nothing in Flutter rebuilds.
+    await native.send('tap', 2, pump: false);
+    expect(taps, [2]);
+    expect(tester.binding.hasScheduledFrame, isTrue);
+
+    await tester.pump();
+    expect(native.updates.last, {
+      'selected': 0,
+      'dark': false,
+      'tint': _lightTint,
+    });
+  });
+
+  testWidgets('drags outside a tab reach the back swipe and the scroll', (
+    tester,
+  ) async {
+    final native = _FakeNativeBar(tester);
+    var swiped = 0.0;
+    final scroll = ScrollController();
+    addTearDown(scroll.dispose);
+    await tester.pumpWidget(
+      GestureDetector(
+        onHorizontalDragUpdate: (d) => swiped += d.delta.dx,
+        child: _Host(
+          child: ListView(
+            controller: scroll,
+            children: [
+              for (var i = 0; i < 40; i++)
+                SizedBox(height: 64, child: Text('Row $i')),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final bar = tester.getRect(find.byType(UiKitView));
+
+    await tester.dragFrom(
+      bar.topLeft + const Offset(2, 20),
+      const Offset(200, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(swiped, greaterThan(0));
+
+    await tester.dragFrom(bar.center, const Offset(0, -200));
+    await tester.pumpAndSettle();
+    expect(scroll.offset, greaterThan(0));
+    expect(native.gestures, isNot(contains('acceptGesture')));
+
+    // A tap on a tab is still UIKit's.
+    await tester.tapAt(bar.center);
+    await tester.pumpAndSettle();
+    expect(native.gestures.last, 'acceptGesture');
   });
 
   testWidgets('the last row scrolls clear of the reported bar height', (

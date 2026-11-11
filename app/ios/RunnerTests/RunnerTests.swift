@@ -71,6 +71,14 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(tabs.view().overrideUserInterfaceStyle, .dark)
   }
 
+  func testTintIsSettloActionNotSystemBlue() {
+    let tabs = makeBar()
+    messenger.call(channelName, "update", ["tint": 0xFFD8B36A])
+    var (r, g, b, a): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
+    tabs.bar.tintColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+    XCTAssertEqual([r, g, b, a].map { Int(($0 * 255).rounded()) }, [0xD8, 0xB3, 0x6A, 0xFF])
+  }
+
   func testReportsItsHeightOnLayout() {
     let tabs = makeBar()
     tabs.view().frame = CGRect(x: 0, y: 0, width: 402, height: 83)
@@ -78,6 +86,34 @@ class RunnerTests: XCTestCase {
     let height = messenger.sent.first { $0.method == "height" }?.arguments as? Double
     XCTAssertEqual(height, Double(tabs.bar.sizeThatFits(tabs.view().bounds.size).height))
     XCTAssertGreaterThanOrEqual(height ?? 0, 44)
+  }
+
+  /// What VoiceOver reads: UIKit's own tab buttons, labelled, with the
+  /// router's selection as the selected trait.
+  func testTabsAreVoiceOverButtonsWithSelection() {
+    enableAccessibilityRuntime()
+    let tabs = makeBar(selected: 1)
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 402, height: 874))
+    tabs.view().frame = CGRect(x: 0, y: 778, width: 402, height: 96)
+    window.addSubview(tabs.view())
+    window.isHidden = false
+    tabs.view().layoutIfNeeded()
+
+    func all(_ view: UIView) -> [UIView] { [view] + view.subviews.flatMap(all) }
+    // iOS 26 draws each button twice (content and selection lens); VoiceOver
+    // reads one per position.
+    var seen = Set<String>()
+    let buttons = all(tabs.bar).filter {
+      $0.isAccessibilityElement && $0.accessibilityTraits.contains(.button)
+        && seen.insert($0.accessibilityLabel ?? "").inserted
+    }
+    XCTAssertEqual(buttons.map(\.accessibilityLabel), ["Home", "Spaces", "Loans", "Activity"])
+    XCTAssertEqual(
+      buttons.map { $0.accessibilityTraits.contains(.selected) }, [false, true, false, false])
+
+    messenger.call(channelName, "update", ["selected": 3])
+    XCTAssertEqual(
+      buttons.map { $0.accessibilityTraits.contains(.selected) }, [false, false, false, true])
   }
 
   func testPromptClaimsPersistAcrossReopensAndStopAfterAnswer() {
@@ -110,4 +146,17 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(ReminderChannel.recentSeen(["manual:9", "manual:10", "manual:9223372036854775806"]),
                    ["manual:9", "manual:10", "manual:9223372036854775806"])
   }
+}
+
+/// Turns on UIKit's accessibility runtime, as an assistive client such as
+/// VoiceOver would, so views answer with what VoiceOver reads (as KIF does).
+private func enableAccessibilityRuntime() {
+  let root = ProcessInfo.processInfo.environment["IPHONE_SIMULATOR_ROOT"] ?? ""
+  guard let lib = dlopen(root + "/usr/lib/libAccessibility.dylib", RTLD_NOW) else { return }
+  typealias Toggle = @convention(c) (Bool) -> Void
+  for name in ["_AXSSetAutomationEnabled", "_AXSApplicationAccessibilitySetEnabled"] {
+    if let fn = dlsym(lib, name) { unsafeBitCast(fn, to: Toggle.self)(true) }
+  }
+  _ = Bundle(path: root + "/System/Library/AccessibilityBundles/UIKit.axbundle")?.load()
+  RunLoop.current.run(until: Date().addingTimeInterval(1))
 }

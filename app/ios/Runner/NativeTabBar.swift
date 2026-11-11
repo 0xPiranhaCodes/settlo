@@ -23,8 +23,9 @@ final class NativeTabBarFactory: NSObject, FlutterPlatformViewFactory {
 }
 
 /// A plain UITabBar, so iOS 26 and later draw system Liquid Glass and earlier
-/// iOS the standard bar; nothing tints or blurs it. Flutter's router owns the
-/// selection: a tap is sent as `tap`, and `update` sets what is selected.
+/// iOS the standard bar; nothing blurs or covers it, and only the selected
+/// item takes Settlo's tint. Flutter's router owns the selection: a tap is
+/// sent as `tap`, and `update` sets what is selected.
 /// `height` reports the size UIKit wants, home indicator included.
 final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate {
   let bar = UITabBar()
@@ -65,6 +66,12 @@ final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate {
     }
     // The app's theme can differ from the system's.
     if let dark = state["dark"] as? Bool { host.overrideUserInterfaceStyle = dark ? .dark : .light }
+    // Settlo's action token, so the selected tab is never system blue.
+    if let argb = (state["tint"] as? NSNumber)?.uint32Value {
+      bar.tintColor = UIColor(
+        red: CGFloat((argb >> 16) & 0xFF) / 255, green: CGFloat((argb >> 8) & 0xFF) / 255,
+        blue: CGFloat(argb & 0xFF) / 255, alpha: CGFloat(argb >> 24) / 255)
+    }
   }
 
   func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {

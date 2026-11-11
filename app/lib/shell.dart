@@ -89,6 +89,7 @@ class _SettloShellState extends State<SettloShell> {
             tabs: _nativeTabs,
             currentIndex: widget.currentIndex,
             dark: theme.brightness == Brightness.dark,
+            tint: SettloColors.of(context).action,
             onTap: _select,
             onHeight: (h) {
               if (h != _nativeHeight) setState(() => _nativeHeight = h);
