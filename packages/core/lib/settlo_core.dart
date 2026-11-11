@@ -29,6 +29,7 @@ export 'widgets/avatar.dart';
 export 'widgets/bell.dart';
 export 'widgets/buttons.dart';
 export 'widgets/chips.dart';
+export 'widgets/confirm.dart';
 export 'widgets/glass_tab_bar.dart';
 export 'widgets/money_text.dart';
 export 'widgets/placeholder_screen.dart';

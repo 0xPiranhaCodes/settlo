@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' show Tristate;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,6 +31,7 @@ Future<GoRouter> _pump(
   FakeSpaceLedgerRepository? ledger,
   InvitesRepository? invites,
   Future<bool> Function(Uri)? openUrl,
+  TargetPlatform platform = TargetPlatform.android,
 }) async {
   await loadSettloFonts();
   tester.view
@@ -95,7 +97,7 @@ Future<GoRouter> _pump(
         ),
       ],
       child: MaterialApp.router(
-        theme: SettloTheme.dark(),
+        theme: SettloTheme.dark().copyWith(platform: platform),
         routerConfig: router,
       ),
     ),
@@ -648,6 +650,7 @@ void main() {
       WidgetTester tester, {
       String spaceId = 's1',
       bool balances = false,
+      TargetPlatform platform = TargetPlatform.android,
     }) async {
       final ledger = FakeSpaceLedgerRepository();
       final router = await _pump(
@@ -657,6 +660,7 @@ void main() {
             ? SettloRoutes.spaceBalances(spaceId)
             : SettloRoutes.space(spaceId),
         ledger: ledger,
+        platform: platform,
       );
       return (router, ledger);
     }
@@ -994,6 +998,49 @@ void main() {
 
       expect(ledger.calls.single, matches(RegExp(r'^delete \S{36} e2$')));
       expect(find.text('Electricity'), findsNothing);
+    });
+
+    testWidgets('on iOS, delete asks with an action sheet', (tester) async {
+      final (_, ledger) = await pumpSpace(
+        tester,
+        platform: TargetPlatform.iOS,
+      );
+      await openExpense(tester, 'Electricity');
+
+      await tester.tap(find.text('Delete expense'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CupertinoActionSheet), findsOne);
+      expect(find.text('Tap again to delete'), findsNothing);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(ledger.calls, isEmpty);
+
+      await tester.tap(find.text('Delete expense'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete Expense'));
+      await tester.pumpAndSettle();
+
+      expect(ledger.calls.single, matches(RegExp(r'^delete \S{36} e2$')));
+      expect(find.text('Electricity'), findsNothing);
+    });
+
+    testWidgets('on iOS, the space has a large title and back to Spaces', (
+      tester,
+    ) async {
+      final (router, _) = await pumpSpace(
+        tester,
+        platform: TargetPlatform.iOS,
+      );
+
+      expect(find.byType(CupertinoSliverNavigationBar), findsOne);
+      final back = find.byType(CupertinoNavigationBarBackButton);
+      expect(
+        find.descendant(of: back, matching: find.text('Spaces')),
+        findsOne,
+      );
+      await tester.tap(back);
+      await tester.pumpAndSettle();
+      expect(router.state.uri.toString(), SettloRoutes.spaces);
     });
   });
 

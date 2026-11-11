@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -50,7 +48,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     };
     return Padding(
       padding: EdgeInsets.only(
-        top: math.max(54, media.padding.top),
+        top: settloSheetTop(context),
         bottom: media.viewInsets.bottom,
       ),
       child: Material(

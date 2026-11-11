@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -501,7 +502,11 @@ void main() {
     late _ProfileRepository profile;
     late int drains;
 
-    Future<void> open(WidgetTester tester, {required int count}) async {
+    Future<void> open(
+      WidgetTester tester, {
+      required int count,
+      TargetPlatform platform = TargetPlatform.android,
+    }) async {
       profile = _ProfileRepository();
       drains = 0;
       await tester.pumpWidget(
@@ -524,7 +529,7 @@ void main() {
             )),
           ],
           child: MaterialApp(
-            theme: SettloTheme.dark(),
+            theme: SettloTheme.dark().copyWith(platform: platform),
             home: const ProfileScreen(),
           ),
         ),
@@ -533,6 +538,50 @@ void main() {
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
       await tester.pumpAndSettle();
     }
+
+    Future<void> tapRow(WidgetTester tester, String row) async {
+      await tester.ensureVisible(find.text(row));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(row));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('on iOS, sign out asks with an action sheet', (tester) async {
+      await open(tester, count: 2, platform: TargetPlatform.iOS);
+      await tapRow(tester, 'Sign out');
+      expect(find.byType(CupertinoActionSheet), findsOneWidget);
+      expect(find.text('You have 2 unsent changes'), findsOneWidget);
+
+      await tester.tap(find.text('Keep'));
+      await tester.pumpAndSettle();
+      expect(drains, 1, reason: 'Keep sends them now');
+      expect(profile.signedOut, isFalse);
+
+      await tapRow(tester, 'Sign out');
+      await tester.tap(find.text('Sign Out Anyway'));
+      await tester.tap(find.text('Sign Out Anyway'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(profile.signOuts, 1);
+      expect(find.byType(ProfileScreen), findsOneWidget, reason: 'one pop');
+    });
+
+    testWidgets('on iOS, delete account asks with an alert', (tester) async {
+      await open(tester, count: 0, platform: TargetPlatform.iOS);
+      await tapRow(tester, 'Delete account');
+      expect(find.byType(CupertinoAlertDialog), findsOneWidget);
+      expect(find.text('Delete your account?'), findsOneWidget);
+
+      await tester.tap(find.text('Keep My Account'));
+      await tester.pumpAndSettle();
+      expect(profile.deletions, 0);
+
+      await tapRow(tester, 'Delete account');
+      await tester.tap(find.text('Delete Account'));
+      await tester.tap(find.text('Delete Account'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(profile.deletions, 1);
+      expect(find.byType(ProfileScreen), findsOneWidget, reason: 'one pop');
+    });
 
     testWidgets('nothing unsent signs out without asking', (tester) async {
       await open(tester, count: 0);

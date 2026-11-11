@@ -195,7 +195,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
           );
     return Padding(
       padding: EdgeInsets.only(
-        top: math.max(54, media.padding.top),
+        top: settloSheetTop(context),
         bottom: media.viewInsets.bottom,
       ),
       child: Material(

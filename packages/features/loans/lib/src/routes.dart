@@ -25,7 +25,7 @@ final List<RouteBase> loansRoutes = [
   GoRoute(
     path: SettloRoutes.newLoan,
     pageBuilder: (context, state) =>
-        SettloPage<void>(key: state.pageKey, child: const NewLoanSheet()),
+        SettloSheetPage<void>(key: state.pageKey, child: const NewLoanSheet()),
   ),
   GoRoute(
     path: SettloRoutes.confirmRepaymentPattern,

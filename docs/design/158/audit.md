@@ -1,7 +1,9 @@
 # Issue 158: iOS Human Interface Guidelines audit
 
-Phase 1 of #158: an audit only, with no app code changed. Implementation waits
-for the manager's approval of this document.
+Phase 1 of #158: an audit only, with no app code changed. The manager has
+approved it and answered the open questions (see the end of this document and
+[docs/decisions/2026-11-11-ios-hig.md](../../decisions/2026-11-11-ios-hig.md)).
+PR 1 is implemented in the same PR as this audit.
 
 **Goal.** On iOS, Settlo should feel like one of Apple's own apps. It keeps the
 Settlo colour tokens, the S mark and Figtree (docs/context-pack.md, docs/brand.md).
@@ -211,3 +213,42 @@ scroll. It is not repeated here.
    through a native view?
 3. X1: do we accept no detents (full-height sheets plus content-sized small
    sheets), or should true detents get a native view in a later PR?
+
+## Manager decisions (11 Nov 2026)
+
+1. Destructive colour: system red only inside native Cupertino alerts and
+   action sheets. Coral everywhere else.
+2. `cupertino_icons` is approved for system actions only (back, share, more,
+   add, delete, checkmark), with an ADR in `docs/decisions/`. Custom glyphs
+   stay for brand and tab icons. No native SF Symbols view.
+3. No true detents this round: full-height `CupertinoSheetRoute` and
+   content-sized small sheets. Native detents are a follow-up issue.
+4. Settlo tokens for every tint, switch-on colour and selection colour; never
+   system blue. Figtree stays on the #145 ramp.
+
+## PR 1 as built
+
+- **X1 (D1, D7, E5 sheet, C8).** `SettloSheetPage` in
+  `core/lib/widgets/platform_page.dart` presents Add expense, Settle up (and
+  its pay step), New loan and Confirm settlement as a `CupertinoSheetRoute`
+  on iOS: it slides up, scales the screen behind into a stacked card, and
+  drags down to dismiss from the title or from the top of the content. The
+  scroll scaffold inside takes the sheet's scroll controller, and
+  `SAmountSheet`'s hand-rolled drag is off inside the native sheet. Android
+  keeps the existing page route. Create space and Edit profile stay on
+  `showSettloSheet` for now (Profile is #159's file).
+- **X2 (C4 back and large title).** `SettloScrollScaffold` takes `largeTitle`,
+  `previousPageTitle` and `trailing`. On iOS it renders a
+  `CupertinoSliverNavigationBar` themed with Figtree and Settlo tokens, and
+  leaves out the custom header. Space detail (expenses, balances, empty) uses
+  it: the space's name collapses, and back reads "Spaces". Loan detail and
+  Profile wait for #159.
+- **X3 (C7, G7).** `showSettloActionSheet` and `showSettloAlert` in
+  `core/lib/widgets/confirm.dart`. On iOS, sign out with unsent changes and
+  delete expense use the action sheet; delete account uses the alert. They
+  answer once on a double tap and tint non-destructive buttons with primary
+  text. Android keeps the Settlo sheets and the tap-again delete.
+- **Not in PR 1.** Haptics (X5) need a channel registered in `AppDelegate`,
+  which #160 is changing, so they move to PR 3. A2 and A4 (auth back
+  controls), C3 (Create space as a page sheet) and the "Discard expense?"
+  guard on swipe are left for PR 2.

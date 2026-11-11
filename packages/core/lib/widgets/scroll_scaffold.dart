@@ -74,6 +74,9 @@ class SettloScrollScaffold extends StatefulWidget {
     this.statusInset,
     this.expandedHeight = 84,
     this.headerGap = 0,
+    this.largeTitle,
+    this.previousPageTitle,
+    this.trailing,
     super.key,
   });
 
@@ -107,13 +110,31 @@ class SettloScrollScaffold extends StatefulWidget {
   /// Explicit space after the header; child spacers are never discarded.
   final double headerGap;
 
+  /// On iOS, a detail screen's native navigation bar: this title starts large
+  /// and collapses, the standard back chevron is labelled
+  /// [previousPageTitle], and the expanded header (the first child, with its
+  /// own back button) is left out. Other platforms keep the Settlo header.
+  final String? largeTitle;
+
+  /// The title of the screen back returns to, such as `Spaces`.
+  final String? previousPageTitle;
+
+  /// The native bar's trailing item.
+  final Widget? trailing;
+
   @override
   State<SettloScrollScaffold> createState() => _SettloScrollScaffoldState();
 }
 
 class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
+  // Inside an iOS task sheet, scroll on the sheet's controller so a drag
+  // down at the top dismisses it.
+  late final ScrollController? _sheet =
+      CupertinoSheetRoute.hasParentSheet(context)
+      ? PrimaryScrollController.maybeOf(context)
+      : null;
   late final ScrollController _controller =
-      widget.controller ?? ScrollController();
+      widget.controller ?? _sheet ?? ScrollController();
   SettloScrollRegistry? _registry;
   final _budget = GlassFrameBudget();
   bool _watching = false;
@@ -166,11 +187,43 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
     await widget.onRefresh?.call();
   }
 
+  Widget _largeTitleBar(BuildContext context, String title) {
+    final c = SettloColors.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return CupertinoTheme(
+      // Settlo tokens, never system blue: the chevron and bar items are
+      // primary text, and the titles stay on Figtree's HIG ramp.
+      data: CupertinoThemeData(
+        brightness: Theme.of(context).brightness,
+        primaryColor: c.textPrimary,
+        textTheme: CupertinoTextThemeData(
+          primaryColor: c.textPrimary,
+          navLargeTitleTextStyle: SettloTypography.largeTitle(
+            color: c.textPrimary,
+          ),
+          navTitleTextStyle: SettloTypography.headline(color: c.textPrimary),
+          navActionTextStyle: SettloTypography.body(color: c.textPrimary),
+        ),
+      ),
+      child: CupertinoSliverNavigationBar(
+        largeTitle: Text(title),
+        previousPageTitle: widget.previousPageTitle,
+        trailing: widget.trailing,
+        backgroundColor: MediaQuery.highContrastOf(context)
+            ? c.surface
+            : c.glass.withValues(alpha: SettloElevation.glassTint),
+        border: Border(
+          bottom: BorderSide(color: SettloElevation.border(dark: dark)),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     if (_watching) SchedulerBinding.instance.removeTimingsCallback(_timings);
     _registry?._surfaces.remove(this);
-    if (widget.controller == null) _controller.dispose();
+    if (widget.controller == null && _sheet == null) _controller.dispose();
     super.dispose();
   }
 
@@ -184,23 +237,31 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
     final header = widget.children.isEmpty
         ? const SizedBox.shrink()
         : widget.children.first;
+    final largeTitle = ios ? widget.largeTitle : null;
+    // The native bar starts right under the status bar.
+    final statusTap = largeTitle == null
+        ? top
+        : MediaQuery.paddingOf(context).top;
     final scroll = CustomScrollView(
       key: PageStorageKey('scroll-${widget.title}'),
       primary: true,
       physics: const SettloScrollBehavior().getScrollPhysics(context),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
-        SliverPersistentHeader(
-          pinned: true,
-          delegate: _NavigationHeader(
-            top: top,
-            forceSolid: _budget.exceeded,
-            expandedHeight: widget.expandedHeight,
-            title: widget.title,
-            expanded: header,
-            compact: widget.compactHeader ?? header,
+        if (largeTitle != null)
+          _largeTitleBar(context, largeTitle)
+        else
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _NavigationHeader(
+              top: top,
+              forceSolid: _budget.exceeded,
+              expandedHeight: widget.expandedHeight,
+              title: widget.title,
+              expanded: header,
+              compact: widget.compactHeader ?? header,
+            ),
           ),
-        ),
         if (ios && widget.onRefresh != null)
           CupertinoSliverRefreshControl(onRefresh: _refresh),
         if (widget.slivers case final body?)
@@ -225,12 +286,12 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
             RefreshIndicator(onRefresh: _refresh, child: scroll)
           else
             scroll,
-          if (ios)
+          if (ios && statusTap > 0)
             Positioned(
               top: 0,
               left: 0,
               right: 0,
-              height: top,
+              height: statusTap,
               child: GestureDetector(
                 excludeFromSemantics: true,
                 behavior: HitTestBehavior.opaque,

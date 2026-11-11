@@ -33,4 +33,4 @@ final List<RouteBase> settleRoutes = [
 ];
 
 Page<void> _sheet(BuildContext context, GoRouterState state, Widget child) =>
-    SettloPage<void>(key: state.pageKey, child: child);
+    SettloSheetPage<void>(key: state.pageKey, child: child);

@@ -29,7 +29,7 @@ final GoRoute spacesTabRoute = GoRoute(
 final List<RouteBase> spacesRoutes = [
   GoRoute(
     path: SettloRoutes.confirmSettlementPattern,
-    pageBuilder: (context, state) => SettloPage<void>(
+    pageBuilder: (context, state) => SettloSheetPage<void>(
       key: state.pageKey,
       child: ConfirmSettlementScreen(
         spaceId: state.pathParameters['spaceId']!,

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
@@ -123,18 +124,24 @@ class _SAmountSheetState extends State<SAmountSheet> {
         const SizedBox(width: SettloSpacing.minTouchTarget - 12),
       ],
     );
+    // Inside an iOS task sheet the route owns drag to dismiss.
+    final routeDrags = CupertinoSheetRoute.hasParentSheet(context);
     final navigation = GestureDetector(
       excludeFromSemantics: true,
       behavior: HitTestBehavior.opaque,
-      onVerticalDragUpdate: (details) => setState(() {
-        _dragging = true;
-        _drag = (_drag + details.delta.dy).clamp(0, double.infinity);
-      }),
-      onVerticalDragEnd: _endDrag,
-      onVerticalDragCancel: () => setState(() {
-        _dragging = false;
-        _drag = 0;
-      }),
+      onVerticalDragUpdate: routeDrags
+          ? null
+          : (details) => setState(() {
+              _dragging = true;
+              _drag = (_drag + details.delta.dy).clamp(0, double.infinity);
+            }),
+      onVerticalDragEnd: routeDrags ? null : _endDrag,
+      onVerticalDragCancel: routeDrags
+          ? null
+          : () => setState(() {
+              _dragging = false;
+              _drag = 0;
+            }),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -294,18 +294,31 @@ class _AccountCard extends ConsumerWidget {
       final count = await unsent?.count() ?? 0;
       if (unsent != null && count > 0) {
         if (!context.mounted) return;
-        final leave = await showSettloSheet<bool>(
-          context: context,
-          builder: (_) => _LeaveSheet(
-            title: 'You have ${_changes(count)}',
-            body:
-                "They haven't reached the server yet. Signing out now "
-                'deletes them from this phone.',
-            keep: 'Keep',
-            leave: 'Sign out anyway',
-            onKeep: unsent.drain,
-          ),
-        );
+        final title = 'You have ${_changes(count)}';
+        const body =
+            "They haven't reached the server yet. Signing out now "
+            'deletes them from this phone.';
+        final ios = Theme.of(context).platform == TargetPlatform.iOS;
+        final leave = ios
+            ? await showSettloActionSheet(
+                context: context,
+                title: title,
+                message: body,
+                destructive: 'Sign Out Anyway',
+                cancel: 'Keep',
+              )
+            : await showSettloSheet<bool>(
+                context: context,
+                builder: (_) => _LeaveSheet(
+                  title: title,
+                  body: body,
+                  keep: 'Keep',
+                  leave: 'Sign out anyway',
+                  onKeep: unsent.drain,
+                ),
+              );
+        // The action sheet's Keep sends them now, as the sheet's Keep does.
+        if (ios && leave == false) unawaited(unsent.drain().catchError((_) {}));
         if (leave != true) return;
       }
       await profile.signOut();
@@ -329,20 +342,30 @@ class _AccountCard extends ConsumerWidget {
     try {
       final count = await ref.read(unsentChangesProvider)?.count() ?? 0;
       if (!context.mounted) return;
-      final delete = await showSettloSheet<bool>(
-        context: context,
-        builder: (_) => _LeaveSheet(
-          title: 'Delete your account?',
-          body:
-              'This removes your name, UPI ID, phone number and friends '
-              'list, and signs you out. Expenses, loans and settle-ups you '
-              "share stay in the other people's records. "
-              '${count > 0 ? 'Your ${_changes(count)} will be lost. ' : ''}'
-              "This can't be undone.",
-          keep: 'Keep my account',
-          leave: 'Delete account',
-        ),
-      );
+      const title = 'Delete your account?';
+      final body =
+          'This removes your name, UPI ID, phone number and friends '
+          'list, and signs you out. Expenses, loans and settle-ups you '
+          "share stay in the other people's records. "
+          '${count > 0 ? 'Your ${_changes(count)} will be lost. ' : ''}'
+          "This can't be undone.";
+      final delete = Theme.of(context).platform == TargetPlatform.iOS
+          ? await showSettloAlert(
+              context: context,
+              title: title,
+              message: body,
+              destructive: 'Delete Account',
+              cancel: 'Keep My Account',
+            )
+          : await showSettloSheet<bool>(
+              context: context,
+              builder: (_) => _LeaveSheet(
+                title: title,
+                body: body,
+                keep: 'Keep my account',
+                leave: 'Delete account',
+              ),
+            );
       if (delete != true) return;
       await profile.deleteAccount();
     } on Object {

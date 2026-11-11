@@ -133,6 +133,9 @@ class SpaceDetailView extends ConsumerWidget {
         style: const TextStyle(letterSpacing: 0, height: 1.2),
         child: SettloScrollScaffold(
           title: 'Space',
+          largeTitle: space.name,
+          previousPageTitle: 'Spaces',
+          trailing: SpaceAvatars(space),
           onRefresh: () async {
             ref.invalidate(spacesProvider);
             await ref.read(spaceLedgerProvider(space.id).notifier).reload();
@@ -1163,7 +1166,15 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
   }
 
   Future<void> _delete() async {
-    if (!_confirmDelete) {
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      final delete = await showSettloActionSheet(
+        context: context,
+        message: 'This expense will be deleted for everyone in the space.',
+        destructive: 'Delete Expense',
+        cancel: 'Cancel',
+      );
+      if (delete != true || !mounted) return;
+    } else if (!_confirmDelete) {
       setState(() => _confirmDelete = true);
       return;
     }

@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo/shell.dart';
@@ -83,6 +83,35 @@ void main() {
           );
         });
       }
+    }
+  }
+
+  // #158: on iOS the space has the native large-title navigation bar.
+  for (final device in SettloGoldenDevices.all) {
+    for (final themeName in ['dark', 'light']) {
+      testWidgets('${device.name} $themeName spaces expenses iOS golden', (
+        tester,
+      ) async {
+        final theme = themeName == 'dark'
+            ? SettloTheme.dark()
+            : SettloTheme.light();
+        await pumpSettloGolden(
+          tester,
+          device: device,
+          theme: theme.copyWith(platform: TargetPlatform.iOS),
+          child: await spacesInShell(
+            spacesList,
+            SpaceExpensesScreen(spaceId: spacesList.first.id),
+          ),
+        );
+
+        await expectLater(
+          find.byKey(settloGoldenSurfaceKey),
+          matchesGoldenFile(
+            'goldens/spaces_expenses_ios_${device.name}_$themeName.png',
+          ),
+        );
+      });
     }
   }
 

@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -59,7 +57,7 @@ class _State extends ConsumerState<ConfirmSettlementScreen> {
     final loading = spaces.isLoading || ledger.isLoading;
     return Padding(
       padding: EdgeInsets.only(
-        top: math.max(54, MediaQuery.paddingOf(context).top),
+        top: settloSheetTop(context),
         bottom: MediaQuery.viewInsetsOf(context).bottom,
       ),
       child: Material(
