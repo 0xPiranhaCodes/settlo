@@ -1354,6 +1354,8 @@ class _ConfirmSettlementSheetState
     return SAmountSheet(
       title: 'Confirm settle-up · ${widget.space.name}',
       onClose: () => Navigator.of(context).pop(),
+      dirty: _disputing && _reason.text.isNotEmpty,
+      saving: _busy,
       amountLabel: '${widget.payer} says they paid you',
       amount: Semantics(
         label: spokenInr(widget.expense.amount),
@@ -1377,6 +1379,7 @@ class _ConfirmSettlementSheetState
             TextField(
               controller: _reason,
               enabled: !_busy,
+              onChanged: (_) => setState(() {}),
               maxLength: 500,
               textCapitalization: TextCapitalization.sentences,
               decoration: const InputDecoration(labelText: 'What went wrong'),

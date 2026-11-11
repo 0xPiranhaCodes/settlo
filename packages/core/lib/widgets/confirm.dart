@@ -10,23 +10,29 @@ Future<bool?> showSettloActionSheet({
   required String cancel,
   String? title,
   String? message,
-}) => showCupertinoModalPopup<bool>(
-  context: context,
-  builder: (context) => _Tinted(
-    child: CupertinoActionSheet(
-      title: title == null ? null : Text(title),
-      message: message == null ? null : Text(message),
-      actions: [
-        CupertinoActionSheetAction(
-          isDestructiveAction: true,
-          onPressed: () => _answer(context, true),
-          child: Text(destructive),
+}) => Navigator.of(context, rootNavigator: true).push(
+  _Popup<bool>(
+    barrierColor: CupertinoDynamicColor.resolve(
+      kCupertinoModalBarrierColor,
+      context,
+    ),
+    reduced: MediaQuery.disableAnimationsOf(context),
+    builder: (context) => _Tinted(
+      child: CupertinoActionSheet(
+        title: title == null ? null : Text(title),
+        message: message == null ? null : Text(message),
+        actions: [
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () => _answer(context, true),
+            child: Text(destructive),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          isDefaultAction: true,
+          onPressed: () => _answer(context, false),
+          child: Text(cancel),
         ),
-      ],
-      cancelButton: CupertinoActionSheetAction(
-        isDefaultAction: true,
-        onPressed: () => _answer(context, false),
-        child: Text(cancel),
       ),
     ),
   ),
@@ -41,24 +47,30 @@ Future<bool?> showSettloAlert({
   required String message,
   required String destructive,
   required String cancel,
-}) => showCupertinoDialog<bool>(
-  context: context,
-  builder: (context) => _Tinted(
-    child: CupertinoAlertDialog(
-      title: Text(title),
-      content: Text(message),
-      actions: [
-        CupertinoDialogAction(
-          isDefaultAction: true,
-          onPressed: () => _answer(context, false),
-          child: Text(cancel),
-        ),
-        CupertinoDialogAction(
-          isDestructiveAction: true,
-          onPressed: () => _answer(context, true),
-          child: Text(destructive),
-        ),
-      ],
+}) => Navigator.of(context, rootNavigator: true).push(
+  CupertinoDialogRoute<bool>(
+    context: context,
+    // Reduce Motion: no scale, only the barrier fades.
+    transitionBuilder: MediaQuery.disableAnimationsOf(context)
+        ? (_, _, _, child) => child
+        : null,
+    builder: (context) => _Tinted(
+      child: CupertinoAlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => _answer(context, false),
+            child: Text(cancel),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => _answer(context, true),
+            child: Text(destructive),
+          ),
+        ],
+      ),
     ),
   ),
 );
@@ -83,4 +95,26 @@ class _Tinted extends StatelessWidget {
         .copyWith(primaryColor: SettloColors.of(context).textPrimary),
     child: child,
   );
+}
+
+/// [showCupertinoModalPopup]'s route, which under Reduce Motion appears in
+/// place instead of sliding up; only the barrier fades.
+class _Popup<T> extends CupertinoModalPopupRoute<T> {
+  new({
+    required super.builder,
+    required super.barrierColor,
+    required this.reduced,
+  });
+
+  final bool reduced;
+
+  @override
+  Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) => reduced
+      ? Align(alignment: Alignment.bottomCenter, child: child)
+      : super.buildTransitions(context, animation, secondaryAnimation, child);
 }

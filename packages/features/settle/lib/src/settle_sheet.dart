@@ -157,6 +157,9 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
     return SAmountSheet(
       title: 'Settle up · ${widget.space.name}',
       onClose: widget.onClose,
+      // Back from the UPI app, the payment is not recorded yet.
+      dirty: _confirming && !_recorded,
+      saving: _busy,
       header: _Parties(from: _p.from, to: _p.to),
       amountLabel: _youPay
           ? 'You pay ${_other.name}'

@@ -202,6 +202,16 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
         type: MaterialType.transparency,
         child: SAmountSheet(
           title: 'New loan',
+          dirty:
+              !_youLent ||
+              _who != null ||
+              [
+                _principal,
+                _installment,
+                _phone,
+                _person,
+              ].any((c) => c.text.isNotEmpty),
+          saving: _busy,
           onClose: _close,
           header: _Direction(
             youLent: _youLent,
@@ -267,6 +277,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                   controller: _phone,
                   keyboardType: TextInputType.phone,
                   autofillHints: const [AutofillHints.telephoneNumber],
+                  onChanged: (_) => setState(() {}),
                   onSubmitted: (_) => _add(),
                   decoration: InputDecoration(
                     labelText: 'Phone number',
@@ -278,6 +289,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                 TextField(
                   controller: _person,
                   textCapitalization: TextCapitalization.words,
+                  onChanged: (_) => setState(() {}),
                   onSubmitted: (_) => _add(),
                   decoration: const InputDecoration(labelText: 'Their name'),
                 ),

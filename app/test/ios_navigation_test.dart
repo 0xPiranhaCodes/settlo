@@ -135,6 +135,41 @@ void main() {
     expect(router.state.uri.toString(), SettloRoutes.home);
   });
 
+  testWidgets('on iOS, a dirty Add expense asks before a drag discards it', (
+    tester,
+  ) async {
+    final router = await _push(
+      tester,
+      SettloRoutes.addExpenseIn('s1'),
+      TargetPlatform.iOS,
+    );
+    await tester.enterText(find.byType(TextField).at(0), '1234');
+    await tester.enterText(find.byType(TextField).at(1), 'Weekly groceries');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    Future<void> fling() async {
+      await tester.flingFrom(
+        tester.getCenter(find.text('New expense · Flat 402')),
+        const Offset(0, 500),
+        1500,
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await fling();
+    expect(find.text('Discard changes?'), findsOneWidget);
+    await tester.tap(find.text('Keep editing'));
+    await tester.pumpAndSettle();
+    expect(find.text('Weekly groceries'), findsOneWidget);
+    expect(router.state.uri.toString(), SettloRoutes.addExpenseIn('s1'));
+
+    await fling();
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AddExpenseScreen), findsNothing);
+    expect(router.state.uri.toString(), SettloRoutes.home, reason: 'one pop');
+  });
+
   testWidgets('on Android, Add expense keeps its own drag to close', (
     tester,
   ) async {
@@ -159,6 +194,13 @@ void main() {
   // so pushed detail routes use SettloPage (#158).
   for (final (name, from, to, back) in [
     ('a space', SettloRoutes.spaces, SettloRoutes.space('s1'), 'Spaces'),
+    // One destination with Expenses: back skips the other segment.
+    (
+      'Balances',
+      SettloRoutes.spaces,
+      SettloRoutes.spaceBalances('s1'),
+      'Spaces',
+    ),
     (
       'a loan',
       SettloRoutes.loans,
@@ -208,4 +250,37 @@ void main() {
       }
     });
   }
+
+  testWidgets('on iOS, Back from Balances reached by its segment goes to '
+      'Spaces', (tester) async {
+    await loadSettloFonts();
+    tester.view
+      ..physicalSize = SettloGoldenDevices.canvas390.size
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    try {
+      await tester.pumpWidget(
+        fakeSessionApp(fakeSession, home: FakeHomeRepository(homeMain)),
+      );
+      await tester.pumpAndSettle();
+      final router = ProviderScope.containerOf(
+        tester.element(find.byType(SettloApp)),
+      ).read(routerProvider)..go(SettloRoutes.spaces);
+      await tester.pumpAndSettle();
+      unawaited(router.push(SettloRoutes.space('s1')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Balances'));
+      await tester.pumpAndSettle();
+      expect(router.state.uri.toString(), SettloRoutes.spaceBalances('s1'));
+      expect(find.byType(SpaceScreen), findsOne);
+
+      await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+      await tester.pumpAndSettle();
+      expect(router.state.uri.toString(), SettloRoutes.spaces);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
 }
