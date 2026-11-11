@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:settlo/native_tab_bar.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
@@ -95,6 +97,29 @@ void main() {
         final theme = themeName == 'dark'
             ? SettloTheme.dark()
             : SettloTheme.light();
+        // The iOS shell's tab bar is a native platform view (#160): accept
+        // it and its updates. It draws nothing in a widget test.
+        final messenger = tester.binding.defaultBinaryMessenger;
+        messenger.setMockMethodCallHandler(SystemChannels.platform_views, (
+          call,
+        ) async {
+          if (call.method == 'create') {
+            final id = (call.arguments as Map<Object?, Object?>)['id']! as int;
+            messenger.setMockMethodCallHandler(
+              MethodChannel(nativeTabBarChannel(id)),
+              (_) async => null,
+            );
+          }
+          return null;
+        });
+        addTearDown(() async {
+          // Unmount first: the view is disposed through the same channel.
+          await tester.pumpWidget(const SizedBox());
+          messenger.setMockMethodCallHandler(
+            SystemChannels.platform_views,
+            null,
+          );
+        });
         await pumpSettloGolden(
           tester,
           device: device,
