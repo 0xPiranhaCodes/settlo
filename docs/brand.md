@@ -51,12 +51,10 @@ The website extends the app type scale for product headings (42–132px) and bod
 The opt-in marketing export shares the golden fixtures and screen builders. Run it from `app/`; it does not match or write CI golden PNGs and is not named `_test.dart`, so normal test discovery does not run it.
 
 ```sh
-(cd app && flutter test test/marketing_export.dart)
-python scripts/site-images.py --ref HEAD
-python scripts/site-phones.py
+SITE_IMAGE_PYTHON=python scripts/site-build-images.sh
 ```
 
-Use Pillow 13.0.0 with AVIF support. The export renders a 390×844 logical viewport at devicePixelRatio 3 and captures 1170×2532 pixels directly from Flutter, in `build/marketing/`. The shared golden harness and all committed golden PNGs remain unchanged. `site-images.py` maintains the logo, social card and golden provenance; `site-phones.py` consumes the separate 3x export for the actual page imagery. `sources.json` records both source hashes, the DPR, crop rectangles, output dimensions and encoding recipe.
+Use Pillow 13.0.0 with AVIF support. The single rebuild command always renders the current app widgets first, so a merged in-app mark/theme change is picked up automatically without editing screen pixels or reusing stale exports. The export renders a 390×844 logical viewport at devicePixelRatio 3 and captures 1170×2532 pixels directly from Flutter, in `build/marketing/`. The shared golden harness and all committed golden PNGs remain unchanged. `site-images.py` maintains the logo, social card and golden provenance; `site-phones.py` consumes the separate 3x export for the actual page imagery. `sources.json` records both source hashes, the DPR, crop rectangles, output dimensions and encoding recipe.
 
 Phone composites have 1x, 2x and 3x AVIF alternatives in `srcset`. The image budget is the total unique images selected by one page at each density, including all below-fold phone images, detail crops and the mark: at most 350 KiB at every density. Alternate density files and the social sharing card are not fetched together. Crop images contain complete UI controls or cards, and are capped at their logical source widths to preserve 3x sharpness. No generated app UI or retyped screenshot text is used.
 

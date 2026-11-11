@@ -72,7 +72,7 @@ def main():
         upright = compose(screen, 0)
         output_scale = 390 / upright.width
         width, height = round(composed.width * output_scale), round(composed.height * output_scale)
-        quality = 60 if name == 'home_main' else 48
+        quality = 56 if name == 'home_main' else 48
         outputs = []
         for density in (1, 2, 3):
             file = f'{name}-phone' + (f'@{density}x' if density > 1 else '') + '.avif'
@@ -88,8 +88,8 @@ def main():
     # Whole UI controls/cards only. Coordinates are logical pixels in the same
     # export; never reconstructed type or model-generated interface pixels.
     crops = {
-        'upi': ('settle_pay', (20, 696, 370, 756)),
-        'remind': ('loans_detail', (140, 544, 250, 604)),
+        'upi': ('settle_pay', (12, 636, 378, 764)),
+        'remind': ('loans_detail', (20, 484, 370, 614)),
         'balance': ('home_main', (20, 128, 370, 352)),
         'instalments': ('loans_detail', (44, 336, 346, 452)),
     }

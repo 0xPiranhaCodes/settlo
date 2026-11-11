@@ -1,5 +1,5 @@
 {
-  "commit": "4aee36011fd71b0f1071679cb4f641faf4188232",
+  "commit": "f221495ba183524bbf9ffd8ee540e54e8a2447b4",
   "sources": {
     "home_main": {
       "path": "app/test/goldens/home_main_390x844_dark.png",
@@ -34,7 +34,7 @@
         "screen_crop_rows": null,
         "encoding": {
           "format": "AVIF",
-          "quality": 60,
+          "quality": 56,
           "subsampling": "4:4:4"
         },
         "output_scale": 0.27896995708154504
@@ -215,29 +215,29 @@
     "upi": {
       "source": "settle_pay",
       "logical_crop": [
-        20,
-        696,
-        370,
-        756
+        12,
+        636,
+        378,
+        764
       ],
       "output": "detail-upi.avif",
       "size": [
-        1050,
-        180
+        1098,
+        384
       ]
     },
     "remind": {
       "source": "loans_detail",
       "logical_crop": [
-        140,
-        544,
-        250,
-        604
+        20,
+        484,
+        370,
+        614
       ],
       "output": "detail-remind.avif",
       "size": [
-        330,
-        180
+        1050,
+        390
       ]
     },
     "balance": {
