@@ -60,7 +60,23 @@ void main() {
               ] else ...[
                 reminderRepositoryProvider.overrideWithValue(FakeReminders()),
                 loansRepositoryProvider.overrideWithValue(
-                  FakeLoansRepository(loansList()),
+                  FakeLoansRepository(
+                    width == 430 && name == 'loans_detail'
+                        ? LoansData(
+                            today: loansList().today,
+                            yourName: loansList().yourName,
+                            loans: [
+                              // A still image ends at the pending repayment;
+                              // older history must not ghost under the glass.
+                              arjunLoan(
+                                repayments: arjunLoan().repayments
+                                    .where((repayment) => repayment.id == 'r3')
+                                    .toList(),
+                              ),
+                            ],
+                          )
+                        : loansList(),
+                  ),
                 ),
               ],
             ],
@@ -101,11 +117,33 @@ void main() {
           device: GoldenDevice(name: 'marketing', size: Size(width, height)),
           theme: theme,
         );
+        if (width == 430 && name == 'home_main') {
+          // Keep the pending-repayment action above the floating bar too.
+          tester
+              .state<ScrollableState>(find.byType(Scrollable).first)
+              .position
+              .jumpTo(24);
+          await tester.pump();
+        }
+        if (width == 430 && name == 'loans_detail') {
+          final lastRow = find.byKey(const ValueKey('r3'));
+          final card = find.ancestor(of: lastRow, matching: find.byType(SCard));
+          expect(
+            tester.getRect(card).bottom,
+            lessThanOrEqualTo(
+              tester.getRect(find.byType(SGlassTabBar)).top - 16,
+            ),
+            reason: 'Leave a clean gap below the complete repayment card',
+          );
+        }
         if (width == 430 && name == 'confirm_repayment') {
           // The original 390px export cut this control off at its bottom edge.
           final button = tester.getRect(find.byType(SSecondaryButton));
           expect(button.bottom, lessThanOrEqualTo(height - insets.bottom));
           expect(button.top, greaterThanOrEqualTo(0));
+        }
+        if (width == 430) {
+          _expectControlsClearOfTabBar(tester, name);
         }
         // Same logical geometry, rerasterised at 3x; no PNG enlargement.
         tester.view
@@ -134,5 +172,34 @@ void main() {
         });
       });
     }
+  }
+}
+
+// Inspect geometry, not hitTestable(): an occluded control must still fail.
+void _expectControlsClearOfTabBar(WidgetTester tester, String name) {
+  final bars = find.byType(SGlassTabBar);
+  if (bars.evaluate().isEmpty) return;
+  final bar = tester.getRect(bars);
+  final controls = find.byWidgetPredicate(
+    (widget) =>
+        widget is ButtonStyleButton ||
+        widget is IconButton ||
+        (widget is InkWell && widget.onTap != null) ||
+        (widget is GestureDetector && widget.onTap != null),
+  );
+  for (final element in controls.evaluate()) {
+    // Navigation's own controls belong inside its surface.
+    var inTabBar = false;
+    element.visitAncestorElements((ancestor) {
+      if (ancestor.widget is SGlassTabBar) inTabBar = true;
+      return !inTabBar;
+    });
+    if (inTabBar) continue;
+    final rect = tester.getRect(find.byWidget(element.widget));
+    expect(
+      rect.overlaps(bar),
+      isFalse,
+      reason: '$name: ${element.widget.runtimeType} $rect intersects $bar',
+    );
   }
 }

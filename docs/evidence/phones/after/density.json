@@ -2,19 +2,19 @@
   "densityResults": [
     {
       "density": 1,
-      "src": "http://127.0.0.1:8877/images/home_main-phone.avif",
+      "src": "http://127.0.0.1:8878/images/home_main-phone.avif",
       "top": 461.578125,
       "bottom": 1107.71875
     },
     {
       "density": 2,
-      "src": "http://127.0.0.1:8877/images/home_main-phone@2x.avif",
+      "src": "http://127.0.0.1:8878/images/home_main-phone@2x.avif",
       "top": 461.578125,
       "bottom": 1107.71875
     },
     {
       "density": 3,
-      "src": "http://127.0.0.1:8877/images/home_main-phone@3x.avif",
+      "src": "http://127.0.0.1:8878/images/home_main-phone@3x.avif",
       "top": 461.578125,
       "bottom": 1107.71875
     }

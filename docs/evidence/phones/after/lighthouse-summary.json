@@ -4,19 +4,19 @@
       "run": 1,
       "performance": 99.0,
       "cls": 0,
-      "lcp_ms": 2252.6647000000003
+      "lcp_ms": 2179.8633999999997
     },
     {
       "run": 2,
       "performance": 99.0,
       "cls": 0,
-      "lcp_ms": 2252.327
+      "lcp_ms": 2177.3437
     },
     {
       "run": 3,
       "performance": 99.0,
       "cls": 0,
-      "lcp_ms": 2270.2858
+      "lcp_ms": 2177.9221000000002
     }
   ],
   "median_performance": 99.0,
