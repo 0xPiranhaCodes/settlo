@@ -1,33 +1,43 @@
 {
-  "commit": "07e7eff3c7545a79bc20579ebdcb17745d966918",
+  "commit": "d97760a6622266b9dbd33e037fad0c1455c9cef2",
   "sources": {
     "home_main": {
       "path": "app/test/goldens/home_main_390x844_dark.png",
-      "sha256": "6ba311dff25f02926c640533daea0a1f2f859ae306bbcf9d1d0490a8fbe05c98",
+      "sha256": "ee51566d4b40211048453b7e5532d380c407f2bcf9335767ed2db1dcef7733c1",
       "size": [
         390,
         844
       ],
       "crop_rows": 662,
+      "marketing": {
+        "path": "build/marketing/home_main.png",
+        "sha256": "d6bad93e0e406b5f032c42e1bbd0766af044923bdc9d89d5fe11820f04dfa6dc",
+        "size": [
+          1170,
+          2532
+        ],
+        "device_pixel_ratio": 3,
+        "fixture": "app/test/goldens/home_main_390x844_dark.png",
+        "exporter": "app/test/marketing_export.dart"
+      },
       "phone": {
         "angle_degrees": 0,
         "size_1x": [
           390,
-          837
+          829
         ],
         "outputs": [
-          "home_main-phone.webp"
+          "home_main-phone.avif",
+          "home_main-phone@2x.avif",
+          "home_main-phone@3x.avif"
         ],
-        "density_note": "Common physical device scale; rotated canvas expands without shrinking the phone.",
         "screen_crop_rows": null,
         "encoding": {
-          "format": "WebP",
-          "quality": 80,
-          "method": 6,
-          "exact": true
+          "format": "AVIF",
+          "quality": 56,
+          "subsampling": "4:4:4"
         },
-        "uniform_frame_scale": 1.0563002680965148,
-        "output_scale": 0.425764192139738
+        "output_scale": 0.27896995708154504
       }
     },
     "settle_pay": {
@@ -38,25 +48,35 @@
         844
       ],
       "crop_rows": null,
+      "marketing": {
+        "path": "build/marketing/settle_pay.png",
+        "sha256": "f398c02a4ce7d5b141f9437f5e533a793ebb1f94e0cc8cde9068a6618c59b161",
+        "size": [
+          1170,
+          2532
+        ],
+        "device_pixel_ratio": 3,
+        "fixture": "app/test/goldens/settle_pay_390x844_dark.png",
+        "exporter": "app/test/marketing_export.dart"
+      },
       "phone": {
         "angle_degrees": 3,
         "size_1x": [
-          433,
-          857
+          432,
+          848
         ],
         "outputs": [
-          "settle_pay-phone.webp"
+          "settle_pay-phone.avif",
+          "settle_pay-phone@2x.avif",
+          "settle_pay-phone@3x.avif"
         ],
-        "density_note": "Common physical device scale; rotated canvas expands without shrinking the phone.",
         "screen_crop_rows": null,
         "encoding": {
-          "format": "WebP",
-          "quality": 88,
-          "method": 6,
-          "exact": true
+          "format": "AVIF",
+          "quality": 48,
+          "subsampling": "4:4:4"
         },
-        "uniform_frame_scale": 1.0563002680965148,
-        "output_scale": 0.425764192139738
+        "output_scale": 0.27896995708154504
       }
     },
     "spaces_balances": {
@@ -67,54 +87,74 @@
         844
       ],
       "crop_rows": 754,
+      "marketing": {
+        "path": "build/marketing/spaces_balances.png",
+        "sha256": "710dbcbc849a7f216979c6d05573f01acae2a1c8d06bb4db98852a24a4f3fa59",
+        "size": [
+          1170,
+          2532
+        ],
+        "device_pixel_ratio": 3,
+        "fixture": "app/test/goldens/spaces_balances_390x844_dark.png",
+        "exporter": "app/test/marketing_export.dart"
+      },
       "phone": {
         "angle_degrees": -3,
         "size_1x": [
-          433,
-          857
+          432,
+          848
         ],
         "outputs": [
-          "spaces_balances-phone.webp"
+          "spaces_balances-phone.avif",
+          "spaces_balances-phone@2x.avif",
+          "spaces_balances-phone@3x.avif"
         ],
-        "density_note": "Common physical device scale; rotated canvas expands without shrinking the phone.",
         "screen_crop_rows": null,
         "encoding": {
-          "format": "WebP",
-          "quality": 88,
-          "method": 6,
-          "exact": true
+          "format": "AVIF",
+          "quality": 48,
+          "subsampling": "4:4:4"
         },
-        "uniform_frame_scale": 1.0563002680965148,
-        "output_scale": 0.425764192139738
+        "output_scale": 0.27896995708154504
       }
     },
     "loans_detail": {
       "path": "app/test/goldens/loans_detail_390x844_dark.png",
-      "sha256": "c881b283224ff8204589bdb8ff45499541c2ac915919d9d0f0ced800432d523a",
+      "sha256": "f4f2ab0d9952fcafe080dfbb470b31135952356c77e9252351586eca1c01e734",
       "size": [
         390,
         844
       ],
       "crop_rows": 542,
+      "marketing": {
+        "path": "build/marketing/loans_detail.png",
+        "sha256": "6c942cb88d6d213911e3a891485b3af05967c4f7c91e3049d9bc6150054656c0",
+        "size": [
+          1170,
+          2532
+        ],
+        "device_pixel_ratio": 3,
+        "fixture": "app/test/goldens/loans_detail_390x844_dark.png",
+        "exporter": "app/test/marketing_export.dart"
+      },
       "phone": {
         "angle_degrees": 3,
         "size_1x": [
-          433,
-          857
+          432,
+          848
         ],
         "outputs": [
-          "loans_detail-phone.webp"
+          "loans_detail-phone.avif",
+          "loans_detail-phone@2x.avif",
+          "loans_detail-phone@3x.avif"
         ],
-        "density_note": "Common physical device scale; rotated canvas expands without shrinking the phone.",
         "screen_crop_rows": null,
         "encoding": {
-          "format": "WebP",
-          "quality": 88,
-          "method": 6,
-          "exact": true
+          "format": "AVIF",
+          "quality": 48,
+          "subsampling": "4:4:4"
         },
-        "uniform_frame_scale": 1.0563002680965148,
-        "output_scale": 0.425764192139738
+        "output_scale": 0.27896995708154504
       }
     },
     "confirm_repayment": {
@@ -125,25 +165,35 @@
         844
       ],
       "crop_rows": 787,
+      "marketing": {
+        "path": "build/marketing/confirm_repayment.png",
+        "sha256": "1a7dc4755ed96c4f000eb5b357a45bf4e3ee6bd1b525ba4012092bd0865294be",
+        "size": [
+          1170,
+          2532
+        ],
+        "device_pixel_ratio": 3,
+        "fixture": "app/test/goldens/confirm_repayment_390x844_dark.png",
+        "exporter": "app/test/marketing_export.dart"
+      },
       "phone": {
         "angle_degrees": 0,
         "size_1x": [
           390,
-          837
+          829
         ],
         "outputs": [
-          "confirm_repayment-phone.webp"
+          "confirm_repayment-phone.avif",
+          "confirm_repayment-phone@2x.avif",
+          "confirm_repayment-phone@3x.avif"
         ],
-        "density_note": "Common physical device scale; rotated canvas expands without shrinking the phone.",
         "screen_crop_rows": null,
         "encoding": {
-          "format": "WebP",
-          "quality": 88,
-          "method": 6,
-          "exact": true
+          "format": "AVIF",
+          "quality": 48,
+          "subsampling": "4:4:4"
         },
-        "uniform_frame_scale": 1.0563002680965148,
-        "output_scale": 0.425764192139738
+        "output_scale": 0.27896995708154504
       }
     }
   },
@@ -159,6 +209,64 @@
       1700
     ],
     "recipe": "scripts/site-phones.py",
-    "screen_policy": "Full approved golden pasted without retouching into a uniformly scaled device; screen background fills spare opening rows. Final geometric resampling and lossy WebP encoding only."
+    "screen_policy": "Full 3x Flutter marketing export pasted without retouching into a uniformly scaled device; screen background fills spare opening rows. Final geometric resampling and AVIF encoding only."
+  },
+  "details": {
+    "upi": {
+      "source": "settle_pay",
+      "logical_crop": [
+        12,
+        636,
+        378,
+        764
+      ],
+      "output": "detail-upi.avif",
+      "size": [
+        1098,
+        384
+      ]
+    },
+    "remind": {
+      "source": "loans_detail",
+      "logical_crop": [
+        20,
+        484,
+        370,
+        614
+      ],
+      "output": "detail-remind.avif",
+      "size": [
+        1050,
+        390
+      ]
+    },
+    "balance": {
+      "source": "home_main",
+      "logical_crop": [
+        20,
+        128,
+        370,
+        352
+      ],
+      "output": "detail-balance.avif",
+      "size": [
+        1050,
+        672
+      ]
+    },
+    "instalments": {
+      "source": "loans_detail",
+      "logical_crop": [
+        44,
+        336,
+        346,
+        452
+      ],
+      "output": "detail-instalments.avif",
+      "size": [
+        906,
+        348
+      ]
+    }
   }
 }

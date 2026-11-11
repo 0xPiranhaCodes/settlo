@@ -1,0 +1,6 @@
+PASS scripts/site-check.cjs (exit 0)
+24 route/width/theme checks with JavaScript disabled
+24 native/fallback/reduced-motion width/theme checks
+3 density selections and reduced-transparency checks
+768px Goa/Flat 402 canvas widths: 432px / 432px
+Maximum complete page image set: 357576 bytes (349.2 KiB)
