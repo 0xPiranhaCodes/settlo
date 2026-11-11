@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
+import 'package:settlo_core/widgets/controls.dart';
 import 'package:settlo_core/widgets/pressable.dart';
 
 /// Height of a chip or segmented control as drawn; the tap target around
@@ -77,8 +79,9 @@ class SChip extends StatelessWidget {
 typedef SSegment<T> = ({T value, String label});
 
 /// A compact segmented control (Equally / Exact / % / Shares). The selected
-/// segment is lifted to the highest surface; nothing is gold.
-class SSegmentedControl<T> extends StatelessWidget {
+/// segment is lifted to the highest surface; nothing is gold. On iOS it is a
+/// [CupertinoSlidingSegmentedControl] across the full width.
+class SSegmentedControl<T extends Object> extends StatelessWidget {
   /// A control over [segments] with [selected] chosen.
   const new({
     required this.segments,
@@ -99,6 +102,42 @@ class SSegmentedControl<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      return SettloCupertinoTheme(
+        child: SizedBox(
+          width: double.infinity,
+          child: CupertinoSlidingSegmentedControl<T>(
+            groupValue: selected,
+            backgroundColor: c.surfaceRaised,
+            thumbColor: c.surfaceHighest,
+            onValueChanged: (v) {
+              if (v != null) onChanged(v);
+            },
+            children: {
+              for (final s in segments)
+                // 40 inside the 2pt track inset: a 44pt target.
+                s.value: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 40),
+                  child: Center(
+                    child: Text(
+                      s.label,
+                      maxLines: 1,
+                      style: SettloTypography.subheadline(
+                        weight: s.value == selected
+                            ? FontWeight.w500
+                            : FontWeight.w400,
+                        color: s.value == selected
+                            ? c.textPrimary
+                            : c.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+            },
+          ),
+        ),
+      );
+    }
     const inset = (SettloSpacing.minTouchTarget - _visualHeight) / 2;
     // The track is drawn 36 high; each segment's tap target fills the full
     // 44pt band around it.

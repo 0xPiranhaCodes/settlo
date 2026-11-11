@@ -40,6 +40,9 @@ class ActivityScreen extends ConsumerStatefulWidget {
 class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   bool _needsYouOnly = false;
 
+  /// iOS search over the loaded feed; empty shows everything.
+  String _query = '';
+
   /// Answering is open; another tap must not open a second one.
   bool _opening = false;
 
@@ -170,7 +173,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     final spaces = ref.watch(activitySpacesProvider).value ?? const [];
     final pending = needs.value ?? const <PendingAnswer>[];
     // Never another filter's rows while this one loads.
-    final entries = feed.value?.filter == filter ? feed.value?.entries : null;
+    final entries = feed.value?.filter == filter
+        ? [
+            for (final e in feed.value!.entries)
+              if (_query.isEmpty || _matches(e)) e,
+          ]
+        : null;
+    final ios = Theme.of(context).platform == TargetPlatform.iOS;
     final muted = SettloTypography.subheadline(color: c.textSecondary);
 
     Widget empty(String title, String body) => SCard(
@@ -189,6 +198,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
         title: 'Activity',
         trailing: SBell(unread: _newSinceOpen, onPressed: _showNewest),
       ),
+      if (ios) ...[
+        const SizedBox(height: SettloSpacing.x1),
+        SSearchField(onChanged: (q) => setState(() => _query = q)),
+      ],
       const SizedBox(height: SettloSpacing.x2),
       // One row, as on the canvas; it scrolls once the spaces outgrow it.
       SingleChildScrollView(
@@ -243,6 +256,8 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               : '',
           style: muted,
         )
+      else if (entries.isEmpty && _query.isNotEmpty)
+        Text('No activity matches "$_query".', style: muted)
       else if (entries.isEmpty)
         empty(
           filter == allActivity ? 'No activity yet' : 'Nothing here yet',
@@ -254,9 +269,18 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               : 'Expenses, settle-ups and repayments in your spaces and '
                     'loans show up here, edits included.',
         )
-      else
-        ..._sections(context, entries),
+      else if (!ios)
+        for (final (heading, rows) in _sections(context, entries)) ...[
+          heading,
+          ...rows,
+        ],
     ];
+    // iOS: each day heading stays pinned under the bar while its rows
+    // scroll, as in Mail.
+    final groups = ios && !_needsYouOnly && (entries?.isNotEmpty ?? false)
+        ? _sections(context, entries!)
+        : null;
+    const margin = EdgeInsets.symmetric(horizontal: SettloSpacing.screenMargin);
 
     return Scaffold(
       body: NotificationListener<ScrollNotification>(
@@ -282,14 +306,53 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
             SettloSpacing.screenMargin,
             media.padding.bottom + SettloSpacing.x2,
           ),
+          slivers: groups == null
+              ? null
+              : [
+                  SliverPadding(
+                    padding: margin,
+                    sliver: SliverList.list(
+                      children: children.skip(1).toList(),
+                    ),
+                  ),
+                  for (final (heading, rows) in groups)
+                    SliverMainAxisGroup(
+                      slivers: [
+                        PinnedHeaderSliver(
+                          child: ColoredBox(
+                            color: c.background,
+                            child: Padding(padding: margin, child: heading),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: margin,
+                          sliver: SliverList.list(children: rows),
+                        ),
+                      ],
+                    ),
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: media.padding.bottom + SettloSpacing.x2,
+                    ),
+                  ),
+                ],
           children: children,
         ),
       ),
     );
   }
 
-  /// The feed under Today, This week and Earlier headings.
-  List<Widget> _sections(BuildContext context, List<ActivityEntry> entries) {
+  bool _matches(ActivityEntry e) {
+    final (title, detail, _) = _describe(e);
+    return searchMatches(_query, '${title.toPlainText()} $detail');
+  }
+
+  /// The feed under Today, This week and Earlier headings: each heading
+  /// with its rows.
+  List<(Widget, List<Widget>)> _sections(
+    BuildContext context,
+    List<ActivityEntry> entries,
+  ) {
     final c = SettloColors.of(context);
     final now = ref.watch(activityNowProvider);
     final today = DateTime(now.year, now.month, now.day);
@@ -301,13 +364,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
       return 'Earlier';
     }
 
-    final out = <Widget>[];
+    final out = <(Widget, List<Widget>)>[];
     String? current;
     for (final (i, e) in entries.indexed) {
       final h = heading(e.at);
       if (h != current) {
         current = h;
-        out.add(
+        out.add((
           Padding(
             padding: EdgeInsets.only(top: i == 0 ? 12 : 16, bottom: 2),
             child: Semantics(
@@ -318,10 +381,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               ),
             ),
           ),
-        );
+          <Widget>[],
+        ));
       }
       final last = i == entries.length - 1 || heading(entries[i + 1].at) != h;
-      out.add(
+      out.last.$2.add(
         _EntryRow(
           e,
           divider: !last,

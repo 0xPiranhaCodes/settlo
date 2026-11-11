@@ -24,6 +24,16 @@ Future<void> _loadSettloFonts() async {
   ) as List<dynamic>;
   for (final family in manifest.cast<Map<String, dynamic>>()) {
     final name = (family['family'] as String).split('/').last;
+    // The iOS system-action glyphs (#158), under their package family.
+    if (name == 'CupertinoIcons') {
+      final loader = FontLoader(family['family'] as String);
+      for (final font
+          in (family['fonts'] as List).cast<Map<String, dynamic>>()) {
+        loader.addFont(rootBundle.load(font['asset'] as String));
+      }
+      await loader.load();
+      continue;
+    }
     if (name != 'Figtree') continue;
     final files = [
       for (final font in (family['fonts'] as List).cast<Map<String, dynamic>>())

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +24,7 @@ Future<GoRouter> _pump(
   Session? session,
   bool settle = true,
   ValueChanged<Uri>? onRedirect,
+  TargetPlatform platform = TargetPlatform.android,
 }) async {
   tester.view
     ..physicalSize = const Size(390, 844)
@@ -52,7 +54,7 @@ Future<GoRouter> _pump(
           invitesRepositoryProvider.overrideWithValue(invites),
       ],
       child: MaterialApp.router(
-        theme: SettloTheme.dark(),
+        theme: SettloTheme.dark().copyWith(platform: platform),
         routerConfig: router,
       ),
     ),
@@ -354,6 +356,77 @@ void main() {
       await tester.pumpAndSettle();
       expect(auth.sent, ['+971501234567']);
     });
+
+    testWidgets('iOS: the country picker is a page sheet with search', (
+      tester,
+    ) async {
+      await _pump(tester, auth, platform: TargetPlatform.iOS);
+      await tester.tap(find.byKey(const ValueKey('country-chip')));
+      await tester.pumpAndSettle();
+      expect(
+        ModalRoute.of(tester.element(find.text('Country code'))),
+        isA<CupertinoSheetRoute<Country>>(),
+      );
+      // India is chosen: a checkmark, not "Selected".
+      expect(find.text('Selected'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.widgetWithText(CupertinoListTile, 'India'),
+          matching: find.byIcon(CupertinoIcons.checkmark_alt),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.enterText(find.byType(CupertinoSearchTextField), 'emir');
+      await tester.pumpAndSettle();
+      expect(find.byType(CupertinoListTile), findsOneWidget);
+      await tester.enterText(find.byType(CupertinoSearchTextField), '+65');
+      await tester.pumpAndSettle();
+      expect(find.text('Singapore'), findsOneWidget);
+      await tester.enterText(find.byType(CupertinoSearchTextField), 'zz');
+      await tester.pumpAndSettle();
+      expect(find.text('No country matches "zz".'), findsOneWidget);
+
+      await tester.enterText(find.byType(CupertinoSearchTextField), 'emir');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('United Arab Emirates'));
+      await tester.pumpAndSettle();
+      expect(find.text('AE'), findsOneWidget);
+      expect(find.text('+971'), findsOneWidget);
+    });
+
+    testWidgets('iOS: Cancel leaves the country as it was', (tester) async {
+      await _pump(tester, auth, platform: TargetPlatform.iOS);
+      await tester.tap(find.byKey(const ValueKey('country-chip')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.text('Country code'), findsNothing);
+      expect(find.text('IN'), findsOneWidget);
+    });
+
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      testWidgets(
+        'back is ${platform == TargetPlatform.iOS ? 'the native '
+                  'chevron' : 'the round button'} on ${platform.name}',
+        (tester) async {
+          final router = await _pump(tester, auth, platform: platform);
+          final ios = platform == TargetPlatform.iOS;
+          expect(
+            find.byType(CupertinoNavigationBarBackButton),
+            ios ? findsOneWidget : findsNothing,
+          );
+          expect(find.text('1 of 2'), findsOneWidget);
+          await tester.tap(
+            ios
+                ? find.byType(CupertinoNavigationBarBackButton)
+                : find.bySemanticsLabel('Back'),
+          );
+          await tester.pumpAndSettle();
+          expect(router.state.uri.path, SettloRoutes.welcome);
+        },
+      );
+    }
 
     testWidgets('an invalid number shows why and is not sent', (tester) async {
       final router = await _pump(tester, auth);

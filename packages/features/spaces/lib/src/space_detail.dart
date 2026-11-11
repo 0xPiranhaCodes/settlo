@@ -1190,10 +1190,15 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
     return SAmountSheet(
       title: 'Edit expense · ${widget.space.name}',
       onClose: () => Navigator.of(context).pop(),
+      dirty:
+          _amount.text != formatInr(widget.expense.amount).substring(1) ||
+          _description.text != widget.expense.description,
+      saving: _saving,
       amount: _amountEditable
           ? IntrinsicWidth(
               child: TextField(
                 controller: _amount,
+                onChanged: (_) => setState(() {}),
                 enabled: !_saving,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -1212,6 +1217,7 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
         children: [
           TextField(
             controller: _description,
+            onChanged: (_) => setState(() {}),
             enabled: !_saving,
             textCapitalization: TextCapitalization.sentences,
             decoration: const InputDecoration(labelText: 'What was it for'),

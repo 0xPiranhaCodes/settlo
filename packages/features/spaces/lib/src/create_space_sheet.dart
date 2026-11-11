@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -5,11 +8,16 @@ import 'package:settlo_spaces/src/glyphs.dart';
 import 'package:settlo_spaces/src/spaces_controller.dart';
 import 'package:settlo_spaces/src/text.dart';
 
-/// Shows [CreateSpaceSheet] with [showSettloSheet].
+/// Shows [CreateSpaceSheet]: a page sheet on iOS, [showSettloSheet]
+/// elsewhere.
 Future<void> showCreateSpaceSheet(BuildContext context) =>
-    showSettloSheet<void>(
+    showSettloPageSheet<void>(
       context: context,
       builder: (_) => const CreateSpaceSheet(),
+      fallback: () => showSettloSheet<void>(
+        context: context,
+        builder: (_) => const CreateSpaceSheet(),
+      ),
     );
 
 /// New space: a name, what it is for, and people by phone number. People
@@ -98,46 +106,70 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
     }
   }
 
+  /// Input the user would lose by closing.
+  bool get _dirty =>
+      _kind != SpaceKind.flat ||
+      _members.isNotEmpty ||
+      [_name, _phone, _person].any((c) => c.text.isNotEmpty);
+
+  /// iOS: a drag down or Cancel asks before discarding input.
+  Future<void> _confirmClose() async {
+    if (_saving) return;
+    final discard = await showSettloActionSheet(
+      context: context,
+      title: 'Discard changes?',
+      destructive: 'Discard',
+      cancel: 'Keep editing',
+    );
+    if (discard == true && mounted) Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final text = Theme.of(context).textTheme;
+    final ios = Theme.of(context).platform == TargetPlatform.iOS;
+    final canCreate = !_saving && _name.text.trim().isNotEmpty;
     const gap = SizedBox(height: SettloSpacing.x2);
-    return SingleChildScrollView(
+    final form = SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
         SettloSpacing.screenMargin,
         10,
         SettloSpacing.screenMargin,
-        26 + MediaQuery.paddingOf(context).bottom,
+        26 +
+            MediaQuery.paddingOf(context).bottom +
+            // The Material sheet already sits above the keyboard.
+            (ios ? MediaQuery.viewInsetsOf(context).bottom : 0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Transform.translate(
-                offset: const Offset(-12, 0),
-                child: IconButton(
-                  tooltip: 'Close',
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: SpacesIcon(
-                    SpacesGlyph.close,
-                    color: c.textPrimary,
-                    size: 22,
+          if (!ios)
+            Row(
+              children: [
+                Transform.translate(
+                  offset: const Offset(-12, 0),
+                  child: IconButton(
+                    tooltip: 'Close',
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: SpacesIcon(
+                      SpacesGlyph.close,
+                      color: c.textPrimary,
+                      size: 22,
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: Text(
-                  'New space',
-                  textAlign: TextAlign.center,
-                  style: text.titleSmall,
+                Expanded(
+                  child: Text(
+                    'New space',
+                    textAlign: TextAlign.center,
+                    style: text.titleSmall,
+                  ),
                 ),
-              ),
-              const SizedBox(width: SettloSpacing.minTouchTarget - 12),
-            ],
-          ),
+                const SizedBox(width: SettloSpacing.minTouchTarget - 12),
+              ],
+            ),
           const SizedBox(height: SettloSpacing.x3),
           TextField(
             controller: _name,
@@ -208,6 +240,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
             controller: _phone,
             keyboardType: TextInputType.phone,
             autofillHints: const [AutofillHints.telephoneNumber],
+            onChanged: (_) => setState(() {}),
             onSubmitted: (_) => _add(),
             decoration: InputDecoration(
               labelText: 'Phone number',
@@ -219,6 +252,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
           TextField(
             controller: _person,
             textCapitalization: TextCapitalization.words,
+            onChanged: (_) => setState(() {}),
             onSubmitted: (_) => _add(),
             decoration: const InputDecoration(labelText: 'Their name'),
           ),
@@ -235,12 +269,58 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
               style: SettloTypography.subheadline(color: c.textPrimary),
             ),
           ],
-          const SizedBox(height: SettloSpacing.x3),
-          SPrimaryButton(
-            label: _saving ? 'Creating…' : 'Create space',
-            onPressed: _saving || _name.text.trim().isEmpty ? null : _create,
-          ),
+          if (!ios) ...[
+            const SizedBox(height: SettloSpacing.x3),
+            SPrimaryButton(
+              label: _saving ? 'Creating…' : 'Create space',
+              onPressed: canCreate ? _create : null,
+            ),
+          ],
         ],
+      ),
+    );
+    if (!ios) return form;
+    // A page sheet as in Apple's create sheets: Cancel leading, the
+    // confirming Create trailing in the action colour.
+    final bar = SettloTypography.body(color: c.textPrimary);
+    return PopScope(
+      canPop: !_saving && !_dirty,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_confirmClose());
+      },
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(
+          children: [
+            CupertinoNavigationBar(
+              automaticallyImplyLeading: false,
+              transitionBetweenRoutes: false,
+              backgroundColor: c.surface,
+              border: null,
+              leading: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => Navigator.of(context).maybePop(),
+                child: Text('Cancel', style: bar),
+              ),
+              middle: Text(
+                'New space',
+                style: SettloTypography.headline(color: c.textPrimary),
+              ),
+              trailing: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: canCreate ? _create : null,
+                child: Text(
+                  _saving ? 'Creating…' : 'Create',
+                  style: SettloTypography.body(
+                    weight: FontWeight.w600,
+                    color: canCreate ? c.action : c.textMuted,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(child: form),
+          ],
+        ),
       ),
     );
   }

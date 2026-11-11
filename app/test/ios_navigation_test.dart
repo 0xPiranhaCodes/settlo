@@ -187,10 +187,10 @@ void main() {
       await tester.ensureVisible(starts);
       await tester.tap(starts);
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Previous month'));
+      // The iOS date wheel: back a month, then Done.
+      await tester.drag(find.byType(CupertinoDatePicker), const Offset(0, 50));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('1'));
-      await tester.tap(find.text('OK'));
+      await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
       final changed = tester.widget<SPressable>(starts).label;
       expect(changed, isNot(before));

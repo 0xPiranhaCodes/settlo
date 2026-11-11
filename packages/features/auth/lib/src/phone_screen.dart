@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,12 +45,16 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
 
   Future<void> _pickCountry() async {
     final current = ref.read(signInProvider).country;
-    final picked = await showSettloSheet<Country>(
+    final picked = await showSettloPageSheet<Country>(
       context: context,
-      // As in AuthPage: no ambient letter spacing.
-      builder: (_) => DefaultTextStyle.merge(
-        style: const TextStyle(letterSpacing: 0),
-        child: _CountrySheet(selected: current),
+      builder: (_) => _CountryPageSheet(selected: current),
+      fallback: () => showSettloSheet<Country>(
+        context: context,
+        // As in AuthPage: no ambient letter spacing.
+        builder: (_) => DefaultTextStyle.merge(
+          style: const TextStyle(letterSpacing: 0),
+          child: _CountrySheet(selected: current),
+        ),
       ),
     );
     if (picked == null || !mounted) return;
@@ -270,6 +275,117 @@ class _CountrySheet extends StatelessWidget {
                           ),
                         ),
                       ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// iOS: a page sheet like Apple's region pickers, with a search field and
+/// the choice marked by a trailing checkmark.
+class _CountryPageSheet extends StatefulWidget {
+  const new({required this.selected});
+
+  final Country selected;
+
+  @override
+  State<_CountryPageSheet> createState() => _CountryPageSheetState();
+}
+
+class _CountryPageSheetState extends State<_CountryPageSheet> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final shown = [
+      for (final country in Country.all)
+        if (searchMatches(_query, '${country.name} ${country.label}')) country,
+    ];
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
+        children: [
+          CupertinoNavigationBar(
+            automaticallyImplyLeading: false,
+            transitionBetweenRoutes: false,
+            backgroundColor: c.surface,
+            border: null,
+            middle: Text(
+              'Country code',
+              style: SettloTypography.headline(color: c.textPrimary),
+            ),
+            leading: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: SettloTypography.body(color: c.textPrimary),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            child: SSearchField(onChanged: (q) => setState(() => _query = q)),
+          ),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.only(
+                bottom:
+                    MediaQuery.paddingOf(context).bottom +
+                    MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              children: [
+                if (shown.isNotEmpty)
+                  CupertinoListSection.insetGrouped(
+                    backgroundColor: c.surface,
+                    decoration: BoxDecoration(
+                      color: c.surfaceRaised,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    separatorColor: c.hairline,
+                    children: [
+                      for (final country in shown)
+                        Semantics(
+                          selected: country == widget.selected,
+                          child: CupertinoListTile(
+                            onTap: () => Navigator.of(context).pop(country),
+                            backgroundColorActivated: c.surfaceHighest,
+                            title: Text(
+                              country.name,
+                              style: SettloTypography.body(
+                                color: c.textPrimary,
+                              ),
+                            ),
+                            additionalInfo: Text(
+                              '+${country.dialCode}',
+                              style: SettloTypography.body(
+                                color: c.textSecondary,
+                              ),
+                            ),
+                            trailing: country == widget.selected
+                                ? Icon(
+                                    CupertinoIcons.checkmark_alt,
+                                    color: c.textPrimary,
+                                    size: 22,
+                                  )
+                                : const SizedBox(width: 22),
+                          ),
+                        ),
+                    ],
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.all(SettloSpacing.screenMargin),
+                    child: Text(
+                      'No country matches "$_query".',
+                      textAlign: TextAlign.center,
+                      style: SettloTypography.body(color: c.textSecondary),
                     ),
                   ),
               ],

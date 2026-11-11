@@ -260,3 +260,42 @@ scroll. It is not repeated here.
   which #160 is changing, so they move to PR 3. A2 and A4 (auth back
   controls), C3 (Create space as a page sheet) and the "Discard expense?"
   guard on swipe are left for PR 2.
+
+## PR 2 as built
+
+Every change is behind an iOS platform check; Android keeps its Material
+controls, and the existing goldens (Android, the default test platform) do
+not change.
+
+- **X7 controls** in `core/lib/widgets/controls.dart`: `SSwitch` (a
+  `CupertinoSwitch` on iOS with primary text as the on track, never system
+  green, in a 44pt box), `showSettloDatePicker` (a `CupertinoDatePicker`
+  wheel in a popup with Done; Material's calendar elsewhere),
+  `showSettloPicker` (a `CupertinoPicker` wheel), `SSearchField` and
+  `SettloCupertinoTheme`, which puts Cupertino controls in Figtree with
+  Settlo tints. `SSegmentedControl` is a `CupertinoSlidingSegmentedControl`
+  on iOS, its thumb the highest surface.
+- **D2, E3, E5 dates**: Add expense, Record repayment and New loan use the
+  date wheel. **E5**: I lent / I borrowed is the sliding control, the due
+  day a wheel, interest the Settlo switch. **D3**: split rows mark a choice
+  with a trailing checkmark. **D4**: the sliding control. **D5**: amount
+  sheets show a Done bar above the keyboard.
+- **C1, F1**: Spaces and Activity have a search field under the large
+  title that scrolls away; Spaces' + is a plain bar button. Activity's day
+  headings stay pinned while their rows scroll (iOS only).
+- **A3**: the country picker is a page sheet with search and a trailing
+  checkmark in an inset-grouped list. **A2, A4**: Phone and OTP use the
+  standard back chevron. **C3**: Create space is a page sheet with Cancel
+  and a gold Create in the bar, and asks before discarding input.
+- **Discard guards**: Edit expense, Record repayment and Create space now
+  ask, as the four PR 1 sheets do.
+- **G6, G8**: Export shows an activity indicator on the row it is
+  preparing; loading uses `CircularProgressIndicator.adaptive`.
+- **X8**: `showSettloNotice` drops a banner from the top on iOS and keeps
+  the snackbar elsewhere. Profile's own snackbars stay until PR 3, which
+  owns that screen.
+- **X6**: the `cupertino_icons` ADR landed with PR 1
+  (`docs/decisions/2026-11-11-cupertino-icons.md`); PR 2 uses it for add,
+  checkmark and search. Golden tests now load that font.
+- **Not in PR 2**: an `STextField` restyle of the outlined text fields, and
+  haptics for picker and segment changes (X5, PR 3).
