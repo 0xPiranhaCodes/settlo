@@ -11,9 +11,9 @@
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		3F1EDED947E0B79E105B2455 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B660C07F6A660BA834C49A09 /* Foundation.framework */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		78800805918A5E2860EEECA3 /* LiveActivityChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE9A34C909F6DD8F16DDD56 /* LiveActivityChannel.swift */; };
-		A15700000000000000000001 /* NativeTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15700000000000000000002 /* NativeTabBar.swift */; };
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -21,11 +21,20 @@
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		98F033294AF7432CC6DFC2C2 /* SettleUpAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 160A5DA63AF445EB024401BA /* SettleUpAttributes.swift */; };
 		9BFFF8A636971C695A745CE9 /* SettleUpLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2EA97B5FEFF501958587355 /* SettleUpLiveActivity.swift */; };
+		A15700000000000000000001 /* NativeTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15700000000000000000002 /* NativeTabBar.swift */; };
 		E09C533E1A2C18E33BD6095B /* SettloWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 35BD0E3411CAE79B5AE99F0D /* SettloWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		ECABCD4F160D79A613B35EFD /* RunnerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEE649B233BCCD6317DD8C0A /* RunnerUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		331C8085294A63A400263BE5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
+			remoteInfo = Runner;
+		};
+		6A4057B9DA9C4D93250264FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
 			proxyType = 1;
@@ -69,6 +78,7 @@
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		160A5DA63AF445EB024401BA /* SettleUpAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettleUpAttributes.swift; sourceTree = "<group>"; };
+		19599A88C3A5BF38F2CC8104 /* RunnerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		35BD0E3411CAE79B5AE99F0D /* SettloWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SettloWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -86,9 +96,11 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A15700000000000000000002 /* NativeTabBar.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeTabBar.swift; sourceTree = "<group>"; };
+		B660C07F6A660BA834C49A09 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		E2EA97B5FEFF501958587355 /* SettleUpLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettleUpLiveActivity.swift; sourceTree = "<group>"; };
 		EBE9A34C909F6DD8F16DDD56 /* LiveActivityChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveActivityChannel.swift; sourceTree = "<group>"; };
-		A15700000000000000000002 /* NativeTabBar.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeTabBar.swift; sourceTree = "<group>"; };
+		FEE649B233BCCD6317DD8C0A /* RunnerUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RunnerUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +108,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6FC809EAA71296CD1CE40EE8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3F1EDED947E0B79E105B2455 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -121,6 +141,7 @@
 		337FA09F018661F632B41781 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
+				B660C07F6A660BA834C49A09 /* Foundation.framework */,
 			);
 			name = iOS;
 			sourceTree = "<group>";
@@ -146,6 +167,7 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				E92EA0C87A8A31C29825CDDD /* Frameworks */,
 				D7CFEA487ECB164BCB245009 /* SettloWidgets */,
+				AB4181E723A602711E75451E /* RunnerUITests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -155,6 +177,7 @@
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
 				35BD0E3411CAE79B5AE99F0D /* SettloWidgets.appex */,
+				19599A88C3A5BF38F2CC8104 /* RunnerUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -175,6 +198,15 @@
 				A15700000000000000000002 /* NativeTabBar.swift */,
 			);
 			path = Runner;
+			sourceTree = "<group>";
+		};
+		AB4181E723A602711E75451E /* RunnerUITests */ = {
+			isa = PBXGroup;
+			children = (
+				FEE649B233BCCD6317DD8C0A /* RunnerUITests.swift */,
+			);
+			name = RunnerUITests;
+			path = RunnerUITests;
 			sourceTree = "<group>";
 		};
 		D7CFEA487ECB164BCB245009 /* SettloWidgets */ = {
@@ -232,6 +264,24 @@
 			productName = SettloWidgets;
 			productReference = 35BD0E3411CAE79B5AE99F0D /* SettloWidgets.appex */;
 			productType = "com.apple.product-type.app-extension";
+		};
+		6FFF4F06B53E2E5DE096737E /* RunnerUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E6ABA207C8D887687894F0B2 /* Build configuration list for PBXNativeTarget "RunnerUITests" */;
+			buildPhases = (
+				508D56EEB3264DCA7B1EFFC4 /* Sources */,
+				6FC809EAA71296CD1CE40EE8 /* Frameworks */,
+				AAB9C113FDAF8C81F29913F1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				74A8F597151A906E16790CBD /* PBXTargetDependency */,
+			);
+			name = RunnerUITests;
+			productName = RunnerUITests;
+			productReference = 19599A88C3A5BF38F2CC8104 /* RunnerUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		97C146ED1CF9000F007C117D /* Runner */ = {
 			isa = PBXNativeTarget;
@@ -297,6 +347,7 @@
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
 				578BD522119734373D5AC801 /* SettloWidgets */,
+				6FFF4F06B53E2E5DE096737E /* RunnerUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -324,6 +375,13 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AAB9C113FDAF8C81F29913F1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -372,6 +430,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		508D56EEB3264DCA7B1EFFC4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ECABCD4F160D79A613B35EFD /* RunnerUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		53ACC25B5CA506E782D67A34 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -407,6 +473,12 @@
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
+		};
+		74A8F597151A906E16790CBD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Runner;
+			target = 97C146ED1CF9000F007C117D /* Runner */;
+			targetProxy = 6A4057B9DA9C4D93250264FE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -503,6 +575,37 @@
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Profile;
+		};
+		25910CA754FC6DA0EE6D173B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.settlo.RunnerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Runner;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		2E965E23E32920683FAD21D6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.settlo.RunnerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Runner;
+			};
+			name = Debug;
 		};
 		331C8088294A63A400263BE5 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -778,6 +881,22 @@
 			};
 			name = Release;
 		};
+		D3B33F538A82C811FE413285 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.settlo.RunnerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Runner;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Profile;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -817,6 +936,16 @@
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E6ABA207C8D887687894F0B2 /* Build configuration list for PBXNativeTarget "RunnerUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				25910CA754FC6DA0EE6D173B /* Release */,
+				2E965E23E32920683FAD21D6 /* Debug */,
+				D3B33F538A82C811FE413285 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

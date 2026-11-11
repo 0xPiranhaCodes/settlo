@@ -143,13 +143,16 @@ class _Identity extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // No name saved yet: say so instead of an empty line.
               Text(
-                data.name,
+                data.name.isEmpty ? 'Add your name' : data.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: SettloTypography.title3(
                   letterSpacing: -0.3,
-                  color: colors.textPrimary,
+                  color: data.name.isEmpty
+                      ? colors.textSecondary
+                      : colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 2),
@@ -513,18 +516,23 @@ class _SettingsCard extends StatelessWidget {
   final List<_SettingRowData> rows;
 
   @override
-  Widget build(BuildContext context) => SCard(
-    padding: const EdgeInsets.all(SettloSpacing.screenMargin),
-    child: Column(
-      children: [
-        for (var index = 0; index < rows.length; index++) ...[
-          _SettingRow(rows[index]),
-          if (index != rows.length - 1)
-            const SizedBox(height: SettloSpacing.x2),
+  Widget build(BuildContext context) {
+    // A row with no action is a feature not built yet: hide it rather than
+    // show a dead row (#158 G2). Giving it an onTap brings it back.
+    final built = rows.where((row) => row.onTap != null).toList();
+    return SCard(
+      padding: const EdgeInsets.all(SettloSpacing.screenMargin),
+      child: Column(
+        children: [
+          for (var index = 0; index < built.length; index++) ...[
+            _SettingRow(built[index]),
+            if (index != built.length - 1)
+              const SizedBox(height: SettloSpacing.x2),
+          ],
         ],
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class _SettingRowData {

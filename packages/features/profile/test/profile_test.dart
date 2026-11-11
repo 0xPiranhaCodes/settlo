@@ -801,6 +801,37 @@ void main() {
     expect(theme.saved, ThemeMode.dark);
   });
 
+  testWidgets('no name shows a prompt, and unbuilt rows are hidden (#174)', (
+    tester,
+  ) async {
+    final profile = _ProfileRepository()
+      ..data = const ProfileData(name: '', phone: '+919000001102', upiId: null);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          remindersEnabledProvider.overrideWith((ref) async => true),
+          profileRepositoryProvider.overrideWithValue(profile),
+          themeModeRepositoryProvider.overrideWithValue(
+            _ThemeRepository(ThemeMode.dark),
+          ),
+        ],
+        child: MaterialApp(
+          theme: SettloTheme.dark(),
+          home: const ProfileScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add your name'), findsOneWidget);
+    for (final dead in ['Contacts matching', 'App lock', 'Change number']) {
+      expect(find.text(dead, skipOffstage: false), findsNothing);
+    }
+    for (final live in ['Export', 'Appearance', 'Sign out']) {
+      expect(find.text(live, skipOffstage: false), findsOneWidget);
+    }
+  });
+
   testWidgets('Export shares a space as CSV and PDF, once on a no-pump '
       'double tap', (tester) async {
     final shared = <List<(SharedFile, List<int>)>>[];
@@ -833,7 +864,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+    await tester.ensureVisible(find.text('Export'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Export'));
     await tester.pumpAndSettle();
@@ -913,7 +944,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+      await tester.ensureVisible(find.text('Export'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Export'));
       await tester.pumpAndSettle();

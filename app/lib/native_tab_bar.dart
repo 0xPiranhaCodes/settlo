@@ -117,9 +117,9 @@ class _NativeTabBarState extends State<NativeTabBar> {
     },
     creationParamsCodec: const StandardMessageCodec(),
     onPlatformViewCreated: _created,
-    // The view spans the bottom edge but the glass floats inside it, so
-    // only a tap is UIKit's. Drags go to the back swipe or to the scroll
-    // behind, which translucent hit testing lets see the touch.
+    // UIKit gets every touch this hit test reaches (AppDelegate registers
+    // the hit-test blocking policy, #174). Translucent, so the back swipe
+    // and the scroll behind see the same touch.
     hitTestBehavior: PlatformViewHitTestBehavior.translucent,
     gestureRecognizers: const {
       Factory<OneSequenceGestureRecognizer>(TapGestureRecognizer.new),
