@@ -4,6 +4,36 @@ const fs = require("fs");
 const outputDir = process.env.SITE_CHECK_OUTPUT || "/tmp/settlo-site-check";
 const localUrl = process.env.SITE_CHECK_URL || "http://127.0.0.1:8765/";
 const publicUrl = "https://settlo.hellojosh.studio/";
+const phonesClear = () => {
+  const rect = (element) => element.getBoundingClientRect();
+  const intersects = (a, b) =>
+    a.left < b.right &&
+    b.left < a.right &&
+    a.top < b.bottom &&
+    b.top < a.bottom;
+  const images = [...document.querySelectorAll(".screen img")];
+  const group = (image) => image.closest(".hero-screen, .loan-screens");
+  const copies = [
+    ...document.querySelectorAll(
+      ".hero-copy, .flat-copy, .loan-copy, .trip-steps > li > p, section h2, .hero figcaption",
+    ),
+  ];
+  return (
+    images.every((image) =>
+      copies.every((copy) => !intersects(rect(image), rect(copy))),
+    ) &&
+    // Phones may overlap only inside their composed group (#181).
+    images.every((image, i) =>
+      images
+        .slice(i + 1)
+        .every(
+          (other) =>
+            (group(image) !== null && group(image) === group(other)) ||
+            !intersects(rect(image), rect(other)),
+        ),
+    )
+  );
+};
 (async () => {
   fs.mkdirSync(outputDir, { recursive: true });
   const browser = await chromium.launch({
@@ -104,37 +134,36 @@ const publicUrl = "https://settlo.hellojosh.studio/";
             throw Error("FAQ schema mismatch");
           if (JSON.stringify(schemas).includes("aggregateRating"))
             throw Error("Invented rating");
-          const geometry = await page.evaluate(() => {
-            const rect = (element) => element.getBoundingClientRect();
-            const intersects = (a, b) =>
-              a.left < b.right &&
-              b.left < a.right &&
-              a.top < b.bottom &&
-              b.top < a.bottom;
-            const images = [...document.querySelectorAll(".screen img")];
-            const copies = [
-              ...document.querySelectorAll(
-                ".hero-copy, .flat-copy, .loan-copy, .trip-steps > li > p, section h2, .hero figcaption",
-              ),
-            ];
-            return (
-              images.every((image) =>
-                copies.every((copy) => !intersects(rect(image), rect(copy))),
-              ) &&
-              // Phones may overlap only inside their composed group (#181).
-              images.every((image, i) =>
-                images
-                  .slice(i + 1)
-                  .every(
-                    (other) =>
-                      image.closest(".hero-screen, .loan-screens") ===
-                        other.closest(".hero-screen, .loan-screens") ||
-                      !intersects(rect(image), rect(other)),
-                  ),
-              )
-            );
-          });
+          const geometry = await page.evaluate(phonesClear);
           if (!geometry) throw Error("Phone overlaps copy or another phone");
+          // Regression fixtures: grouped siblings may overlap; ungrouped phones may not.
+          for (const [html, allowed] of [
+            ['<figure class="screen hero-screen"><img><img></figure>', true],
+            [
+              '<div class="loan-screens"><figure class="screen"><img></figure><figure class="screen"><img></figure></div>',
+              true,
+            ],
+            [
+              '<div><figure class="screen"><img></figure><figure class="screen"><img></figure></div>',
+              false,
+            ],
+          ]) {
+            await page.evaluate((html) => {
+              const fixture = document.createElement("div");
+              fixture.id = "overlap-fixture";
+              fixture.innerHTML = html;
+              for (const img of fixture.querySelectorAll("img"))
+                img.style.cssText =
+                  "position:fixed;left:-100px;top:-100px;width:10px;height:10px";
+              document.body.append(fixture);
+            }, html);
+            const clear = await page.evaluate(phonesClear);
+            await page.evaluate(() =>
+              document.getElementById("overlap-fixture").remove(),
+            );
+            if (clear !== allowed)
+              throw Error("Overlap fixture misjudged: " + html);
+          }
           const scalesMatch = await page
             .locator(".loan-screens img")
             .evaluateAll((images) => {
