@@ -12,15 +12,15 @@
   src: url(fonts/Figtree-Medium.ttf) format("truetype");
 }
 :root {
-  color-scheme: dark;
-  --background: #0a0b0d;
-  --surface: #15171a;
-  --raised: #1e2126;
-  --text: #f3f2ee;
-  --secondary: #9b9d9a;
-  --gold: #d8b36a;
+  color-scheme: light dark;
+  --background: #faf9f6;
+  --surface: #f0eee8;
+  --raised: #e9e5dc;
+  --text: #17191b;
+  --secondary: #5b5e5b;
+  --gold: #806025;
   --welcome-gold: #f2c77f;
-  --line: rgb(255 255 255 / 10%);
+  --line: rgb(0 0 0 / 14%);
 }
 * {
   box-sizing: border-box;
@@ -76,11 +76,11 @@ a {
   text-underline-offset: 4px;
 }
 a:hover {
-  color: var(--welcome-gold);
+  color: var(--gold);
 }
 a:focus-visible,
 summary:focus-visible {
-  outline: 2px solid var(--welcome-gold);
+  outline: 2px solid var(--gold);
   outline-offset: 5px;
   border-radius: 4px;
 }
@@ -97,6 +97,9 @@ summary:focus-visible {
 }
 .wordmark img {
   object-fit: contain;
+  background: #0a0b0d;
+  padding: 4px;
+  border-radius: 8px;
 }
 main {
   max-width: 720px;
@@ -168,7 +171,7 @@ dd {
   top: -100px;
   padding: 12px 20px;
   background: var(--welcome-gold);
-  color: var(--background);
+  color: #17130c;
   z-index: 10;
 }
 .skip:focus {
@@ -231,7 +234,7 @@ footer a {
 .footer-end p {
   margin: 0;
 }
-/* Sections size themselves so the trip band can run edge to edge; arcs are clipped at the viewport. */
+/* Product page: warm paper, Settlo gold, and two dark pauses. */
 .landing {
   --gutter: 24px;
   padding: 0;
@@ -245,10 +248,8 @@ footer a {
 .landing main {
   max-width: none;
   padding: 0;
-  overflow-x: clip;
 }
 .figure {
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .button {
@@ -256,44 +257,41 @@ footer a {
   align-items: center;
   min-height: 56px;
   padding: 15px 28px;
-  border-radius: 16px;
+  border-radius: 32px;
   background: var(--welcome-gold);
-  color: var(--background);
+  color: #17130c;
   font-weight: 500;
   font-size: 16px;
   text-decoration: none;
-  transition: background-color 0.2s;
 }
 .button:hover {
   background: #ffdb9f;
-  color: var(--background);
+  color: #17130c;
 }
 .availability {
   font-size: 14px;
-  color: var(--secondary);
   margin: 16px 0 0;
 }
 .screen {
   margin: 0;
+  min-width: 0;
 }
 .screen img {
   display: block;
-  width: 390px;
-  max-width: 100%;
+  width: 100%;
   height: auto;
-  /* Hardware, lighting and tilt are contained inside the responsive bitmap. */
-
+  filter: drop-shadow(0 24px 24px rgb(0 0 0 / 16%));
 }
 figcaption {
-  margin-top: 16px;
+  margin-top: 24px;
   font-size: 13px;
   color: var(--secondary);
 }
 .landing h2 {
-  font-size: clamp(34px, 4.2vw, 56px);
-  line-height: 1.06;
-  letter-spacing: -0.045em;
-  margin: 0 0 24px;
+  font-size: clamp(42px, 6.4vw, 88px);
+  line-height: 1.03;
+  letter-spacing: -0.055em;
+  margin: 0 0 32px;
   text-wrap: balance;
 }
 .landing section p {
@@ -303,242 +301,183 @@ figcaption {
   color: var(--text);
   font-weight: 500;
 }
-
-/* Opening: the brand line beside the real Home screen, framed by the welcome arc. */
 .hero {
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-template-columns: 1fr 390px;
-  gap: 64px;
-  align-items: center;
-  padding: 72px 0 120px;
+  text-align: center;
+  padding: 88px 0 120px;
+}
+.hero-copy {
+  max-width: 920px;
+  margin: auto;
 }
 .hero h1 {
-  font-size: clamp(52px, 6.6vw, 76px);
-  line-height: 1;
-  letter-spacing: -0.055em;
-  margin: 0 0 32px;
-  max-width: 9ch;
+  font-size: clamp(64px, 9.2vw, 132px);
+  line-height: 0.98;
+  letter-spacing: -0.065em;
+  margin: 0 auto 32px;
+  max-width: 11ch;
+  text-wrap: balance;
 }
 .intro {
-  max-width: 500px;
+  max-width: 640px;
+  margin: 0 auto 32px;
   font-size: 21px;
-  line-height: 1.55;
-  margin-bottom: 40px;
 }
 .hero-screen {
+  width: min(390px, 90%);
+  margin: 64px auto 0;
   position: relative;
 }
 .hero-screen::before {
   content: "";
   position: absolute;
   z-index: -1;
-  width: 720px;
-  aspect-ratio: 1;
-  left: -40%;
-  top: 6%;
-  border: 1px solid #d8b36a40;
+  inset: 0 -5% -5%;
   border-radius: 50%;
-  mask: linear-gradient(160deg, #000 30%, transparent 75%);
+  background: radial-gradient(ellipse, #d8b36a30, transparent 68%);
 }
-.hero::after {
-  content: "";
-  position: absolute;
-  z-index: -2;
-  inset: 0 calc(-1 * var(--gutter));
-  background: radial-gradient(40% 50% at 78% 45%, #d8b36a14, transparent 70%);
-  pointer-events: none;
+.landing main > .trip,
+.landing main > .quiet {
+  width: 100%;
+  padding: 120px max(var(--gutter), (100% - 1120px) / 2);
+  background: #0a0b0d;
+  --text: #f3f2ee;
+  --secondary: #a9aba8;
+  --gold: #d8b36a;
+  --line: #ffffff26;
+  color: var(--text);
 }
-
-/* The Goa trip: a full-bleed band, read left to right. */
 .trip {
-  position: relative;
-  padding: 104px 0 112px;
-  background: var(--surface);
-}
-.landing main > .trip {
-  width: auto;
-  padding-inline: max(var(--gutter), (100% - 1200px) / 2);
-}
-.trip-intro {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 64px;
-  align-items: end;
-  margin-bottom: 72px;
+  gap: 96px;
+  align-items: start;
 }
-.trip-intro h2 {
-  margin: 0;
-  max-width: 11ch;
+.trip-intro {
+  position: sticky;
+  top: 80px;
 }
 .trip-intro p {
-  font-size: 19px;
-  margin: 0;
-  max-width: 480px;
+  max-width: 450px;
+  font-size: 20px;
 }
 .trip-steps {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: 40px;
+  counter-reset: step;
 }
-/* Subgrid rows line up the three captions under screens and sketches of different heights. */
 .trip-steps > li {
-  display: grid;
-  grid-row: span 2;
-  grid-template-rows: subgrid;
+  min-height: 100vh;
+  padding: 40px 0 120px;
   margin: 0;
+  counter-increment: step;
 }
-.trip-steps p {
-  margin: 28px 0 0;
+.trip-steps > li > p::before {
+  content: "0" counter(step);
+  display: block;
+  color: var(--gold);
   font-size: 16px;
-  max-width: 340px;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+.trip-steps .screen {
+  width: min(100%, 433px);
+  margin: auto;
 }
 .trip-steps strong {
   display: block;
-  font-size: 19px;
-  margin-bottom: 4px;
+  font-size: 28px;
+  line-height: 1.15;
+  margin-bottom: 16px;
 }
-/* Steps outside Settlo are typeset sketches, not app screens; captions say so. */
+.trip-steps p {
+  margin-top: 40px;
+  font-size: 18px;
+}
 .sketch {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin: 0;
+  margin: 120px 0 0;
 }
 .sketch-card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 28px;
-  background: var(--raised);
+  gap: 8px;
+  padding: 40px;
+  background: #1e2126;
   border: 1px solid var(--line);
   border-radius: 24px;
   color: var(--secondary);
-  font-size: 15px;
 }
 .sketch-label {
   color: var(--text);
 }
 .sketch-amount {
-  color: var(--welcome-gold);
-  font-size: 48px;
-  font-weight: 500;
+  color: #f2c77f;
+  font-size: 64px;
   letter-spacing: -0.04em;
   line-height: 1.2;
 }
-.sketch-note {
-  margin-top: 16px;
-  padding-top: 16px;
+.sketch-note,
+.sketch-steps {
+  margin-top: 24px;
+  padding-top: 24px;
   border-top: 1px solid var(--line);
 }
 .sketch-steps {
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 16px 0 0;
-  border-top: 1px solid var(--line);
+  padding-left: 20px;
 }
-.sketch-steps li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 8px;
-}
-.sketch-steps li::before {
-  content: "";
-  flex: none;
-  width: 10px;
-  height: 10px;
-  border: 1.5px solid var(--gold);
-  border-radius: 50%;
-}
-.sketch-steps .done::before {
-  background: var(--gold);
-}
-
-/* Flat 402: copy leads, the balance screen sits low and to the right. */
 .flat {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 390px;
-  gap: 120px;
-  padding: 136px 0 120px 8%;
+  grid-template-columns: 1fr 433px;
+  gap: 100px;
+  align-items: center;
+  padding: 160px 0;
 }
-.flat-copy {
-  max-width: 520px;
-  padding-top: 24px;
-}
-.flat-copy p {
-  font-size: 18px;
-}
-.flat .screen {
-  margin-top: 120px;
+.flat-copy p,
+.loan-copy p {
+  font-size: 19px;
 }
 .aside {
-  margin-top: 40px;
+  margin-top: 32px;
   padding-left: 20px;
   border-left: 2px solid var(--gold);
-  font-size: 16px;
 }
-
-/* The loan: two screens side by side, staggered without overlap, then the story. */
 .loan {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-  gap: 64px;
-  align-items: center;
-  padding: 80px 0 136px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 72px;
+  padding: 80px 0 160px;
+  text-align: center;
+}
+.loan-copy {
+  max-width: 850px;
+}
+.loan-copy p {
+  max-width: 680px;
+  margin-inline: auto;
 }
 .loan-screens {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  align-items: start;
-}
-.loan-screens .screen:last-child {
-  margin-top: 96px;
-}
-.loan-copy p {
-  font-size: 18px;
-  max-width: 480px;
-}
-
-/* A quiet beat: text only. */
-.quiet {
-  padding: 120px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  grid-template-columns: 433fr 390fr;
+  gap: 48px;
+  align-items: center;
+  width: min(871px, 100%);
 }
 .quiet h2 {
-  max-width: 17ch;
-  margin-bottom: 56px;
+  max-width: 18ch;
 }
 .quiet-body {
-  columns: 2 360px;
-  column-gap: 64px;
-  max-width: 920px;
+  max-width: 650px;
   margin-left: auto;
+  font-size: 20px;
 }
-.quiet-body p {
-  font-size: 17px;
-  margin: 0 0 20px;
-  break-inside: avoid;
-}
-.quiet-body a,
-.text-link {
+.quiet-body a {
   color: var(--gold);
 }
 .faq {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-  gap: 64px;
-  padding: 120px 0;
-}
-.faq h2 {
-  font-size: 34px;
+  grid-template-columns: 1fr 2fr;
+  gap: 80px;
+  padding: 144px 0;
 }
 .questions details {
   border-bottom: 1px solid var(--line);
@@ -550,12 +489,12 @@ summary {
   display: flex;
   justify-content: space-between;
   gap: 24px;
-  list-style: none;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 500;
-  padding: 22px 0;
+  padding: 24px 0;
   line-height: 1.4;
+  list-style: none;
 }
 summary::-webkit-details-marker {
   display: none;
@@ -564,139 +503,69 @@ summary::after {
   content: "+";
   color: var(--gold);
   font-size: 24px;
-  line-height: 1;
 }
 details[open] summary::after {
-  content: "\2212";
+  content: "−";
 }
 .landing details p {
   font-size: 16px;
-  max-width: 640px;
 }
 .closing {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  padding: 96px 0 104px;
-  border-top: 1px solid var(--line);
+  text-align: center;
+  padding: 80px 0 144px;
 }
 .closing h2 {
-  max-width: 12ch;
+  max-width: 13ch;
+  margin-inline: auto;
 }
 .closing p {
-  font-size: 19px;
-  max-width: 440px;
-  margin-bottom: 40px;
+  max-width: 500px;
+  margin: 0 auto 32px;
+  font-size: 21px;
 }
-.closing::after {
+body:not(.landing) .wordmark::before {
   content: "";
-  position: absolute;
-  z-index: -1;
-  width: 640px;
-  aspect-ratio: 1;
-  right: -280px;
-  top: 40px;
-  border: 1px solid #d8b36a40;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #0a0b0d url(images/mark.png) center/80% no-repeat;
 }
-@media (max-width: 1000px) {
-  .hero,
-  .flat,
-  .loan,
-  .faq {
-    grid-template-columns: 1fr;
-  }
-  .hero {
-    gap: 56px;
-    padding: 48px 0 80px;
-  }
-  .hero-screen {
-    justify-self: center;
-  }
-  .trip,
-  .quiet,
-  .faq {
-    padding: 80px 0;
-  }
-  .trip-intro {
-    grid-template-columns: 1fr;
-    gap: 24px;
-    margin-bottom: 48px;
-  }
+@media (max-width: 900px) {
   .flat {
+    grid-template-columns: 1fr;
     gap: 48px;
-    padding: 96px 0 80px;
   }
   .flat .screen {
-    margin-top: 0;
-    justify-self: center;
+    width: min(433px, 100%);
+    margin: auto;
   }
-  .loan {
-    gap: 56px;
-    padding: 40px 0 96px;
+  .trip {
+    gap: 40px;
   }
-  .loan-screens {
-    max-width: 560px;
-  }
-  .loan-copy {
-    grid-row: 1;
+  .trip-intro h2 {
+    font-size: 48px;
   }
   .faq {
-    gap: 24px;
+    gap: 32px;
+  }
+  .footer-top {
+    grid-template-columns: 1fr;
   }
 }
-@media (max-width: 800px) {
+@media (max-width: 600px) {
   body {
-    padding: 0 20px;
+    padding-inline: 20px;
   }
   .landing {
     --gutter: 20px;
     padding: 0;
   }
   header {
-    padding: 20px 0;
+    padding: 16px 0;
   }
-  main {
-    padding-top: 40px;
-  }
-  h1 {
-    font-size: 40px;
-  }
-  /* The trip sequence becomes a swipeable row at phone width. */
-  .trip-steps {
-    display: flex;
+  nav {
     gap: 16px;
-    margin: 0 -20px;
-    padding: 0 20px 8px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding: 0 20px;
   }
-  .trip-steps > li {
-    display: flex;
-    flex-direction: column;
-    flex: 0 0 82%;
-    scroll-snap-align: start;
-  }
-  .trip-steps:focus-visible {
-    outline: 2px solid var(--welcome-gold);
-  }
-  .loan-screens {
-    grid-template-columns: minmax(0, 390px);
-    justify-content: center;
-    gap: 40px;
-  }
-  .loan-screens .screen:last-child {
-    margin-top: 0;
-  }
-  .footer-top {
-    grid-template-columns: 1fr;
-  }
-  .closing::after {
-    right: -520px;
-  }
-}
-@media (max-width: 400px) {
   .wordmark {
     gap: 8px;
     font-size: 20px;
@@ -705,14 +574,107 @@ details[open] summary::after {
     width: 28px;
     height: 28px;
   }
-  .hero h1 {
-    font-size: 52px;
+  .hero {
+    padding: 64px 0 88px;
   }
   .intro {
     font-size: 19px;
   }
-  .card {
-    padding: 20px;
+  .hero-screen {
+    margin-top: 48px;
+  }
+  .landing main > .trip,
+  .landing main > .quiet {
+    padding-block: 80px;
+  }
+  .trip {
+    display: block;
+  }
+  .trip-intro {
+    display: contents;
+  }
+  .trip-intro h2 {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #0a0b0d;
+    padding: 20px 0;
+    font-size: 36px;
+    margin-bottom: 0;
+  }
+  .trip-intro p {
+    font-size: 16px;
+    margin: 16px 0 0;
+  }
+  .trip-steps > li {
+    min-height: 100svh;
+    padding: 48px 0 96px;
+  }
+  .sketch {
+    margin-top: 72px;
+  }
+  .sketch-card {
+    padding: 28px;
+  }
+  .flat {
+    padding: 96px 0;
+  }
+  .loan {
+    padding: 32px 0 96px;
+    gap: 48px;
+  }
+  .loan-screens {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    width: min(433px, 100%);
+  }
+  .loan-screens .screen:last-child {
+    width: calc(100% * 390 / 433);
+    margin: auto;
+  }
+  .loan h2 {
+    font-size: 42px;
+  }
+  .quiet-body {
+    font-size: 18px;
+  }
+  .faq {
+    display: block;
+    padding: 96px 0;
+  }
+  .closing {
+    padding: 16px 0 80px;
+  }
+}
+/* Native scroll timelines leave content visible if scripting is unavailable. */
+@keyframes phone-enter {
+  from {
+    opacity: 0.25;
+    transform: translateY(64px) rotate(-2deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .flat .screen,
+    .loan-screens .screen,
+    .trip-steps .screen {
+      animation: phone-enter linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 85%;
+    }
+  }
+  .motion-fallback .screen {
+    transition:
+      opacity 0.7s,
+      transform 0.7s;
+  }
+  .motion-fallback .awaiting {
+    opacity: 0.25;
+    transform: translateY(48px);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -725,10 +687,27 @@ details[open] summary::after {
     animation: none !important;
     transition: none !important;
   }
+  .trip-intro,
+  .trip-intro h2 {
+    position: static;
+  }
 }
-body:not(.landing) .wordmark::before {
-  content: "";
-  width: 36px;
-  height: 36px;
-  background: url(images/mark.png) center/contain no-repeat;
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0b0d;
+    --surface: #15171a;
+    --raised: #1e2126;
+    --text: #f3f2ee;
+    --secondary: #a9aba8;
+    --gold: #d8b36a;
+    --line: #ffffff26;
+  }
+  .landing main > .trip {
+    background: #15171a;
+  }
+  .trip-intro,
+  .trip-intro h2 {
+    background: #15171a;
+  }
 }

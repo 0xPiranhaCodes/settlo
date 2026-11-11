@@ -49,11 +49,16 @@ const publicUrl = "https://settlo.hellojosh.studio/";
         // With JavaScript disabled Chrome loads lazy images eagerly. Decode all
         // images, including below-fold assets, without changing their srcset state.
         await page.locator("img").evaluateAll(async (images) => {
-          await Promise.all(images.map(async (img) => {
-            await img.decode();
-          }));
+          await Promise.all(
+            images.map(async (img) => {
+              await img.decode();
+            }),
+          );
         });
-        if (await page.locator('link[rel="canonical"]').getAttribute("href") !== publicUrl + path)
+        if (
+          (await page.locator('link[rel="canonical"]').getAttribute("href")) !==
+          publicUrl + path
+        )
           throw Error("Canonical URL mismatch: " + path);
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth > innerWidth,
@@ -65,25 +70,29 @@ const publicUrl = "https://settlo.hellojosh.studio/";
             .allTextContents();
           const schemas = blocks.map(JSON.parse);
           const app = schemas.find((x) => x["@type"] === "SoftwareApplication");
-          if (app.url !== publicUrl || app.image !== publicUrl + "images/social.png")
+          if (
+            app.url !== publicUrl ||
+            app.image !== publicUrl + "images/social.png"
+          )
             throw Error("Application schema URL mismatch");
           for (const [selector, expected] of [
             ['meta[property="og:url"]', publicUrl],
             ['meta[property="og:image"]', publicUrl + "images/social.png"],
             ['meta[name="twitter:image"]', publicUrl + "images/social.png"],
           ]) {
-            if (await page.locator(selector).getAttribute("content") !== expected)
+            if (
+              (await page.locator(selector).getAttribute("content")) !==
+              expected
+            )
               throw Error("Social URL mismatch: " + selector);
           }
           const faq = schemas.find((x) => x["@type"] === "FAQPage");
-          const visible = await page
-            .locator("details")
-            .evaluateAll((ds) =>
-              ds.map((d) => ({
-                q: d.querySelector("summary").textContent,
-                a: d.querySelector("p").textContent,
-              })),
-            );
+          const visible = await page.locator("details").evaluateAll((ds) =>
+            ds.map((d) => ({
+              q: d.querySelector("summary").textContent,
+              a: d.querySelector("p").textContent,
+            })),
+          );
           if (
             JSON.stringify(visible) !==
             JSON.stringify(
@@ -98,20 +107,55 @@ const publicUrl = "https://settlo.hellojosh.studio/";
             throw Error("Invented rating");
           const geometry = await page.evaluate(() => {
             const rect = (element) => element.getBoundingClientRect();
-            const intersects = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
-            const images = [...document.querySelectorAll('.screen img')];
-            const copies = [...document.querySelectorAll('.hero-copy, .flat-copy, .loan-copy, .trip-steps > li > p, section h2, .hero figcaption')];
-            return images.every((image) => copies.every((copy) => !intersects(rect(image), rect(copy)))) &&
-              images.every((image, i) => images.slice(i+1).every((other) => !intersects(rect(image), rect(other))));
+            const intersects = (a, b) =>
+              a.left < b.right &&
+              b.left < a.right &&
+              a.top < b.bottom &&
+              b.top < a.bottom;
+            const images = [...document.querySelectorAll(".screen img")];
+            const copies = [
+              ...document.querySelectorAll(
+                ".hero-copy, .flat-copy, .loan-copy, .trip-steps > li > p, section h2, .hero figcaption",
+              ),
+            ];
+            return (
+              images.every((image) =>
+                copies.every((copy) => !intersects(rect(image), rect(copy))),
+              ) &&
+              images.every((image, i) =>
+                images
+                  .slice(i + 1)
+                  .every((other) => !intersects(rect(image), rect(other))),
+              )
+            );
           });
-          if (!geometry) throw Error('Phone overlaps copy or another phone');
+          if (!geometry) throw Error("Phone overlaps copy or another phone");
+          const scalesMatch = await page
+            .locator(".loan-screens img")
+            .evaluateAll((images) => {
+              const scales = images.map(
+                (img) => img.getBoundingClientRect().width / img.naturalWidth,
+              );
+              return (
+                Math.abs(scales[0] - scales[1]) < 0.001 &&
+                images.every(
+                  (img) =>
+                    Number(img.getAttribute("width")) === img.naturalWidth &&
+                    Number(img.getAttribute("height")) === img.naturalHeight,
+                )
+              );
+            });
+          if (!scalesMatch)
+            throw Error("Rendered loan phones use different physical scales");
+
           await page.screenshot({
             path: `${outputDir}/landing-${width}-${colorScheme}.png`,
             fullPage: true,
           });
           await page.locator("summary").first().click();
           if (
-            (await page.locator("details").first().getAttribute("open")) === null
+            (await page.locator("details").first().getAttribute("open")) ===
+            null
           )
             throw Error("FAQ");
         } else if (width === 360)
@@ -123,10 +167,120 @@ const publicUrl = "https://settlo.hellojosh.studio/";
       }
       if (requests.some((u) => !u.startsWith(localUrl)))
         throw Error("External request");
-      if (failures.length) throw Error("Failed resources: " + failures.join(", "));
+      if (failures.length)
+        throw Error("Failed resources: " + failures.join(", "));
       await context.close();
     }
   }
+  // Active motion, reduced motion, and the small legacy-browser fallback.
+  const motionResults = [];
+  for (const width of [360, 390, 768, 1440]) {
+    for (const colorScheme of ["light", "dark"]) {
+      for (const mode of ["native", "fallback", "reduced"]) {
+        const context = await browser.newContext({
+          viewport: { width, height: 900 },
+          colorScheme,
+          reducedMotion: mode === "reduced" ? "reduce" : "no-preference",
+        });
+        if (mode === "fallback")
+          await context.addInitScript(() => {
+            const supports = CSS.supports.bind(CSS);
+            CSS.supports = (...args) =>
+              args[0] === "animation-timeline: view()"
+                ? false
+                : supports(...args);
+          });
+        const page = await context.newPage();
+        await page.goto(localUrl);
+        if (mode === "fallback")
+          await page.addStyleTag({
+            content: "* { animation: none !important; }",
+          });
+        const selector = width <= 600 ? ".trip-intro h2" : ".trip-intro";
+        for (const target of [
+          ".trip",
+          ".trip-steps > li:nth-child(2)",
+          ".flat",
+          ".loan",
+          ".closing",
+        ]) {
+          await page
+            .locator(target)
+            .evaluate((el) =>
+              scrollTo({ top: el.offsetTop + 120, behavior: "instant" }),
+            );
+          await page.waitForTimeout(120);
+          if (
+            await page.evaluate(
+              () => document.documentElement.scrollWidth > innerWidth,
+            )
+          )
+            throw Error(`Motion overflow ${width} ${colorScheme} ${mode}`);
+        }
+        const sticky = await page
+          .locator(selector)
+          .evaluate((el) => getComputedStyle(el).position);
+        if (sticky !== (mode === "reduced" ? "static" : "sticky"))
+          throw Error("Sticky/reduced motion mismatch");
+        if (
+          mode === "reduced" &&
+          (await page
+            .locator(".flat .screen")
+            .evaluate((el) => getComputedStyle(el).animationName !== "none"))
+        )
+          throw Error("Reduced motion animation");
+        if (
+          mode === "fallback" &&
+          !(await page
+            .locator("html")
+            .evaluate((el) => el.classList.contains("motion-fallback")))
+        )
+          throw Error("Fallback did not initialise");
+        await page.locator(".flat .screen").scrollIntoViewIfNeeded();
+        await page.waitForTimeout(800);
+        if (
+          mode === "fallback" &&
+          (await page
+            .locator(".flat .screen")
+            .evaluate((el) => el.classList.contains("awaiting")))
+        )
+          throw Error("Fallback failed to reveal phone");
+        motionResults.push({
+          width,
+          colorScheme,
+          mode,
+          sticky,
+          overflow: false,
+        });
+        await context.close();
+      }
+    }
+  }
+  const manifest = JSON.parse(fs.readFileSync("site/images/sources.json"));
+  const scales = Object.values(manifest.sources).map(
+    (source) => source.phone.output_scale,
+  );
+  if (!scales.every((scale) => scale === scales[0]))
+    throw Error("Inconsistent phone physical scale");
+  const imagePaths = [
+    "site/images/mark.png",
+    ...Object.values(manifest.sources).flatMap((source) =>
+      source.phone.outputs.map((file) => "site/images/" + file),
+    ),
+  ];
+  const imageBytes = imagePaths.reduce(
+    (sum, file) => sum + fs.statSync(file).size,
+    0,
+  );
+  if (imageBytes > 250 * 1024) throw Error("Landing image budget exceeded");
+  fs.writeFileSync(
+    `${outputDir}/motion.json`,
+    JSON.stringify(
+      { motionResults, imageBytes, deviceScales: scales },
+      null,
+      2,
+    ) + "\n",
+  );
   await browser.close();
   fs.writeFileSync(
     `${outputDir}/browser.json`,

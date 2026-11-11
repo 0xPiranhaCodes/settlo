@@ -40,6 +40,6 @@ Three consecutive runs of the final version, default simulated mobile throttling
 | 2 | 88 | 1.952s | 434ms |
 | 3 | 99 | 1.957s | 0ms |
 
-Median: **99 performance, 1.957s LCP**. All runs have zero CLS. Run 2 includes 434ms TBT; it is retained, not discarded. See [raw summary](performance.json) and the three numbered JSON/HTML reports. The unnumbered report is the median-LCP run.
+Median: **99 performance, 1.957s LCP**. All runs have zero CLS. Run 2 includes 434ms TBT; it is retained, not discarded. See [raw summary](performance.json) for the retained audit metrics. Bulky duplicate HTML/JSON reports were removed in #164; the reproduction command above can generate fresh reports locally.
 
 Landing image payload (all five phones plus the mark): **175,002 bytes (170.9 KiB)**, versus the review measurements of 449 KiB for the original PR and 99 KiB for main. This meets the revised 200 KiB budget but remains above main. The hero alone is 29,022 bytes. Build-only hardware, raw crops and the social preview are not loaded by the landing page.

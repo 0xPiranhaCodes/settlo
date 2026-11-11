@@ -1,0 +1,2 @@
+html-validate 11.21.0 --preset standard site/index.html site/privacy/index.html site/support/index.html
+Exit 0: no validation errors.

@@ -66,18 +66,22 @@ def main():
         assert hashlib.sha256(raw).hexdigest() == source['sha256']
         screen = Image.open(io.BytesIO(raw)).convert('RGBA')
         composed = compose(screen, angle)
-        height = round(composed.height*390/composed.width)
-        base = composed.resize((390, height), Image.Resampling.LANCZOS)
+        # One output scale for every angle: expansion adds canvas, not shrinkage.
+        upright = compose(screen, 0)
+        output_scale = 390 / upright.width
+        width, height = round(composed.width * output_scale), round(composed.height * output_scale)
+        base = composed.resize((width, height), Image.Resampling.LANCZOS)
         quality = 80 if name == 'home_main' else 88
         base.save(OUT / f'{name}-phone.webp', quality=quality, method=6, exact=True)
         (OUT / f'{name}-phone@2x.webp').unlink(missing_ok=True)
         manifest['sources'][name]['phone'] = {
-            'angle_degrees': angle, 'size_1x': [390, height],
+            'angle_degrees': angle, 'size_1x': [width, height],
             'outputs': [f'{name}-phone.webp'],
-            'density_note': 'Single 390px composite for the maximum rendered width; no artificial 2x.',
+            'density_note': 'Common physical device scale; rotated canvas expands without shrinking the phone.',
             'screen_crop_rows': None,
             'encoding': {'format': 'WebP', 'quality': quality, 'method': 6, 'exact': True},
-            'uniform_frame_scale': 788 / 746,
+            'uniform_frame_scale': (screen.width + 4) * 2 / (OPENING[2] - OPENING[0]),
+            'output_scale': output_scale,
         }
     (OUT / 'sources.json').write_text(json.dumps(manifest, indent=2)+'\n')
 

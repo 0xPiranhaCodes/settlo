@@ -1,0 +1,12 @@
+{
+  "source_commit": "07e7eff3c7545a79bc20579ebdcb17745d966918",
+  "identical": true,
+  "sha256": {
+    "site/images/sources.json": "10b3a0fc17b501a01ccb7fe5896323677d858da8026df5eb41628b54ca04f9b2",
+    "site/images/home_main-phone.webp": "177fa4a4475de8be26e96633d301da39301694aa9034cccb546654c568f52f2c",
+    "site/images/confirm_repayment-phone.webp": "0380fc2493c701d3139cc5b7ea6691add670f8c19c8dcc7219113efecfb0c5f2",
+    "site/images/spaces_balances-phone.webp": "45e8b70ba8bb9e87becf1885f20a86780dea33f94da38a569553fd7fd859b7de",
+    "site/images/settle_pay-phone.webp": "08d362add7ed4ad470a01a2dce5e99cce68c3c23a802889c06f3b1356cd88ff5",
+    "site/images/loans_detail-phone.webp": "6d2aa902fce310fe9796f32d9a1cf7170f33400bcffc4eec8ad3d3c0a80a42f8"
+  }
+}
