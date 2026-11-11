@@ -72,6 +72,31 @@ _withSettleUp() {
 Finder get _reviewRahul => find.text('Review').first;
 
 void main() {
+  testWidgets('loan nudges have polite Activity copy', (tester) async {
+    await _pump(
+      tester,
+      FakeActivityRepository(
+        entries: [
+          for (final (id, action) in [
+            (10, ActivityAction.reminded),
+            (9, ActivityAction.due),
+          ])
+            ActivityEntry(
+              id: id,
+              at: DateTime(2026, 11, 9),
+              kind: ActivityKind.loan,
+              action: action,
+              byYou: false,
+              loanId: 'loan',
+              counterparty: 'Friend',
+            ),
+        ],
+      ),
+    );
+    expect(find.text('A gentle reminder to check your loan'), findsOneWidget);
+    expect(find.text('An instalment was due yesterday'), findsOneWidget);
+  });
+
   testWidgets('the feed reads like the canvas, edits before and after', (
     tester,
   ) async {

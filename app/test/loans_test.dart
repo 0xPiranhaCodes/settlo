@@ -7,11 +7,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/supabase/reminders.dart';
 import 'package:settlo_loans/settlo_loans.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_home.dart';
 import 'support/fake_loans.dart';
+import 'support/fake_reminders.dart';
 import 'support/fake_session.dart';
 
 /// Links opened, such as WhatsApp's; reset by [_pump].
@@ -69,6 +71,7 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        reminderRepositoryProvider.overrideWithValue(FakeReminders()),
         loansRepositoryProvider.overrideWithValue(repo),
         invitesRepositoryProvider.overrideWithValue(FakeInvitesRepository()),
         sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),

@@ -26,6 +26,12 @@ enum ActivityKind {
 
 /// What happened (`activity.action`).
 enum ActivityAction {
+  /// A polite nudge from the other party.
+  reminded,
+
+  /// An instalment missed yesterday.
+  due,
+
   /// Added or recorded.
   created,
 

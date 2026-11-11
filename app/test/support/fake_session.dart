@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:settlo/main.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/supabase/reminders.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -10,6 +12,7 @@ import 'fake_activity.dart';
 import 'fake_home.dart';
 import 'fake_loans.dart';
 import 'fake_profile.dart';
+import 'fake_reminders.dart';
 import 'fake_space_ledger.dart';
 import 'fake_spaces.dart';
 
@@ -64,6 +67,7 @@ Widget fakeSessionApp(
 }) => ProviderScope(
   overrides: [
     ...overrides,
+    reminderSyncProvider.overrideWith((ref) {}),
     sessionProvider.overrideWith(() => FakeSessionNotifier(session)),
     homeRepositoryProvider.overrideWithValue(
       home ?? FakeHomeRepository(homeEmpty),
@@ -74,6 +78,7 @@ Widget fakeSessionApp(
     spaceLedgerRepositoryProvider.overrideWithValue(
       FakeSpaceLedgerRepository(),
     ),
+    reminderRepositoryProvider.overrideWithValue(FakeReminders()),
     loansRepositoryProvider.overrideWithValue(
       loans ?? FakeLoansRepository(loansList()),
     ),

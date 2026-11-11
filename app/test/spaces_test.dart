@@ -10,7 +10,7 @@ import 'package:settlo/main.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
-import 'package:settlo_loans/settlo_loans.dart' show openUrlProvider;
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
@@ -83,6 +83,7 @@ Future<GoRouter> _pump(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        reminderSyncProvider.overrideWith((ref) {}),
         sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
         spacesRepositoryProvider.overrideWithValue(repository),
         invitesRepositoryProvider.overrideWithValue(
@@ -221,7 +222,10 @@ void main() {
   test('spacesProvider creates a space and reloads it into the list', () async {
     final repository = FakeSpacesRepository(spacesList);
     final c = ProviderContainer(
-      overrides: [spacesRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        reminderSyncProvider.overrideWith((ref) {}),
+        spacesRepositoryProvider.overrideWithValue(repository),
+      ],
     );
     addTearDown(c.dispose);
     await c.read(spacesProvider.future);
@@ -515,6 +519,7 @@ void main() {
       final home = FakeHomeRepository(homeEmpty);
       final c = ProviderContainer(
         overrides: [
+          reminderSyncProvider.overrideWith((ref) {}),
           homeRepositoryProvider.overrideWithValue(home),
           spacesRepositoryProvider.overrideWithValue(
             FakeSpacesRepository(const []),
@@ -544,6 +549,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            reminderSyncProvider.overrideWith((ref) {}),
             sessionProvider.overrideWith(
               () => FakeSessionNotifier(fakeSession),
             ),

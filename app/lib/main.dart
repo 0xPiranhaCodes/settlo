@@ -55,6 +55,7 @@ class SettloApp extends ConsumerWidget {
     // Keeps the Live Activity / ongoing notification in step with the app.
     ref
       ..watch(liveActivitySyncProvider)
+      ..watch(reminderSyncProvider)
       ..listen(inviteSignInNoticeProvider, (_, next) {
         if (next == null) return;
         WidgetsBinding.instance.addPostFrameCallback((_) {

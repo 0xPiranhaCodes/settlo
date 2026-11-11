@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/supabase/reminders.dart';
 import 'package:settlo_loans/settlo_loans.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_loans.dart';
+import 'support/fake_reminders.dart';
 
 /// The Loans tab and the Loan artboard (Arjun, 32% repaid, the 5 Oct
 /// repayment awaiting you, n20) in the shell, dark and light.
@@ -26,6 +28,7 @@ void main() {
         ) async {
           final container = ProviderContainer(
             overrides: [
+              reminderRepositoryProvider.overrideWithValue(FakeReminders()),
               loansRepositoryProvider.overrideWithValue(
                 FakeLoansRepository(loansList()),
               ),
@@ -82,6 +85,7 @@ void main() {
       ) async {
         final container = ProviderContainer(
           overrides: [
+            reminderRepositoryProvider.overrideWithValue(FakeReminders()),
             loansRepositoryProvider.overrideWithValue(
               FakeLoansRepository(loansList()),
             ),

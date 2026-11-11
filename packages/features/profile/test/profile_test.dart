@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/supabase/reminders.dart';
 import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:settlo_profile/src/glyphs.dart';
@@ -127,7 +128,10 @@ void main() {
   test('theme selection survives a new controller', () async {
     final repository = _ThemeRepository(ThemeMode.system);
     ProviderContainer container() => ProviderContainer(
-      overrides: [themeModeRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        remindersEnabledProvider.overrideWith((ref) async => true),
+        themeModeRepositoryProvider.overrideWithValue(repository),
+      ],
     );
 
     final first = container();
@@ -175,7 +179,10 @@ void main() {
 
   test('profile repository provider binds to the signed-in user', () async {
     final signedOut = ProviderContainer(
-      overrides: [sessionProvider.overrideWith(() => _SessionNotifier(null))],
+      overrides: [
+        remindersEnabledProvider.overrideWith((ref) async => true),
+        sessionProvider.overrideWith(() => _SessionNotifier(null)),
+      ],
     );
     addTearDown(signedOut.dispose);
     expect(
@@ -208,6 +215,7 @@ void main() {
     );
     final signedIn = ProviderContainer(
       overrides: [
+        remindersEnabledProvider.overrideWith((ref) async => true),
         sessionProvider.overrideWith(() => _SessionNotifier(session)),
         supabaseClientProvider.overrideWithValue(client),
       ],
@@ -221,7 +229,10 @@ void main() {
   test('profile controller trims, clears, refreshes, and signs out', () async {
     final repository = _ProfileRepository();
     final container = ProviderContainer(
-      overrides: [profileRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        remindersEnabledProvider.overrideWith((ref) async => true),
+        profileRepositoryProvider.overrideWithValue(repository),
+      ],
     );
     addTearDown(container.dispose);
     await container.read(profileProvider.future);
@@ -263,6 +274,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          remindersEnabledProvider.overrideWith((ref) async => true),
           profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
           themeModeRepositoryProvider.overrideWithValue(
             _ThemeRepository(ThemeMode.dark),
@@ -287,9 +299,7 @@ void main() {
     await tester.tap(find.text('Help and support'));
     await tester.pump();
 
-    expect(opened, [
-      Uri.parse('https://settlo.hellojosh.studio/support/'),
-    ]);
+    expect(opened, [Uri.parse('https://settlo.hellojosh.studio/support/')]);
   });
 
   for (final failure in ['returns false', 'throws']) {
@@ -297,6 +307,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            remindersEnabledProvider.overrideWith((ref) async => true),
             profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
             themeModeRepositoryProvider.overrideWithValue(
               _ThemeRepository(ThemeMode.dark),
@@ -332,6 +343,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          remindersEnabledProvider.overrideWith((ref) async => true),
           profileRepositoryProvider.overrideWithValue(profile),
           themeModeRepositoryProvider.overrideWithValue(theme),
         ],
@@ -403,6 +415,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(theme.saved, ThemeMode.light);
 
+    await tester.ensureVisible(find.text('Name and UPI ID'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Name and UPI ID'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('profile-name')), findsOneWidget);
@@ -437,6 +451,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          remindersEnabledProvider.overrideWith((ref) async => true),
           profileRepositoryProvider.overrideWithValue(profile),
           themeModeRepositoryProvider.overrideWithValue(
             _ThemeRepository(ThemeMode.system),
@@ -492,6 +507,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            remindersEnabledProvider.overrideWith((ref) async => true),
             profileRepositoryProvider.overrideWithValue(profile),
             themeModeRepositoryProvider.overrideWithValue(
               _ThemeRepository(ThemeMode.system),
@@ -710,6 +726,7 @@ void main() {
       ProviderScope(
         key: UniqueKey(),
         overrides: [
+          remindersEnabledProvider.overrideWith((ref) async => true),
           profileRepositoryProvider.overrideWithValue(profile),
           themeModeRepositoryProvider.overrideWithValue(theme),
         ],
@@ -744,6 +761,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          remindersEnabledProvider.overrideWith((ref) async => true),
           profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
           themeModeRepositoryProvider.overrideWithValue(
             _ThemeRepository(ThemeMode.dark),
@@ -825,6 +843,7 @@ void main() {
         ProviderScope(
           key: UniqueKey(),
           overrides: [
+            remindersEnabledProvider.overrideWith((ref) async => true),
             profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
             themeModeRepositoryProvider.overrideWithValue(
               _ThemeRepository(ThemeMode.dark),

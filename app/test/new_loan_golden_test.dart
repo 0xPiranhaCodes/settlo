@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/supabase/reminders.dart';
 import 'package:settlo_loans/settlo_loans.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_loans.dart';
+import 'support/fake_reminders.dart';
 import 'support/fake_session.dart';
 
 /// New loan filled in as on the NewLoan artboard (n21): you lent Arjun
@@ -23,6 +25,7 @@ void main() {
           theme: theme,
           child: ProviderScope(
             overrides: [
+              reminderRepositoryProvider.overrideWithValue(FakeReminders()),
               loansRepositoryProvider.overrideWithValue(
                 FakeLoansRepository(loansList()),
               ),
