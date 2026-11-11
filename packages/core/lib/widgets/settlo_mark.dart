@@ -3,18 +3,13 @@ import 'package:settlo_core/theme/colors.dart';
 
 /// The owner-supplied Settlo S-mark.
 ///
-/// It is gold on the dark theme and ink on the light theme. Although dark
-/// gold shares the primary-action token, this mark is brand, not a control.
+/// In the app the mark is monochrome: ink on the light theme and white on the
+/// dark theme. The gold mark is for marketing only (site, social card, store).
 class SettloMark extends StatelessWidget {
   /// Creates a Settlo mark with an optional screen-reader [semanticsLabel].
   ///
   /// Set [semanticsLabel] to null when a parent lockup supplies the name.
-  const new({
-    this.size = 26,
-    this.semanticsLabel = 'Settlo',
-    this.color,
-    super.key,
-  });
+  const new({this.size = 26, this.semanticsLabel = 'Settlo', super.key});
 
   /// The square box containing the mark.
   final double size;
@@ -22,17 +17,9 @@ class SettloMark extends StatelessWidget {
   /// The name announced for the mark, or null to leave it decorative.
   final String? semanticsLabel;
 
-  /// Optional composition-specific colour; otherwise the global brand rule.
-  final Color? color;
-
   @override
   Widget build(BuildContext context) {
-    final colors = SettloColors.of(context);
-    final color =
-        this.color ??
-        (Theme.of(context).brightness == Brightness.dark
-            ? colors.action
-            : colors.textPrimary);
+    final color = SettloColors.of(context).textPrimary;
     final image = Image.asset(
       'assets/brand/settlo_mark.png',
       package: 'settlo_core',
