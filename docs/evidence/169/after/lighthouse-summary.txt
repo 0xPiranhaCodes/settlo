@@ -1,10 +1,5 @@
 [
-  { performance: 0.99, accessibility: 1, cls: 0, lcp: 2179.3699 },
-  { performance: 0.99, accessibility: 1, cls: 0, lcp: 2178.1898 },
-  {
-    performance: 0.99,
-    accessibility: 1,
-    cls: 0,
-    lcp: 2179.6114000000002
-  }
+  { performance: 0.99, accessibility: 1, cls: 0, lcp: 2177.7633 },
+  { performance: 0.99, accessibility: 1, cls: 0, lcp: 2177.7248 },
+  { performance: 0.99, accessibility: 1, cls: 0, lcp: 2177.2812 }
 ]

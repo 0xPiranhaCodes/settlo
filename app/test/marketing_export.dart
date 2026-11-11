@@ -82,7 +82,14 @@ void main() {
       }
       await pumpSettloGolden(
         tester,
-        child: child,
+        child: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(390, 844),
+            devicePixelRatio: 3,
+            disableAnimations: true,
+          ),
+          child: child,
+        ),
         device: SettloGoldenDevices.canvas390,
         theme: theme,
       );
@@ -91,6 +98,10 @@ void main() {
         ..physicalSize = const Size(1170, 2532)
         ..devicePixelRatio = 3;
       await tester.pump();
+      expect(
+        MediaQuery.devicePixelRatioOf(tester.element(find.byWidget(child))),
+        3,
+      );
       final boundary = tester.renderObject<RenderRepaintBoundary>(
         find.byKey(settloGoldenSurfaceKey),
       );

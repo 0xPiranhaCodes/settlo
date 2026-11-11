@@ -1,9 +1,9 @@
 {
-  "commit": "f221495ba183524bbf9ffd8ee540e54e8a2447b4",
+  "commit": "d97760a6622266b9dbd33e037fad0c1455c9cef2",
   "sources": {
     "home_main": {
       "path": "app/test/goldens/home_main_390x844_dark.png",
-      "sha256": "6ba311dff25f02926c640533daea0a1f2f859ae306bbcf9d1d0490a8fbe05c98",
+      "sha256": "ee51566d4b40211048453b7e5532d380c407f2bcf9335767ed2db1dcef7733c1",
       "size": [
         390,
         844
@@ -11,7 +11,7 @@
       "crop_rows": 662,
       "marketing": {
         "path": "build/marketing/home_main.png",
-        "sha256": "632a82aec913581dc9eb6278aa363596889384b0736269f1b5f08d18a1bc86a1",
+        "sha256": "d6bad93e0e406b5f032c42e1bbd0766af044923bdc9d89d5fe11820f04dfa6dc",
         "size": [
           1170,
           2532

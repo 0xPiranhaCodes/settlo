@@ -1,6 +1,6 @@
 # Issue 169 — premium landing pass
 
-Base: `4aee36011fd71b0f1071679cb4f641faf4188232`. Before captures were made before editing this worktree. Production app code, CI golden tests/PNGs and `.github` are unchanged.
+Base: `4aee36011fd71b0f1071679cb4f641faf4188232`. Before captures were made before editing this worktree. The branch incorporates main commit `528edfc` (PR #171); relative to current main, this PR leaves production app code, CI golden tests/PNGs and `.github` unchanged.
 
 ## Visual review
 
@@ -19,7 +19,7 @@ Design review: the new hero shows a legible balance before scrolling; the Goa ph
 - [Motion checks](after/motion.json): native, fallback and reduced-motion modes across all four widths and both themes. [Density checks](after/density.json): 1x/2x/3x selection, above-fold mobile hero, solid reduced-transparency nav and tablet phone equality.
 - [Decode regression](after/image-decode.txt): 15 fresh no-JS contexts (five per density), plus corrupt bytes that must fail. The provided preview server raises Python’s default five-connection queue to 128: connection resets from the small queue caused image decode/load failures during this pass. Loading is made eager only in the checker, loaded state is polled without relying on animation frames, then the actual selected candidate is decoded. A replacement decode is allowed only by independently decoding its selected URL; broken bytes are never ignored.
 - [Lighthouse mobile](after/lighthouse-summary.json), three independent cold Chrome launches: performance **99 / 99 / 99**, accessibility **100 / 100 / 100**, CLS **0 / 0 / 0**. Median is **99 / 100**, CLS **0**. Full reports are beside the summary. An earlier run while Flutter/browser export jobs competed for CPU scored 68/83/99; the reported runs are the isolated final runs.
-- Images per complete page: **134.6 KiB at 1x, 239.5 KiB at 2x, 349.2 KiB at 3x**. Includes mark, all five full phone images, and four detail crops, even below-fold images. Density alternatives are mutually exclusive; the social card and unused legacy source assets are not page requests. The checker enforces 350 KiB independently at every density.
+- Images per complete page: **134.5 KiB at 1x, 239.5 KiB at 2x, 349.2 KiB at 3x**. Includes mark, all five full phone images, and four detail crops, even below-fold images. Density alternatives are mutually exclusive; the social card and unused legacy source assets are not page requests. The checker enforces 350 KiB independently at every density.
 - Claims checked against `upi.dart`, loan detail/repayment and reminder code, the server's `remind_loan` cooldown/opt-out, and local repositories/sync. The tile copy does not promise offline reminders, payment verification, or erasure of other people's shared records. Details in `docs/brand.md`.
 
 ## Reproduce
@@ -38,4 +38,4 @@ SITE_CHECK_URL=http://127.0.0.1:8769/ node scripts/site-record.cjs
 
 ## Coordinator visual refinement
 
-The nav now uses a 96% paper tint over its blur, keeping it light above the dark Goa section. Section-boundary evidence aligns the start of the light section with the nav bottom; the previously visible black strip was the preceding section in a 25px capture offset. The UPI and Remind crops include unedited surrounding app surface: the payment confirmation note and the loan action group provide context. Nav captures over both light and dark sections are in `after/nav-over-*.png`. `site-build-images.sh` always re-renders current app widgets before compositing, so the in-app mark change in #170 / PR #171 is picked up on the next rebuild after that app change lands; no screen pixels are hand-edited.
+The nav now uses a 96% paper tint over its blur, keeping it light above the dark Goa section. Section-boundary evidence aligns the start of the light section with the nav bottom; the previously visible black strip was the preceding section in a 25px capture offset. The UPI and Remind crops include unedited surrounding app surface: the payment confirmation note and the loan action group provide context. Nav captures over both light and dark sections are in `after/nav-over-*.png`. `site-build-images.sh` always re-renders current app widgets before compositing, and has now picked up the merged in-app white/ink mark from #170 / PR #171 in the refreshed phone images; no screen pixels are hand-edited.

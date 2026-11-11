@@ -14,17 +14,17 @@ Got dependencies in `/Users/hackerearth381/orca/workspaces/settlo/premium-169`!
 Try `flutter pub outdated` for more information.
 00:00 +0: loading /Users/hackerearth381/orca/workspaces/settlo/premium-169/app/test/marketing_export.dart
 00:00 +0: marketing 3x home_main
-00:01 +1: marketing 3x settle_pay
+00:00 +1: marketing 3x settle_pay
 00:01 +2: marketing 3x spaces_balances
 00:01 +3: marketing 3x loans_detail
 00:01 +4: marketing 3x confirm_repayment
 00:01 +5: All tests passed!
 {
-  "commit": "f221495ba183524bbf9ffd8ee540e54e8a2447b4",
+  "commit": "d97760a6622266b9dbd33e037fad0c1455c9cef2",
   "sources": {
     "home_main": {
       "path": "app/test/goldens/home_main_390x844_dark.png",
-      "sha256": "6ba311dff25f02926c640533daea0a1f2f859ae306bbcf9d1d0490a8fbe05c98",
+      "sha256": "ee51566d4b40211048453b7e5532d380c407f2bcf9335767ed2db1dcef7733c1",
       "size": [
         390,
         844

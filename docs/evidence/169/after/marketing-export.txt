@@ -14,8 +14,8 @@ Got dependencies in `/Users/hackerearth381/orca/workspaces/settlo/premium-169`!
 Try `flutter pub outdated` for more information.
 00:00 +0: loading /Users/hackerearth381/orca/workspaces/settlo/premium-169/app/test/marketing_export.dart
 00:00 +0: marketing 3x home_main
-00:02 +1: marketing 3x settle_pay
-00:02 +2: marketing 3x spaces_balances
-00:02 +3: marketing 3x loans_detail
-00:03 +4: marketing 3x confirm_repayment
-00:03 +5: All tests passed!
+00:00 +1: marketing 3x settle_pay
+00:01 +2: marketing 3x spaces_balances
+00:01 +3: marketing 3x loans_detail
+00:01 +4: marketing 3x confirm_repayment
+00:01 +5: All tests passed!
