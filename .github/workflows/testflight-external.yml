@@ -3,6 +3,14 @@ name: TestFlight external
 on:
   workflow_dispatch:
     inputs:
+      action:
+        description: Submit for external testing or withdraw (expire) a build
+        required: true
+        type: choice
+        default: submit
+        options:
+          - submit
+          - withdraw
       build_number:
         description: Existing iOS TestFlight build number (for rc6, use 6)
         required: true
@@ -13,8 +21,8 @@ on:
         default: Family Testers
         type: string
       what_to_test:
-        description: Public What to Test text (no credentials)
-        required: true
+        description: Public What to Test text (required for submit; no credentials)
+        required: false
         type: string
 
 permissions:
@@ -38,6 +46,7 @@ jobs:
           persist-credentials: false
 
       - name: Prepare external testing and submit for beta review
+        if: inputs.action == 'submit'
         env:
           ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
@@ -50,4 +59,14 @@ jobs:
           BUILD_NUMBER: ${{ inputs.build_number }}
           BETA_GROUP: ${{ inputs.group }}
           WHAT_TO_TEST: ${{ inputs.what_to_test }}
+        run: ruby scripts/asc-testflight-external.rb
+
+      - name: Withdraw TestFlight build
+        if: inputs.action == 'withdraw'
+        env:
+          ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          TESTFLIGHT_ACTION: withdraw
         run: ruby scripts/asc-testflight-external.rb

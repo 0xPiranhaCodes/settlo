@@ -111,7 +111,26 @@ module TestFlightExternal
       end
     end
 
+    def withdraw
+      number = @env.fetch('BUILD_NUMBER', '')
+      raise Error, 'BUILD_NUMBER must be numeric' unless number.match?(/\A[0-9]+\z/)
+      app = one(@client.list('/v1/apps', 'filter[bundleId]' => 'app.settlo'), 'Expected exactly one app.settlo app')
+      build = one(@client.list('/v1/builds', 'filter[app]' => app.fetch('id'), 'filter[version]' => number,
+                              'filter[preReleaseVersion.platform]' => 'IOS'), 'Build missing or ambiguous; select a unique iOS build number')
+      prior = build.dig('attributes', 'expired')
+      raise Error, 'Unexpected build expiration state' unless [true, false].include?(prior)
+      id = build.fetch('id')
+      updated = @client.request(:patch, "/v1/builds/#{id}", data: {
+        type: 'builds', id: id, attributes: { expired: true }
+      }).fetch('data')
+      raise Error, 'Build expiration was not confirmed' unless updated['id'] == id && updated.dig('attributes', 'expired') == true
+      @output.puts "Build #{number}: expired=#{prior} -> expired=true"
+    end
+
     def run
+      action = @env.fetch('TESTFLIGHT_ACTION', 'submit')
+      return withdraw if action == 'withdraw'
+      raise Error, 'TESTFLIGHT_ACTION must be submit or withdraw' unless action == 'submit'
       number = @env.fetch('BUILD_NUMBER', '')
       group_name = @env.fetch('BETA_GROUP', 'Family Testers')
       what = @env.fetch('WHAT_TO_TEST', '')
