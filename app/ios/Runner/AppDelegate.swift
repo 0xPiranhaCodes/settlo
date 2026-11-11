@@ -17,6 +17,8 @@ import UserNotifications
       with: engineBridge.pluginRegistry.registrar(forPlugin: "ReminderChannel")!.messenger())
     LiveActivityChannel.register(
       with: engineBridge.pluginRegistry.registrar(forPlugin: "LiveActivityChannel")!.messenger())
+    let tabBar = engineBridge.pluginRegistry.registrar(forPlugin: "NativeTabBar")!
+    tabBar.register(NativeTabBarFactory(messenger: tabBar.messenger()), withId: "app.settlo/tab_bar")
   }
 }
 

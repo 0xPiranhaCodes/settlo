@@ -1,0 +1,10 @@
+Test Case '-[RunnerTests.RunnerTests testBuildsSystemItemsFromFlutter]' passed (0.021 seconds).
+Test Case '-[RunnerTests.RunnerTests testReportsItsHeightOnLayout]' passed (0.023 seconds).
+Test Case '-[RunnerTests.RunnerTests testRouterUpdateSetsSelectionAndAppearance]' passed (0.005 seconds).
+Test Case '-[RunnerTests.RunnerTests testTabsAreVoiceOverButtonsWithSelection]' passed (1.090 seconds).
+Test Case '-[RunnerTests.RunnerTests testTapIsSentToFlutter]' passed (0.006 seconds).
+Test Case '-[RunnerTests.RunnerTests testTintIsSettloActionNotSystemBlue]' passed (0.005 seconds).
+	 Executed 6 tests, with 0 failures (0 unexpected) in 1.151 (1.157) seconds
+	 Executed 6 tests, with 0 failures (0 unexpected) in 1.151 (1.159) seconds
+	 Executed 6 tests, with 0 failures (0 unexpected) in 1.151 (1.170) seconds
+** TEST SUCCEEDED **
