@@ -1,0 +1,1 @@
+html-validate standard preset: all three site pages passed (exit 0).

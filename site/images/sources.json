@@ -1,5 +1,5 @@
 {
-  "commit": "cda882a27f8e4f622026575812de268ec27fe03b",
+  "commit": "07e7eff3c7545a79bc20579ebdcb17745d966918",
   "sources": {
     "home_main": {
       "path": "app/test/goldens/home_main_390x844_dark.png",
@@ -8,7 +8,19 @@
         390,
         844
       ],
-      "crop_rows": 662
+      "crop_rows": 662,
+      "phone": {
+        "angle_degrees": 0,
+        "size_1x": [
+          390,
+          670
+        ],
+        "outputs": [
+          "home_main-phone.webp",
+          "home_main-phone@2x.webp"
+        ],
+        "density_note": "2x integer replication; original app golden is 390px wide, not newly rendered high-DPR UI."
+      }
     },
     "settle_pay": {
       "path": "app/test/goldens/settle_pay_390x844_dark.png",
@@ -17,7 +29,19 @@
         390,
         844
       ],
-      "crop_rows": null
+      "crop_rows": null,
+      "phone": {
+        "angle_degrees": 3,
+        "size_1x": [
+          390,
+          759
+        ],
+        "outputs": [
+          "settle_pay-phone.webp",
+          "settle_pay-phone@2x.webp"
+        ],
+        "density_note": "2x integer replication; original app golden is 390px wide, not newly rendered high-DPR UI."
+      }
     },
     "spaces_balances": {
       "path": "app/test/goldens/spaces_balances_390x844_dark.png",
@@ -26,7 +50,19 @@
         390,
         844
       ],
-      "crop_rows": 754
+      "crop_rows": 754,
+      "phone": {
+        "angle_degrees": -3,
+        "size_1x": [
+          390,
+          707
+        ],
+        "outputs": [
+          "spaces_balances-phone.webp",
+          "spaces_balances-phone@2x.webp"
+        ],
+        "density_note": "2x integer replication; original app golden is 390px wide, not newly rendered high-DPR UI."
+      }
     },
     "loans_detail": {
       "path": "app/test/goldens/loans_detail_390x844_dark.png",
@@ -35,7 +71,19 @@
         390,
         844
       ],
-      "crop_rows": 542
+      "crop_rows": 542,
+      "phone": {
+        "angle_degrees": 3,
+        "size_1x": [
+          390,
+          534
+        ],
+        "outputs": [
+          "loans_detail-phone.webp",
+          "loans_detail-phone@2x.webp"
+        ],
+        "density_note": "2x integer replication; original app golden is 390px wide, not newly rendered high-DPR UI."
+      }
     },
     "confirm_repayment": {
       "path": "app/test/goldens/confirm_repayment_390x844_dark.png",
@@ -44,7 +92,33 @@
         390,
         844
       ],
-      "crop_rows": 787
+      "crop_rows": 787,
+      "phone": {
+        "angle_degrees": 0,
+        "size_1x": [
+          390,
+          790
+        ],
+        "outputs": [
+          "confirm_repayment-phone.webp",
+          "confirm_repayment-phone@2x.webp"
+        ],
+        "density_note": "2x integer replication; original app golden is 390px wide, not newly rendered high-DPR UI."
+      }
     }
+  },
+  "device": {
+    "path": "site/images/device/studio-frame.png",
+    "sha256": "8bee1908f1ad8998bb0d94d279a6f20c5a9b6a95d06f3150d4cbd31327a1208c",
+    "generator": "built-in image_gen",
+    "prompt_path": "site/images/device/prompt.txt",
+    "opening_xyxy": [
+      52,
+      64,
+      798,
+      1700
+    ],
+    "recipe": "scripts/site-phones.py",
+    "screen_policy": "Exact approved golden crop pasted without retouching; geometric resampling only. No generated pixels over screen."
   }
 }

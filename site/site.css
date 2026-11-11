@@ -281,10 +281,8 @@ footer a {
   width: 390px;
   max-width: 100%;
   height: auto;
-  border-radius: 40px;
-  outline: 1px solid var(--line);
-  outline-offset: -1px;
-  box-shadow: 0 40px 80px -24px #000c;
+  /* Hardware, lighting and tilt are contained inside the responsive bitmap. */
+
 }
 figcaption {
   margin-top: 16px;
@@ -712,9 +710,6 @@ details[open] summary::after {
   }
   .intro {
     font-size: 19px;
-  }
-  .screen img {
-    border-radius: 32px;
   }
   .card {
     padding: 20px;
