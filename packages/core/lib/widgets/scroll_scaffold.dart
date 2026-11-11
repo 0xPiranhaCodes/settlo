@@ -231,9 +231,12 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
   Widget build(BuildContext context) {
     final ios = Theme.of(context).platform == TargetPlatform.iOS;
     final padding = widget.padding.resolve(Directionality.of(context));
+    // A native sheet already sits below the status bar.
     final top =
         widget.statusInset ??
-        MediaQuery.paddingOf(context).top.clamp(44.0, double.infinity);
+        (CupertinoSheetRoute.hasParentSheet(context)
+            ? 0.0
+            : MediaQuery.paddingOf(context).top.clamp(44.0, double.infinity));
     final header = widget.children.isEmpty
         ? const SizedBox.shrink()
         : widget.children.first;

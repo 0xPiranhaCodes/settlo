@@ -99,6 +99,16 @@ void main() {
           // The route leaves the gap above the sheet; no canvas 54 on top.
           expect(tester.getTopLeft(find.byType(screen)).dy, greaterThan(0));
           expect(find.text('at ${SettloRoutes.home}'), findsOneWidget);
+          // No status-bar band inside the sheet: its scroll header starts
+          // at the sheet's top edge.
+          final header = find.descendant(
+            of: find.byType(screen),
+            matching: find.byType(CustomScrollView),
+          );
+          expect(
+            tester.getTopLeft(header.first).dy,
+            closeTo(tester.getTopLeft(find.byType(screen)).dy, 2),
+          );
         }
       });
     }
