@@ -27,6 +27,18 @@ Recordings (402 px wide, H.264):
   `after-swipe-back-lands-on-spaces.png` is the frame after the swipe. Before
   this PR, the swipe did nothing on these routes (see the audit's "PR 1 as
   built").
+- `discard-prompt.mp4`: Add expense with ₹1,234 and "Weekly groceries"
+  entered. A drag down from the title snaps back and asks "Discard
+  changes?" (`after-discard-prompt.png`). Keep editing keeps both values; a
+  second drag and Discard closes the sheet once, back to Flat 402. Captured
+  after the review fixes, merged with `main` (#160 native tab bar), on a
+  fresh iPhone 17 Pro iOS 26.1 simulator that was deleted afterwards.
+
+A clean sheet still drags away without asking, and a sheet that is saving
+stays put. Close asks the same way. Add expense, Settle up (back from the
+UPI app, not yet recorded), New loan and Confirm settlement (a dispute
+reason typed) count as dirty. Under Reduce Motion, action sheets and alerts
+now appear in place instead of sliding or scaling.
 
 Android keeps its current behaviour. Every change sits behind an iOS
 platform check, and `app/test/ios_navigation_test.dart` checks each task
