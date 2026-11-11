@@ -16,11 +16,16 @@ import 'support/fake_home.dart';
 /// Home in the shell with [data] already loaded. Riverpod pauses widgets
 /// under a disabled [TickerMode], as the golden harness sets, so the data
 /// is loaded before the first frame rather than awaited after it.
-Future<Widget> homeInShell(HomeData data) async {
+Future<Widget> homeInShell(
+  HomeData data, {
+  List<ActivityEntry>? activityEntries,
+}) async {
   final container = ProviderContainer(
     overrides: [
       homeRepositoryProvider.overrideWithValue(FakeHomeRepository(data)),
-      activityRepositoryProvider.overrideWithValue(FakeActivityRepository()),
+      activityRepositoryProvider.overrideWithValue(
+        FakeActivityRepository(entries: activityEntries),
+      ),
     ],
   );
   addTearDown(container.dispose);

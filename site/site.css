@@ -381,7 +381,7 @@ figcaption {
   margin-bottom: 16px;
 }
 .trip-steps .screen {
-  width: min(100%, 432px);
+  width: min(100%, 430px);
   margin: auto;
 }
 .trip-steps strong {
@@ -427,7 +427,7 @@ figcaption {
 }
 .flat {
   display: grid;
-  grid-template-columns: 1fr 432px;
+  grid-template-columns: 1fr 430px;
   gap: 100px;
   align-items: center;
   padding: 160px 0;
@@ -457,7 +457,7 @@ figcaption {
 }
 .loan-screens {
   display: grid;
-  grid-template-columns: 432fr 390fr;
+  grid-template-columns: 430fr 390fr;
   gap: 48px;
   align-items: center;
   width: min(871px, 100%);
@@ -536,7 +536,7 @@ body:not(.landing) .wordmark::before {
     gap: 48px;
   }
   .flat .screen {
-    width: min(432px, 100%);
+    width: min(430px, 100%);
     margin: auto;
   }
   .trip {
@@ -626,10 +626,10 @@ body:not(.landing) .wordmark::before {
   .loan-screens {
     grid-template-columns: 1fr;
     gap: 40px;
-    width: min(432px, 100%);
+    width: min(430px, 100%);
   }
   .loan-screens .screen:last-child {
-    width: calc(100% * 390 / 432);
+    width: calc(100% * 390 / 430);
     margin: auto;
   }
   .loan h2 {
@@ -783,7 +783,7 @@ header .wordmark img {
 }
 .trip-story {
   display: grid;
-  grid-template-columns: 432px minmax(0, 1fr);
+  grid-template-columns: 430px minmax(0, 1fr);
   gap: 100px;
   align-items: start;
 }
@@ -792,7 +792,7 @@ header .wordmark img {
   top: 80px;
 }
 .trip-product .screen {
-  width: min(432px, 100%);
+  width: min(430px, 100%);
   margin: auto;
 }
 .trip-product img {
@@ -898,7 +898,7 @@ header .wordmark img {
 @media (max-width: 1100px) {
   .trip-story {
     gap: 48px;
-    grid-template-columns: minmax(0, 432px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 430px) minmax(0, 1fr);
   }
 }
 @media (max-width: 900px) {

@@ -58,6 +58,31 @@ class SettloSheetPage<T> extends SettloPage<T> {
   }
 }
 
+/// Shows [builder] as a full-height page sheet, such as Create space, on
+/// the root navigator. On iOS it is the same route as [SettloSheetPage]:
+/// a [PopScope] inside holds a drag down. Elsewhere it is [fallback], so
+/// Android keeps its Material sheet.
+Future<T?> showSettloPageSheet<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+  required Future<T?> Function() fallback,
+}) {
+  if (Theme.of(context).platform != TargetPlatform.iOS) return fallback();
+  return Navigator.of(context, rootNavigator: true).push(
+    _SheetRoute<T>(
+      settings: null,
+      reduced: MediaQuery.disableAnimationsOf(context),
+      scrollableBuilder: (context, controller) => ColoredBox(
+        color: SettloColors.of(context).surface,
+        child: PrimaryScrollController(
+          controller: controller,
+          child: Builder(builder: builder),
+        ),
+      ),
+    ),
+  );
+}
+
 /// How far a sheet-shaped screen sits below the top of the screen: 54 as on
 /// the canvas, or nothing inside a [SettloSheetPage] on iOS, whose route
 /// already leaves the gap.

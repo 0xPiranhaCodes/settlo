@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -187,7 +188,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
 
   Future<void> _pickDate() async {
     final today = DateUtils.dateOnly(DateTime.now());
-    final picked = await showDatePicker(
+    final picked = await showSettloDatePicker(
       context: context,
       initialDate: _spentOn ?? today,
       firstDate: DateTime(today.year - 1, today.month, today.day),
@@ -468,17 +469,34 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
           onTap: toggle,
           child: _Line(
             divider: divider,
-            children: [
-              Checkbox(
-                value: on,
-                onChanged: (_) => toggle(),
-                materialTapTargetSize: MaterialTapTargetSize.padded,
-                visualDensity: VisualDensity.standard,
-              ),
-              const SizedBox(width: 4),
-              Expanded(child: _Name(name)),
-              if (amount != null) MoneyText(amount, size: 14),
-            ],
+            // iOS lists mark a choice with a trailing checkmark.
+            children: Theme.of(context).platform == TargetPlatform.iOS
+                ? [
+                    Expanded(
+                      child: Semantics(checked: on, child: _Name(name)),
+                    ),
+                    if (amount != null) MoneyText(amount, size: 14),
+                    SizedBox.square(
+                      dimension: SettloSpacing.minTouchTarget,
+                      child: on
+                          ? Icon(
+                              CupertinoIcons.checkmark_alt,
+                              color: SettloColors.of(context).textPrimary,
+                            )
+                          : null,
+                    ),
+                  ]
+                : [
+                    Checkbox(
+                      value: on,
+                      onChanged: (_) => toggle(),
+                      materialTapTargetSize: MaterialTapTargetSize.padded,
+                      visualDensity: VisualDensity.standard,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(child: _Name(name)),
+                    if (amount != null) MoneyText(amount, size: 14),
+                  ],
           ),
         ),
       );

@@ -106,7 +106,9 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
     future: _preview,
     builder: (context, snapshot) {
       if (snapshot.connectionState != ConnectionState.done) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator.adaptive()),
+        );
       }
       final invite = snapshot.data;
       if (invite == null || snapshot.hasError) {

@@ -25,8 +25,6 @@ Future<void> main() async {
   );
 }
 
-final _messenger = GlobalKey<ScaffoldMessengerState>();
-
 /// Shows each write the server refused after its sheet closed (ADR 0004),
 /// and keeps the signed-in user's sync running.
 class _SyncNotices extends ConsumerWidget {
@@ -37,11 +35,17 @@ class _SyncNotices extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(syncNoticesProvider, (_, next) {
-      if (next case AsyncData(:final value)) {
-        _messenger.currentState?.showSnackBar(SnackBar(content: Text(value)));
-      }
+      if (next case AsyncData(:final value)) _notice(ref, value);
     });
     return child;
+  }
+}
+
+/// Shows [message] from above every screen, through the root navigator.
+void _notice(WidgetRef ref, String message) {
+  final root = ref.read(routerProvider).routerDelegate.navigatorKey;
+  if (root.currentContext case final context?) {
+    showSettloNotice(context, message);
   }
 }
 
@@ -58,17 +62,14 @@ class SettloApp extends ConsumerWidget {
       ..watch(reminderSyncProvider)
       ..listen(inviteSignInNoticeProvider, (_, next) {
         if (next == null) return;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _messenger.currentState?.showSnackBar(
-            SnackBar(content: Text(next.message)),
-          );
-        });
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _notice(ref, next.message),
+        );
       });
     return MaterialApp.router(
       title: 'Settlo',
       scrollBehavior: const SettloScrollBehavior(),
       debugShowCheckedModeBanner: false,
-      scaffoldMessengerKey: _messenger,
       theme: SettloTheme.light(),
       darkTheme: SettloTheme.dark(),
       themeMode: ref.watch(themeModeProvider).value ?? ThemeMode.dark,

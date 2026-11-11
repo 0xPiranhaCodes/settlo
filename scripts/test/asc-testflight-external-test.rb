@@ -181,3 +181,74 @@ assert(raw.bytesize == 64, 'JWT raw signature')
 der = OpenSSL::ASN1::Sequence.new(raw.bytes.each_slice(32).map { |bytes| OpenSSL::ASN1::Integer.new(OpenSSL::BN.new(bytes.pack('C*'), 2)) }).to_der
 assert(key.verify(OpenSSL::Digest.new('SHA256'), der, "#{header}.#{claims}"), 'JWT signature verifies')
 puts 'PASS: mocked HTTP create/rerun/review states, pagination, preflight failures, contact overrides, secret redaction and JWT verification'
+
+# Withdrawal needs no demo account, contacts, group, or public review text.
+withdraw_settings = settings.select { |k, _| k.start_with?('ASC_KEY', 'ASC_ISSUER') }.merge(
+  'BUILD_NUMBER' => '7', 'TESTFLIGHT_ACTION' => 'withdraw'
+)
+withdraw_builds = [resource.call('builds', 'withdraw-build', 'expired' => false)]
+withdraw_apps = [app]
+withdraw_writes = []
+withdraw_code = '200'
+confirmed = true
+withdraw_transport = lambda do |uri, req|
+  assert(req['Authorization'].start_with?('Bearer '), 'withdrawal authenticates through Client')
+  result = case [req.method, uri.path]
+           when ['GET', '/v1/apps']
+             assert(URI.decode_www_form(uri.query).to_h == { 'filter[bundleId]' => 'app.settlo' }, 'withdrawal app filter')
+             withdraw_apps
+           when ['GET', '/v1/builds']
+             assert(URI.decode_www_form(uri.query).to_h == {
+               'filter[app]' => 'app', 'filter[version]' => '7', 'filter[preReleaseVersion.platform]' => 'IOS'
+             }, 'withdrawal app, build number and platform filters')
+             withdraw_builds
+           when ['PATCH', '/v1/builds/withdraw-build']
+             data = JSON.parse(req.body).fetch('data')
+             assert(data == { 'type' => 'builds', 'id' => 'withdraw-build', 'attributes' => { 'expired' => true } }, 'exact expiration payload')
+             withdraw_writes << data
+             return Struct.new(:code, :body).new(withdraw_code, "echo #{phone} #{otp}") unless withdraw_code == '200'
+             resource.call('builds', 'withdraw-build', 'expired' => confirmed)
+           else raise 'Unexpected withdrawal request'
+           end
+  Struct.new(:code, :body).new('200', JSON.generate(data: result))
+end
+withdraw_client = TestFlightExternal::Client.new(env: withdraw_settings, transport: withdraw_transport)
+withdraw_output = StringIO.new
+withdraw = lambda do |env = withdraw_settings|
+  withdraw_output.truncate(0)
+  withdraw_output.rewind
+  TestFlightExternal::Distributor.new(withdraw_client, env: env, output: withdraw_output).run
+end
+withdraw.call
+assert(withdraw_output.string == "Build 7: expired=false -> expired=true\n", 'only build number and prior/new expiration states logged')
+assert(withdraw_writes.length == 1, 'one expiration mutation')
+withdraw_builds.first['attributes']['expired'] = true
+withdraw.call
+assert(withdraw_output.string == "Build 7: expired=true -> expired=true\n", 'already expired build is safe to withdraw again')
+before = withdraw_writes.length
+saved_build = withdraw_builds.first
+withdraw_builds.clear
+expect_error('unknown withdrawal build', message: 'missing or ambiguous') { withdraw.call }
+withdraw_builds.concat([saved_build, saved_build])
+expect_error('ambiguous withdrawal build', message: 'missing or ambiguous') { withdraw.call }
+withdraw_builds.replace([saved_build])
+withdraw_apps.clear
+expect_error('unknown withdrawal app', message: 'exactly one') { withdraw.call }
+withdraw_apps.concat([app, app])
+expect_error('ambiguous withdrawal app', message: 'exactly one') { withdraw.call }
+withdraw_apps.replace([app])
+expect_error('invalid withdrawal number', message: 'numeric') { withdraw.call(withdraw_settings.merge('BUILD_NUMBER' => '7\n')) }
+expect_error('invalid action', message: 'submit or withdraw') { withdraw.call(withdraw_settings.merge('TESTFLIGHT_ACTION' => 'other')) }
+saved_build['attributes']['expired'] = "echo #{phone} #{otp}"
+expect_error('invalid prior expiration state', message: 'Unexpected') { withdraw.call }
+assert(withdraw_writes.length == before, 'invalid withdrawal input and lookup cannot mutate ASC')
+saved_build['attributes']['expired'] = false
+confirmed = false
+expect_error('unconfirmed expiration', message: 'not confirmed') { withdraw.call }
+assert(withdraw_output.string.empty?, 'no success output for unconfirmed expiration')
+%w[409 422].each do |status|
+  withdraw_code = status
+  expect_error('withdrawal HTTP failure redacted', message: "HTTP #{status}") { withdraw.call }
+  assert(withdraw_output.string.empty?, 'no response body or false success logged')
+end
+puts 'PASS: mocked withdrawal filtering, exact PATCH, repeated expiry, safe preflight failures, confirmation and HTTP failures'

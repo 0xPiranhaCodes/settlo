@@ -77,7 +77,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
   }
 
   Future<void> _pickStart() async {
-    final picked = await showDatePicker(
+    final picked = await showSettloDatePicker(
       context: context,
       initialDate: _start,
       firstDate: DateTime(2000),
@@ -85,6 +85,16 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
       helpText: 'Loan starts',
     );
     if (picked != null) setState(() => _start = picked);
+  }
+
+  Future<void> _pickDueDay() async {
+    final picked = await showSettloPicker<int>(
+      context: context,
+      values: [for (var d = 1; d <= 28; d++) d],
+      selected: _dueDay,
+      label: ordinal,
+    );
+    if (picked != null) setState(() => _dueDay = picked);
   }
 
   Future<void> _create(NewLoan loan) async {
@@ -97,7 +107,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
     });
     final ledger = ref.read(ledgerRevisionProvider.notifier);
     final open = ref.read(openUrlProvider);
-    final messenger = ScaffoldMessenger.maybeOf(context);
+    final root = Navigator.of(context, rootNavigator: true).context;
     final router = GoRouter.of(context);
     try {
       final id = await ref
@@ -123,11 +133,9 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
       router.go(SettloRoutes.loan(id));
       if (!opened) {
         // On the loan's page, which has the Scaffold to show it.
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => messenger?.showSnackBar(
-            const SnackBar(content: Text("Couldn't open WhatsApp")),
-          ),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (root.mounted) showSettloNotice(root, "Couldn't open WhatsApp");
+        });
       }
       // Done: stay busy, so a tap still queued on this frame is dropped.
       return;
@@ -161,6 +169,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
       color: c.textSecondary,
     );
     final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
+    final ios = Theme.of(context).platform == TargetPlatform.iOS;
     Widget field({required Widget child, double? width}) => largeText
         ? child
         : width == null
@@ -345,33 +354,39 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                     width: 88,
                     child: _Labelled(
                       label: 'DUE DAY',
-                      child: DropdownButtonFormField<int>(
-                        initialValue: _dueDay,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          contentPadding: _fieldPadding,
-                        ),
-                        icon: LoanGlyph(
-                          LoanGlyph.chevronDown,
-                          color: c.textSecondary,
-                          size: 18,
-                        ),
-                        menuMaxHeight: 320,
-                        items: [
-                          for (var d = 1; d <= 28; d++)
-                            DropdownMenuItem(
-                              value: d,
-                              child: Text(
-                                ordinal(d),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                      child: ios
+                          ? _PickerField(
+                              value: ordinal(_dueDay),
+                              semanticLabel: 'Due day ${ordinal(_dueDay)}',
+                              onTap: installment == null ? null : _pickDueDay,
+                            )
+                          : DropdownButtonFormField<int>(
+                              initialValue: _dueDay,
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                contentPadding: _fieldPadding,
                               ),
+                              icon: LoanGlyph(
+                                LoanGlyph.chevronDown,
+                                color: c.textSecondary,
+                                size: 18,
+                              ),
+                              menuMaxHeight: 320,
+                              items: [
+                                for (var d = 1; d <= 28; d++)
+                                  DropdownMenuItem(
+                                    value: d,
+                                    child: Text(
+                                      ordinal(d),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                              ],
+                              onChanged: installment == null
+                                  ? null
+                                  : (d) => setState(() => _dueDay = d!),
                             ),
-                        ],
-                        onChanged: installment == null
-                            ? null
-                            : (d) => setState(() => _dueDay = d!),
-                      ),
                     ),
                   ),
                   SizedBox(
@@ -382,24 +397,11 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                     width: 104,
                     child: _Labelled(
                       label: 'STARTS',
-                      child: SPressable(
+                      child: _PickerField(
+                        value: monthYear(_start),
+                        semanticLabel:
+                            'Starts ${dayMonth(_start)} ${_start.year}',
                         onTap: _pickStart,
-                        label: 'Starts ${dayMonth(_start)} ${_start.year}',
-                        ringRadius: BorderRadius.circular(SettloRadius.button),
-                        child: InputDecorator(
-                          decoration: const InputDecoration(
-                            contentPadding: _fieldPadding,
-                          ),
-                          child: Text(
-                            monthYear(_start),
-                            maxLines: 1,
-                            softWrap: false,
-                            overflow: TextOverflow.fade,
-                            style: SettloTypography.headline(
-                              color: c.textPrimary,
-                            ),
-                          ),
-                        ),
                       ),
                     ),
                   ),
@@ -470,6 +472,16 @@ class _Direction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      return SSegmentedControl<bool>(
+        segments: const [
+          (value: true, label: 'I lent money'),
+          (value: false, label: 'I borrowed'),
+        ],
+        selected: youLent,
+        onChanged: onChanged,
+      );
+    }
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -521,6 +533,43 @@ class _Direction extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A field showing [value] that opens a picker; null [onTap] disables it.
+class _PickerField extends StatelessWidget {
+  const new({
+    required this.value,
+    required this.semanticLabel,
+    required this.onTap,
+  });
+
+  final String value;
+  final String semanticLabel;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => SPressable(
+    onTap: onTap,
+    label: semanticLabel,
+    ringRadius: BorderRadius.circular(SettloRadius.button),
+    child: InputDecorator(
+      decoration: InputDecoration(
+        enabled: onTap != null,
+        contentPadding: _fieldPadding,
+      ),
+      child: Text(
+        value,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.fade,
+        style: SettloTypography.headline(
+          color: onTap == null
+              ? SettloColors.of(context).textMuted
+              : SettloColors.of(context).textPrimary,
+        ),
+      ),
+    ),
+  );
 }
 
 /// A small-caps label over a field.
@@ -638,7 +687,7 @@ class _Interest extends StatelessWidget {
                 ],
               ),
             ),
-            const Switch(value: false, onChanged: null),
+            const SSwitch(value: false, onChanged: null),
           ],
         ),
       ),

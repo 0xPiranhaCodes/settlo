@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -125,6 +126,13 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                           subtitle: Text(
                             _busy == space.id ? 'Preparing…' : 'CSV and PDF',
                           ),
+                          // iOS: the share sheet opens once these are made.
+                          trailing:
+                              _busy == space.id &&
+                                  Theme.of(context).platform ==
+                                      TargetPlatform.iOS
+                              ? const CupertinoActivityIndicator()
+                              : null,
                           enabled: _busy == null,
                         ),
                       ),
@@ -138,7 +146,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
             ),
             _ => const Padding(
               padding: EdgeInsets.symmetric(vertical: SettloSpacing.x2),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(child: CircularProgressIndicator.adaptive()),
             ),
           },
           if (_error case final error?) ...[
