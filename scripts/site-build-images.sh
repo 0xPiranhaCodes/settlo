@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Rebuild from the current app widgets, including theme/mark changes. Never
-# update golden PNGs. Use a Pillow 13 environment via SITE_IMAGE_PYTHON.
+# update golden PNGs. Exports 390px detail sources and 430px phone content. Use a Pillow 13 environment via SITE_IMAGE_PYTHON.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export GIT_CONFIG_COUNT=0

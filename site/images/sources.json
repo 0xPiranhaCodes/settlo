@@ -1,5 +1,5 @@
 {
-  "commit": "d97760a6622266b9dbd33e037fad0c1455c9cef2",
+  "commit": "870db421d44953eb7ea73240e6e528b63fdafb71",
   "sources": {
     "home_main": {
       "path": "app/test/goldens/home_main_390x844_dark.png",
@@ -10,11 +10,11 @@
       ],
       "crop_rows": 662,
       "marketing": {
-        "path": "build/marketing/home_main.png",
-        "sha256": "d6bad93e0e406b5f032c42e1bbd0766af044923bdc9d89d5fe11820f04dfa6dc",
+        "path": "build/marketing/home_main-phone.png",
+        "sha256": "b31eb4e71106ba6fbf92fa5c6ee743b00f265891febf9cd551fd8bec323c8b23",
         "size": [
-          1170,
-          2532
+          1290,
+          2796
         ],
         "device_pixel_ratio": 3,
         "fixture": "app/test/goldens/home_main_390x844_dark.png",
@@ -24,7 +24,7 @@
         "angle_degrees": 0,
         "size_1x": [
           390,
-          829
+          800
         ],
         "outputs": [
           "home_main-phone.avif",
@@ -37,7 +37,7 @@
           "quality": 56,
           "subsampling": "4:4:4"
         },
-        "output_scale": 0.27896995708154504
+        "output_scale": 0.2719665271966527
       }
     },
     "settle_pay": {
@@ -49,11 +49,11 @@
       ],
       "crop_rows": null,
       "marketing": {
-        "path": "build/marketing/settle_pay.png",
-        "sha256": "f398c02a4ce7d5b141f9437f5e533a793ebb1f94e0cc8cde9068a6618c59b161",
+        "path": "build/marketing/settle_pay-phone.png",
+        "sha256": "4299db30868bae9ebead579f87c88b58fab623cd8c200fa183c587494e528e56",
         "size": [
-          1170,
-          2532
+          1290,
+          2796
         ],
         "device_pixel_ratio": 3,
         "fixture": "app/test/goldens/settle_pay_390x844_dark.png",
@@ -62,8 +62,8 @@
       "phone": {
         "angle_degrees": 3,
         "size_1x": [
-          432,
-          848
+          430,
+          818
         ],
         "outputs": [
           "settle_pay-phone.avif",
@@ -76,7 +76,7 @@
           "quality": 48,
           "subsampling": "4:4:4"
         },
-        "output_scale": 0.27896995708154504
+        "output_scale": 0.2719665271966527
       }
     },
     "spaces_balances": {
@@ -88,11 +88,11 @@
       ],
       "crop_rows": 754,
       "marketing": {
-        "path": "build/marketing/spaces_balances.png",
-        "sha256": "710dbcbc849a7f216979c6d05573f01acae2a1c8d06bb4db98852a24a4f3fa59",
+        "path": "build/marketing/spaces_balances-phone.png",
+        "sha256": "ac6b28945efed7a13b35ce2463a91ac4256bd6b3d91090fc2198e724d886eb41",
         "size": [
-          1170,
-          2532
+          1290,
+          2796
         ],
         "device_pixel_ratio": 3,
         "fixture": "app/test/goldens/spaces_balances_390x844_dark.png",
@@ -101,8 +101,8 @@
       "phone": {
         "angle_degrees": -3,
         "size_1x": [
-          432,
-          848
+          430,
+          818
         ],
         "outputs": [
           "spaces_balances-phone.avif",
@@ -115,7 +115,7 @@
           "quality": 48,
           "subsampling": "4:4:4"
         },
-        "output_scale": 0.27896995708154504
+        "output_scale": 0.2719665271966527
       }
     },
     "loans_detail": {
@@ -127,11 +127,11 @@
       ],
       "crop_rows": 542,
       "marketing": {
-        "path": "build/marketing/loans_detail.png",
-        "sha256": "6c942cb88d6d213911e3a891485b3af05967c4f7c91e3049d9bc6150054656c0",
+        "path": "build/marketing/loans_detail-phone.png",
+        "sha256": "f3b5227a2763fbbfbadbf9084e4a742e438a71d108035f9cf1cf068c08643ee5",
         "size": [
-          1170,
-          2532
+          1290,
+          2796
         ],
         "device_pixel_ratio": 3,
         "fixture": "app/test/goldens/loans_detail_390x844_dark.png",
@@ -140,8 +140,8 @@
       "phone": {
         "angle_degrees": 3,
         "size_1x": [
-          432,
-          848
+          430,
+          818
         ],
         "outputs": [
           "loans_detail-phone.avif",
@@ -154,7 +154,7 @@
           "quality": 48,
           "subsampling": "4:4:4"
         },
-        "output_scale": 0.27896995708154504
+        "output_scale": 0.2719665271966527
       }
     },
     "confirm_repayment": {
@@ -166,11 +166,11 @@
       ],
       "crop_rows": 787,
       "marketing": {
-        "path": "build/marketing/confirm_repayment.png",
-        "sha256": "1a7dc4755ed96c4f000eb5b357a45bf4e3ee6bd1b525ba4012092bd0865294be",
+        "path": "build/marketing/confirm_repayment-phone.png",
+        "sha256": "a9b98aad05435a2352b6a282b995947b0dc2a3cf4dc7b967d18119a1bb32f2ab",
         "size": [
-          1170,
-          2532
+          1290,
+          2796
         ],
         "device_pixel_ratio": 3,
         "fixture": "app/test/goldens/confirm_repayment_390x844_dark.png",
@@ -180,7 +180,7 @@
         "angle_degrees": 0,
         "size_1x": [
           390,
-          829
+          800
         ],
         "outputs": [
           "confirm_repayment-phone.avif",
@@ -193,23 +193,22 @@
           "quality": 48,
           "subsampling": "4:4:4"
         },
-        "output_scale": 0.27896995708154504
+        "output_scale": 0.2719665271966527
       }
     }
   },
   "device": {
-    "path": "site/images/device/studio-frame.png",
-    "sha256": "8bee1908f1ad8998bb0d94d279a6f20c5a9b6a95d06f3150d4cbd31327a1208c",
-    "generator": "built-in image_gen",
-    "prompt_path": "site/images/device/prompt.txt",
-    "opening_xyxy": [
-      52,
-      64,
-      798,
-      1700
+    "generator": "deterministic Pillow geometry",
+    "display_logical_size": [
+      430,
+      932
     ],
+    "status_bar_height": 54,
+    "home_area_height": 34,
+    "bezel_width": 8,
+    "display_radius": 52,
     "recipe": "scripts/site-phones.py",
-    "screen_policy": "Full 3x Flutter marketing export pasted without retouching into a uniformly scaled device; screen background fills spare opening rows. Final geometric resampling and AVIF encoding only."
+    "screen_policy": "Full 430 x 932 Flutter export at 3x with 54px top and 34px bottom safe-area insets. Illustrative system chrome is drawn only in those reserved areas. Shared concentric frame/mask geometry. Uniform resampling and AVIF encoding only."
   },
   "details": {
     "upi": {

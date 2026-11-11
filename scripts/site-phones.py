@@ -1,68 +1,84 @@
 #!/usr/bin/env python3
-"""Compose generated hardware around real, unretouched 3x app exports.
+"""Compose real Flutter exports into a deterministic, illustrative phone frame.
 
-Run app/test/marketing_export.dart and site-images.py first. Pillow 13.0.0; no API or image model at rebuild time.
-The model only supplied studio-frame.png. Screen pixels are pasted last and
-never receive generated reflections, lighting, colour grading or retouching.
+The display is 430 x 932 logical pixels: 54 status + 844 content + 34 home, rendered with real safe-area insets.
+Hardware and display share concentric rounded rectangles; no inferred opening
+from generated artwork, stretching, cropped controls, or spare display rows.
 """
 import hashlib
 import json
 import io
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageEnhance
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'site/images'
-FRAME = OUT / 'device/studio-frame.png'
-# Measured interior opening in the committed 852 x 1846 generated asset.
-OPENING = (52, 64, 798, 1700)
+DISPLAY = (430, 932)
+STATUS = 54
+HOME = 34
+BEZEL = 8
+RADIUS = 52
+PADDING = 16
 ANGLES = {'home_main': 0, 'settle_pay': 3, 'spaces_balances': -3,
           'loans_detail': 3, 'confirm_repayment': 0}
 
 
 def compose(screen, angle):
-    # Scale hardware to the screen; never squeeze the screen to fit hardware.
-    # Two pixels of screen-colour margin protect content at rounded corners.
-    density = screen.width / 390
-    w, h = screen.size
-    x0, y0, x1, y1 = OPENING
-    sx = sy = (w + 4 * density) / (x1-x0)
-    frame = Image.open(FRAME).convert('RGBA')
-    # Neutralise coloured fringe on generated hardware only.
-    frame = ImageEnhance.Color(frame).enhance(0.12)
-    frame = frame.resize((round(frame.width*sx), round(frame.height*sy)), Image.Resampling.LANCZOS)
-    # Opaque screenshot rectangle replaces all generated screen pixels.
-    panel = Image.new('RGBA', (round((x1-x0)*sx), round((y1-y0)*sy)), screen.getpixel((0, 0)))
-    panel.paste(screen, (round(2*density), round(2*density)))
+    density = screen.width / DISPLAY[0]
+    assert screen.size == (1290, 2796), 'Run the 430 x 932 phone export first'
+    def px(value):
+        return round(value * density)
+    w, h = (px(v) for v in DISPLAY)
+    bezel, padding, radius = map(px, (BEZEL, PADDING, RADIUS))
+    frame = Image.new('RGBA', (w + 2*bezel, h + 2*bezel))
+    draw = ImageDraw.Draw(frame)
+    # One geometry controls the metal rim, black bezel and display mask.
+    draw.rounded_rectangle((0, 0, frame.width-1, frame.height-1),
+                           radius=radius+bezel, fill='#929597')
+    draw.rounded_rectangle((px(2), px(2), frame.width-1-px(2), frame.height-1-px(2)),
+                           radius=radius+bezel-px(2), fill='#17191b')
+    panel = screen.copy()
+    chrome = ImageDraw.Draw(panel)
+    # Illustrative system chrome only; app pixels remain untouched.
+    chrome.rounded_rectangle((px(153), px(12), px(277), px(42)),
+                             radius=px(15), fill='#000000')
+    font = ImageFont.truetype(str(ROOT / 'packages/core/assets/fonts/Figtree-Medium.ttf'), px(15))
+    chrome.text((px(38), px(18)), '9:41', font=font, fill='#f3f2ee')
+    for i in range(4):
+        chrome.rounded_rectangle((px(335+i*5), px(31-i*3), px(338+i*5), px(35)),
+                                 radius=px(1), fill='#f3f2ee')
+    chrome.rounded_rectangle((px(362), px(23), px(386), px(35)),
+                             radius=px(3), outline='#f3f2ee', width=px(1))
+    chrome.rectangle((px(365), px(26), px(381), px(32)), fill='#f3f2ee')
+    chrome.rectangle((px(387), px(27), px(389), px(31)), fill='#f3f2ee')
+    chrome.rounded_rectangle((px(145), h-px(13), px(285), h-px(8)),
+                             radius=px(2.5), fill='#f3f2ee')
     mask = Image.new('L', panel.size)
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, panel.width-1, panel.height-1), radius=24*density, fill=255)
-    frame.paste(panel, (round(x0*sx), round(y0*sy)), mask)
-    # Plain 2D rotation, applied equally to UI and hardware.
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, w-1, h-1), radius=radius, fill=255)
+    frame.paste(panel, (bezel, bezel), mask)
     if angle:
         frame = frame.rotate(angle, Image.Resampling.BICUBIC, expand=True)
-    # Transparent padding contains every tilted corner within the layout box.
-    canvas = Image.new('RGBA', (frame.width+round(16*density), frame.height+round(16*density)))
-    canvas.alpha_composite(frame, (round(8*density), round(8*density)))
+    canvas = Image.new('RGBA', (frame.width+2*padding, frame.height+2*padding))
+    canvas.alpha_composite(frame, (padding, padding))
     return canvas
 
 
 def main():
     manifest = json.loads((OUT / 'sources.json').read_text())
     manifest['device'] = {
-        'path': 'site/images/device/studio-frame.png',
-        'sha256': hashlib.sha256(FRAME.read_bytes()).hexdigest(),
-        'generator': 'built-in image_gen',
-        'prompt_path': 'site/images/device/prompt.txt',
-        'opening_xyxy': list(OPENING),
+        'generator': 'deterministic Pillow geometry',
+        'display_logical_size': list(DISPLAY),
+        'status_bar_height': STATUS, 'home_area_height': HOME,
+        'bezel_width': BEZEL, 'display_radius': RADIUS,
         'recipe': 'scripts/site-phones.py',
-        'screen_policy': 'Full 3x Flutter marketing export pasted without retouching into a uniformly scaled device; screen background fills spare opening rows. Final geometric resampling and AVIF encoding only.',
+        'screen_policy': 'Full 430 x 932 Flutter export at 3x with 54px top and 34px bottom safe-area insets. Illustrative system chrome is drawn only in those reserved areas. Shared concentric frame/mask geometry. Uniform resampling and AVIF encoding only.',
     }
     for name, angle in ANGLES.items():
         source = manifest['sources'][name]
-        export = ROOT / 'build/marketing' / f'{name}.png'
+        export = ROOT / 'build/marketing' / f'{name}-phone.png'
         raw = export.read_bytes()
         screen = Image.open(io.BytesIO(raw)).convert('RGBA')
-        assert screen.size == (1170, 2532), 'Run the 3x marketing export first'
+        assert screen.size == (1290, 2796), 'Run the 3x marketing export first'
         source['marketing'] = {'path': str(export.relative_to(ROOT)),
             'sha256': hashlib.sha256(raw).hexdigest(), 'size': list(screen.size),
             'device_pixel_ratio': 3, 'fixture': source['path'],
