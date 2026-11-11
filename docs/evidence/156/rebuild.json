@@ -1,23 +1,11 @@
 {
-  "identical_rebuild": true,
-  "screen_interiors_pixel_equal_before_rotation": [
-    "home_main",
-    "settle_pay",
-    "spaces_balances",
-    "loans_detail",
-    "confirm_repayment"
-  ],
+  "byteIdentical": true,
   "sha256": {
-    "site/images/home_main-phone.webp": "f3d39cadab4cc746f24ccabe993def2fb93e24f8f646c1b260d57547494d761b",
-    "site/images/confirm_repayment-phone@2x.webp": "30c8244357b997c76d3515f8f5c22b26992201e9c026eacdef3d2a2d85f16d73",
-    "site/images/confirm_repayment-phone.webp": "c94f2f8896529fd64279e02a0578d18b8ce8d6e55ec1bff0fd0111da60eb6c52",
-    "site/images/spaces_balances-phone@2x.webp": "2ae6b1abf1c111a34fc32659799aa6cc8e3972be1bd53dda77844d19e727ccb2",
-    "site/images/home_main-phone@2x.webp": "726f79fcb9a8d13618bc3090f50cf153994e56edf9b1167b0b9f5593e63162a0",
-    "site/images/spaces_balances-phone.webp": "eeee7c2df7a8b67d78f1897c78e00c31b427167f77231229e43d5a2f6881a940",
-    "site/images/loans_detail-phone@2x.webp": "9828e40f057b947dcfecf8e83185bd0ba33646f0e522e268623b99a03126438c",
-    "site/images/settle_pay-phone@2x.webp": "54e6ce09d8d69de86914cbc3c5dbdf7eeb72df026c537c38f88bbf020fd70eb7",
-    "site/images/settle_pay-phone.webp": "7f9a3e983d2a3a7f32db7cace65791df9941c265ee2406e7ea42aa52d94cb6b2",
-    "site/images/loans_detail-phone.webp": "8e789fc0d1b9273045155d98e924b9147ca63df83b8af53947454a3dfa48df6c",
-    "site/images/sources.json": "224d7276c3d1b4fe4be6b5cb7ee70cdc62e1ec7fec2af8b0700490739f78fc90"
+    "site/images/home_main-phone.webp": "177fa4a4475de8be26e96633d301da39301694aa9034cccb546654c568f52f2c",
+    "site/images/confirm_repayment-phone.webp": "0380fc2493c701d3139cc5b7ea6691add670f8c19c8dcc7219113efecfb0c5f2",
+    "site/images/spaces_balances-phone.webp": "1a16d01b04beff09799ef850a92eaac5c8e70d6c1c27eb9c2b11c6c5ae6a34ce",
+    "site/images/settle_pay-phone.webp": "9ac2da68cfc58a530fa95afe558887f0d3effa9170e69fa9d7e5571019e166f8",
+    "site/images/loans_detail-phone.webp": "5d6eb37ed76005ab095de5189309833858a40fbdd674f86d2ac9584bf519ea85",
+    "site/images/sources.json": "83bf90c9d0cc957651fbe2e286384a0dcf6b5b5f25e23eca7bff19d3053296b1"
   }
 }

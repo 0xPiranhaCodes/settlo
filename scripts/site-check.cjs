@@ -1,6 +1,7 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
 const outputDir = process.env.SITE_CHECK_OUTPUT || "/tmp/settlo-site-check";
+const localUrl = process.env.SITE_CHECK_URL || "http://127.0.0.1:8765/";
 const publicUrl = "https://settlo.hellojosh.studio/";
 (async () => {
   fs.mkdirSync(outputDir, { recursive: true });
@@ -43,7 +44,7 @@ const publicUrl = "https://settlo.hellojosh.studio/";
         if (r.status() >= 400) failures.push(`${r.status()} ${r.url()}`);
       });
       for (const path of ["", "privacy/", "support/"]) {
-        await page.goto("http://127.0.0.1:8765/" + path);
+        await page.goto(localUrl + path);
         await page.evaluate(() => document.fonts.ready);
         // With JavaScript disabled Chrome loads lazy images eagerly. Decode all
         // images, including below-fold assets, without changing their srcset state.
@@ -99,16 +100,11 @@ const publicUrl = "https://settlo.hellojosh.studio/";
             const rect = (element) => element.getBoundingClientRect();
             const intersects = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
             const images = [...document.querySelectorAll('.screen img')];
-            const copies = [...document.querySelectorAll('.hero-copy, .flat-copy, .loan-copy, .trip-steps > li > p')];
+            const copies = [...document.querySelectorAll('.hero-copy, .flat-copy, .loan-copy, .trip-steps > li > p, section h2, .hero figcaption')];
             return images.every((image) => copies.every((copy) => !intersects(rect(image), rect(copy)))) &&
               images.every((image, i) => images.slice(i+1).every((other) => !intersects(rect(image), rect(other))));
           });
           if (!geometry) throw Error('Phone overlaps copy or another phone');
-          for (const image of await page.locator('.screen img').all()) {
-            const srcset = await image.getAttribute('srcset');
-            if (!srcset || !srcset.includes(' 1x, ') || !srcset.includes(' 2x'))
-              throw Error('Missing responsive phone assets');
-          }
           await page.screenshot({
             path: `${outputDir}/landing-${width}-${colorScheme}.png`,
             fullPage: true,
@@ -125,7 +121,7 @@ const publicUrl = "https://settlo.hellojosh.studio/";
           });
         results.push({ width, colorScheme, path, overflow, jsDisabled: true });
       }
-      if (requests.some((u) => !u.startsWith("http://127.0.0.1:8765/")))
+      if (requests.some((u) => !u.startsWith(localUrl)))
         throw Error("External request");
       if (failures.length) throw Error("Failed resources: " + failures.join(", "));
       await context.close();

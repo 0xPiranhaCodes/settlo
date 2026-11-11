@@ -1,0 +1,56 @@
+{
+  "runs": [
+    {
+      "run": 1,
+      "performance": 99,
+      "lcp_ms": 1959.0418,
+      "tbt_ms": 0,
+      "cls": 0,
+      "categories": {
+        "performance": 99,
+        "accessibility": 100,
+        "best-practices": 96,
+        "seo": 100
+      }
+    },
+    {
+      "run": 2,
+      "performance": 88,
+      "lcp_ms": 1952.3325,
+      "tbt_ms": 434,
+      "cls": 0,
+      "categories": {
+        "performance": 88,
+        "accessibility": 100,
+        "best-practices": 96,
+        "seo": 100
+      }
+    },
+    {
+      "run": 3,
+      "performance": 99,
+      "lcp_ms": 1956.7696999999998,
+      "tbt_ms": 0,
+      "cls": 0,
+      "categories": {
+        "performance": 99,
+        "accessibility": 100,
+        "best-practices": 96,
+        "seo": 100
+      }
+    }
+  ],
+  "median_performance": 99,
+  "median_lcp_ms": 1956.7696999999998,
+  "image_bytes": {
+    "site/images/confirm_repayment-phone.webp": 32406,
+    "site/images/home_main-phone.webp": 29022,
+    "site/images/loans_detail-phone.webp": 36596,
+    "site/images/settle_pay-phone.webp": 33674,
+    "site/images/spaces_balances-phone.webp": 36960,
+    "site/images/mark.png": 6344
+  },
+  "total_landing_image_bytes": 175002,
+  "review_baseline_image_kib": 99,
+  "review_previous_pr_image_kib": 449
+}

@@ -13,13 +13,20 @@
         "angle_degrees": 0,
         "size_1x": [
           390,
-          670
+          837
         ],
         "outputs": [
-          "home_main-phone.webp",
-          "home_main-phone@2x.webp"
+          "home_main-phone.webp"
         ],
-        "density_note": "2x integer replication; original app golden is 390px wide, not newly rendered high-DPR UI."
+        "density_note": "Single 390px composite for the maximum rendered width; no artificial 2x.",
+        "screen_crop_rows": null,
+        "encoding": {
+          "format": "WebP",
+          "quality": 80,
+          "method": 6,
+          "exact": true
+        },
+        "uniform_frame_scale": 1.0563002680965148
       }
     },
     "settle_pay": {
@@ -34,13 +41,20 @@
         "angle_degrees": 3,
         "size_1x": [
           390,
-          759
+          771
         ],
         "outputs": [
-          "settle_pay-phone.webp",
-          "settle_pay-phone@2x.webp"
+          "settle_pay-phone.webp"
         ],
-        "density_note": "2x integer replication; original app golden is 390px wide, not newly rendered high-DPR UI."
+        "density_note": "Single 390px composite for the maximum rendered width; no artificial 2x.",
+        "screen_crop_rows": null,
+        "encoding": {
+          "format": "WebP",
+          "quality": 88,
+          "method": 6,
+          "exact": true
+        },
+        "uniform_frame_scale": 1.0563002680965148
       }
     },
     "spaces_balances": {
@@ -55,13 +69,20 @@
         "angle_degrees": -3,
         "size_1x": [
           390,
-          707
+          771
         ],
         "outputs": [
-          "spaces_balances-phone.webp",
-          "spaces_balances-phone@2x.webp"
+          "spaces_balances-phone.webp"
         ],
-        "density_note": "2x integer replication; original app golden is 390px wide, not newly rendered high-DPR UI."
+        "density_note": "Single 390px composite for the maximum rendered width; no artificial 2x.",
+        "screen_crop_rows": null,
+        "encoding": {
+          "format": "WebP",
+          "quality": 88,
+          "method": 6,
+          "exact": true
+        },
+        "uniform_frame_scale": 1.0563002680965148
       }
     },
     "loans_detail": {
@@ -76,13 +97,20 @@
         "angle_degrees": 3,
         "size_1x": [
           390,
-          534
+          771
         ],
         "outputs": [
-          "loans_detail-phone.webp",
-          "loans_detail-phone@2x.webp"
+          "loans_detail-phone.webp"
         ],
-        "density_note": "2x integer replication; original app golden is 390px wide, not newly rendered high-DPR UI."
+        "density_note": "Single 390px composite for the maximum rendered width; no artificial 2x.",
+        "screen_crop_rows": null,
+        "encoding": {
+          "format": "WebP",
+          "quality": 88,
+          "method": 6,
+          "exact": true
+        },
+        "uniform_frame_scale": 1.0563002680965148
       }
     },
     "confirm_repayment": {
@@ -97,13 +125,20 @@
         "angle_degrees": 0,
         "size_1x": [
           390,
-          790
+          837
         ],
         "outputs": [
-          "confirm_repayment-phone.webp",
-          "confirm_repayment-phone@2x.webp"
+          "confirm_repayment-phone.webp"
         ],
-        "density_note": "2x integer replication; original app golden is 390px wide, not newly rendered high-DPR UI."
+        "density_note": "Single 390px composite for the maximum rendered width; no artificial 2x.",
+        "screen_crop_rows": null,
+        "encoding": {
+          "format": "WebP",
+          "quality": 88,
+          "method": 6,
+          "exact": true
+        },
+        "uniform_frame_scale": 1.0563002680965148
       }
     }
   },
@@ -119,6 +154,6 @@
       1700
     ],
     "recipe": "scripts/site-phones.py",
-    "screen_policy": "Exact approved golden crop pasted without retouching; geometric resampling only. No generated pixels over screen."
+    "screen_policy": "Full approved golden pasted without retouching into a uniformly scaled device; screen background fills spare opening rows. Final geometric resampling and lossy WebP encoding only."
   }
 }

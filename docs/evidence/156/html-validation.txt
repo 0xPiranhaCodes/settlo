@@ -1,1 +1,1 @@
-html-validate standard preset: all three site pages passed (exit 0).
+html-validate --preset standard site/index.html site/privacy/index.html site/support/index.html: exit 0
