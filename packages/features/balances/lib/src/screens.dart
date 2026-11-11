@@ -168,8 +168,7 @@ class _Header extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!compact)
-            SettloMark(semanticsLabel: null, size: 42, color: c.homeGold),
+          if (!compact) const SettloMark(semanticsLabel: null, size: 42),
           if (!compact) const SizedBox(width: 12),
           Text(
             'SETTLO',
