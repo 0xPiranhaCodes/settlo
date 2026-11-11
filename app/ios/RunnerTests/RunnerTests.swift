@@ -64,6 +64,104 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(messenger.sent.last?.arguments as? Int, 3)
   }
 
+  /// A bar laid out as on an iPhone 17 Pro, with the home indicator band
+  /// under its buttons.
+  private func laidOut(_ tabs: NativeTabBar) -> NativeTabBar {
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 402, height: 874))
+    tabs.view().frame = CGRect(x: 0, y: 791, width: 402, height: 83)
+    window.addSubview(tabs.view())
+    window.isHidden = false
+    tabs.view().layoutIfNeeded()
+    return tabs
+  }
+
+  private var taps: [Int] { messenger.sent.filter { $0.method == "tap" }.compactMap { $0.arguments as? Int } }
+
+  /// Where each tab's button sits across the bar.
+  private let centres: [CGFloat] = [74, 159, 243, 328]
+
+  func testUIKitSelectionThenLiftTapsOnce() {
+    let tabs = laidOut(makeBar())
+    tabs.began()
+    tabs.bar.delegate?.tabBar?(tabs.bar, didSelect: tabs.bar.items![3])
+    tabs.lifted(at: CGPoint(x: centres[3], y: 30))
+    XCTAssertEqual(taps, [3])
+  }
+
+  /// UIKit selects on a drag that leaves the bar, as natively; the lift,
+  /// off the bar, adds nothing.
+  func testDragOffKeepsUIKitSelection() {
+    let tabs = laidOut(makeBar())
+    tabs.began()
+    tabs.bar.delegate?.tabBar?(tabs.bar, didSelect: tabs.bar.items![2])
+    tabs.lifted(at: CGPoint(x: centres[3], y: -200))
+    XCTAssertEqual(taps, [2])
+  }
+
+  /// A system gesture can cancel the touch after UIKit has selected (#188).
+  func testCancelAfterUIKitSelectionKeepsIt() {
+    let tabs = laidOut(makeBar())
+    tabs.began()
+    tabs.bar.selectedItem = tabs.bar.items![1]
+    tabs.bar.delegate?.tabBar?(tabs.bar, didSelect: tabs.bar.items![1])
+    tabs.lifted(at: nil)
+    XCTAssertEqual(taps, [1])
+    XCTAssertEqual(tabs.bar.selectedItem?.title, "Spaces")
+  }
+
+  func testCancelWithoutSelectionTapsNothing() {
+    let tabs = laidOut(makeBar())
+    tabs.began()
+    tabs.lifted(at: nil)
+    XCTAssertEqual(taps, [])
+    XCTAssertEqual(tabs.bar.selectedItem?.title, "Home")
+  }
+
+  /// Near the home indicator UIKit selects nothing; the lift picks the tab
+  /// under the finger, and a refusal from the router still snaps back.
+  func testLiftInHomeIndicatorBandTapsTheTabUnderIt() {
+    let tabs = laidOut(makeBar())
+    tabs.began()
+    tabs.lifted(at: CGPoint(x: centres[2], y: tabs.bar.bounds.maxY - 4))
+    XCTAssertEqual(taps, [2])
+    XCTAssertEqual(tabs.bar.selectedItem?.title, "Loans")
+    messenger.call(channelName, "update", ["selected": 0])
+    XCTAssertEqual(tabs.bar.selectedItem?.title, "Home")
+  }
+
+  /// Items are found by their buttons' frames, which need no accessibility
+  /// labels: UIKit fills those only while VoiceOver or XCUITest runs (#188).
+  func testFindsEveryTabByGeometryWithoutLabels() {
+    let tabs = laidOut(makeBar())
+    func all(_ view: UIView) -> [UIView] { view.subviews.flatMap { [$0] + all($0) } }
+    all(tabs.bar).forEach { $0.accessibilityLabel = nil }
+    let band = tabs.bar.bounds.maxY - 4
+    for (index, x) in centres.enumerated() {
+      for point in [CGPoint(x: x, y: 30), CGPoint(x: x, y: band), CGPoint(x: x - 38, y: 50)] {
+        XCTAssertEqual(tabs.tag(at: point), index, "\(point)")
+      }
+    }
+    XCTAssertNil(tabs.tag(at: CGPoint(x: centres[1], y: -1)))
+  }
+
+  func testFindsTabsRightToLeft() {
+    let tabs = makeBar()
+    tabs.bar.semanticContentAttribute = .forceRightToLeft
+    _ = laidOut(tabs)
+    XCTAssertEqual(centres.map { tabs.tag(at: CGPoint(x: $0, y: 30)) }, [3, 2, 1, 0])
+  }
+
+  /// VoiceOver selects with no touch on the bar, also right after one.
+  func testSelectionWithoutTouchIsSentEveryTime() {
+    let tabs = laidOut(makeBar())
+    tabs.began()
+    tabs.bar.delegate?.tabBar?(tabs.bar, didSelect: tabs.bar.items![1])
+    tabs.lifted(at: CGPoint(x: centres[1], y: 30))
+    tabs.bar.delegate?.tabBar?(tabs.bar, didSelect: tabs.bar.items![1])
+    tabs.bar.delegate?.tabBar?(tabs.bar, didSelect: tabs.bar.items![2])
+    XCTAssertEqual(taps, [1, 1, 2])
+  }
+
   func testRouterUpdateSetsSelectionAndAppearance() {
     let tabs = makeBar()
     messenger.call(channelName, "update", ["selected": 2, "dark": true])

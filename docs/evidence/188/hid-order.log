@@ -1,0 +1,29 @@
+Filtering the log data using "composedMessage CONTAINS "TABDBG""
+TABDBG began (159.33333333333331, 43.66666666666663)
+TABDBG ended (159.33333333333331, 43.66666666666663)
+TABDBG send 1 touching=true sent=nil
+TABDBG lifted Optional((159.33333333333331, 43.66666666666663)) sent=Optional(1) tag=Optional(1)
+TABDBG began (74.0, 29.66666666666663)
+TABDBG ended (74.0, 29.66666666666663)
+TABDBG send 0 touching=true sent=nil
+TABDBG lifted Optional((74.0, 29.66666666666663)) sent=Optional(0) tag=Optional(0)
+TABDBG began (159.33333333333331, 52.33333333333326)
+TABDBG ended (159.33333333333331, 52.33333333333326)
+TABDBG lifted Optional((159.33333333333331, 52.33333333333326)) sent=nil tag=Optional(1)
+TABDBG send 1 touching=true sent=nil
+TABDBG began (74.0, 29.66666666666663)
+TABDBG ended (74.0, 29.66666666666663)
+TABDBG send 0 touching=true sent=nil
+TABDBG lifted Optional((74.0, 29.66666666666663)) sent=Optional(0) tag=Optional(0)
+TABDBG began (159.33333333333331, 61.0)
+TABDBG ended (159.33333333333331, 61.0)
+TABDBG lifted Optional((159.33333333333331, 61.0)) sent=nil tag=Optional(1)
+TABDBG send 1 touching=true sent=nil
+TABDBG began (74.0, 29.66666666666663)
+TABDBG ended (74.0, 29.66666666666663)
+TABDBG send 0 touching=true sent=nil
+TABDBG lifted Optional((74.0, 29.66666666666663)) sent=Optional(0) tag=Optional(0)
+TABDBG began (74.0, 29.66666666666663)
+TABDBG ended (74.0, 29.66666666666663)
+TABDBG send 0 touching=true sent=nil
+TABDBG lifted Optional((74.0, 29.66666666666663)) sent=Optional(0) tag=Optional(0)
