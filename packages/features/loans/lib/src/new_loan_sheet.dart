@@ -202,9 +202,12 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
         type: MaterialType.transparency,
         child: SAmountSheet(
           title: 'New loan',
+          // Every editable field, against its value when the sheet opened.
           dirty:
               !_youLent ||
               _who != null ||
+              _start != _today ||
+              _dueDay != math.min(_today.day, 28) ||
               [
                 _principal,
                 _installment,

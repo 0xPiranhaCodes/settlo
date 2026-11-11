@@ -170,6 +170,70 @@ void main() {
     expect(router.state.uri.toString(), SettloRoutes.home, reason: 'one pop');
   });
 
+  // A date is an edit too: the dirty check once covered only text (#162).
+  for (final drag in [false, true]) {
+    testWidgets('on iOS, a date-only New loan edit asks, drag=$drag', (
+      tester,
+    ) async {
+      final router = await _push(
+        tester,
+        SettloRoutes.newLoan,
+        TargetPlatform.iOS,
+      );
+      final starts = find.byWidgetPredicate(
+        (w) => w is SPressable && (w.label?.startsWith('Starts ') ?? false),
+      );
+      final before = tester.widget<SPressable>(starts).label;
+      await tester.ensureVisible(starts);
+      await tester.tap(starts);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Previous month'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('1'));
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      final changed = tester.widget<SPressable>(starts).label;
+      expect(changed, isNot(before));
+      // The sheet follows a drag only with its content scrolled to the top.
+      tester
+          .state<ScrollableState>(
+            find
+                .descendant(
+                  of: find.byType(NewLoanSheet),
+                  matching: find.byType(Scrollable),
+                )
+                .first,
+          )
+          .position
+          .jumpTo(0);
+      await tester.pumpAndSettle();
+      Future<void> dismiss() async {
+        if (drag) {
+          await tester.flingFrom(
+            tester.getCenter(find.text('New loan')),
+            const Offset(0, 500),
+            1500,
+          );
+        } else {
+          await tester.tap(find.bySemanticsLabel('Close'));
+        }
+        await tester.pumpAndSettle();
+      }
+
+      await dismiss();
+      expect(find.text('Discard changes?'), findsOneWidget);
+      await tester.tap(find.text('Keep editing'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<SPressable>(starts).label, changed);
+      expect(router.state.uri.toString(), SettloRoutes.newLoan);
+
+      await dismiss();
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+      expect(find.byType(NewLoanSheet), findsNothing);
+    });
+  }
+
   testWidgets('on Android, Add expense keeps its own drag to close', (
     tester,
   ) async {
