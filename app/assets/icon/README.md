@@ -7,11 +7,13 @@ flattens it onto `#0A0B0D` and stores RGB for iOS/App Store compatibility.
 Regenerate from the repository root (Python 3, Pillow and NumPy):
 
 ```sh
-python3 scripts/derive-app-icon.py
-(cd app && dart run flutter_launcher_icons)
+python3 scripts/regenerate-app-icons.py
 ```
 
-The script removes the solid background without redrawing the S, unmattes
+The wrapper preserves native Xcode settings: flutter_launcher_icons 0.14.4
+also rewrites unrelated ASSETCATALOG boolean settings when run directly.
+
+The derivation script removes the solid background without redrawing the S, unmattes
 antialiased edges, and preserves its gold shading. The Android foreground
 fits inside a centered circle of diameter 66% of the canvas (with a small
 resampling margin). The launcher generator adds no further inset.

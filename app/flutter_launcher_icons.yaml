@@ -1,5 +1,5 @@
-# Owner artwork (#192). First: python3 scripts/derive-app-icon.py from repo root.
-# Then, in app/: dart run flutter_launcher_icons
+# Owner artwork (#192). From repo root: python3 scripts/regenerate-app-icons.py
+# The wrapper preserves Xcode settings around flutter_launcher_icons 0.14.4.
 flutter_launcher_icons:
   image_path: assets/icon/opaque.png
   android: true

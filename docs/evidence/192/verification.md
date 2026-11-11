@@ -32,6 +32,9 @@ comparisons remain pending the manager's CI window; no `.github` files changed.
   regenerated; adaptive XML includes foreground, #0A0B0D background and
   monochrome. The 1024px foreground's furthest nontransparent pixel is
   335.259px from center, inside the 337.92px (66%-diameter) safe circle.
+- The regeneration wrapper preserves the existing Xcode project byte-for-byte;
+  it prevents flutter_launcher_icons from rewriting unrelated ASSETCATALOG
+  boolean settings to `AppIcon`.
 - Regeneration is byte-for-byte stable across 68 launcher source/output files.
 - `mask-preview.png`: no foreground pixels clipped by circle/squircle masks.
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Derive launcher inputs from the unchanged owner artwork (Pillow + NumPy).
 
-Run from any directory, then run `dart run flutter_launcher_icons` in app/.
+Use scripts/regenerate-app-icons.py to also run the platform generator.
 No drawing: remove the flat matte, preserving the original shaded S pixels.
 """
 from pathlib import Path
