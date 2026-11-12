@@ -96,8 +96,8 @@ The Goa story pins the complete phone beside three compact steps on wide screens
 
 The public site is still a buildless `site/` artifact. Edit
 `scripts/site-index.template.html`, then run `python3 scripts/site-build.py` and
-commit its generated `site/index.html`. `site/features.json` is the single flag
-map; every future flag defaults to `false`. Disabled HTML is removed at build
+commit its generated `site/index.html`. `scripts/site-features.json` is the single flag
+map, kept outside the published `site/` artifact; every future flag defaults to `false`. Disabled HTML is removed at build
 time, including FAQ entries and comparison rows, rather than hidden with CSS.
 The FAQ JSON-LD is generated from the surviving visible answers.
 

@@ -19,6 +19,7 @@ def render(template, flags):
     result = re.sub(r'<!-- IF ([!a-z_,]+) -->\n(.*?)\n<!-- ENDIF -->', conditional, template, flags=re.S)
     if '<!-- IF ' in result or '<!-- ENDIF -->' in result:
         raise ValueError('Malformed feature block')
+    result = re.sub(r'<div class="future-grid">\s*</div>', '', result)
     pairs = re.findall(r'<details><summary>(.*?)</summary><p>(.*?)</p></details>', result, re.S)
     plain = lambda value: html.unescape(re.sub('<[^>]+>', '', value))
     schema = {'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': [
@@ -27,7 +28,7 @@ def render(template, flags):
 
 def build(check=False):
     output = ROOT / 'site/index.html'
-    result = render((ROOT / 'scripts/site-index.template.html').read_text(), json.loads((ROOT / 'site/features.json').read_text()))
+    result = render((ROOT / 'scripts/site-index.template.html').read_text(), json.loads((ROOT / 'scripts/site-features.json').read_text()))
     if check:
         if output.read_text() != result:
             raise SystemExit('Site output is stale; run python3 scripts/site-build.py')
