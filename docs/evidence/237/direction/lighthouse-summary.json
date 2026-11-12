@@ -1,0 +1,13 @@
+{
+  "environment": "Local Chrome, Lighthouse default simulated mobile throttling; not physical Android field data",
+  "categories": {
+    "performance": 0.98,
+    "accessibility": 1,
+    "best-practices": 1,
+    "seo": 1,
+    "agentic-browsing": 1
+  },
+  "lcp_ms": 2404.4303999999997,
+  "cls": 0,
+  "js_gzip_bytes": 958
+}
