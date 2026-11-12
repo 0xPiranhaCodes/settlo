@@ -19,7 +19,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 const _profile = ProfileData(
   name: 'Satheesh',
   phone: '+919876543210',
-  upiId: 'satheesh@okaxis',
+  upiId: 'demo@upi',
 );
 
 final class _ProfileRepository implements ProfileRepository {
@@ -108,7 +108,7 @@ void main() {
     test('accepts exactly the server VPA grammar and blank clears it', () {
       for (final valid in [
         '',
-        'satheesh@okaxis',
+        'demo@upi',
         'A_1.name-bank@PSP',
         '${'a' * 255}@ab',
       ]) {
@@ -116,7 +116,7 @@ void main() {
       }
       for (final invalid in [
         'satheesh',
-        '@okaxis',
+        '@upi',
         'name@1bank',
         'name@a',
         'name+tag@bank',
@@ -392,11 +392,11 @@ void main() {
     );
     await tester.enterText(
       find.byKey(const ValueKey('profile-upi-id')),
-      'asha.k@okaxis',
+      'demo@upi',
     );
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(profile.saved, (name: 'Asha K', upiId: 'asha.k@okaxis'));
+    expect(profile.saved, (name: 'Asha K', upiId: 'demo@upi'));
 
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
     await tester.pumpAndSettle();

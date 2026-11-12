@@ -6,7 +6,7 @@ import 'fake_spaces.dart';
 /// The Settle and SettlePay artboards: in Flat 402 Priya owes you
 /// ₹2,100; in Goa trip you owe Kabir ₹3,650. Both have UPI ids.
 List<SpaceSummary> settleSpaces({
-  String? yourUpiId = 'sana@okaxis',
+  String? yourUpiId = 'demo@upi',
   String? kabirUpiId = 'kabir@oksbi',
 }) => [
   SpaceSummary(
@@ -71,7 +71,7 @@ List<SpaceSummary> settleSpacesWithDeparted() => [
         phone: '+919876543210',
         isYou: true,
         balance: Paise.rupees(-3650),
-        upiId: 'sana@okaxis',
+        upiId: 'demo@upi',
       ),
       SpaceMember(
         id: 'm5',

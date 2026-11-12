@@ -99,7 +99,7 @@ final _tables = <String, List<Map<String, Object?>>>{
   ],
   'profiles': [
     {'id': _me, 'name': 'Sana'},
-    {'id': 'u-rahul', 'name': 'Rahul', 'upi_id': 'rahul@okaxis'},
+    {'id': 'u-rahul', 'name': 'Rahul', 'upi_id': 'demo@upi'},
   ],
 };
 
@@ -207,7 +207,7 @@ void main() {
     // A UPI id comes from the joined member's profile.
     expect(
       [for (final m in flat.members) m.upiId],
-      [null, 'rahul@okaxis', null],
+      [null, 'demo@upi', null],
     );
     expect(
       [for (final p in flat.payments) (p.from.name, p.to.name, p.amount.value)],

@@ -367,7 +367,7 @@ void main() {
     expect((uri.host, uri.path), ('wa.me', '/919900000010'));
     expect(
       uri.queryParameters['text'],
-      'Hi Priya, settling up Flat 402: please pay ₹2,100 to sana@okaxis on '
+      'Hi Priya, settling up Flat 402: please pay ₹2,100 to demo@upi on '
       'any UPI app. Sent from SabkiJeb.',
     );
     expect(h.expenses.calls, isEmpty);

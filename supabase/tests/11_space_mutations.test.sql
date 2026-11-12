@@ -336,9 +336,9 @@ select is(pg_temp.hint_of($$select public.leave_space('00000000-0000-0000-0000-0
 
 -- update_profile
 select pg_temp.login('00000000-0000-0000-0000-000000005901');
-select lives_ok($$select public.update_profile(' Asha K ', 'asha.k@okaxis')$$, 'update_profile: A sets name and UPI id');
+select lives_ok($$select public.update_profile(' Asha K ', 'demo@upi')$$, 'update_profile: A sets name and UPI id');
 select results_eq($$select name, upi_id from public.profiles where id = '00000000-0000-0000-0000-000000005901'$$,
-  $$values ('Asha K', 'asha.k@okaxis')$$, 'update_profile: the profile is updated');
+  $$values ('Asha K', 'demo@upi')$$, 'update_profile: the profile is updated');
 select is(pg_temp.hint_of($$select public.update_profile('Asha', 'not-a-vpa')$$), 'invalid_vpa',
   'update_profile: a malformed UPI id is rejected with hint invalid_vpa');
 select throws_ok($$select public.update_profile('Asha', 'asha@ok axis')$$, '22023', null,
