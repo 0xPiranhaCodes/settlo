@@ -1,24 +1,15 @@
 {
-  "commit": "c9f18c68cda8c2bc4f624b6cfb710eba0e742597",
+  "commit": "7b8539d9440c13aaa05748ebdd8b9c7723b50b86",
   "sources": {
     "home_main": {
       "path": "app/test/goldens/home_main_390x844_dark.png",
-      "sha256": "ee51566d4b40211048453b7e5532d380c407f2bcf9335767ed2db1dcef7733c1",
+      "sha256": "b933044341eeceeeddc73e1f54328fef1042c9742952faebab0cf339b689f9a4",
       "size": [
         390,
         844
       ],
-      "crop_rows": 662,
       "marketing": {
-        "path": "build/marketing/home_main-phone.png",
-        "sha256": "1d16e2cfccb5e9550a5b38f7d4673c8d325b536e12fd02aaf2ce0abae18d230e",
-        "size": [
-          1290,
-          2796
-        ],
-        "device_pixel_ratio": 3,
-        "fixture": "app/test/goldens/home_main_390x844_dark.png",
-        "exporter": "app/test/marketing_export.dart"
+        "placeholder": "scripts/site-phones.py --placeholders"
       },
       "phone": {
         "angle_degrees": 0,
@@ -47,17 +38,8 @@
         390,
         844
       ],
-      "crop_rows": null,
       "marketing": {
-        "path": "build/marketing/settle_pay-phone.png",
-        "sha256": "4299db30868bae9ebead579f87c88b58fab623cd8c200fa183c587494e528e56",
-        "size": [
-          1290,
-          2796
-        ],
-        "device_pixel_ratio": 3,
-        "fixture": "app/test/goldens/settle_pay_390x844_dark.png",
-        "exporter": "app/test/marketing_export.dart"
+        "placeholder": "scripts/site-phones.py --placeholders"
       },
       "phone": {
         "angle_degrees": 3,
@@ -86,17 +68,8 @@
         390,
         844
       ],
-      "crop_rows": 754,
       "marketing": {
-        "path": "build/marketing/spaces_balances-phone.png",
-        "sha256": "4662aa525d738cac0d8a35c73ef42765c667838b25017ec4fe25d2a954bee5e0",
-        "size": [
-          1290,
-          2796
-        ],
-        "device_pixel_ratio": 3,
-        "fixture": "app/test/goldens/spaces_balances_390x844_dark.png",
-        "exporter": "app/test/marketing_export.dart"
+        "placeholder": "scripts/site-phones.py --placeholders"
       },
       "phone": {
         "angle_degrees": -3,
@@ -125,17 +98,8 @@
         390,
         844
       ],
-      "crop_rows": 542,
       "marketing": {
-        "path": "build/marketing/loans_detail-phone.png",
-        "sha256": "fd1ff542773844a24a7558793316c88bcc65174e95180b29312d61b6e9a97b58",
-        "size": [
-          1290,
-          2796
-        ],
-        "device_pixel_ratio": 3,
-        "fixture": "app/test/goldens/loans_detail_390x844_dark.png",
-        "exporter": "app/test/marketing_export.dart"
+        "placeholder": "scripts/site-phones.py --placeholders"
       },
       "phone": {
         "angle_degrees": 3,
@@ -164,17 +128,8 @@
         390,
         844
       ],
-      "crop_rows": 787,
       "marketing": {
-        "path": "build/marketing/confirm_repayment-phone.png",
-        "sha256": "a9b98aad05435a2352b6a282b995947b0dc2a3cf4dc7b967d18119a1bb32f2ab",
-        "size": [
-          1290,
-          2796
-        ],
-        "device_pixel_ratio": 3,
-        "fixture": "app/test/goldens/confirm_repayment_390x844_dark.png",
-        "exporter": "app/test/marketing_export.dart"
+        "placeholder": "scripts/site-phones.py --placeholders"
       },
       "phone": {
         "angle_degrees": 0,

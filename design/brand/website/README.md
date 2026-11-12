@@ -1,11 +1,9 @@
-# Owner website marks
+# Owner website mark
 
-`owner-white.png` and `owner-black.png` are the supplied transparent artwork,
-kept unchanged. `scripts/site-icons.py` crops only transparent padding and
-sizes them for the site's header and browser favicons. White is selected for
-dark surfaces; black for light surfaces. Apple touch icons use the opaque
-gold-on-dark app artwork instead.
+`sabkijeb-logo.png` is the owner's SabkiJeb logo (1254 x 1254, opaque), kept
+unchanged. `scripts/site-icons.py` resizes it for the header mark, the browser
+favicons (`site/favicon.ico` and `images/favicon.png`, with rounded corners)
+and the opaque Apple touch icon. One mark serves light and dark pages.
 
-The site image build runs this derivation through `scripts/site-images.py`.
-The social card uses the white mark on its dark background. Embedded product
-screenshots still faithfully show the current in-app branding.
+The site image build runs this derivation through `scripts/site-images.py`,
+which also places the mark on the social card.

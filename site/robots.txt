@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://settlo.hellojosh.studio/sitemap.xml
+Sitemap: https://sabkijeb.app/sitemap.xml

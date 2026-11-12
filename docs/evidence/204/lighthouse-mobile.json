@@ -1,0 +1,10 @@
+{
+  "url": "http://127.0.0.1:8794/",
+  "formFactor": "mobile",
+  "scores": {
+    "performance": 0.99,
+    "accessibility": 1,
+    "best-practices": 1,
+    "seo": 1
+  }
+}
