@@ -1,9 +1,9 @@
-# Owner artwork (#192). From repo root: python3 scripts/regenerate-app-icons.py
+# Owner artwork (#198). From repo root: python3 scripts/regenerate-app-icons.py
 # The wrapper preserves Xcode settings around flutter_launcher_icons 0.14.4.
 flutter_launcher_icons:
-  image_path: assets/icon/opaque.png
+  image_path: assets/icon/app-icon.png
   android: true
-  adaptive_icon_background: "#0A0B0D"
+  adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: assets/icon/adaptive-foreground.png
   # Foreground is already fitted inside the centered 66% safe circle.
   adaptive_icon_foreground_inset: 0
@@ -11,4 +11,4 @@ flutter_launcher_icons:
   min_sdk_android: 26
   ios: true
   remove_alpha_ios: true
-  background_color_ios: "#0A0B0D"
+  background_color_ios: "#FFFFFF"
