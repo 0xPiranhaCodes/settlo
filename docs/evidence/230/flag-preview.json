@@ -1,0 +1,93 @@
+{
+  "results": [
+    {
+      "theme": "light",
+      "motion": "reduce",
+      "width": 360,
+      "feed": {
+        "name": "none",
+        "state": "paused"
+      },
+      "languageToggle": true,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "motion": "reduce",
+      "width": 1440,
+      "feed": {
+        "name": "none",
+        "state": "paused"
+      },
+      "languageToggle": true,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "motion": "no-preference",
+      "width": 360,
+      "feed": {
+        "name": "feed-drift",
+        "state": "paused"
+      },
+      "languageToggle": true,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "motion": "no-preference",
+      "width": 1440,
+      "feed": {
+        "name": "feed-drift",
+        "state": "paused"
+      },
+      "languageToggle": true,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "motion": "reduce",
+      "width": 360,
+      "feed": {
+        "name": "none",
+        "state": "paused"
+      },
+      "languageToggle": true,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "motion": "reduce",
+      "width": 1440,
+      "feed": {
+        "name": "none",
+        "state": "paused"
+      },
+      "languageToggle": true,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "motion": "no-preference",
+      "width": 360,
+      "feed": {
+        "name": "feed-drift",
+        "state": "paused"
+      },
+      "languageToggle": true,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "motion": "no-preference",
+      "width": 1440,
+      "feed": {
+        "name": "feed-drift",
+        "state": "paused"
+      },
+      "languageToggle": true,
+      "overflow": false
+    }
+  ],
+  "qr": "mailto:support@sabkijeb.app?subject=SabkiJeb%20TestFlight%20beta"
+}

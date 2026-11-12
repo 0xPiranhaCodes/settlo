@@ -41,8 +41,11 @@ const phonesClear = () => {
       process.env.CHROME_PATH ||
       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     headless: true,
+    // Avoid GPU texture wrapping in full-page captures taller than 16k pixels.
+    args: ["--disable-gpu"],
   });
   const results = [];
+  require("child_process").execFileSync("python3", ["scripts/site-build.py", "--check"]);
   const { execFileSync } = require("child_process");
   for (const slug of ["privacy", "support"]) {
     const file = `site/${slug}/index.html`;
@@ -80,7 +83,7 @@ const phonesClear = () => {
       page.on("response", (r) => {
         if (r.status() >= 400) failures.push(`${r.status()} ${r.url()}`);
       });
-      for (const path of ["", "privacy/", "support/"]) {
+      for (const path of ["", "privacy/", "support/", "delete-account/"]) {
         await page.goto(localUrl + path);
         await page.evaluate(() => document.fonts.ready);
         await waitForImages(page).catch((error) => {
@@ -190,6 +193,7 @@ const phonesClear = () => {
           if (!scalesMatch)
             throw Error("Rendered loan phones use different physical scales");
 
+          await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
           await page.screenshot({
             path: `${outputDir}/landing-${width}-${colorScheme}.png`,
             fullPage: true,

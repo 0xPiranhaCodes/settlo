@@ -1,0 +1,1 @@
+PASS: 15 fresh no-JS density runs; corrupt image rejected

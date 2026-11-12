@@ -1,0 +1,226 @@
+[
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "path": "",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "path": "support/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "path": "delete-account/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "support/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "delete-account/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "support/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "delete-account/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "support/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "delete-account/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "path": "",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "path": "support/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "path": "delete-account/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "support/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "delete-account/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "support/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "delete-account/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "support/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "delete-account/",
+    "overflow": false,
+    "jsDisabled": true
+  }
+]

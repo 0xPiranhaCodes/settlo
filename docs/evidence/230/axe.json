@@ -1,0 +1,22 @@
+[
+  {
+    "colorScheme": "light",
+    "path": "",
+    "violations": []
+  },
+  {
+    "colorScheme": "light",
+    "path": "delete-account/",
+    "violations": []
+  },
+  {
+    "colorScheme": "dark",
+    "path": "",
+    "violations": []
+  },
+  {
+    "colorScheme": "dark",
+    "path": "delete-account/",
+    "violations": []
+  }
+]
