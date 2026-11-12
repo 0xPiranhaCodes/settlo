@@ -133,7 +133,28 @@ class _GlassActionState extends State<GlassAction> {
         },
       ),
     );
+    // Always under an Opacity, so a fade never rebuilds the native view.
+    final faded = Opacity(opacity: GlassActionFade.of(context), child: view);
     // UIKit never gets a touch, so a drag on it scrolls the page.
-    return widget.decorative ? IgnorePointer(child: view) : view;
+    return widget.decorative ? IgnorePointer(child: faded) : faded;
   }
+}
+
+/// How opaque the native [GlassAction]s below are: Flutter's blur can't
+/// reach a platform view, so a header fades them out before they reach it.
+class GlassActionFade extends InheritedWidget {
+  /// Draws the glass actions in [child] at [opacity].
+  const new({required this.opacity, required super.child, super.key});
+
+  /// From 0, hidden, to 1.
+  final double opacity;
+
+  /// The nearest fade's opacity; 1 without one.
+  static double of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<GlassActionFade>()?.opacity ??
+      1;
+
+  @override
+  bool updateShouldNotify(GlassActionFade oldWidget) =>
+      opacity != oldWidget.opacity;
 }

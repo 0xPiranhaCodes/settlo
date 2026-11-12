@@ -394,10 +394,11 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
             top: top - shrinkOffset,
             height: expandedHeight - 24,
             child: Center(
-              // Gone before it reaches the status bar: Flutter's blur can't
-              // reach the native glass actions under it (#197).
-              child: Opacity(
-                opacity: (1 - shrinkOffset / 30).clamp(0.0, 1.0),
+              // The status bar's blur hides native views outright, on a
+              // hard line, so the glass actions are gone before they reach
+              // it; the bell's badge sits 2pt below it at rest (#197).
+              child: GlassActionFade(
+                opacity: (1 - shrinkOffset / 4).clamp(0.0, 1.0),
                 child: SizedBox(
                   width: double.infinity,
                   child: DefaultTextStyle.merge(
@@ -593,13 +594,7 @@ class _StatusEdge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (strength == 0) return const SizedBox.expand();
-    final veil =
-        strength *
-        (solid
-            ? 1
-            : blur
-            ? 0.7
-            : 0.9);
+    final veil = strength * (solid ? 1 : 0.9);
     final full = inset / (inset + _statusFeather);
     final tail = [for (var i = 1; i <= 4; i++) i / 4];
     return Stack(
