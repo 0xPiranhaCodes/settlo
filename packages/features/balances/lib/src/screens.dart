@@ -185,7 +185,6 @@ class _Header extends StatelessWidget {
         SettloTabActions(
           name: name,
           onBell: () => context.go(SettloRoutes.activity),
-          onProfile: () => context.go(SettloRoutes.profile),
         ),
       ],
     );

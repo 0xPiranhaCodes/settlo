@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:settlo_core/router/routes.dart';
 import 'package:settlo_core/supabase/activity.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
@@ -14,20 +16,11 @@ final accountNameProvider = Provider<String?>((_) => null);
 /// The top-right actions of every tab root (#197): the tab's own [leading]
 /// action, then the bell and your avatar.
 class SettloTabActions extends ConsumerWidget {
-  /// Actions that open Activity ([onBell]) and Profile ([onProfile]).
-  const new({
-    required this.onBell,
-    required this.onProfile,
-    this.leading,
-    this.name,
-    super.key,
-  });
+  /// Actions that open Activity ([onBell]) and Profile.
+  const new({required this.onBell, this.leading, this.name, super.key});
 
   /// Opens Activity; null leaves the bell out, as on Activity itself.
   final VoidCallback? onBell;
-
-  /// Opens Profile.
-  final VoidCallback onProfile;
 
   /// The tab's own action, such as Spaces' +.
   final Widget? leading;
@@ -41,6 +34,9 @@ class SettloTabActions extends ConsumerWidget {
     final name = (this.name ?? ref.watch(accountNameProvider))?.trim() ?? '';
     final initial = name.isEmpty ? 'Y' : name.characters.first.toUpperCase();
     final onBell = this.onBell;
+    // Every tab's avatar opens Profile from here, so moving it to a
+    // root-navigator sheet (#200) changes this one line.
+    void onProfile() => context.go(SettloRoutes.profile);
     return Row(
       mainAxisSize: MainAxisSize.min,
       spacing: SettloSpacing.x1,

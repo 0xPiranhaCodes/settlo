@@ -178,13 +178,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     );
 
     final children = <Widget>[
-      SettloNavigationHeader(
+      const SettloNavigationHeader(
         title: 'Activity',
         // No bell: this screen is the notifications list (#197).
-        trailing: SettloTabActions(
-          onBell: null,
-          onProfile: () => context.go(SettloRoutes.profile),
-        ),
+        trailing: SettloTabActions(onBell: null),
       ),
       if (ios) ...[
         const SizedBox(height: SettloSpacing.x1),

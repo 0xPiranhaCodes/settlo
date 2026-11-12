@@ -57,7 +57,7 @@ Widget _app(TargetPlatform platform, Widget child, {ThemeData? theme}) =>
 /// A tab root's bell and avatar, with nothing unread.
 final _tabActions = ProviderScope(
   overrides: [activityUnreadProvider.overrideWith((ref) async => 0)],
-  child: SettloTabActions(onBell: () {}, onProfile: () {}),
+  child: SettloTabActions(onBell: () {}),
 );
 
 Widget _page({Widget? trailing, String? largeTitle, bool sticky = true}) =>
@@ -74,6 +74,17 @@ Widget _page({Widget? trailing, String? largeTitle, bool sticky = true}) =>
           ),
       ],
     );
+
+/// The part of [view] its inset clip leaves visible, in its own coordinates.
+Rect _visible(WidgetTester tester, Element view) {
+  late Object clip;
+  view.visitAncestorElements((e) {
+    if (e.widget.runtimeType.toString() != '_InsetClip') return true;
+    clip = e.renderObject!;
+    return false;
+  });
+  return (clip as dynamic).visible as Rect;
+}
 
 void main() {
   tearDown(() => iosMajorVersion = 0);
@@ -301,15 +312,46 @@ void main() {
       expect(rect.top, 0);
       expect(rect.bottom, 59 + 10);
       expect(find.byType(BackdropFilter), findsOneWidget);
-      // The title and native actions scrolled away, faded out.
+      // The title and native actions scrolled away, clipped out.
       expect(find.text('Home').hitTestable(), findsNothing);
-      for (final o in tester.widgetList<Opacity>(
-        find.ancestor(
-          of: find.byType(UiKitView),
-          matching: find.byType(Opacity),
-        ),
-      )) {
-        expect(o.opacity, 0);
+      for (final view in find.byType(UiKitView).evaluate()) {
+        expect(_visible(tester, view).top, greaterThanOrEqualTo(44));
+      }
+    });
+
+    testWidgets('native actions scroll with the title, clipped at the inset', (
+      tester,
+    ) async {
+      _FakeGlass(tester);
+      tester.view.padding = FakeViewPadding(
+        top: 59 * tester.view.devicePixelRatio,
+      );
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _app(TargetPlatform.iOS, _page(trailing: _tabActions, sticky: false)),
+      );
+      final title = tester.getTopLeft(find.text('Home')).dy;
+      final views = find.byType(UiKitView);
+      final rest = [
+        for (final v in views.evaluate())
+          tester.getTopLeft(find.byWidget(v.widget)).dy,
+      ];
+      final position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+      for (final offset in [0.0, 4.0, 20.0, 40.0, 60.0]) {
+        position.jumpTo(offset);
+        await tester.pump();
+        final moved = title - tester.getTopLeft(find.text('Home')).dy;
+        expect(moved, offset, reason: 'the title follows the scroll');
+        var i = 0;
+        for (final view in views.evaluate()) {
+          final top = tester.getTopLeft(find.byWidget(view.widget)).dy;
+          expect(rest[i++] - top, moved, reason: 'in lockstep at $offset');
+          // Clipped exactly at the island line, the badge's overhang above
+          // the view included; everything below it still shows.
+          expect(top + _visible(tester, view).top, 59);
+        }
       }
     });
 

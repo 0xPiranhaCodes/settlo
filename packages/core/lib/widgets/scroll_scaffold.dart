@@ -394,11 +394,11 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
             top: top - shrinkOffset,
             height: expandedHeight - 24,
             child: Center(
-              // The status bar's blur hides native views outright, on a
-              // hard line, so the glass actions are gone before they reach
-              // it; the bell's badge sits 2pt below it at rest (#197).
-              child: GlassActionFade(
-                opacity: (1 - shrinkOffset / 4).clamp(0.0, 1.0),
+              // The status bar's blur can't reach native views, so the
+              // glass actions scroll with the title and are clipped only
+              // where they enter it (#197).
+              child: GlassActionInset(
+                inset: top,
                 child: SizedBox(
                   width: double.infinity,
                   child: DefaultTextStyle.merge(

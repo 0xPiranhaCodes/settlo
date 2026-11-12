@@ -69,7 +69,6 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
               // iOS: a plain bar button, as in Apple's lists; glass on 26.
               trailing: SettloTabActions(
                 onBell: () => context.go(SettloRoutes.activity),
-                onProfile: () => context.go(SettloRoutes.profile),
                 leading: GlassAction(
                   label: 'New space',
                   symbol: 'plus',

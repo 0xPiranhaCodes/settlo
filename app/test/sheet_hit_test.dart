@@ -157,8 +157,16 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
             .first,
       );
     }
-    await tester.ensureVisible(finder);
-    await tester.pumpAndSettle();
+    // A tab root's header scrolls away, so revealing one of its actions
+    // would scroll it off (#197); at rest it is always on screen.
+    final inHeader = find.ancestor(
+      of: finder,
+      matching: find.byType(SettloNavigationHeader),
+    );
+    if (inHeader.evaluate().isEmpty) {
+      await tester.ensureVisible(finder);
+      await tester.pumpAndSettle();
+    }
     await tester.tap(finder);
     await tester.pumpAndSettle();
   } finally {
@@ -196,43 +204,69 @@ final _sheets = <({String name, String location, Finder open, Finder action})>[
 ];
 
 void main() {
+  // A missed tap captures the screen underneath instead of the sheet.
+  setUpAll(() => WidgetController.hitTestWarningShouldBeFatal = true);
+  tearDownAll(() => WidgetController.hitTestWarningShouldBeFatal = false);
+
   for (final device in SettloGoldenDevices.accessible) {
     for (final (themeName, theme) in [
       ('dark', SettloTheme.dark()),
       ('light', SettloTheme.light()),
     ]) {
-      for (final (name, location, open) in [
-        for (final sheet in _sheets) (sheet.name, sheet.location, sheet.open),
-        ('export', SettloRoutes.profile, find.text('Export')),
-        ('sign out unsent', SettloRoutes.profile, find.text('Sign out')),
-        (
-          'country picker',
-          SettloRoutes.phone,
-          find.byKey(const ValueKey('country-chip')),
-        ),
-        (
-          'question edit',
-          SettloRoutes.activity,
-          find.text('Rahul edited Wifi · Airtel'),
-        ),
-        (
-          'record repayment',
-          SettloRoutes.loan('l1'),
-          find.text('Record repayment'),
-        ),
-        ('loan dispute', SettloRoutes.loan('l1'), find.text("Didn't get it")),
-        (
-          'confirmation dispute',
-          SettloRoutes.confirmRepayment('r3'),
-          find.text("Didn't receive this"),
-        ),
-        ('delete account', SettloRoutes.profile, find.text('Delete account')),
-      ]) {
+      for (final (name, location, open, action)
+          in <(String, String, Finder, Finder?)>[
+            for (final sheet in _sheets)
+              (sheet.name, sheet.location, sheet.open, sheet.action),
+            ('export', SettloRoutes.profile, find.text('Export'), null),
+            (
+              'sign out unsent',
+              SettloRoutes.profile,
+              find.text('Sign out'),
+              null,
+            ),
+            (
+              'country picker',
+              SettloRoutes.phone,
+              find.byKey(const ValueKey('country-chip')),
+              null,
+            ),
+            (
+              'question edit',
+              SettloRoutes.activity,
+              find.text('Rahul edited Wifi · Airtel'),
+              null,
+            ),
+            (
+              'record repayment',
+              SettloRoutes.loan('l1'),
+              find.text('Record repayment'),
+              null,
+            ),
+            (
+              'loan dispute',
+              SettloRoutes.loan('l1'),
+              find.text("Didn't get it"),
+              null,
+            ),
+            (
+              'confirmation dispute',
+              SettloRoutes.confirmRepayment('r3'),
+              find.text("Didn't receive this"),
+              null,
+            ),
+            (
+              'delete account',
+              SettloRoutes.profile,
+              find.text('Delete account'),
+              null,
+            ),
+          ]) {
         testWidgets('$name ${device.name} $themeName panel golden', (
           tester,
         ) async {
           await _pump(tester, device, location, theme: theme);
           await _tap(tester, open);
+          if (action != null) expect(action, findsOne, reason: 'it opened');
           expectSettloTapTargets(tester);
           expectNoMidWordBreaks(tester);
           expectSettloTypeMinimum(tester);

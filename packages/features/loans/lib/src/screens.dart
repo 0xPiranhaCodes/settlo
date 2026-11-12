@@ -36,7 +36,6 @@ class LoanScreen extends ConsumerWidget {
             title: 'Loans',
             trailing: SettloTabActions(
               onBell: () => context.go(SettloRoutes.activity),
-              onProfile: () => context.go(SettloRoutes.profile),
               leading: GlassAction(
                 label: 'New loan',
                 symbol: 'plus',
