@@ -12,7 +12,7 @@ import 'package:settlo_profile/src/profile_repository.dart';
 import 'package:settlo_profile/src/reminder_toggle.dart';
 import 'package:settlo_profile/src/theme_mode.dart';
 
-final Uri _supportUri = Uri.parse('https://settlo.hellojosh.studio/support/');
+final Uri _supportUri = Uri.parse('https://sabkijeb.app/support/');
 
 /// Profile and settings (canvas Profile, note n31), shown as a sheet over
 /// Home (#196).
