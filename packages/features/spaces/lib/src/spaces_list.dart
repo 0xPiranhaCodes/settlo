@@ -55,6 +55,7 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
         style: const TextStyle(letterSpacing: 0, height: 1.2),
         child: SettloScrollScaffold(
           title: 'Spaces',
+          stickyHeader: false,
           onRefresh: () => ref.refresh(spacesProvider.future),
           padding: EdgeInsets.fromLTRB(
             SettloSpacing.screenMargin,
@@ -66,47 +67,51 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
             SettloNavigationHeader(
               title: 'Spaces',
               // iOS: a plain bar button, as in Apple's lists; glass on 26.
-              trailing: GlassAction(
-                label: 'New space',
-                symbol: 'plus',
-                onPressed: () => showCreateSpaceSheet(context),
-                fallback: ios
-                    ? Semantics(
-                        label: 'New space',
-                        button: true,
-                        excludeSemantics: true,
-                        onTap: () => showCreateSpaceSheet(context),
-                        child: CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size.square(
-                            SettloSpacing.minTouchTarget,
+              trailing: SettloTabActions(
+                onBell: () => context.go(SettloRoutes.activity),
+                onProfile: () => context.go(SettloRoutes.profile),
+                leading: GlassAction(
+                  label: 'New space',
+                  symbol: 'plus',
+                  onPressed: () => showCreateSpaceSheet(context),
+                  fallback: ios
+                      ? Semantics(
+                          label: 'New space',
+                          button: true,
+                          excludeSemantics: true,
+                          onTap: () => showCreateSpaceSheet(context),
+                          child: CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size.square(
+                              SettloSpacing.minTouchTarget,
+                            ),
+                            onPressed: () => showCreateSpaceSheet(context),
+                            child: Icon(
+                              CupertinoIcons.add,
+                              color: c.textPrimary,
+                              size: 28,
+                            ),
                           ),
+                        )
+                      : IconButton(
+                          tooltip: 'New space',
                           onPressed: () => showCreateSpaceSheet(context),
-                          child: Icon(
-                            CupertinoIcons.add,
+                          style: IconButton.styleFrom(
+                            fixedSize: const Size.square(
+                              SettloSpacing.minTouchTarget,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            backgroundColor: c.surface,
+                            side: BorderSide(color: c.hairline),
+                          ),
+                          icon: SpacesIcon(
+                            SpacesGlyph.plus,
                             color: c.textPrimary,
-                            size: 28,
+                            size: 22,
                           ),
                         ),
-                      )
-                    : IconButton(
-                        tooltip: 'New space',
-                        onPressed: () => showCreateSpaceSheet(context),
-                        style: IconButton.styleFrom(
-                          fixedSize: const Size.square(
-                            SettloSpacing.minTouchTarget,
-                          ),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          backgroundColor: c.surface,
-                          side: BorderSide(color: c.hairline),
-                        ),
-                        icon: SpacesIcon(
-                          SpacesGlyph.plus,
-                          color: c.textPrimary,
-                          size: 22,
-                        ),
-                      ),
+                ),
               ),
             ),
             if (ios) ...[

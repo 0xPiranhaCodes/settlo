@@ -23,6 +23,7 @@ class LoanScreen extends ConsumerWidget {
     return Scaffold(
       body: SettloScrollScaffold(
         title: 'Loans',
+        stickyHeader: false,
         onRefresh: () => ref.refresh(loansProvider.future),
         padding: EdgeInsets.fromLTRB(
           SettloSpacing.screenMargin,
@@ -33,21 +34,25 @@ class LoanScreen extends ConsumerWidget {
         children: [
           SettloNavigationHeader(
             title: 'Loans',
-            trailing: GlassAction(
-              label: 'New loan',
-              symbol: 'plus',
-              onPressed: () => context.push(SettloRoutes.newLoan),
-              fallback: IconButton(
-                tooltip: 'New loan',
+            trailing: SettloTabActions(
+              onBell: () => context.go(SettloRoutes.activity),
+              onProfile: () => context.go(SettloRoutes.profile),
+              leading: GlassAction(
+                label: 'New loan',
+                symbol: 'plus',
                 onPressed: () => context.push(SettloRoutes.newLoan),
-                style: IconButton.styleFrom(
-                  fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  backgroundColor: c.surface,
-                  side: BorderSide(color: c.hairline),
+                fallback: IconButton(
+                  tooltip: 'New loan',
+                  onPressed: () => context.push(SettloRoutes.newLoan),
+                  style: IconButton.styleFrom(
+                    fixedSize: const Size.square(SettloSpacing.minTouchTarget),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    backgroundColor: c.surface,
+                    side: BorderSide(color: c.hairline),
+                  ),
+                  icon: LoanGlyph(LoanGlyph.plus, color: c.textPrimary),
                 ),
-                icon: LoanGlyph(LoanGlyph.plus, color: c.textPrimary),
               ),
             ),
           ),

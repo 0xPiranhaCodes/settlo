@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo/router/router.dart';
 import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_auth/settlo_auth.dart';
+import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_local/settlo_local.dart';
 import 'package:settlo_platform/settlo_platform.dart';
@@ -17,9 +18,13 @@ Future<void> main() async {
   final config = SupabaseConfig.fromEnvironment();
   await Supabase.initialize(url: config.url, publishableKey: config.anonKey);
   final flat = flatChromeProvider.overrideWithValue(await prefersFlatChrome());
+  // The tab avatars' initial comes from Home's data (#197).
+  final accountName = accountNameProvider.overrideWith(
+    (ref) => ref.watch(homeProvider).value?.name,
+  );
   runApp(
     ProviderScope(
-      overrides: [...offlineRepositories, flat],
+      overrides: [...offlineRepositories, flat, accountName],
       child: const _SyncNotices(child: SettloApp()),
     ),
   );

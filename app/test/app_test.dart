@@ -78,8 +78,8 @@ void main() {
     await tester.tap(find.byTooltip('Notifications, 2 new'));
     await tester.pumpAndSettle();
     expect(find.byType(ActivityScreen), findsOneWidget);
-    // Activity says what was new; opening it marked that seen.
-    expect(find.byTooltip('Notifications, 2 new'), findsOneWidget);
+    // Opening Activity marked what was new seen; it has no bell (#197).
+    expect(find.byTooltip(RegExp('^Notifications')), findsNothing);
     expect(activity.seenAt, activityFeed.first.at);
 
     await tester.tap(find.text('Home'));
@@ -113,7 +113,6 @@ void main() {
 
     await tester.tap(find.text('Activity'));
     await tester.pumpAndSettle();
-    expect(find.byTooltip('Notifications, 1 new'), findsOneWidget);
     expect(activity.seenAt, DateTime(2026, 11, 9, 12));
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
 
@@ -53,18 +54,26 @@ Widget _app(TargetPlatform platform, Widget child, {ThemeData? theme}) =>
       home: Scaffold(body: child),
     );
 
-Widget _page({Widget? trailing, String? largeTitle}) => SettloScrollScaffold(
-  title: 'Home',
-  largeTitle: largeTitle,
-  children: [
-    SettloNavigationHeader(title: 'Home', trailing: trailing),
-    for (var i = 0; i < 24; i++)
-      Padding(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: SCard(child: Text('Entry $i')),
-      ),
-  ],
+/// A tab root's bell and avatar, with nothing unread.
+final _tabActions = ProviderScope(
+  overrides: [activityUnreadProvider.overrideWith((ref) async => 0)],
+  child: SettloTabActions(onBell: () {}, onProfile: () {}),
 );
+
+Widget _page({Widget? trailing, String? largeTitle, bool sticky = true}) =>
+    SettloScrollScaffold(
+      title: 'Home',
+      largeTitle: largeTitle,
+      stickyHeader: sticky,
+      children: [
+        SettloNavigationHeader(title: 'Home', trailing: trailing),
+        for (var i = 0; i < 24; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: SCard(child: Text('Entry $i')),
+          ),
+      ],
+    );
 
 void main() {
   tearDown(() => iosMajorVersion = 0);
@@ -233,27 +242,75 @@ void main() {
       expect(find.text('Home').hitTestable(), findsOneWidget);
     });
 
-    testWidgets('scrolling keeps the native view IDs', (tester) async {
-      final glass = _FakeGlass(tester);
-      await tester.pumpWidget(
-        _app(
-          TargetPlatform.iOS,
-          _page(trailing: SBell(unread: 0, onPressed: () {})),
-        ),
-      );
-      final before = glass.created.keys.toList();
-      expect(before, hasLength(1));
-      for (var cycle = 0; cycle < 3; cycle++) {
-        await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
-        await tester.pumpAndSettle();
-        expect(
-          find.byKey(const ValueKey('scroll-navigation-soft-edge')),
-          findsOneWidget,
+    for (final sticky in [true, false]) {
+      testWidgets('scrolling keeps the native view IDs, sticky: $sticky', (
+        tester,
+      ) async {
+        final glass = _FakeGlass(tester);
+        await tester.pumpWidget(
+          _app(
+            TargetPlatform.iOS,
+            _page(trailing: _tabActions, sticky: sticky),
+          ),
         );
-        await tester.drag(find.byType(CustomScrollView), const Offset(0, 1200));
-        await tester.pumpAndSettle();
+        final before = glass.created.keys.toList();
+        expect(before, hasLength(2));
+        for (var cycle = 0; cycle < 3; cycle++) {
+          await tester.drag(
+            find.byType(CustomScrollView),
+            const Offset(0, -400),
+          );
+          await tester.pumpAndSettle();
+          expect(
+            find.byKey(
+              ValueKey(
+                sticky ? 'scroll-navigation-soft-edge' : 'scroll-status-edge',
+              ),
+            ),
+            findsOneWidget,
+          );
+          await tester.drag(
+            find.byType(CustomScrollView),
+            const Offset(0, 1200),
+          );
+          await tester.pumpAndSettle();
+        }
+        expect(glass.created.keys.toList(), before);
+      });
+    }
+
+    testWidgets('a tab root keeps only the status bar edge (#197)', (
+      tester,
+    ) async {
+      _FakeGlass(tester);
+      tester.view.padding = FakeViewPadding(
+        top: 59 * tester.view.devicePixelRatio,
+      );
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _app(TargetPlatform.iOS, _page(trailing: _tabActions, sticky: false)),
+      );
+      final edge = find.byKey(const ValueKey('scroll-status-edge'));
+      expect(edge, findsNothing);
+      expect(find.byType(UiKitView), findsNWidgets(2));
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      // From the top of the screen to 10pt below the island line.
+      final rect = tester.getRect(edge);
+      expect(rect.top, 0);
+      expect(rect.bottom, 59 + 10);
+      expect(find.byType(BackdropFilter), findsOneWidget);
+      // The title and native actions scrolled away, faded out.
+      expect(find.text('Home').hitTestable(), findsNothing);
+      for (final o in tester.widgetList<Opacity>(
+        find.ancestor(
+          of: find.byType(UiKitView),
+          matching: find.byType(Opacity),
+        ),
+      )) {
+        expect(o.opacity, 0);
       }
-      expect(glass.created.keys.toList(), before);
     });
 
     testWidgets('a large-title screen fades under its bar too', (tester) async {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -79,6 +80,7 @@ class SettloScrollScaffold extends StatefulWidget {
     this.largeTitle,
     this.previousPageTitle,
     this.trailing,
+    this.stickyHeader = true,
     super.key,
   });
 
@@ -123,6 +125,10 @@ class SettloScrollScaffold extends StatefulWidget {
 
   /// The native bar's trailing item.
   final Widget? trailing;
+
+  /// False on tab roots (#197): the header scrolls away with the content,
+  /// and only a mild blur stays behind the status bar.
+  final bool stickyHeader;
 
   @override
   State<SettloScrollScaffold> createState() => _SettloScrollScaffoldState();
@@ -285,6 +291,7 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
             pinned: true,
             delegate: _NavigationHeader(
               top: top,
+              sticky: widget.stickyHeader,
               forceSolid: _budget.exceeded,
               glass: liquidGlass(context),
               expandedHeight: widget.expandedHeight,
@@ -339,6 +346,7 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
 class _NavigationHeader extends SliverPersistentHeaderDelegate {
   new({
     required this.top,
+    required this.sticky,
     required this.forceSolid,
     required this.glass,
     required this.expandedHeight,
@@ -347,6 +355,9 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
     required this.compact,
   });
   final double top;
+
+  /// See [SettloScrollScaffold.stickyHeader].
+  final bool sticky;
   final bool forceSolid;
 
   /// iOS 26: a soft scroll edge instead of the band, strip and plate.
@@ -357,7 +368,7 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
   final Widget compact;
 
   @override
-  double get minExtent => top + 56;
+  double get minExtent => sticky ? top + 56 : top;
   @override
   double get maxExtent => top + expandedHeight;
 
@@ -372,6 +383,47 @@ class _NavigationHeader extends SliverPersistentHeaderDelegate {
     final collapsed = shrinkOffset >= (maxExtent - minExtent).clamp(0, 28);
     final dark = Theme.of(context).brightness == Brightness.dark;
     final solid = MediaQuery.highContrastOf(context) || forceSolid;
+    if (!sticky) {
+      return Stack(
+        clipBehavior: Clip.none,
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            left: 20,
+            right: 20,
+            top: top - shrinkOffset,
+            height: expandedHeight - 24,
+            child: Center(
+              // Gone before it reaches the status bar: Flutter's blur can't
+              // reach the native glass actions under it (#197).
+              child: Opacity(
+                opacity: (1 - shrinkOffset / 30).clamp(0.0, 1.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: DefaultTextStyle.merge(
+                    style: SettloTypography.title2(color: c.textPrimary),
+                    child: expanded,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: top + _statusFeather,
+            child: _StatusEdge(
+              strength: (shrinkOffset / 16).clamp(0.0, 1.0),
+              inset: top,
+              color: solid ? c.surface : c.background,
+              blur: !solid && Theme.of(context).platform == TargetPlatform.iOS,
+              solid: solid,
+            ),
+          ),
+        ],
+      );
+    }
     final bar = ClipRect(
       child: Stack(
         fit: StackFit.expand,
@@ -471,11 +523,7 @@ const _softEdgeFade = 32.0;
 /// Impeller can't mask a BackdropFilter, so a clipped blur always ends on a
 /// visible line.
 class _SoftEdge extends StatelessWidget {
-  const new({
-    required this.strength,
-    required this.color,
-    required this.solid,
-  });
+  const new({required this.strength, required this.color, required this.solid});
 
   final double strength;
   final Color color;
@@ -513,6 +561,85 @@ class _SoftEdge extends StatelessWidget {
           stops: [0, full, for (final t in tail) full + (1 - full) * t],
         ),
       ),
+    );
+  }
+}
+
+/// How far below the status bar the tab roots' edge eases out.
+const _statusFeather = 10.0;
+
+/// The tab roots' status bar (#197): on iOS a mild blur down to the top
+/// [inset] under a page-colour veil, elsewhere the veil alone, easing out
+/// over [_statusFeather] below it. The veil runs past the blur's clipped
+/// edge, which Impeller can't mask (#195), so no line shows where it ends.
+class _StatusEdge extends StatelessWidget {
+  const new({
+    required this.strength,
+    required this.inset,
+    required this.color,
+    required this.blur,
+    required this.solid,
+  });
+
+  /// From none at rest to full once content is under the status bar.
+  final double strength;
+  final double inset;
+  final Color color;
+  final bool blur;
+
+  /// Opaque, for high contrast and slow devices.
+  final bool solid;
+
+  @override
+  Widget build(BuildContext context) {
+    if (strength == 0) return const SizedBox.expand();
+    final veil =
+        strength *
+        (solid
+            ? 1
+            : blur
+            ? 0.7
+            : 0.9);
+    final full = inset / (inset + _statusFeather);
+    final tail = [for (var i = 1; i <= 4; i++) i / 4];
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (blur)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: inset,
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: 8 * strength,
+                  sigmaY: 8 * strength,
+                ),
+                child: const SizedBox.expand(),
+              ),
+            ),
+          ),
+        DecoratedBox(
+          key: const ValueKey('scroll-status-edge'),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                color.withValues(alpha: veil),
+                color.withValues(alpha: veil),
+                for (final t in tail)
+                  color.withValues(
+                    alpha: veil * (1 - Curves.easeInOut.transform(t)),
+                  ),
+              ],
+              stops: [0, full, for (final t in tail) full + (1 - full) * t],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -580,22 +707,28 @@ class SettloNavigationHeader extends StatelessWidget {
         ),
       ),
     );
+    // One tree whether compact or not, so a native trailing action is never
+    // rebuilt; the title gets what the actions leave, up to three (#197).
     return SizedBox(
       height: 56,
-      child: Stack(
-        alignment: Alignment.center,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Positioned(
-            left: compact || leading != null ? 56 : 0,
-            right: 56,
-            top: 4,
-            bottom: 4,
-            child: label,
+          SizedBox(
+            width: compact || leading != null ? 56 : 0,
+            child: Align(alignment: Alignment.centerLeft, child: leading),
           ),
-          if (leading != null)
-            Align(alignment: Alignment.centerLeft, child: leading),
-          if (trailing != null)
-            Align(alignment: Alignment.centerRight, child: trailing),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: label,
+            ),
+          ),
+          if (trailing case final trailing?) ...[
+            const SizedBox(width: 12),
+            Center(child: trailing),
+          ] else
+            const SizedBox(width: 56),
         ],
       ),
     );

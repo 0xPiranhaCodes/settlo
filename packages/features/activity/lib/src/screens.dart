@@ -26,9 +26,10 @@ String _dayMonth(DateTime d) {
 /// (#109). Answering opens the space's or loan's own confirmation, so the
 /// rules live in one place.
 ///
-/// The bell counts what arrived since Activity was last open, on any of
-/// your devices; opening the tab marks it seen. Someone else's edit can be
-/// questioned with a short note that the space's members see on its row.
+/// The other tabs' bell counts what arrived since Activity was last open,
+/// on any of your devices; opening the tab marks it seen. Someone else's
+/// edit can be questioned with a short note that the space's members see on
+/// its row.
 class ActivityScreen extends ConsumerStatefulWidget {
   /// The Activity screen.
   const new({super.key});
@@ -45,9 +46,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
 
   /// Answering is open; another tap must not open a second one.
   bool _opening = false;
-
-  /// How many entries were new when the tab was last opened or refreshed.
-  int _newSinceOpen = 0;
 
   /// Whether the tab is the one showing; the shell keeps the others built.
   bool _showing = false;
@@ -83,17 +81,15 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     super.dispose();
   }
 
-  /// Puts what arrived since Activity was last open on the bell, then
-  /// marks it seen for every device.
+  /// Marks what arrived since Activity was last open as seen on every
+  /// device, clearing the other tabs' bell.
   Future<void> _seen() async {
     // Called while the tab builds; providers may only change after it.
     await Future<void>.value();
     if (!mounted) return;
     try {
       final unread = await ref.refresh(activityUnreadProvider.future);
-      if (!mounted) return;
-      setState(() => _newSinceOpen = unread);
-      if (unread == 0) return;
+      if (!mounted || unread == 0) return;
       await ref.read(activityRepositoryProvider).markSeen();
       if (mounted) ref.invalidate(activityUnreadProvider);
     } on Exception {
@@ -116,18 +112,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   void _show(ActivityFilter filter) {
     setState(() => _needsYouOnly = false);
     ref.read(activityFilterProvider.notifier).show(filter);
-  }
-
-  /// The bell: back to everything, from the newest.
-  void _showNewest() {
-    _show(allActivity);
-    _scroll.animateTo(
-      0,
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : SettloMotion.panel,
-      curve: SettloMotion.curve,
-    );
   }
 
   Future<void> _question(ActivityEntry e) async {
@@ -196,7 +180,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     final children = <Widget>[
       SettloNavigationHeader(
         title: 'Activity',
-        trailing: SBell(unread: _newSinceOpen, onPressed: _showNewest),
+        // No bell: this screen is the notifications list (#197).
+        trailing: SettloTabActions(
+          onBell: null,
+          onProfile: () => context.go(SettloRoutes.profile),
+        ),
       ),
       if (ios) ...[
         const SizedBox(height: SettloSpacing.x1),
@@ -295,6 +283,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
         },
         child: SettloScrollScaffold(
           title: 'Activity',
+          stickyHeader: false,
           onRefresh: _refresh,
           controller: _scroll,
           // With its own controller a short feed would not scroll, and
