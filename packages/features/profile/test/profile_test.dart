@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_core/supabase/reminders.dart';
 import 'package:settlo_platform/settlo_platform.dart';
@@ -961,6 +962,63 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('CSV and PDF'), findsOneWidget);
+  });
+
+  testWidgets('routed Profile sheet: the identity row edits, Export pushes '
+      'with its own Back, and Close closes the sheet', (tester) async {
+    final root = GlobalKey<NavigatorState>();
+    final router = GoRouter(
+      navigatorKey: root,
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => const Scaffold(body: Text('Home page')),
+        ),
+        profileRoute(root, SettloRoutes.profileSheet),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          remindersEnabledProvider.overrideWith((ref) async => true),
+          profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
+          themeModeRepositoryProvider.overrideWithValue(
+            _ThemeRepository(ThemeMode.dark),
+          ),
+          spacesRepositoryProvider.overrideWithValue(_SpacesRepository()),
+          spaceLedgerRepositoryProvider.overrideWithValue(_LedgerRepository()),
+        ],
+        child: MaterialApp.router(
+          theme: SettloTheme.dark(),
+          routerConfig: router,
+        ),
+      ),
+    );
+    unawaited(router.push(SettloRoutes.profileSheet));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Satheesh'));
+    await tester.pumpAndSettle();
+    expect(find.text('Name and UPI ID'), findsOneWidget);
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+    expect(find.text('Name and UPI ID'), findsNothing);
+
+    await tester.ensureVisible(find.text('Export'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export'));
+    await tester.pumpAndSettle();
+    expect(find.text('CSV and PDF'), findsOneWidget);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    expect(find.text('CSV and PDF'), findsNothing);
+    expect(find.byType(ProfileScreen), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ProfileScreen), findsNothing);
+    expect(find.text('Home page'), findsOneWidget);
   });
 }
 
