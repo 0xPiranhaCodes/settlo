@@ -8,6 +8,8 @@ Captured on 12 Nov 2026 on a dedicated iPhone 17 Pro simulator running iOS 26.1,
 - `scroll.mp4`: scripted HID scrolls of Home dark, Home light and Activity dark, side by side.
 - `hid-taps.png`: Spaces with its +, bell and avatar; an HID tap on the bell opens Activity, which shows only the avatar; an HID tap on Loans' avatar opens Profile.
 - `offsets-dark.png`, `offsets-light.png`: Activity, Home, Loans and Spaces (rows) at rest and after held HID drags aimed at 4, 20, 40 and 60pt of scroll (columns), top of the screen. Driver: `capoff.sh`. The host's load average was about 550 while this ran, so the real offsets drift from the targets, and the Loans light rest frame caught the app still launching; its 4pt frame shows the rest state.
+- `avatar-sheet.png`: after the rebase onto #200, on a fresh iOS 26.1 simulator: Spaces; an HID tap on its avatar opens Profile as a sheet over Spaces (the reminder prompt it raises once was dismissed first); an HID tap on X returns to Spaces, still selected.
+- `scroll-frame.png`: Spaces at rest, then held HID drags of about 7pt and 30pt: the title, +, bell and avatar move together and clip at the same line under the status bar.
 - `frames-<before|after>-<tab>-<theme>.txt`: one line per frame, as `build,raster,total` in µs, from `perf.sh` over the same scroll. Before is `main` at `648c88d`.
 
 ## Frame timing (scripted scroll, about 14 s per run)
