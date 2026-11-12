@@ -118,7 +118,7 @@ List<RouteBase> _routes({required bool flatChrome}) => [
     ),
     branches: [
       for (final route in [
-        homeTabRoute(routes: [profileRoute]),
+        homeTabRoute(routes: [profileRoute(_rootKey)]),
         spacesTabRoute,
         loansTabRoute,
         activityTabRoute,

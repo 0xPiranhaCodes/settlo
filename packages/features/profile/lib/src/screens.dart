@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_profile/src/export_sheet.dart';
@@ -15,7 +14,8 @@ import 'package:settlo_profile/src/theme_mode.dart';
 
 final Uri _supportUri = Uri.parse('https://settlo.hellojosh.studio/support/');
 
-/// Profile and settings (canvas Profile, note n31).
+/// Profile and settings (canvas Profile, note n31), shown as a sheet over
+/// Home (#196).
 class ProfileScreen extends ConsumerWidget {
   /// The profile screen.
   const new({super.key});
@@ -30,8 +30,10 @@ class ProfileScreen extends ConsumerWidget {
         style: const TextStyle(letterSpacing: 0, height: 1.2),
         child: SettloScrollScaffold(
           title: 'You',
-          largeTitle: 'You',
-          previousPageTitle: 'Home',
+          // The sheet already sits below the status bar.
+          statusInset: 0,
+          // The 44pt header row plus the 24 the bar keeps under it.
+          expandedHeight: 68,
           padding: EdgeInsets.fromLTRB(
             SettloSpacing.screenMargin,
             math.max(media.padding.top, 44) + 16,
@@ -40,7 +42,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
           children: [
             const _Header(),
-            const SizedBox(height: 24),
+            const SizedBox(height: SettloSpacing.x1),
             if (data != null) ...[
               _Identity(data),
               const SizedBox(height: SettloSpacing.x3),
@@ -93,36 +95,63 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
+    // The whole sheet: a page pushed inside it has its own Back.
+    void close() => Navigator.of(context, rootNavigator: true).maybePop();
     return SizedBox(
       height: 44,
-      child: Stack(
-        alignment: Alignment.center,
+      child: Row(
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton(
-              tooltip: 'Back',
-              onPressed: context.pop,
-              style: IconButton.styleFrom(
-                fixedSize: const Size.square(44),
-                minimumSize: Size.zero,
-                padding: EdgeInsets.zero,
-                backgroundColor: colors.surface,
-                side: BorderSide(color: colors.hairline),
-              ),
-              icon: ProfileIcon(
-                ProfileGlyph.back,
-                color: colors.textPrimary,
-                size: 18,
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(
+                'You',
+                style: SettloTypography.title2(color: colors.textPrimary),
               ),
             ),
           ),
-          Text(
-            'You',
-            style: SettloTypography.headline(color: colors.textPrimary),
+          GlassAction(
+            label: 'Close',
+            symbol: 'xmark',
+            onPressed: close,
+            fallback: _CircleButton(
+              tooltip: 'Close',
+              glyph: ProfileGlyph.close,
+              onPressed: close,
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A 44pt round header button on the surface, such as Close or Back.
+class _CircleButton extends StatelessWidget {
+  const new({
+    required this.tooltip,
+    required this.glyph,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final ProfileGlyph glyph;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SettloColors.of(context);
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        fixedSize: const Size.square(44),
+        minimumSize: Size.zero,
+        padding: EdgeInsets.zero,
+        backgroundColor: colors.surface,
+        side: BorderSide(color: colors.hairline),
+      ),
+      icon: ProfileIcon(glyph, color: colors.textPrimary, size: 18),
     );
   }
 }
@@ -135,7 +164,7 @@ class _Identity extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
-    return Row(
+    final row = Row(
       children: [
         SAvatar(data.name, size: 64),
         const SizedBox(width: 16),
@@ -165,7 +194,18 @@ class _Identity extends StatelessWidget {
             ],
           ),
         ),
+        ProfileIcon(ProfileGlyph.chevron, color: colors.textMuted),
       ],
+    );
+    // The identity row heads the sheet, as in Settings: it edits the name.
+    return SCard(
+      child: Semantics(
+        button: true,
+        child: SPressable(
+          onTap: () => _showEditProfile(context, data),
+          child: row,
+        ),
+      ),
     );
   }
 }
@@ -236,10 +276,9 @@ class _QuietPreferences extends StatelessWidget {
         ProfileGlyph.download,
         'Export',
         'Statements as PDF or CSV',
-        onTap: () => showSettloSheet<void>(
-          context: context,
-          builder: (_) => const ExportSheet(),
-        ),
+        // Pushed inside the Profile sheet, with its own Back.
+        onTap: () => Navigator.of(context)
+            .push(settloPageRoute<void>(context, (_) => const _ExportPage())),
       ),
     ],
   );
@@ -520,14 +559,21 @@ class _SettingsCard extends StatelessWidget {
     // A row with no action is a feature not built yet: hide it rather than
     // show a dead row (#158 G2). Giving it an onTap brings it back.
     final built = rows.where((row) => row.onTap != null).toList();
+    // Inset grouped, as in Settings: full-width rows split by a hairline
+    // that starts at the text.
     return SCard(
-      padding: const EdgeInsets.all(SettloSpacing.screenMargin),
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           for (var index = 0; index < built.length; index++) ...[
             _SettingRow(built[index]),
             if (index != built.length - 1)
-              const SizedBox(height: SettloSpacing.x2),
+              Divider(
+                height: 1,
+                thickness: 1,
+                indent: SettloSpacing.screenMargin + 40 + SettloSpacing.x2,
+                color: SettloColors.of(context).hairline,
+              ),
           ],
         ],
       ),
@@ -556,8 +602,12 @@ class _SettingRow extends StatelessWidget {
       button: data.onTap != null,
       child: SPressable(
         onTap: data.onTap,
-        child: ConstrainedBox(
+        child: Container(
           constraints: const BoxConstraints(minHeight: 64),
+          padding: const EdgeInsets.symmetric(
+            horizontal: SettloSpacing.screenMargin,
+            vertical: SettloSpacing.x1,
+          ),
           child: Row(
             children: [
               _IconTile(data.icon),
@@ -810,3 +860,34 @@ String _themeLabel(ThemeMode mode) => switch (mode) {
 String _groupPhone(String e164) => e164.startsWith('+91') && e164.length == 13
     ? '+91 ${e164.substring(3, 8)} ${e164.substring(8)}'
     : e164;
+
+/// Profile › Export, pushed inside the sheet.
+class _ExportPage extends StatelessWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: SafeArea(
+      bottom: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              SettloSpacing.screenMargin,
+              SettloSpacing.x2,
+              SettloSpacing.screenMargin,
+              0,
+            ),
+            child: _CircleButton(
+              tooltip: 'Back',
+              glyph: ProfileGlyph.back,
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+          ),
+          const Expanded(child: ExportSheet()),
+        ],
+      ),
+    ),
+  );
+}

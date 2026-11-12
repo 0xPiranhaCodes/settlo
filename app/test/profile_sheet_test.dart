@@ -1,0 +1,158 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:settlo/router/router.dart';
+import 'package:settlo_balances/settlo_balances.dart';
+import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_profile/settlo_profile.dart';
+
+import 'support/fake_home.dart';
+import 'support/fake_session.dart';
+
+/// The production app at [location], as a deep link delivers it.
+Future<GoRouter> _open(WidgetTester tester, String location) async {
+  tester.view
+    ..physicalSize = const Size(402, 874)
+    ..devicePixelRatio = 1
+    ..viewPadding = const FakeViewPadding(top: 62, bottom: 34)
+    ..padding = const FakeViewPadding(top: 62, bottom: 34);
+  addTearDown(tester.view.reset);
+  // The iOS tab bar is a UIKit view.
+  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+    SystemChannels.platform_views,
+    (_) async => null,
+  );
+  await tester.pumpWidget(
+    fakeSessionApp(fakeSession, home: FakeHomeRepository(homeMain)),
+  );
+  await tester.pumpAndSettle();
+  final router = ProviderScope.containerOf(
+    tester.element(find.byType(Router<Object>)),
+  ).read(routerProvider)..go(location);
+  await tester.pumpAndSettle();
+  return router;
+}
+
+Route<Object?> _route(WidgetTester tester, Finder finder) =>
+    ModalRoute.of(tester.element(finder))!;
+
+/// The route Profile's sheet is, on the app's root navigator.
+Route<Object?> _sheet(WidgetTester tester) {
+  final nested = _route(tester, find.byType(ProfileScreen)).navigator!;
+  return ModalRoute.of(nested.context)!;
+}
+
+void main() {
+  for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+    final variant = TargetPlatformVariant.only(platform);
+    final ios = platform == TargetPlatform.iOS;
+
+    testWidgets('a deep link opens Profile as a sheet over Home', (
+      tester,
+    ) async {
+      final router = await _open(tester, SettloRoutes.profile);
+
+      expect(router.state.matchedLocation, SettloRoutes.profile);
+      expect(
+        _sheet(tester),
+        ios
+            ? isA<CupertinoSheetRoute<void>>()
+            : isA<ModalBottomSheetRoute<void>>(),
+      );
+      // Home stays mounted behind it.
+      expect(find.byType(HomeScreen, skipOffstage: false), findsOne);
+      expect(
+        tester.getSemantics(find.byTooltip('Close')),
+        // VoiceOver reads it as the Close button.
+        isSemantics(tooltip: 'Close', isButton: true, hasTapAction: true),
+      );
+    }, variant: variant);
+
+    testWidgets('Close dismisses the sheet once, back to Home', (tester) async {
+      final router = await _open(tester, SettloRoutes.profile);
+      await tester.tap(find.byTooltip('Close'));
+      await tester.tap(find.byTooltip('Close'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ProfileScreen), findsNothing);
+      expect(router.state.matchedLocation, SettloRoutes.home);
+      expect(find.byType(HomeScreen), findsOne);
+    }, variant: variant);
+
+    testWidgets('Export pushes inside the sheet, and Back returns to it', (
+      tester,
+    ) async {
+      final router = await _open(tester, SettloRoutes.profile);
+      final sheet = _sheet(tester);
+      await tester.ensureVisible(find.text('Export'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Export'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ExportSheet), findsOne);
+      expect(
+        ModalRoute.of(
+          _route(tester, find.byType(ExportSheet)).navigator!.context,
+        ),
+        sheet,
+        reason: 'in the sheet, not over it',
+      );
+
+      // The system back pops the page, not the sheet.
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(ExportSheet), findsNothing);
+      expect(find.byType(ProfileScreen), findsOne);
+      expect(router.state.matchedLocation, SettloRoutes.profile);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(ProfileScreen), findsNothing);
+      expect(router.state.matchedLocation, SettloRoutes.home);
+    }, variant: variant);
+
+    testWidgets('the other tabs keep their place under the sheet', (
+      tester,
+    ) async {
+      final router = await _open(tester, SettloRoutes.space('s1'));
+      router.go(SettloRoutes.profile);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pumpAndSettle();
+      expect(router.state.matchedLocation, SettloRoutes.home);
+
+      tester
+          .widget<StatefulNavigationShell>(find.byType(StatefulNavigationShell))
+          .goBranch(1);
+      await tester.pumpAndSettle();
+      expect(router.state.matchedLocation, SettloRoutes.space('s1'));
+    }, variant: variant);
+  }
+
+  testWidgets('on iOS, a swipe down dismisses the sheet', (tester) async {
+    final router = await _open(tester, SettloRoutes.profile);
+    await tester.flingFrom(const Offset(200, 160), const Offset(0, 600), 2000);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ProfileScreen), findsNothing);
+    expect(router.state.matchedLocation, SettloRoutes.home);
+    expect(find.byType(HomeScreen), findsOne);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+  testWidgets('on Android, a drag down on the handle dismisses the sheet', (
+    tester,
+  ) async {
+    final router = await _open(tester, SettloRoutes.profile);
+    final handle = tester.getCenter(
+      find.byWidgetPredicate((w) => w.runtimeType.toString() == '_DragHandle'),
+    );
+    await tester.flingFrom(handle, const Offset(0, 600), 2000);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ProfileScreen), findsNothing);
+    expect(router.state.matchedLocation, SettloRoutes.home);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+}

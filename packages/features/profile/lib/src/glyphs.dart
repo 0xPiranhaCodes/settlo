@@ -5,6 +5,9 @@ enum ProfileGlyph {
   /// Back arrow.
   back,
 
+  /// Close cross.
+  close,
+
   /// UPI card wallet.
   wallet,
 
@@ -90,6 +93,12 @@ class _ProfileGlyphPainter extends CustomPainter {
         ..moveTo(15, 5)
         ..lineTo(8, 12)
         ..lineTo(15, 19),
+    ProfileGlyph.close =>
+      Path()
+        ..moveTo(6, 6)
+        ..lineTo(18, 18)
+        ..moveTo(18, 6)
+        ..lineTo(6, 18),
     ProfileGlyph.wallet =>
       Path()
         ..addRect(const Rect.fromLTWH(4, 7, 16, 10))

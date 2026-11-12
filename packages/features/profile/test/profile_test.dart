@@ -358,7 +358,7 @@ void main() {
 
     expect(find.text('Satheesh'), findsOneWidget);
     expect(find.text('+91 98765 43210'), findsOneWidget);
-    expect(tester.getSize(find.byTooltip('Back')), const Size(44, 44));
+    expect(tester.getSize(find.byTooltip('Close')), const Size(44, 44));
     final change = find.ancestor(
       of: find.text('Change'),
       matching: find.byType(TextButton),
