@@ -470,8 +470,8 @@ void main() {
     });
   });
 
-  group('bell (#109)', () {
-    testWidgets('counts what is new since the last open, then marks it seen', (
+  group('seen (#109)', () {
+    testWidgets('opening marks what is new since the last open seen', (
       tester,
     ) async {
       // Last open on 3 Nov at 22:00: Kabir's settle-up and Priya's
@@ -481,20 +481,11 @@ void main() {
       );
       await _pump(tester, activity);
 
-      expect(find.byTooltip('Notifications, 2 new'), findsOneWidget);
-      expect(find.text('2'), findsOneWidget);
+      // The screen is the notifications list, so it has no bell (#197).
+      expect(find.byTooltip(RegExp('^Notifications')), findsNothing);
+      expect(find.byTooltip('Profile'), findsOneWidget);
       expect(activity.calls, contains('markSeen'));
       expect(activity.seenAt, activityFeed.first.at);
-
-      // Looking again: nothing is new any more.
-      await tester.fling(
-        find.byType(CustomScrollView),
-        const Offset(0, 400),
-        1000,
-      );
-      await tester.pumpAndSettle();
-      expect(find.byTooltip('Notifications'), findsOneWidget);
-      expect(find.text('2'), findsNothing);
     });
 
     testWidgets('a question about your edit rings for you, the editor, only', (
@@ -532,11 +523,12 @@ void main() {
       final seenAt = DateTime(2026, 11, 9, 9, 45);
 
       // Rahul's edit: Priya's question is for Rahul, not for you.
-      await _pump(
-        tester,
-        FakeActivityRepository(entries: feed(yours: false), seenAt: seenAt),
+      final others = FakeActivityRepository(
+        entries: feed(yours: false),
+        seenAt: seenAt,
       );
-      expect(find.byTooltip('Notifications'), findsOneWidget);
+      await _pump(tester, others);
+      expect(others.calls, isNot(contains('markSeen')));
 
       // Your edit: it is for you, and opening Activity marks it seen.
       final activity = FakeActivityRepository(
@@ -544,33 +536,15 @@ void main() {
         seenAt: seenAt,
       );
       await _pump(tester, activity);
-      expect(find.byTooltip('Notifications, 1 new'), findsOneWidget);
       expect(find.text('Priya asked: “Why?”'), findsOneWidget);
       expect(activity.seenAt, DateTime(2026, 11, 9, 10));
     });
 
-    testWidgets('with nothing new it is plain and marks nothing', (
-      tester,
-    ) async {
+    testWidgets('with nothing new it marks nothing', (tester) async {
       final activity = FakeActivityRepository();
       await _pump(tester, activity);
 
-      expect(find.byTooltip('Notifications'), findsOneWidget);
       expect(activity.calls, isNot(contains('markSeen')));
-    });
-
-    testWidgets('goes back to everything, from the newest', (tester) async {
-      final activity = FakeActivityRepository();
-      await _pump(tester, activity);
-      await tester.ensureVisible(find.text('Loans'));
-      await tester.tap(find.text('Loans'));
-      await tester.pumpAndSettle();
-      expect(find.text('Priya added Electricity'), findsNothing);
-
-      await tester.tap(find.byTooltip('Notifications'));
-      await tester.pumpAndSettle();
-      expect(find.text('Priya added Electricity'), findsOneWidget);
-      expect(tester.widget<SChip>(find.byType(SChip).first).selected, isTrue);
     });
   });
 

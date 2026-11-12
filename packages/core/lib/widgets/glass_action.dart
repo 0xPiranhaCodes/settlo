@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
@@ -133,7 +134,81 @@ class _GlassActionState extends State<GlassAction> {
         },
       ),
     );
+    // Always under the clip, so scrolling never rebuilds the native view.
+    final clipped = _InsetClip(
+      inset: GlassActionInset.of(context),
+      child: view,
+    );
     // UIKit never gets a touch, so a drag on it scrolls the page.
-    return widget.decorative ? IgnorePointer(child: view) : view;
+    return widget.decorative ? IgnorePointer(child: clipped) : clipped;
+  }
+}
+
+/// The status bar's height over the native [GlassAction]s below: Flutter's
+/// blur can't reach a platform view, so each is clipped where it scrolls
+/// into that band, and the part still under it stays (#197).
+class GlassActionInset extends InheritedWidget {
+  /// Clips the glass actions in [child] above [inset] from the screen's top.
+  const new({required this.inset, required super.child, super.key});
+
+  /// The band's height, in logical pixels from the top of the screen.
+  final double inset;
+
+  /// The nearest inset; 0, clipping only above the screen, without one.
+  static double of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<GlassActionInset>()?.inset ??
+      0;
+
+  @override
+  bool updateShouldNotify(GlassActionInset oldWidget) =>
+      inset != oldWidget.inset;
+}
+
+/// Clips its child above [inset], measured from the screen's top when
+/// painted, so the clip follows the child as it scrolls.
+class _InsetClip extends SingleChildRenderObjectWidget {
+  const new({required this.inset, super.child});
+
+  final double inset;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderInsetClip(inset);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderInsetClip renderObject) {
+    renderObject.inset = inset;
+  }
+}
+
+class _RenderInsetClip extends RenderProxyBox {
+  new(this._inset);
+
+  double _inset;
+  double get inset => _inset;
+  set inset(double value) {
+    if (value == _inset) return;
+    _inset = value;
+    markNeedsPaint();
+  }
+
+  /// The local rect the last paint left visible, so tests can check it.
+  @visibleForTesting
+  Rect visible = Rect.zero;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (child == null) return;
+    // Generous sideways and below, and above the view for the badge, which
+    // overhangs its top edge.
+    final top = _inset - localToGlobal(Offset.zero).dy;
+    visible = Rect.fromLTRB(-size.width, top, size.width * 2, size.height * 2);
+    layer = context.pushClipRect(
+      needsCompositing,
+      offset,
+      visible,
+      super.paint,
+      oldLayer: layer as ClipRectLayer?,
+    );
   }
 }

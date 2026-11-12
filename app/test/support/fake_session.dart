@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:settlo/main.dart';
+import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_core/supabase/reminders.dart';
 import 'package:settlo_platform/settlo_platform.dart';
@@ -69,6 +70,9 @@ Widget fakeSessionApp(
   overrides: [
     ...overrides,
     reminderSyncProvider.overrideWith((ref) {}),
+    accountNameProvider.overrideWith(
+      (ref) => ref.watch(homeProvider).value?.name,
+    ),
     sessionProvider.overrideWith(() => FakeSessionNotifier(session)),
     homeRepositoryProvider.overrideWithValue(
       home ?? FakeHomeRepository(homeEmpty),

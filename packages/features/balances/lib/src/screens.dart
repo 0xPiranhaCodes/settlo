@@ -47,7 +47,7 @@ class HomeScreen extends ConsumerWidget {
             style: const TextStyle(letterSpacing: 0, height: 1.2),
             child: SettloScrollScaffold(
               title: 'SETTLO',
-              compactHeader: _Header(data?.name, compact: true),
+              stickyHeader: false,
               onRefresh: () => _refresh(ref),
               padding: EdgeInsets.fromLTRB(
                 SettloSpacing.screenMargin,
@@ -152,16 +152,13 @@ String _groupPhone(String e164) => e164.startsWith('+91') && e164.length == 13
     ? '+91 ${e164.substring(3, 8)} ${e164.substring(8)}'
     : e164;
 
-class _Header extends ConsumerWidget {
-  const new(this.name, {this.compact = false});
-
-  final bool compact;
+class _Header extends StatelessWidget {
+  const new(this.name);
 
   final String? name;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final c = SettloColors.of(context);
+  Widget build(BuildContext context) {
     // The owner's S mark is the header title: in a glass circle on iOS 26,
     // as supplied elsewhere, and no wordmark (#191).
     final lockup = GlassAction(
@@ -176,52 +173,6 @@ class _Header extends ConsumerWidget {
         child: const SettloMark(semanticsLabel: null, size: 30),
       ),
     );
-    final initial = (name?.trim().isNotEmpty ?? false)
-        ? name!.trim().characters.first.toUpperCase()
-        : 'Y';
-    final controls = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SBell(
-          unread: ref.watch(activityUnreadProvider).value ?? 0,
-          onPressed: () => context.go(SettloRoutes.activity),
-        ),
-        const SizedBox(width: SettloSpacing.x1),
-        GlassAction(
-          label: 'Profile',
-          title: initial,
-          onPressed: () => context.push(SettloRoutes.profileSheet),
-          fallback: IconButton(
-            tooltip: 'Profile',
-            onPressed: () => context.push(SettloRoutes.profileSheet),
-            style: IconButton.styleFrom(
-              fixedSize: const Size.square(SettloHomeMetrics.headerControl),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              backgroundColor: SettloColors.dark.surfaceRaised,
-              side: BorderSide(color: c.hairline),
-            ),
-            icon: Text(
-              initial,
-              textScaler: MediaQuery.textScalerOf(context)
-                  .clamp(maxScaleFactor: 1.3),
-              style: SettloTypography.headline(color: Colors.white),
-            ),
-          ),
-        ),
-      ],
-    );
-    if (compact) {
-      return Row(
-        children: [
-          const SizedBox(width: 96),
-          Expanded(
-            child: FittedBox(fit: BoxFit.scaleDown, child: lockup),
-          ),
-          controls,
-        ],
-      );
-    }
     return Row(
       children: [
         Expanded(
@@ -231,7 +182,10 @@ class _Header extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: SettloSpacing.x2),
-        controls,
+        SettloTabActions(
+          name: name,
+          onBell: () => context.go(SettloRoutes.activity),
+        ),
       ],
     );
   }
