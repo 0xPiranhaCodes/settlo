@@ -154,6 +154,9 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
                   widget is Scrollable &&
                   widget.axisDirection == AxisDirection.down,
             )
+            // The top route's list: with Profile's sheet over Home, Home's
+            // list is still in the tree.
+            .hitTestable()
             .first,
       );
     }
