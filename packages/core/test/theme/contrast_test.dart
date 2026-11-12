@@ -41,6 +41,19 @@ void main() {
         });
       }
 
+      test('control outlines clear 3:1 on inputs and cards', () {
+        for (final background in [
+          colors.background,
+          colors.surface,
+          colors.surfaceRaised,
+        ]) {
+          expect(
+            contrast(colors.buttonBorder, background),
+            greaterThanOrEqualTo(3),
+          );
+        }
+      });
+
       test('surfaceHighest carries primary text only', () {
         final onHighest = colors.textPairs.where(
           (p) => p.background == colors.surfaceHighest,
@@ -49,17 +62,17 @@ void main() {
       });
 
       test('covers every text token on every content surface', () {
-        // 9 text colours x 3 surfaces, plus 7 special pairs. Welcome uses
+        // 11 text colours x 3 surfaces, plus 7 special pairs. Welcome uses
         // the lightest gradient stop so the whole action is covered.
-        expect(colors.textPairs, hasLength(34));
+        expect(colors.textPairs, hasLength(40));
       });
     });
   }
 
-  test('light Home gold clears text and icon contrast', () {
+  test('light Home jade clears text and icon contrast', () {
     const c = SettloColors.light;
     for (final surface in [c.background, c.surface, c.surfaceRaised]) {
-      final ratio = contrast(c.homeGold, surface);
+      final ratio = contrast(c.brandAccent, surface);
       expect(ratio, greaterThanOrEqualTo(4.5), reason: '$surface');
       expect(ratio, greaterThanOrEqualTo(3), reason: 'icon on $surface');
     }

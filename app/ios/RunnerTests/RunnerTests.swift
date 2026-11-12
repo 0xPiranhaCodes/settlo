@@ -271,6 +271,19 @@ class GlassButtonTests: XCTestCase {
     XCTAssertTrue(glass.button.isEnabled)
   }
 
+  func testSymbolsFollowBothPaletteTints() throws {
+    for (argb, expected) in [
+      (0xFF01672D, UIColor(red: 1 / 255, green: 103 / 255, blue: 45 / 255, alpha: 1)),
+      (0xFFFEBD11, UIColor(red: 254 / 255, green: 189 / 255, blue: 17 / 255, alpha: 1)),
+    ] {
+      let glass = make(["symbol": "plus", "asset": NSNull(), "foreground": argb, "enabled": true])
+      XCTAssertEqual(glass.button.tintColor, expected)
+      XCTAssertEqual(glass.button.configuration?.baseForegroundColor, expected)
+      let symbol = try XCTUnwrap(glass.button.configuration?.image)
+      XCTAssertEqual(symbol.renderingMode, .alwaysOriginal)
+    }
+  }
+
   func testTitleInsteadOfSymbol() {
     let glass = make(["label": "Profile", "title": "S"])
     XCTAssertEqual(glass.button.configuration?.title, "S")

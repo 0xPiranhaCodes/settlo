@@ -234,7 +234,7 @@ ThemeData _compactButtons(ThemeData theme) {
 }
 
 /// Your balance, the month's total and a sparkline of its daily spend
-/// (canvas note n11). The line is primary text: gold means tap me only.
+/// (canvas note n11). The amount is directional; spend stays neutral.
 class _Hero extends StatelessWidget {
   const new(this.space, this.ledger);
 
@@ -291,6 +291,11 @@ class _Hero extends StatelessWidget {
                           // signs what you are owed.
                           balance.value < 0 ? -balance : balance,
                           signed: balance.value > 0,
+                          tone: switch (balance.value) {
+                            > 0 => MoneyTone.owedToYou,
+                            < 0 => MoneyTone.youOwe,
+                            _ => MoneyTone.settled,
+                          },
                           size: 40,
                         ),
                       ),
@@ -824,7 +829,7 @@ class FairShareBar extends StatelessWidget {
                       width: box.maxWidth * share(paid),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: c.textPrimary,
+                          color: c.brandAccent,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -970,18 +975,21 @@ class _PaymentRow extends StatelessWidget {
             child: MergeSemantics(
               child: Row(
                 children: [
+                  if (waiting) ...[
+                    Icon(Icons.schedule, size: 16, color: c.pending),
+                    const SizedBox(width: 6),
+                  ],
                   Expanded(
                     child: Text(
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: SettloTypography.body(color: c.textPrimary),
+                      style: SettloTypography.body(
+                        color: waiting ? c.pending : c.textPrimary,
+                      ),
                     ),
                   ),
-                  MoneyText(
-                    p.amount,
-                    tone: waiting ? MoneyTone.settled : MoneyTone.neutral,
-                  ),
+                  MoneyText(p.amount, color: waiting ? c.pending : null),
                 ],
               ),
             ),
@@ -1232,10 +1240,7 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
           ],
           if (_error case final error?) ...[
             const SizedBox(height: SettloSpacing.x2),
-            Text(
-              error,
-              style: SettloTypography.subheadline(color: c.textPrimary),
-            ),
+            Text(error, style: SettloTypography.subheadline(color: c.error)),
           ],
           const SizedBox(height: SettloSpacing.x2),
           Align(
@@ -1396,7 +1401,7 @@ class _ConfirmSettlementSheetState
             Text(
               error,
               textAlign: TextAlign.center,
-              style: SettloTypography.subheadline(color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.error),
             ),
           ],
         ],

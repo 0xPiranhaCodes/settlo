@@ -444,7 +444,7 @@ Future<StatementImage> _draw(String text) async {
         // are absent and the platform's fallback fonts draw the script.
         fontFamilyFallback: ['Noto Sans Devanagari', 'Noto Naskh Arabic'],
         fontSize: 10,
-        color: Color(0xFF1B1B18),
+        color: Color(0xFF18271F),
       ),
     ),
     textDirection: Bidi.detectRtlDirectionality(text)
@@ -720,7 +720,7 @@ String _ordinal(int n) =>
     }}';
 
 // Printed on white: the light theme's ink and secondary text.
-const _ink = PdfColor.fromInt(0xFF1B1B18);
+const _ink = PdfColor.fromInt(0xFF18271F);
 const _secondary = PdfColor.fromInt(0xFF5F605B);
 const _hairline = PdfColor.fromInt(0xFFD9D6CE);
 

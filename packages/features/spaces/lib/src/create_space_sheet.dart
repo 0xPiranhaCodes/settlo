@@ -264,10 +264,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
           ),
           if (_error case final error?) ...[
             gap,
-            Text(
-              error,
-              style: SettloTypography.subheadline(color: c.textPrimary),
-            ),
+            Text(error, style: SettloTypography.subheadline(color: c.error)),
           ],
           if (!ios) ...[
             const SizedBox(height: SettloSpacing.x3),

@@ -219,14 +219,14 @@ void main() {
         expect(find.text('Screen'), findsOneWidget, reason: 'one pop');
       });
 
-      testWidgets('$name cancels with false, tinted with Settlo text', (
+      testWidgets('$name cancels with false, tinted with Settlo action', (
         tester,
       ) async {
         final (answer,) = await ask(tester, show);
         final context = tester.element(find.text(no));
         expect(
           CupertinoTheme.of(context).primaryColor,
-          SettloColors.of(context).textPrimary,
+          SettloColors.of(context).action,
           reason: 'never system blue',
         );
 

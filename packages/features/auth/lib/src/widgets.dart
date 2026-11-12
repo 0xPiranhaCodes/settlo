@@ -356,9 +356,8 @@ class AuthErrorText extends StatelessWidget {
     liveRegion: true,
     child: Text(
       message,
-      style: SettloTypography.subheadline(
-        color: SettloColors.of(context).textPrimary,
-      ).copyWith(height: 1.4),
+      style: SettloTypography.subheadline(color: SettloColors.of(context).error)
+          .copyWith(height: 1.4),
     ),
   );
 }

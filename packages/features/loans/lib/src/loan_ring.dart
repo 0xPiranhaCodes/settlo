@@ -31,7 +31,7 @@ class LoanRing extends StatelessWidget {
           painter: LoanRingPainter(
             progress,
             track: c.surfaceHighest,
-            arc: c.textPrimary,
+            arc: c.brandAccent,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

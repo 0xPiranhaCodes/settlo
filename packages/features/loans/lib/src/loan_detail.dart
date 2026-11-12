@@ -205,7 +205,15 @@ class _Hero extends StatelessWidget {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
-                      child: MoneyText(loan.outstanding, size: 32),
+                      child: MoneyText(
+                        loan.outstanding,
+                        size: 32,
+                        tone: loan.closed
+                            ? MoneyTone.settled
+                            : loan.youLent
+                            ? MoneyTone.owedToYou
+                            : MoneyTone.youOwe,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Semantics(
@@ -490,7 +498,7 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
               padding: const EdgeInsets.only(left: 56, top: 4),
               child: Text(
                 error,
-                style: SettloTypography.subheadline(color: c.textPrimary),
+                style: SettloTypography.subheadline(color: c.error),
               ),
             ),
         ],
@@ -511,15 +519,24 @@ class _Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        border: Border.all(color: c.textSecondary),
+        border: Border.all(color: c.pending),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: SettloTypography.caption1(color: c.textSecondary)
-            .copyWith(height: 1.3),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.schedule, size: 14, color: c.pending),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: SettloTypography.caption1(color: c.pending)
+                  .copyWith(height: 1.3),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -699,10 +716,7 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
             ),
             if (widget.decision.error case final error?) ...[
               const SizedBox(height: SettloSpacing.x2),
-              Text(
-                error,
-                style: SettloTypography.subheadline(color: c.textPrimary),
-              ),
+              Text(error, style: SettloTypography.subheadline(color: c.error)),
             ],
             const SizedBox(height: 16),
             SPrimaryButton(

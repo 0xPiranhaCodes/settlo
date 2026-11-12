@@ -391,32 +391,39 @@ void main() {
     });
   });
 
-  // Gold means the one primary action (context pack); ruling on PR #71.
-  testWidgets('nothing but Save is gold, in every selection state', (
-    tester,
-  ) async {
-    await _pump(tester, FakeExpensesRepository());
-    await _fill(tester, '1800');
-    await _tap(tester, find.text('Groceries').first);
-    for (final mode in ['Equally', 'Exact', '%', 'Shares', 'Multiple payers']) {
-      await _tap(tester, _mode(mode));
-      if (mode == 'Exact') {
-        for (final id in ['m1', 'm2', 'm3']) {
-          await _type(tester, _input(SplitType.exact, id), '600');
+  // The primary action and selected payer/category controls share the brand hue.
+  testWidgets(
+    'Save and selected controls use the brand hue in every split mode',
+    (tester) async {
+      await _pump(tester, FakeExpensesRepository());
+      await _fill(tester, '1800');
+      await _tap(tester, find.text('Groceries').first);
+      for (final mode in [
+        'Equally',
+        'Exact',
+        '%',
+        'Shares',
+        'Multiple payers',
+      ]) {
+        await _tap(tester, _mode(mode));
+        if (mode == 'Exact') {
+          for (final id in ['m1', 'm2', 'm3']) {
+            await _type(tester, _input(SplitType.exact, id), '600');
+          }
         }
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pumpAndSettle();
+        final (outside, inside) = await _gold(tester);
+        expect(outside, greaterThan(50), reason: '$mode: selected controls');
+        // A disabled Save (nothing typed for % yet) is not gold either.
+        expect(
+          inside,
+          _saveEnabled(tester) ? greaterThan(50) : 0,
+          reason: '$mode: Save',
+        );
       }
-      FocusManager.instance.primaryFocus?.unfocus();
-      await tester.pumpAndSettle();
-      final (outside, inside) = await _gold(tester);
-      expect(outside, 0, reason: '$mode: gold outside Save');
-      // A disabled Save (nothing typed for % yet) is not gold either.
-      expect(
-        inside,
-        _saveEnabled(tester) ? greaterThan(50) : 0,
-        reason: '$mode: Save',
-      );
-    }
-  });
+    },
+  );
 
   testWidgets('amounts are announced in rupees', (tester) async {
     await _pump(tester, FakeExpensesRepository());

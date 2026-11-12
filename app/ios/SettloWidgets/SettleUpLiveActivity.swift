@@ -32,22 +32,24 @@ struct SettleUpLiveActivity: Widget {
           Text(state.payer).font(.system(size: 13, weight: .medium)).lineLimit(1)
         }
       } compactTrailing: {
-        Text("\(state.amount) pending").font(.system(size: 13, weight: .medium)).monospacedDigit()
+        Label("\(state.amount) pending", systemImage: "clock").foregroundStyle(Palette.pending).font(.system(size: 13, weight: .medium)).monospacedDigit()
       } minimal: {
         Coin(size: 18)
       }
       .widgetURL(state.confirmURL)
-      .keylineTint(Palette.gold)
+      .keylineTint(Palette.action)
     }
   }
 }
 
+// Dynamic Island is always dark; use the supplied dark roles verbatim.
 private enum Palette {
-  static let gold = Color(red: 0xD8 / 255, green: 0xB3 / 255, blue: 0x6A / 255)
-  static let onGold = Color(red: 0x0A / 255, green: 0x0B / 255, blue: 0x0D / 255)
-  static let text = Color(red: 0xF3 / 255, green: 0xF2 / 255, blue: 0xEE / 255)
-  static let secondary = Color(red: 0x9B / 255, green: 0x9D / 255, blue: 0x9A / 255)
-  static let track = Color.white.opacity(0.16)
+  static let action = Color(red: 0xFE / 255, green: 0xBD / 255, blue: 0x11 / 255)
+  static let onAction = Color(red: 0x01 / 255, green: 0x38 / 255, blue: 0x1E / 255)
+  static let text = Color(red: 0xF7 / 255, green: 0xF2 / 255, blue: 0xE8 / 255)
+  static let secondary = Color(red: 0xA9 / 255, green: 0xBC / 255, blue: 0xB0 / 255)
+  static let pending = Color(red: 0xF1 / 255, green: 0xC8 / 255, blue: 0x74 / 255)
+  static let track = Color(red: 0x30 / 255, green: 0x47 / 255, blue: 0x3C / 255)
 }
 
 /// The mark used on the canvas: a gold coin with two bars.
@@ -56,10 +58,10 @@ private struct Coin: View {
 
   var body: some View {
     ZStack {
-      Circle().fill(Palette.gold)
+      Circle().fill(Palette.action)
       VStack(spacing: size * 0.12) {
         ForEach(0..<2) { _ in
-          Capsule().fill(Palette.onGold).frame(width: size * 0.42, height: size * 0.1)
+          Capsule().fill(Palette.onAction).frame(width: size * 0.42, height: size * 0.1)
         }
       }
     }
@@ -111,9 +113,9 @@ private struct SettleUpCard: View {
       }
       Link(destination: state.confirmURL) {
         Text("Confirm received").font(.system(size: 15, weight: .medium))
-          .foregroundStyle(Palette.onGold)
+          .foregroundStyle(Palette.onAction)
           .frame(maxWidth: .infinity, minHeight: 44)
-          .background(Palette.gold, in: RoundedRectangle(cornerRadius: 16))
+          .background(Palette.action, in: RoundedRectangle(cornerRadius: 16))
       }
     }
   }

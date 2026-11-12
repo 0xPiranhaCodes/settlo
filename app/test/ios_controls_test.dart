@@ -74,8 +74,10 @@ Future<GoRouter> _pump(
 }
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
-  await tester.ensureVisible(finder);
-  await tester.pumpAndSettle();
+  if (finder.hitTestable().evaluate().isEmpty) {
+    await tester.ensureVisible(finder);
+    await tester.pumpAndSettle();
+  }
   await tester.tap(finder);
   await tester.pumpAndSettle();
 }
@@ -299,7 +301,7 @@ void main() {
       final toggle = tester.widget<CupertinoSwitch>(
         find.byType(CupertinoSwitch),
       );
-      expect(toggle.activeTrackColor, SettloColors.dark.textPrimary);
+      expect(toggle.activeTrackColor, SettloColors.dark.action);
       expect(find.byType(Switch), findsNothing);
       expect(find.byType(DropdownButtonFormField<int>), findsNothing);
 

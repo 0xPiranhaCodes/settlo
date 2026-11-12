@@ -36,8 +36,8 @@ class HomeScreen extends ConsumerWidget {
               child: CustomPaint(
                 painter: WelcomeBackgroundPainter(
                   background: c.background,
-                  gold: c.homeGold,
-                  highlight: c.homeGold,
+                  gold: c.brandAccent,
+                  highlight: c.brandAccent,
                   placement: SettloArcPlacement.home,
                 ),
               ),
@@ -235,7 +235,7 @@ class _NetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const c = SettloColors.dark;
+    final c = SettloColors.of(context);
     final data = this.data;
     final String caption;
     final Widget amount;
@@ -247,7 +247,7 @@ class _NetCard extends StatelessWidget {
               Paise.zero,
               tone: whiteZero ? MoneyTone.neutral : MoneyTone.settled,
               size: 46,
-              color: whiteZero ? Colors.white : null,
+              color: whiteZero ? c.textPrimary : null,
             );
     } else {
       final net = data.net.value;
@@ -257,10 +257,19 @@ class _NetCard extends StatelessWidget {
           : net < 0
           ? 'you owe across $where'
           : 'all settled across $where';
-      amount = MoneyText(data.net, size: 46, signed: true, color: Colors.white);
+      amount = MoneyText(
+        data.net,
+        size: 46,
+        signed: true,
+        tone: switch (net) {
+          > 0 => MoneyTone.owedToYou,
+          < 0 => MoneyTone.youOwe,
+          _ => MoneyTone.settled,
+        },
+      );
     }
     return Theme(
-      data: SettloTheme.dark(),
+      data: Theme.of(context),
       child: SCard(
         hero: true,
         padding: EdgeInsets.zero,
@@ -386,8 +395,8 @@ class _NetArcPainter extends CustomPainter {
         center: const Alignment(0.98, -0.94),
         radius: 0.72,
         colors: [
-          const Color(0xFFFFF1D2).withValues(alpha: 0.24),
-          gold.withValues(alpha: 0.12),
+          gold.withValues(alpha: 0.04),
+          gold.withValues(alpha: 0.02),
           surface.withValues(alpha: 0),
         ],
         stops: const [0, 0.36, 1],
@@ -417,7 +426,7 @@ class _NetArcPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = 4
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3)
-          ..color = const Color(0xFFFFE7B0).withValues(alpha: 0.58),
+          ..color = gold.withValues(alpha: 0.18),
       )
       ..drawPath(
         arc,
@@ -539,6 +548,7 @@ class _Row extends StatelessWidget {
     required this.title,
     required this.detail,
     this.detailSpoken,
+    this.detailColor,
     this.trailing,
     this.onTap,
     this.divider = false,
@@ -551,6 +561,7 @@ class _Row extends StatelessWidget {
 
   /// What a screen reader says for [detail] when it holds an amount.
   final String? detailSpoken;
+  final Color? detailColor;
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool divider;
@@ -588,8 +599,9 @@ class _Row extends StatelessWidget {
                     Text(
                       detail,
                       semanticsLabel: detailSpoken,
-                      style: SettloTypography.footnote(color: c.textSecondary)
-                          .copyWith(height: 1.3),
+                      style: SettloTypography.footnote(
+                        color: detailColor ?? c.textSecondary,
+                      ).copyWith(height: 1.3),
                     ),
                   ],
                 ),
@@ -617,7 +629,7 @@ class _SpaceIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final color = tile ? c.textPrimary : c.homeGold;
+    final color = tile ? c.textPrimary : c.brandAccent;
     final glyph = switch (kind) {
       SpaceKind.flat => STabIcon.home.widget,
       SpaceKind.trip => HomeIcon(HomeGlyph.plane, color: color),
@@ -647,7 +659,7 @@ class _LoanIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconTheme(
-    data: IconThemeData(color: SettloColors.of(context).homeGold, size: 22),
+    data: IconThemeData(color: SettloColors.of(context).brandAccent, size: 22),
     child: STabIcon.loans.widget,
   );
 }
@@ -707,7 +719,10 @@ class _LoansCard extends StatelessWidget {
             title: '${l.counterparty} · interest free',
             detail: _detail(l, formatInr),
             detailSpoken: _detail(l, spokenInr),
-            trailing: MoneyText(l.outstanding),
+            trailing: MoneyText(
+              l.outstanding,
+              tone: l.youLent ? MoneyTone.owedToYou : MoneyTone.youOwe,
+            ),
             onTap: () => context.go(SettloRoutes.loan(l.id)),
           ),
           if ((l.pendingRepaymentId, l.pendingRepaymentAmount) case (
@@ -717,10 +732,14 @@ class _LoansCard extends StatelessWidget {
             const SizedBox(height: 10),
             _Row(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              leading: const SizedBox(width: 44),
+              leading: SizedBox(
+                width: 44,
+                child: Icon(Icons.schedule, color: c.pending),
+              ),
               title: '${l.counterparty} says they paid',
               detail: '${formatInr(amount)} · Review repayment',
               detailSpoken: '${spokenInr(amount)} · Review repayment',
+              detailColor: c.pending,
               onTap: () =>
                   context.push(SettloRoutes.confirmRepayment(repaymentId)),
             ),
@@ -739,7 +758,7 @@ class _LoansCard extends StatelessWidget {
                   value: paid / total,
                   minHeight: 4,
                   backgroundColor: c.surfaceHighest,
-                  color: c.textPrimary,
+                  color: c.brandAccent,
                 ),
               ),
             ),
@@ -794,7 +813,7 @@ class _JobTile extends StatelessWidget {
                   height: 44,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: c.homeGold.withValues(alpha: 0.14),
+                    color: c.brandAccent.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(SettloRadius.button),
                   ),
                   child: icon,
@@ -816,12 +835,12 @@ class _JobTile extends StatelessWidget {
               height: SettloHomeMetrics.arrowButton,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: c.homeGold.withValues(alpha: 0.22),
+                color: c.brandAccent.withValues(alpha: 0.22),
                 shape: BoxShape.circle,
               ),
               child: HomeIcon(
                 HomeGlyph.arrow,
-                color: c.homeGold,
+                color: c.brandAccent,
                 size: 22,
                 stroke: 2,
               ),

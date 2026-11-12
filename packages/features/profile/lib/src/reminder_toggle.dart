@@ -135,7 +135,7 @@ class _ReminderToggleState extends ConsumerState<ReminderToggle> {
           if (_error != null || enabled.hasError) ...[
             Text(
               _error ?? "Couldn't load reminders.",
-              style: SettloTypography.footnote(color: c.textSecondary),
+              style: SettloTypography.footnote(color: c.error),
             ),
             if (enabled.hasError)
               SSecondaryButton(

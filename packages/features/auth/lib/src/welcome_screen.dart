@@ -30,11 +30,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // The welcome art direction is deliberately dark in both system themes.
+    // Welcome follows the same semantic palette as the signed-in screens.
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: Theme.of(context).brightness == Brightness.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Theme(
-        data: SettloTheme.dark(),
+        data: Theme.of(context),
         child: Builder(
           builder: (context) {
             final colors = SettloColors.of(context);
@@ -209,7 +211,7 @@ class _WelcomeActionButtonState extends State<_WelcomeActionButton> {
                   style:
                       FilledButton.styleFrom(
                         backgroundColor: Colors.transparent,
-                        foregroundColor: SettloColors.dark.onAction,
+                        foregroundColor: colors.onAction,
                         shadowColor: Colors.transparent,
                         disabledBackgroundColor: Colors.transparent,
                         padding: const EdgeInsets.symmetric(
@@ -232,7 +234,7 @@ class _WelcomeActionButtonState extends State<_WelcomeActionButton> {
                         child: Text(
                           'Continue with phone number',
                           style: SettloTypography.headline(
-                            color: SettloColors.dark.onAction,
+                            color: colors.onAction,
                           ),
                         ),
                       ),
@@ -247,9 +249,9 @@ class _WelcomeActionButtonState extends State<_WelcomeActionButton> {
                         ),
                         duration: duration,
                         curve: Curves.easeOutCubic,
-                        child: const AuthIcon(
+                        child: AuthIcon(
                           AuthGlyph.arrow,
-                          color: Color(0xFF0A0B0D),
+                          color: colors.onAction,
                           size: 18,
                           stroke: 1.9,
                         ),

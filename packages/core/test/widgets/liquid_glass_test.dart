@@ -202,7 +202,7 @@ void main() {
       expect(glass.updates.last['dark'], false);
       expect(
         glass.updates.last['foreground'],
-        SettloColors.light.textPrimary.toARGB32(),
+        SettloColors.light.action.toARGB32(),
       );
     });
 

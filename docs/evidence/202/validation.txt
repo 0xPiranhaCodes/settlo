@@ -1,0 +1,51 @@
+Issue #202 local validation — 2026-11-12
+Base/main: 7b8539d9440c13aaa05748ebdd8b9c7723b50b86
+Linux image: settlo/flutter-goldens:3.47.9-amd64
+
+flutter analyze
+No issues found! (ran in 6.0s)
+
+Linux: scripts/ci-local.sh linux_tests commands and LCOV merge/gates,
+run in an isolated source mirror at /tmp/palette-linux, /workspace in Docker.
+flutter test --coverage (app)
+08:08 +797: All tests passed!
+flutter test --coverage --concurrency=1 (core)
+05:52 +470 -1: export timing test exceeded 250 ms under simulator load.
+After shutting down and deleting the simulator:
+flutter test test/export/large_export_test.dart --coverage   --coverage-path=coverage/large-export.info --concurrency=1
+00:05 +1: All tests passed!
+Both core LCOV files were included in the unchanged CI merge algorithm.
+
+Other workspace packages, flutter test --coverage --concurrency=1:
+local: 73 passed
+auth: 59 passed
+profile: 42 passed
+platform: 75 passed, 1 excluded known #194 share_files_test flake
+  a second export while the first share is open leaves the first's files alone
+  Bad state: No element, test/share_files_test.dart:87
+  No production/test change made to suppress this failure.
+
+Final Space update and comparison from app/:
+flutter test test/spaces_golden_test.dart test/liquid_glass_golden_test.dart --update-goldens
+00:17 +52: All tests passed!
+flutter test test/spaces_test.dart test/spaces_golden_test.dart test/liquid_glass_golden_test.dart
+00:36 +108: All tests passed!
+388 changed Linux golden PNGs, including 360/390 widths and 200% text.
+
+Total line coverage: 98.52% (5709/5795)
+Main baseline: 98.11%
+Money line coverage: 100.00% (110/110)
+
+Native: Xcode, iPhone 17 Pro / iOS 26.1
+RunnerTests: 24 tests, 0 failures
+testHeaderGlassButtonsOpenTheirScreens: passed light and dark
+testPaletteEvidence with asserted selected tabs: passed light and dark
+testPaletteAuthEvidence: passed before/after, light and dark
+testPaletteLoansEvidence: original app passed light and dark
+Initial missed-tap attempts and timing reruns are explained in README.md.
+36 screenshots exported from xcresult attachments and inspected.
+Dedicated simulator 7CB778C5-7679-4C9A-A596-57DEF56A877E shut down/deleted;
+verified absent from simctl list devices afterward.
+
+git diff --check: clean
+No changes to .github, app name, launcher artwork, in-app S artwork or website.

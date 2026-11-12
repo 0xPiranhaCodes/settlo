@@ -1,0 +1,88 @@
+app/ios/Runner/GlassButton.swift:111:    let path = url.deletingLastPathComponent().appendingPathComponent("3.0x")
+app/ios/Runner/GlassButton.swift:120:  private func color(_ argb: Int) -> UIColor {
+app/ios/Runner/GlassButton.swift:121:    UIColor(
+app/ios/Runner/GlassButton.swift:122:      red: CGFloat((argb >> 16) & 0xFF) / 255, green: CGFloat((argb >> 8) & 0xFF) / 255,
+app/ios/Runner/GlassButton.swift:123:      blue: CGFloat(argb & 0xFF) / 255, alpha: CGFloat((argb >> 24) & 0xFF) / 255)
+app/ios/Runner/GlassButton.swift:83:      button.tintColor = foreground
+app/ios/Runner/NativeTabBar.swift:92:      bar.tintColor = UIColor(
+app/ios/Runner/NativeTabBar.swift:93:        red: CGFloat((argb >> 16) & 0xFF) / 255, green: CGFloat((argb >> 8) & 0xFF) / 255,
+app/ios/Runner/NativeTabBar.swift:94:        blue: CGFloat(argb & 0xFF) / 255, alpha: CGFloat(argb >> 24) / 255)
+app/ios/SettloWidgets/SettleUpLiveActivity.swift:20:        .activityBackgroundTint(.black)
+app/ios/SettloWidgets/SettleUpLiveActivity.swift:47:  static let action = Color(red: 0xFE / 255, green: 0xBD / 255, blue: 0x11 / 255)
+app/ios/SettloWidgets/SettleUpLiveActivity.swift:48:  static let onAction = Color(red: 0x01 / 255, green: 0x38 / 255, blue: 0x1E / 255)
+app/ios/SettloWidgets/SettleUpLiveActivity.swift:49:  static let text = Color(red: 0xF7 / 255, green: 0xF2 / 255, blue: 0xE8 / 255)
+app/ios/SettloWidgets/SettleUpLiveActivity.swift:50:  static let secondary = Color(red: 0xA9 / 255, green: 0xBC / 255, blue: 0xB0 / 255)
+app/ios/SettloWidgets/SettleUpLiveActivity.swift:51:  static let pending = Color(red: 0xF1 / 255, green: 0xC8 / 255, blue: 0x74 / 255)
+app/ios/SettloWidgets/SettleUpLiveActivity.swift:52:  static let track = Color(red: 0x30 / 255, green: 0x47 / 255, blue: 0x3C / 255)
+packages/core/lib/export/statements.dart:447:        color: Color(0xFF18271F),
+packages/core/lib/theme/colors.dart:100:    onNavActive: Color(0xFFFEF0CE),
+packages/core/lib/theme/colors.dart:101:    onAction: Color(0xFFFEF0CE),
+packages/core/lib/theme/colors.dart:102:    glass: Color(0x99FFFDF8),
+packages/core/lib/theme/colors.dart:103:    glassFallback: Color(0xEBFFFDF8),
+packages/core/lib/theme/colors.dart:104:    glassBorder: Color(0xFFD8E0D8),
+packages/core/lib/theme/colors.dart:105:    owedToYou: Color(0xFF01672D),
+packages/core/lib/theme/colors.dart:106:    youOwe: Color(0xFF934636),
+packages/core/lib/theme/colors.dart:107:    pending: Color(0xFF795309),
+packages/core/lib/theme/colors.dart:108:    error: Color(0xFFA42E35),
+packages/core/lib/theme/colors.dart:177:      Color.alphaBlend(const Color(0x66FEF0CE), welcomeAction);
+packages/core/lib/theme/colors.dart:57:    background: Color(0xFF000000),
+packages/core/lib/theme/colors.dart:58:    surface: Color(0xFF14271C),
+packages/core/lib/theme/colors.dart:59:    surfaceRaised: Color(0xFF1A3023),
+packages/core/lib/theme/colors.dart:60:    surfaceHighest: Color(0xFF244332),
+packages/core/lib/theme/colors.dart:61:    hairline: Color(0xFF30473C),
+packages/core/lib/theme/colors.dart:62:    buttonBorder: Color(0xFF688778),
+packages/core/lib/theme/colors.dart:63:    specular: Color(0xFF30473C),
+packages/core/lib/theme/colors.dart:64:    textPrimary: Color(0xFFF7F2E8),
+packages/core/lib/theme/colors.dart:65:    textSecondary: Color(0xFFA9BCB0),
+packages/core/lib/theme/colors.dart:66:    textMuted: Color(0xFFA9BCB0),
+packages/core/lib/theme/colors.dart:67:    action: Color(0xFFFEBD11),
+packages/core/lib/theme/colors.dart:68:    brandAccent: Color(0xFFFEBD11),
+packages/core/lib/theme/colors.dart:69:    welcomeAction: Color(0xFFFEBD11),
+packages/core/lib/theme/colors.dart:70:    navActiveStart: Color(0xFFFEBD11),
+packages/core/lib/theme/colors.dart:71:    navActiveEnd: Color(0xFFFEBD11),
+packages/core/lib/theme/colors.dart:72:    onNavActive: Color(0xFF01381E),
+packages/core/lib/theme/colors.dart:73:    onAction: Color(0xFF01381E),
+packages/core/lib/theme/colors.dart:74:    glass: Color(0x9E14271C),
+packages/core/lib/theme/colors.dart:75:    glassFallback: Color(0xEB14271C),
+packages/core/lib/theme/colors.dart:76:    glassBorder: Color(0xFF30473C),
+packages/core/lib/theme/colors.dart:77:    owedToYou: Color(0xFF83DDA1),
+packages/core/lib/theme/colors.dart:78:    youOwe: Color(0xFFF2AB98),
+packages/core/lib/theme/colors.dart:79:    pending: Color(0xFFF1C874),
+packages/core/lib/theme/colors.dart:80:    error: Color(0xFFFF9CA3),
+packages/core/lib/theme/colors.dart:85:    background: Color(0xFFFBF8EF),
+packages/core/lib/theme/colors.dart:86:    surface: Color(0xFFFFFDF8),
+packages/core/lib/theme/colors.dart:87:    surfaceRaised: Color(0xFFF6F1E5),
+packages/core/lib/theme/colors.dart:88:    surfaceHighest: Color(0xFFE8EDDE),
+packages/core/lib/theme/colors.dart:89:    hairline: Color(0xFFD8E0D8),
+packages/core/lib/theme/colors.dart:90:    buttonBorder: Color(0xFF708478),
+packages/core/lib/theme/colors.dart:91:    specular: Color(0xFFD8E0D8),
+packages/core/lib/theme/colors.dart:92:    textPrimary: Color(0xFF18271F),
+packages/core/lib/theme/colors.dart:93:    textSecondary: Color(0xFF50645A),
+packages/core/lib/theme/colors.dart:94:    textMuted: Color(0xFF50645A),
+packages/core/lib/theme/colors.dart:95:    action: Color(0xFF01672D),
+packages/core/lib/theme/colors.dart:96:    brandAccent: Color(0xFF01672D),
+packages/core/lib/theme/colors.dart:97:    welcomeAction: Color(0xFF01672D),
+packages/core/lib/theme/colors.dart:98:    navActiveStart: Color(0xFF01672D),
+packages/core/lib/theme/colors.dart:99:    navActiveEnd: Color(0xFF01672D),
+packages/core/lib/theme/theme.dart:90:        fillColor: _selected(c.action, Colors.transparent),
+packages/core/lib/theme/tokens.dart:172:      color: Color(dark ? 0x14000000 : 0x0A000000),
+packages/core/lib/theme/tokens.dart:177:      color: Color(dark ? 0x0A000000 : 0x05000000),
+packages/core/lib/theme/tokens.dart:191:    BoxShadow(color: Color(0x24000000), offset: Offset(0, 8), blurRadius: 24),
+packages/core/lib/theme/tokens.dart:192:    BoxShadow(color: Color(0x14000000), offset: Offset(0, 2), blurRadius: 8),
+packages/core/lib/theme/tokens.dart:197:    BoxShadow(color: Color(0x1001381E), offset: Offset(0, 8), blurRadius: 24),
+packages/core/lib/theme/tokens.dart:198:    BoxShadow(color: Color(0x0801381E), offset: Offset(0, 2), blurRadius: 8),
+packages/core/lib/widgets/amount_sheet.dart:334:  backgroundColor: Colors.transparent,
+packages/core/lib/widgets/glass_tab_bar.dart:133:                        Colors.transparent,
+packages/core/lib/widgets/glass_tab_bar.dart:134:                        Colors.white,
+packages/core/lib/widgets/glass_tab_bar.dart:135:                        Colors.white,
+packages/core/lib/widgets/glass_tab_bar.dart:136:                        Colors.transparent,
+packages/core/lib/widgets/sheet.dart:34:    backgroundColor: Colors.transparent,
+packages/core/lib/widgets/sheet.dart:45:        decoration: backgroundColor == Colors.transparent
+packages/core/lib/widgets/welcome_background.dart:137:              Color(0x3DFFFFFF),
+packages/core/lib/widgets/welcome_background.dart:150:              Color(0xCCFFFFFF),
+packages/features/auth/lib/src/otp_screen.dart:278:                style: const TextStyle(color: Colors.transparent),
+packages/features/auth/lib/src/otp_screen.dart:279:                cursorColor: Colors.transparent,
+packages/features/auth/lib/src/welcome_screen.dart:213:                        backgroundColor: Colors.transparent,
+packages/features/auth/lib/src/welcome_screen.dart:215:                        shadowColor: Colors.transparent,
+packages/features/auth/lib/src/welcome_screen.dart:216:                        disabledBackgroundColor: Colors.transparent,
+packages/features/auth/lib/src/welcome_screen.dart:227:                          Colors.transparent,

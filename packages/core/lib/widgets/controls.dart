@@ -22,11 +22,11 @@ class SettloCupertinoTheme extends StatelessWidget {
     final picker = SettloTypography.title3(color: c.textPrimary);
     return CupertinoTheme(
       data: CupertinoTheme.of(context).copyWith(
-        primaryColor: c.textPrimary,
+        primaryColor: c.action,
         textTheme: CupertinoTextThemeData(
-          primaryColor: c.textPrimary,
+          primaryColor: c.action,
           textStyle: SettloTypography.body(color: c.textPrimary),
-          actionTextStyle: SettloTypography.body(color: c.textPrimary),
+          actionTextStyle: SettloTypography.body(color: c.action),
           pickerTextStyle: picker,
           dateTimePickerTextStyle: picker,
         ),
@@ -37,7 +37,7 @@ class SettloCupertinoTheme extends StatelessWidget {
 }
 
 /// An on/off switch. On iOS a [CupertinoSwitch] whose on track is primary
-/// text, not system green: green means "owed to you" in Settlo.
+/// action, using jade in light and marigold in dark.
 class SSwitch extends StatelessWidget {
   /// A switch showing [value]; null [onChanged] disables it.
   const new({required this.value, required this.onChanged, super.key});
@@ -60,10 +60,10 @@ class SSwitch extends StatelessWidget {
       child: CupertinoSwitch(
         value: value,
         onChanged: onChanged,
-        activeTrackColor: c.textPrimary,
+        activeTrackColor: c.action,
         inactiveTrackColor: c.surfaceHighest,
         // On a near-white dark-theme track the white thumb would vanish.
-        thumbColor: value ? c.background : null,
+        thumbColor: value ? c.onAction : null,
       ),
     );
   }

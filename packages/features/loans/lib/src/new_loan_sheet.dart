@@ -428,7 +428,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                 Text(
                   error,
                   textAlign: TextAlign.center,
-                  style: SettloTypography.subheadline(color: c.textPrimary),
+                  style: SettloTypography.subheadline(color: c.error),
                 ),
                 const SizedBox(height: SettloSpacing.x2),
               ],

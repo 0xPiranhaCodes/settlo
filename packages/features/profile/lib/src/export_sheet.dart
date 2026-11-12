@@ -153,7 +153,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
             const SizedBox(height: 8),
             Text(
               error,
-              style: SettloTypography.subheadline(color: colors.textPrimary),
+              style: SettloTypography.subheadline(color: colors.error),
             ),
           ],
         ],

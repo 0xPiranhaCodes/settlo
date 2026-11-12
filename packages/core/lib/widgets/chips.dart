@@ -10,9 +10,7 @@ import 'package:settlo_core/widgets/pressable.dart';
 /// it is [SettloSpacing.minTouchTarget].
 const double _visualHeight = 36;
 
-/// A pill filter or category chip. Selected is inverted (primary text
-/// fill), never the action colour: choosing a filter is not a primary
-/// action.
+/// A pill filter or category chip. Selected uses the action/label pair.
 class SChip extends StatelessWidget {
   /// A chip labelled [label].
   const new({
@@ -50,7 +48,7 @@ class SChip extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: _visualHeight),
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: ShapeDecoration(
-              color: selected ? c.textPrimary : null,
+              color: selected ? c.action : null,
               shape: StadiumBorder(
                 side: selected
                     ? BorderSide.none
@@ -64,7 +62,7 @@ class SChip extends StatelessWidget {
                 label,
                 style: SettloTypography.subheadline(
                   weight: selected ? FontWeight.w500 : FontWeight.w400,
-                  color: selected ? c.background : c.textPrimary,
+                  color: selected ? c.onAction : c.textPrimary,
                 ),
               ),
             ),

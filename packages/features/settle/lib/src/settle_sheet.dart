@@ -221,7 +221,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
             Text(
               error,
               textAlign: TextAlign.center,
-              style: SettloTypography.subheadline(color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.error),
             ),
           ],
         ],

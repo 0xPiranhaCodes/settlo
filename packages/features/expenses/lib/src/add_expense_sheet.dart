@@ -430,7 +430,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
                 error,
-                style: SettloTypography.subheadline(color: c.textPrimary),
+                style: SettloTypography.subheadline(color: c.error),
               ),
             ),
           SizedBox(
@@ -615,8 +615,7 @@ class _Input extends StatelessWidget {
   );
 }
 
-/// A payer option: 46 high, radius 14; the chosen one is inverted, never
-/// gold (choosing is not the primary action).
+/// A payer option: 46 high, radius 14; selection uses the action/label pair.
 class _Option extends StatelessWidget {
   const new({
     required this.label,
@@ -642,7 +641,7 @@ class _Option extends StatelessWidget {
       label: semanticLabel ?? label,
       excludeSemantics: true,
       child: Material(
-        color: selected ? c.textPrimary : c.surfaceRaised,
+        color: selected ? c.action : c.surfaceRaised,
         shape: RoundedRectangleBorder(
           borderRadius: radius,
           side: selected ? BorderSide.none : BorderSide(color: c.hairline),
@@ -661,7 +660,7 @@ class _Option extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: SettloTypography.callout(
                 weight: selected ? FontWeight.w500 : FontWeight.w400,
-                color: selected ? c.background : c.textPrimary,
+                color: selected ? c.onAction : c.textPrimary,
               ),
             ),
           ),

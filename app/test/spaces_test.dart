@@ -200,6 +200,44 @@ SpaceSummary _settledFlat() {
 }
 
 void main() {
+  for (final count in [1, 2]) {
+    testWidgets('pending reference card shows a clock and opens expense '
+        'for its space ($count)', (tester) async {
+      final base = spacesList[1];
+      final pending = SpaceSummary(
+        id: base.id,
+        name: base.name,
+        kind: base.kind,
+        members: base.members,
+        hasExpenses: true,
+        pendingFromYou: [
+          for (var i = 0; i < count; i++)
+            (
+              from: base.you,
+              to: base.others[i],
+              amount: const Paise.rupees(100),
+            ),
+        ],
+      );
+      await _pump(tester, FakeSpacesRepository([pending]));
+      final label = find.text(
+        '$count ${count == 1 ? 'settlement' : 'settlements'} pending',
+      );
+      expect(label, findsOneWidget);
+      expect(
+        tester.widget<Text>(label).style!.color,
+        SettloColors.dark.pending,
+      );
+      final clock = tester.widget<Icon>(find.byIcon(Icons.schedule).first);
+      expect(clock.color, SettloColors.dark.pending);
+      await tester.tap(find.text('Add expense'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('at ${SettloRoutes.addExpenseIn(base.id)}'),
+        findsOneWidget,
+      );
+    });
+  }
   testWidgets('selected space tab has one enabled button announcement', (
     tester,
   ) async {
@@ -290,6 +328,7 @@ void main() {
           )
           .first;
       await tester.ensureVisible(invite);
+      await tester.pumpAndSettle();
       await tester.tap(invite);
       await tester.pumpAndSettle();
 
@@ -408,7 +447,11 @@ void main() {
       await _openSheet(tester);
 
       expect(
-        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Create space'),
+            )
+            .onPressed,
         isNull,
         reason: 'a space needs a name',
       );
@@ -421,6 +464,7 @@ void main() {
 
       expect(find.text('New space'), findsNothing);
       expect(find.text('Flat 7C'), findsOne);
+      await _scrollToEnd(tester);
       expect(find.text("Xavier hasn't joined yet"), findsOne);
       expect(repository.calls, hasLength(1));
       expect(repository.calls.single, endsWith(' Flat 7C +919800000009'));
@@ -1001,10 +1045,7 @@ void main() {
     });
 
     testWidgets('on iOS, delete asks with an action sheet', (tester) async {
-      final (_, ledger) = await pumpSpace(
-        tester,
-        platform: TargetPlatform.iOS,
-      );
+      final (_, ledger) = await pumpSpace(tester, platform: TargetPlatform.iOS);
       await openExpense(tester, 'Electricity');
 
       await tester.tap(find.text('Delete expense'));
@@ -1027,10 +1068,7 @@ void main() {
     testWidgets('on iOS, the space has a large title and back to Spaces', (
       tester,
     ) async {
-      final (router, _) = await pumpSpace(
-        tester,
-        platform: TargetPlatform.iOS,
-      );
+      final (router, _) = await pumpSpace(tester, platform: TargetPlatform.iOS);
 
       expect(find.byType(CupertinoSliverNavigationBar), findsOne);
       final back = find.byType(CupertinoNavigationBarBackButton);
@@ -1123,11 +1161,9 @@ void main() {
           await tester.ensureVisible(find.text('Create space'));
           await tester.pumpAndSettle();
         } else {
-          if (find.text('Add expense').evaluate().isNotEmpty) {
+          for (final element in find.text('Add expense').evaluate()) {
             expect(
-              tester
-                  .renderObject<RenderParagraph>(find.text('Add expense'))
-                  .didExceedMaxLines,
+              (element.renderObject! as RenderParagraph).didExceedMaxLines,
               isFalse,
               reason: 'the label is not cut short',
             );

@@ -77,7 +77,16 @@ final class GlassButton: NSObject, FlutterPlatformView {
       config.attributedTitle = AttributedString(
         title, attributes: .init([.font: UIFont.systemFont(ofSize: 17, weight: .semibold)]))
     }
-    if let argb = args["foreground"] as? Int { config.baseForegroundColor = color(argb) }
+    if let argb = args["foreground"] as? Int {
+      let foreground = color(argb)
+      config.baseForegroundColor = foreground
+      button.tintColor = foreground
+      // Glass can resolve symbol images independently of its title tint.
+      // Pin only SF Symbols; supplied artwork must stay exactly as provided.
+      if args["symbol"] is String, !(args["asset"] is String) {
+        config.image = config.image?.withTintColor(foreground, renderingMode: .alwaysOriginal)
+      }
+    }
     button.configuration = config
     button.isEnabled = args["enabled"] as? Bool ?? true
     button.accessibilityLabel = args["label"] as? String

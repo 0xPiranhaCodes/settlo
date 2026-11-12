@@ -443,9 +443,17 @@ class _PendingRow extends StatelessWidget {
                       style: SettloTypography.body(color: c.textPrimary),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      detail,
-                      style: SettloTypography.footnote(color: c.textSecondary),
+                    Row(
+                      children: [
+                        Icon(Icons.schedule, size: 14, color: c.pending),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            detail,
+                            style: SettloTypography.footnote(color: c.pending),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -568,7 +576,9 @@ class _EntryRow extends StatelessWidget {
     final e = entry;
     final (title, detail, spoken) = _describe(e);
     final spokenDetail = onQuestion == null ? spoken : '$spoken, Question this';
-    final small = SettloTypography.footnote(color: c.textSecondary);
+    final small = SettloTypography.footnote(
+      color: e.status == ActivityStatus.pending ? c.pending : c.textSecondary,
+    );
     final row = Container(
       constraints: const BoxConstraints(
         minHeight: SettloSpacing.minTouchTarget,

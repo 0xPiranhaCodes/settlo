@@ -753,7 +753,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
               const SizedBox(height: SettloSpacing.x2),
               Text(
                 _serverError!,
-                style: SettloTypography.subheadline(color: colors.textPrimary),
+                style: SettloTypography.subheadline(color: colors.error),
               ),
             ],
             const SizedBox(height: SettloSpacing.x3),

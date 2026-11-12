@@ -58,14 +58,14 @@ class SettloTabActions extends ConsumerWidget {
               fixedSize: const Size.square(SettloHomeMetrics.headerControl),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              backgroundColor: SettloColors.dark.surfaceRaised,
+              backgroundColor: c.surfaceRaised,
               side: BorderSide(color: c.hairline),
             ),
             icon: Text(
               initial,
               textScaler: MediaQuery.textScalerOf(context)
                   .clamp(maxScaleFactor: 1.3),
-              style: SettloTypography.headline(color: Colors.white),
+              style: SettloTypography.headline(color: c.textPrimary),
             ),
           ),
         ),

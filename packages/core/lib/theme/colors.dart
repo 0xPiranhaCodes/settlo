@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 
 /// Which way an amount of money points, for the person looking at it.
 ///
-/// Mint and coral are reachable only through this API: they mean money
-/// direction and nothing else.
+/// Money direction has explicit semantic colours in each appearance.
 enum MoneyTone {
-  /// Someone owes you (mint).
+  /// Someone owes you.
   owedToYou,
 
-  /// You owe someone (coral).
+  /// You owe someone.
   youOwe,
 
   /// Settled up (secondary grey).
@@ -21,8 +20,7 @@ enum MoneyTone {
 /// A text colour on a background colour that the theme allows together.
 typedef ContrastPair = ({String name, Color text, Color background});
 
-/// Settlo colour tokens for one theme, from the context pack › Brand and
-/// design and the canvas (Main, HomeLight).
+/// Owner-supplied Settle Check semantic palette (issue #202).
 ///
 /// Read with `SettloColors.of(context)`.
 @immutable
@@ -39,7 +37,9 @@ class SettloColors extends ThemeExtension<SettloColors> {
     required this.textSecondary,
     required this.textMuted,
     required this.action,
-    required this.homeGold,
+    required this.pending,
+    required this.error,
+    required this.brandAccent,
     required this.welcomeAction,
     required this.navActiveStart,
     required this.navActiveEnd,
@@ -54,56 +54,58 @@ class SettloColors extends ThemeExtension<SettloColors> {
 
   /// Dark theme, the default.
   static const dark = SettloColors._(
-    background: Color(0xFF0A0B0D),
-    surface: Color(0xFF15171A),
-    surfaceRaised: Color(0xFF1E2126),
-    surfaceHighest: Color(0xFF262A30),
-    hairline: Color(0x12FFFFFF), // 7% white
-    buttonBorder: Color(0x1AFFFFFF), // 10% white
-    specular: Color(0x1AFFFFFF), // 10% white
-    textPrimary: Color(0xFFF3F2EE),
-    textSecondary: Color(0xFF9B9D9A),
-    textMuted: Color(0xFF8A8D88),
-    action: Color(0xFFD8B36A), // gold
-    homeGold: Color(0xFFF2C77F),
-    welcomeAction: Color(0xFFF2C77F), // welcome mock's lighter gold
-    navActiveStart: Color(0xFF926A30),
-    navActiveEnd: Color(0xFF473419),
-    onNavActive: Color(0xFFFFFFFF),
-    onAction: Color(0xFF0A0B0D),
-    glass: Color(0x9E15171A), // 62% surface
-    glassFallback: Color(0xEB15171A), // 92% surface
-    glassBorder: Color(0x1FFFFFFF), // 12% white
-    owedToYou: Color(0xFF5BD39B),
-    youOwe: Color(0xFFF0715C),
+    background: Color(0xFF000000),
+    surface: Color(0xFF14271C),
+    surfaceRaised: Color(0xFF1A3023),
+    surfaceHighest: Color(0xFF244332),
+    hairline: Color(0xFF30473C),
+    buttonBorder: Color(0xFF688778),
+    specular: Color(0xFF30473C),
+    textPrimary: Color(0xFFF7F2E8),
+    textSecondary: Color(0xFFA9BCB0),
+    textMuted: Color(0xFFA9BCB0),
+    action: Color(0xFFFEBD11),
+    brandAccent: Color(0xFFFEBD11),
+    welcomeAction: Color(0xFFFEBD11),
+    navActiveStart: Color(0xFFFEBD11),
+    navActiveEnd: Color(0xFFFEBD11),
+    onNavActive: Color(0xFF01381E),
+    onAction: Color(0xFF01381E),
+    glass: Color(0x9E14271C),
+    glassFallback: Color(0xEB14271C),
+    glassBorder: Color(0xFF30473C),
+    owedToYou: Color(0xFF83DDA1),
+    youOwe: Color(0xFFF2AB98),
+    pending: Color(0xFFF1C874),
+    error: Color(0xFFFF9CA3),
   );
 
-  /// Light theme. Ink replaces gold as the primary action. Muted and mint
-  /// are darkened from the context pack to keep 4.5:1 on every light
-  /// surface (canvas note n33; docs/decisions/2026-11-09-light-contrast.md).
+  /// Light theme: ivory surfaces and jade actions.
   static const light = SettloColors._(
-    background: Color(0xFFF4F1EA), // paper
-    surface: Color(0xFFFFFFFF),
-    surfaceRaised: Color(0xFFF0EDE5),
-    surfaceHighest: Color(0xFFE6E2D8),
-    hairline: Color(0x141B1B18), // 8% ink
-    buttonBorder: Color(0x241B1B18), // 14% ink
-    specular: Color(0xE6FFFFFF), // 90% white
-    textPrimary: Color(0xFF1B1B18),
-    textSecondary: Color(0xFF6B6B66),
-    textMuted: Color(0xFF6D6B67), // was #7A7873
-    action: Color(0xFF1B1B18), // ink
-    homeGold: Color(0xFF76531F),
-    welcomeAction: Color(0xFFF2C77F), // fixed dark welcome treatment
-    navActiveStart: Color(0xFF926A30),
-    navActiveEnd: Color(0xFF473419),
-    onNavActive: Color(0xFFFFFFFF),
-    onAction: Color(0xFFF4F1EA),
-    glass: Color(0x99FFFFFF), // 60% white
-    glassFallback: Color(0xEBFFFFFF), // 92% white
-    glassBorder: Color(0xBFFFFFFF), // 75% white
-    owedToYou: Color(0xFF1D7A58), // was #1E7F5C
-    youOwe: Color(0xFFB6342B),
+    background: Color(0xFFFBF8EF),
+    surface: Color(0xFFFFFDF8),
+    surfaceRaised: Color(0xFFF6F1E5),
+    surfaceHighest: Color(0xFFE8EDDE),
+    hairline: Color(0xFFD8E0D8),
+    buttonBorder: Color(0xFF708478),
+    specular: Color(0xFFD8E0D8),
+    textPrimary: Color(0xFF18271F),
+    textSecondary: Color(0xFF50645A),
+    textMuted: Color(0xFF50645A),
+    action: Color(0xFF01672D),
+    brandAccent: Color(0xFF01672D),
+    welcomeAction: Color(0xFF01672D),
+    navActiveStart: Color(0xFF01672D),
+    navActiveEnd: Color(0xFF01672D),
+    onNavActive: Color(0xFFFEF0CE),
+    onAction: Color(0xFFFEF0CE),
+    glass: Color(0x99FFFDF8),
+    glassFallback: Color(0xEBFFFDF8),
+    glassBorder: Color(0xFFD8E0D8),
+    owedToYou: Color(0xFF01672D),
+    youOwe: Color(0xFF934636),
+    pending: Color(0xFF795309),
+    error: Color(0xFFA42E35),
   );
 
   /// The colours of the nearest [Theme], falling back to [dark].
@@ -140,15 +142,19 @@ class SettloColors extends ThemeExtension<SettloColors> {
   /// Muted text: unselected tabs, hints.
   final Color textMuted;
 
-  /// A tappable primary action: gold in dark, ink in light. Never progress,
-  /// ticks, badges or status.
+  /// A primary action: marigold in dark, jade in light.
   final Color action;
 
-  /// Home's gold mark, arrows and decorative arcs. The light-theme value is
-  /// dark enough to meet text contrast on paper and white cards.
-  final Color homeGold;
+  /// Waiting for confirmation; pair with a clock icon.
+  final Color pending;
 
-  /// The owner-approved lighter gold for Welcome's primary button only.
+  /// Failed validation or operation.
+  final Color error;
+
+  /// Brand accent for decorative arcs, charts and navigation.
+  final Color brandAccent;
+
+  /// Welcome uses the same primary action as the rest of the app.
   final Color welcomeAction;
 
   /// Top-left and bottom-right stops of the active navigation pill.
@@ -161,16 +167,14 @@ class SettloColors extends ThemeExtension<SettloColors> {
   final Color onNavActive;
 
   /// The lightest stop in Welcome's subtle action gradient.
-  Color get welcomeActionTop =>
-      Color.alphaBlend(const Color(0x1FFFFFFF), welcomeAction);
+  Color get welcomeActionTop => welcomeAction;
 
   /// The lower stop in Welcome's subtle action gradient.
-  Color get welcomeActionBottom =>
-      Color.alphaBlend(const Color(0x0A000000), welcomeAction);
+  Color get welcomeActionBottom => welcomeAction;
 
   /// A fine highlight along the top edge of Welcome's action.
   Color get welcomeActionHighlight =>
-      Color.alphaBlend(const Color(0x66FFFFFF), welcomeAction);
+      Color.alphaBlend(const Color(0x66FEF0CE), welcomeAction);
 
   /// The warm, low shadow beneath Welcome's action.
   Color get welcomeActionShadow => welcomeAction.withValues(alpha: 0.25);
@@ -213,7 +217,9 @@ class SettloColors extends ThemeExtension<SettloColors> {
       'textSecondary': textSecondary,
       'textMuted': textMuted,
       'action': action,
-      'homeGold': homeGold,
+      'pending': pending,
+      'error': error,
+      'brandAccent': brandAccent,
       for (final tone in MoneyTone.values) 'money.${tone.name}': money(tone),
     };
     final glassOver = Color.alphaBlend(glass, background);
@@ -243,7 +249,7 @@ class SettloColors extends ThemeExtension<SettloColors> {
       ),
       (
         name: 'onAction on welcomeActionTop',
-        text: SettloColors.dark.onAction,
+        text: onAction,
         background: welcomeActionTop,
       ),
       (name: 'textPrimary on glass', text: textPrimary, background: glassOver),
@@ -270,7 +276,9 @@ class SettloColors extends ThemeExtension<SettloColors> {
       textSecondary: l(textSecondary, other.textSecondary),
       textMuted: l(textMuted, other.textMuted),
       action: l(action, other.action),
-      homeGold: l(homeGold, other.homeGold),
+      pending: l(pending, other.pending),
+      error: l(error, other.error),
+      brandAccent: l(brandAccent, other.brandAccent),
       welcomeAction: l(welcomeAction, other.welcomeAction),
       navActiveStart: l(navActiveStart, other.navActiveStart),
       navActiveEnd: l(navActiveEnd, other.navActiveEnd),

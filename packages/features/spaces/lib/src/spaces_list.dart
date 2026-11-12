@@ -212,6 +212,9 @@ class _SpaceCard extends StatelessWidget {
     final others = s.others;
     final small = SettloTypography.caption1(color: c.textSecondary);
     final total = s.monthTotal.value;
+    final settlementLabel = s.pendingFromYou.length == 1
+        ? 'settlement'
+        : 'settlements';
     int percent(Paise part) => (part.value * 100 / total).round();
     return MergeSemantics(
       child: SPressable(
@@ -305,6 +308,33 @@ class _SpaceCard extends StatelessWidget {
                   ],
                 ),
               ],
+              if (s.pendingFromYou.isNotEmpty) ...[
+                const SizedBox(height: SettloSpacing.x2),
+                Row(
+                  children: [
+                    Icon(Icons.schedule, size: 16, color: c.pending),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${s.pendingFromYou.length} '
+                        '$settlementLabel '
+                        'pending',
+                        style: SettloTypography.footnote(color: c.pending),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: SettloSpacing.x2),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(shape: const StadiumBorder()),
+                  onPressed: () =>
+                      context.push(SettloRoutes.addExpenseIn(s.id)),
+                  child: const Text('Add expense'),
+                ),
+              ),
             ],
           ),
         ),
@@ -338,7 +368,7 @@ class _PaidBar extends StatelessWidget {
               child: Container(
                 height: 6,
                 decoration: BoxDecoration(
-                  color: m.isYou ? c.textPrimary : c.surfaceHighest,
+                  color: m.isYou ? c.brandAccent : c.surfaceHighest,
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
@@ -424,11 +454,21 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
                     "${member.name} hasn't joined yet",
                     style: SettloTypography.body(color: c.textPrimary),
                   ),
-                  Text(
-                    detail(formatInr(Paise(b.value.abs()))),
-                    semanticsLabel: detail(spokenInr(Paise(b.value.abs()))),
-                    style: SettloTypography.footnote(color: c.textSecondary)
-                        .copyWith(height: 1.3),
+                  Row(
+                    children: [
+                      Icon(Icons.schedule, size: 14, color: c.pending),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          detail(formatInr(Paise(b.value.abs()))),
+                          semanticsLabel: detail(
+                            spokenInr(Paise(b.value.abs())),
+                          ),
+                          style: SettloTypography.footnote(color: c.pending)
+                              .copyWith(height: 1.3),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
