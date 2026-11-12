@@ -18,46 +18,34 @@ env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_CONFIG_')}
 out = ROOT / 'site/images'
 out.mkdir(parents=True, exist_ok=True)
 manifest = {'commit': subprocess.check_output(['git', 'rev-parse', args.ref], cwd=ROOT, env=env, text=True).strip(), 'sources': {}}
-# Lossless: the screens are shown at their real 390px width, so every glyph stays crisp.
-# Crop rows are blank gaps below the last whole card, above the floating navigation;
-# 24px of the screen's own background follows so the rounded frame clips nothing.
-crops = {'home_main': 662, 'settle_pay': None, 'spaces_balances': 754, 'loans_detail': 542, 'confirm_repayment': 787}
-for name, crop in crops.items():
+# Provenance only: the page shows placeholders until SabkiJeb captures exist (#204).
+for name in ('home_main', 'settle_pay', 'spaces_balances', 'loans_detail', 'confirm_repayment'):
     source = f'app/test/goldens/{name}_390x844_dark.png'
     raw = subprocess.check_output(['git', 'show', f'{args.ref}:{source}'], cwd=ROOT, env=env)
-    img = Image.open(io.BytesIO(raw)).convert('RGB')
-    size = list(img.size)
-    if crop:
-        row = img.crop((0, crop, img.width, crop + 1)).convert('L').getextrema()
-        assert row[1] - row[0] < 48, f'{name}: crop row {crop} is not a blank gap; re-pick it'
-        shown = Image.new('RGB', (img.width, crop + 24), img.getpixel((0, crop)))
-        shown.paste(img.crop((0, 0, img.width, crop)))
-        img = shown
-    img.save(out / f'{name}.webp', lossless=True, method=6)
-    manifest['sources'][name] = {'path': source, 'sha256': hashlib.sha256(raw).hexdigest(), 'size': size, 'crop_rows': crop}
+    size = list(Image.open(io.BytesIO(raw)).size)
+    manifest['sources'][name] = {'path': source, 'sha256': hashlib.sha256(raw).hexdigest(), 'size': size}
 subprocess.run([os.sys.executable, str(ROOT / 'scripts/site-icons.py')], check=True)
 mark = Image.open(out / 'mark.png').convert('RGBA')
-# Social card: deterministic composition, real app screen, bundled brand font.
-card = Image.new('RGB', (1200, 630), '#0a0b0d')
+# Social card: deterministic composition, owner logo, bundled brand font.
+card = Image.new('RGB', (1200, 630), '#01381e')
 draw = ImageDraw.Draw(card)
 for radius in (360, 430, 500):
-    draw.ellipse((890-radius, 310-radius, 890+radius, 310+radius), outline='#3d3425', width=2)
+    draw.ellipse((890-radius, 310-radius, 890+radius, 310+radius), outline='#01672d', width=2)
 font_dir = ROOT / 'packages/core/assets/fonts'
-def text(x, y, value, size, fill='#f3f2ee', tracking=0):
+def text(x, y, value, size, fill='#fef0ce'):
     font = ImageFont.truetype(str(font_dir / 'Figtree-Medium.ttf'), size)
-    for char in value if tracking else [value]:
-        draw.text((x, y), char, font=font, fill=fill)
-        x += font.getlength(char) + tracking
-smallmark = mark.copy(); smallmark.thumbnail((64,64))
-card.paste(smallmark, (64,58), smallmark)
-text(142, 66, 'SETTLO', 34, tracking=3)  # the app's spaced-caps lockup
+    draw.text((x, y), value, font=font, fill=fill)
+card.paste(mark.resize((64, 64), Image.Resampling.LANCZOS), (64, 58), mark.resize((64, 64), Image.Resampling.LANCZOS))
+text(146, 66, 'SabkiJeb', 36)
 text(64, 190, 'Good friends.', 66)
 text(64, 268, 'Clear balances.', 66)
-text(64, 382, 'Shared expenses. Personal loans.', 27, '#9b9d9a')
-text(64, 424, 'Made for the way India settles up.', 27, '#9b9d9a')
-text(64, 535, 'iPhone · TestFlight beta', 23, '#d8b36a')
-screen = Image.open(out / 'home_main.webp'); screen.thumbnail((252, 546), Image.Resampling.LANCZOS)
-card.paste(screen, (866,42))
+text(64, 382, 'Shared expenses. Personal loans.', 27, '#a9bcb0')
+text(64, 424, 'Made for the way India settles up.', 27, '#a9bcb0')
+text(64, 535, 'iPhone · TestFlight beta', 23, '#febd11')
+logo = Image.open(ROOT / 'design/brand/website/sabkijeb-logo.png').resize((340, 340), Image.Resampling.LANCZOS)
+rounded = Image.new('L', (340, 340))
+ImageDraw.Draw(rounded).rounded_rectangle((0, 0, 339, 339), radius=76, fill=255)
+card.paste(logo, (720, 145), rounded)
 card.save(out / 'social.png', optimize=True)
 (out / 'sources.json').write_text(json.dumps(manifest, indent=2) + '\n')
 print(json.dumps(manifest, indent=2))

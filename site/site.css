@@ -13,14 +13,16 @@
 }
 :root {
   color-scheme: light dark;
-  --background: #faf9f6;
-  --surface: #f0eee8;
-  --raised: #e9e5dc;
-  --text: #17191b;
-  --secondary: #5b5e5b;
-  --gold: #806025;
-  --welcome-gold: #f2c77f;
-  --line: rgb(0 0 0 / 14%);
+  --background: #fbf8ef;
+  --surface: #fffdf8;
+  --text: #18271f;
+  --secondary: #50645a;
+  --accent: #01672d;
+  --action: #01672d;
+  --action-label: #fef0ce;
+  --action-hover: #01381e;
+  --band: #01381e;
+  --line: #d8e0d8;
 }
 * {
   box-sizing: border-box;
@@ -76,11 +78,11 @@ a {
   text-underline-offset: 4px;
 }
 a:hover {
-  color: var(--gold);
+  color: var(--accent);
 }
 a:focus-visible,
 summary:focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--accent);
   outline-offset: 5px;
   border-radius: 4px;
 }
@@ -89,8 +91,6 @@ summary:focus-visible {
   align-items: center;
   gap: 12px;
   font-size: 22px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   font-weight: 500;
   text-decoration: none;
   min-height: 44px;
@@ -151,7 +151,7 @@ dd {
 }
 .primary,
 .text-link {
-  color: var(--gold);
+  color: var(--accent);
 }
 .card {
   padding: 28px;
@@ -168,8 +168,8 @@ dd {
   left: 24px;
   top: -100px;
   padding: 12px 20px;
-  background: var(--welcome-gold);
-  color: #17130c;
+  background: var(--action);
+  color: var(--action-label);
   z-index: 10;
 }
 .skip:focus {
@@ -202,12 +202,10 @@ footer a {
   color: var(--text);
   font-size: 26px;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   text-decoration: none;
 }
 .studio {
-  color: var(--gold);
+  color: var(--accent);
   font-size: 16px;
   font-weight: 500;
 }
@@ -232,7 +230,7 @@ footer a {
 .footer-end p {
   margin: 0;
 }
-/* Product page: warm paper, Settlo gold, and two dark pauses. */
+/* Product page: warm paper, SabkiJeb jade and marigold, and two forest pauses. */
 .landing {
   --gutter: 24px;
   padding: 0;
@@ -256,15 +254,15 @@ footer a {
   min-height: 56px;
   padding: 15px 28px;
   border-radius: 32px;
-  background: var(--welcome-gold);
-  color: #17130c;
+  background: var(--action);
+  color: var(--action-label);
   font-weight: 500;
   font-size: 16px;
   text-decoration: none;
 }
 .button:hover {
-  background: #ffdb9f;
-  color: #17130c;
+  background: var(--action-hover);
+  color: var(--action-label);
 }
 .availability {
   font-size: 14px;
@@ -331,17 +329,17 @@ figcaption {
   z-index: -1;
   inset: 0 -5% -5%;
   border-radius: 50%;
-  background: radial-gradient(ellipse, #d8b36a30, transparent 68%);
+  background: radial-gradient(ellipse, #febd1133, transparent 68%);
 }
 .landing main > .trip,
 .landing main > .quiet {
   width: 100%;
   padding: 120px max(var(--gutter), (100% - 1120px) / 2);
-  background: #0a0b0d;
-  --text: #f3f2ee;
-  --secondary: #a9aba8;
-  --gold: #d8b36a;
-  --line: #ffffff26;
+  background: var(--band);
+  --text: #fef0ce;
+  --secondary: #a9bcb0;
+  --accent: #febd11;
+  --line: rgb(254 240 206 / 18%);
   color: var(--text);
 }
 .trip {
@@ -373,7 +371,7 @@ figcaption {
 .trip-steps > li > p::before {
   content: "0" counter(step);
   display: block;
-  color: var(--gold);
+  color: var(--accent);
   font-size: 16px;
   letter-spacing: 0.1em;
   margin-bottom: 16px;
@@ -400,7 +398,7 @@ figcaption {
   flex-direction: column;
   gap: 8px;
   padding: 40px;
-  background: #1e2126;
+  background: rgb(254 240 206 / 6%);
   border: 1px solid var(--line);
   border-radius: 24px;
   color: var(--secondary);
@@ -409,7 +407,7 @@ figcaption {
   color: var(--text);
 }
 .sketch-amount {
-  color: #f2c77f;
+  color: var(--accent);
   font-size: 64px;
   letter-spacing: -0.04em;
   line-height: 1.2;
@@ -437,7 +435,7 @@ figcaption {
 .aside {
   margin-top: 32px;
   padding-left: 20px;
-  border-left: 2px solid var(--gold);
+  border-left: 2px solid var(--accent);
 }
 .loan {
   display: flex;
@@ -469,7 +467,7 @@ figcaption {
   font-size: 20px;
 }
 .quiet-body a {
-  color: var(--gold);
+  color: var(--accent);
 }
 .faq {
   display: grid;
@@ -499,7 +497,7 @@ summary::-webkit-details-marker {
 }
 summary::after {
   content: "+";
-  color: var(--gold);
+  color: var(--accent);
   font-size: 24px;
 }
 details[open] summary::after {
@@ -591,7 +589,7 @@ details[open] summary::after {
     position: sticky;
     top: 0;
     z-index: 2;
-    background: #0a0b0d;
+    background: var(--band);
     padding: 20px 0;
     font-size: 36px;
     margin-bottom: 0;
@@ -689,26 +687,22 @@ details[open] summary::after {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0b0d;
-    --surface: #15171a;
-    --raised: #1e2126;
-    --text: #f3f2ee;
-    --secondary: #a9aba8;
-    --gold: #d8b36a;
-    --line: #ffffff26;
-  }
-  .landing main > .trip {
-    background: #15171a;
-  }
-  .trip-intro,
-  .trip-intro h2 {
-    background: #15171a;
+    --background: #000000;
+    --surface: #14271c;
+    --text: #f7f2e8;
+    --secondary: #a9bcb0;
+    --accent: #febd11;
+    --action: #febd11;
+    --action-label: #01381e;
+    --action-hover: #ffcf4d;
+    --band: #14271c;
+    --line: #30473c;
   }
 }
 
 /* Premium product pass: compact chrome, early product, readable story. */
 :root {
-  --nav: #faf9f6;
+  --nav: #fbf8ef;
 }
 html {
   scroll-padding-top: 80px;
@@ -734,7 +728,7 @@ header .wordmark img {
   }
 }
 .landing .eyebrow {
-  color: var(--gold);
+  color: var(--accent);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.09em;
@@ -841,6 +835,7 @@ header .wordmark img {
   padding: 40px;
   border-radius: 32px;
   background: var(--surface);
+  border: 1px solid var(--line);
   overflow: hidden;
 }
 .tile-wide {
@@ -861,7 +856,7 @@ header .wordmark img {
   height: auto;
   margin-top: 36px;
   border-radius: 16px;
-  background: #0a0b0d;
+  background: #000000;
 }
 .tile .eyebrow {
   font-size: 11px;
@@ -879,7 +874,7 @@ header .wordmark img {
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --nav: #0a0b0d;
+    --nav: #000000;
   }
 }
 @media (prefers-reduced-transparency: reduce) {
@@ -1012,7 +1007,7 @@ header .wordmark img {
   margin-inline: auto;
 }
 .tile img[src*="remind"] {
-  width: 350px;
+  width: 100%;
   margin-top: 36px;
 }
 .tile img[src*="instalments"] {
@@ -1027,7 +1022,10 @@ header .wordmark img {
   margin-inline: auto;
   isolation: isolate;
 }
-.hero-screen > img {
+.hero-screen > picture {
+  display: contents;
+}
+.hero-screen > picture > img {
   grid-area: 1 / 1;
 }
 .screen .hero-front {

@@ -1,0 +1,72 @@
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "SabkiJeb",
+    "url": "https://sabkijeb.app/",
+    "description": "Split expenses with flatmates, track money lent to friends and settle up via UPI. Available as an iPhone TestFlight beta; Android later.",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "iOS",
+    "inLanguage": "en-IN",
+    "image": "https://sabkijeb.app/images/social.png",
+    "publisher": {
+      "@type": "Organization",
+      "name": "JOSH Studio",
+      "email": "support@sabkijeb.app"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Can I use SabkiJeb on my phone?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "SabkiJeb is an iPhone TestFlight beta. Email us to ask about beta access. Android is planned for later; there is no public App Store or Google Play release yet."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I split expenses with flatmates?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Create a space for your flat, add people by phone number, and record who paid. Split expenses equally or use exact amounts, percentages or shares. SabkiJeb keeps the balances together."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I track money lent to friends?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Record a loan between two people and track repayments separately from shared expenses. A repayment counts only after the other person confirms it."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does SabkiJeb make the UPI payment?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. SabkiJeb opens your UPI app with the amount and payee details filled in. You approve the payment there, record it in SabkiJeb, and the other person confirms. SabkiJeb cannot see whether a payment went through."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens when I am offline?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Your saved records stay available on your phone. Changes made offline are queued and sent when you reconnect. Sign in online first, and let pending changes sync before signing out."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I delete my account?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. In the app, open Profile and choose Delete account. It happens at once and cannot be undone. If you can’t sign in, email support@sabkijeb.app. Your sign-in is removed. Your profile becomes “Deleted user”, with its phone number and UPI ID removed; shared expenses, loans and their history stay in the other people’s records."
+        }
+      }
+    ]
+  }
+]

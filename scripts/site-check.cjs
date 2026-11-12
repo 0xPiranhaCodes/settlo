@@ -3,7 +3,7 @@ const { chromium } = require("playwright");
 const fs = require("fs");
 const outputDir = process.env.SITE_CHECK_OUTPUT || "/tmp/settlo-site-check";
 const localUrl = process.env.SITE_CHECK_URL || "http://127.0.0.1:8765/";
-const publicUrl = "https://settlo.hellojosh.studio/";
+const publicUrl = "https://sabkijeb.app/";
 const phonesClear = () => {
   const rect = (element) => element.getBoundingClientRect();
   const intersects = (a, b) =>
@@ -54,7 +54,11 @@ const phonesClear = () => {
     const current = fs.readFileSync(file, "utf8");
     // Policy wording lives in <main>; the shared header and footer may change.
     const main = (html) => html.split("<main>")[1].split("</main>")[0];
-    if (main(before) !== main(current))
+    // The SabkiJeb rebrand (#204) may change only the name and contact address.
+    const rebranded = main(before)
+      .replaceAll("settlo@hellojosh.studio", "support@sabkijeb.app")
+      .replaceAll("Settlo", "SabkiJeb");
+    if (rebranded !== main(current))
       throw Error("Policy body changed: " + slug);
   }
   for (const width of [360, 390, 768, 1440]) {

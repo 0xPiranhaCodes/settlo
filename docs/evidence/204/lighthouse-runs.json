@@ -1,0 +1,31 @@
+{
+  "note": "Unchanged final source, default Lighthouse mobile settings. Shared-host runs warn about slower-than-expected CPU; the 0.95 performance threshold is pending. Earlier pre-responsive-fix run scored 0.99.",
+  "runs": [
+    {
+      "fetchTime": "2026-11-12T14:25:19.169Z",
+      "scores": {
+        "performance": 0.93,
+        "accessibility": 1,
+        "best-practices": 1,
+        "seo": 1,
+        "agentic-browsing": 1
+      },
+      "warnings": [
+        "The tested device appears to have a slower CPU than  Lighthouse expects. This can negatively affect your performance score. Learn more about [calibrating an appropriate CPU slowdown multiplier](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)."
+      ]
+    },
+    {
+      "fetchTime": "2026-11-12T14:26:12.571Z",
+      "scores": {
+        "performance": 0.86,
+        "accessibility": 1,
+        "best-practices": 1,
+        "seo": 1,
+        "agentic-browsing": 1
+      },
+      "warnings": [
+        "The tested device appears to have a slower CPU than  Lighthouse expects. This can negatively affect your performance score. Learn more about [calibrating an appropriate CPU slowdown multiplier](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)."
+      ]
+    }
+  ]
+}
