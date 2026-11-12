@@ -1,0 +1,167 @@
+{
+  "method": "Apple Vision accurate text recognition after Pillow RGB PNG conversion of every site raster and pinned capture",
+  "images_scanned": 40,
+  "flagged_matches": 0,
+  "images": [
+    {
+      "path": "site/favicon.ico",
+      "sha256": "db34e464aca560bde35ec4ab1d7cac7ad1644658128664a769ea7792f272ecc4"
+    },
+    {
+      "path": "site/images/loans_detail-phone.avif",
+      "sha256": "56bc309eba795c702c7c7056de8a573e0a16e250a793ba1381006f870c1eaa61"
+    },
+    {
+      "path": "site/images/settle_pay-phone.avif",
+      "sha256": "12b313a6cb0bd8ca0c7caefd836e62fbf1d2e5e31469296eeeecefabe1a30eb3"
+    },
+    {
+      "path": "site/images/loans_detail-phone@3x.avif",
+      "sha256": "13477874f5155098cb70a0c30a2fb8e0d7f6885419ab3cddd247d57a38893ef4"
+    },
+    {
+      "path": "site/images/settle_pay-phone@3x.avif",
+      "sha256": "d465576b0b6ca50b705dfca8abe8e838f20ae546c9e14e1fed47c487305639cf"
+    },
+    {
+      "path": "site/images/apple-touch-icon.png",
+      "sha256": "03c4ed6aa23e243afba1dec2abedf6720d0daa1caa58b0be735fa8e3402093d6"
+    },
+    {
+      "path": "site/images/detail-remind.avif",
+      "sha256": "5747922ddf95137706f370dd5688851f3873168389d5b937caa8ddebc029971a"
+    },
+    {
+      "path": "site/images/detail-instalments.png",
+      "sha256": "276a320384ef481aabdb8a6452bb7f3dda9cf8b1e345daa8a98ad770b29df9e9"
+    },
+    {
+      "path": "site/images/spaces_balances-phone.png",
+      "sha256": "a5d5176a9d6fc437ff2adec051c5ef7a3f0ab39346c3eaa98f143dcceda658c8"
+    },
+    {
+      "path": "site/images/settle_pay-phone.png",
+      "sha256": "3af46d1748512e9636348e9533ac7d2cf5755e947653479a340fc4088bd15119"
+    },
+    {
+      "path": "site/images/spaces_balances-phone.avif",
+      "sha256": "f6eaec7446cc1809d31bc6623c69b6de0d1c11c171b0de9618a6c5a2f0b3b975"
+    },
+    {
+      "path": "site/images/detail-remind.png",
+      "sha256": "21145f5d0c179747efae394e0692993b6d4549090fc9ae81b6d5601c1d33c42f"
+    },
+    {
+      "path": "site/images/detail-upi.png",
+      "sha256": "37b320ed75c4dee5bd66b9a85714dc4ab1b437d6e2a0ecf4fbca75b02b0abfbd"
+    },
+    {
+      "path": "site/images/detail-instalments.avif",
+      "sha256": "0e216af9fb592188c36dd883de792fa70b40e8df6101f43b0c3fbd631a0ae98d"
+    },
+    {
+      "path": "site/images/settle_pay-phone@2x.avif",
+      "sha256": "7807df5ab0b18d2ed59cae7dfe20a0032331e6b1ec9a03528469a2c5e95ec745"
+    },
+    {
+      "path": "site/images/detail-balance.png",
+      "sha256": "2622ab8227ae458b977b8adb9b48679ea0a3bcf6af39a1b4e070e615bf1a38bb"
+    },
+    {
+      "path": "site/images/loans_detail-phone@2x.avif",
+      "sha256": "328e135dfd89d08ab8cb00427d3a5d3fa9e7093d97a6d25e7cdb0cc6e7c4dd13"
+    },
+    {
+      "path": "site/images/confirm_repayment-phone.avif",
+      "sha256": "06315e7a17009ffa7e309fd4e8fcf1ee60ad8dd7ebf099a68f94669b625119d2"
+    },
+    {
+      "path": "site/images/favicon.png",
+      "sha256": "e0f52f97a35791e7c1f12c6d88358138a28f9701a5040a66df166f983bad8f8c"
+    },
+    {
+      "path": "site/images/spaces_balances-phone@2x.avif",
+      "sha256": "82f5ffeaa268b9b2bd60bc372d30f75bfdba771589470324716504f694ae1435"
+    },
+    {
+      "path": "site/images/confirm_repayment-phone.png",
+      "sha256": "3ce6daf5dbb896695d88447316a566971991ef51228f65542912bef3404aeac4"
+    },
+    {
+      "path": "site/images/loans_detail-phone.png",
+      "sha256": "c51d8517f82fbefa5c6f4cb47703418134165948c9446201bedfa6057afe85cc"
+    },
+    {
+      "path": "site/images/confirm_repayment-phone@3x.avif",
+      "sha256": "57ef97605a54bd2d024d9f204959603e25a84c5ad61d4710bf51eb985f76baa9"
+    },
+    {
+      "path": "site/images/home_main-phone@2x.avif",
+      "sha256": "c53ecae88e6d3401040e1d6d0a0a32a0c1e5194407cc8824f75284c971703a02"
+    },
+    {
+      "path": "site/images/home_main-phone.avif",
+      "sha256": "09c07cd530ca100d7adde5bd7e5546d96e1603a42d8b29debe9962faf4da4ce6"
+    },
+    {
+      "path": "site/images/detail-balance.avif",
+      "sha256": "18b6cbb7cb1f9e0391b00a8edc91f56c26bb90245b043260ce3578bf02b969e0"
+    },
+    {
+      "path": "site/images/mark.png",
+      "sha256": "c85e33e3e47545bd39fc22691d594af88de18b6ac189423c94c5e8bd28798082"
+    },
+    {
+      "path": "site/images/home_main-phone.png",
+      "sha256": "cdfef84534c9e9271a781b0cd50756cfd7b5281ba55b53a860c0fb803d4d82d3"
+    },
+    {
+      "path": "site/images/home_main-phone@3x.avif",
+      "sha256": "da0b5dbdd0dc73e45c99a17ec4e96b9627be873b2783ba1ab7fe9e26fc045459"
+    },
+    {
+      "path": "site/images/spaces_balances-phone@3x.avif",
+      "sha256": "bbfd7bd05d4e346896fb38fefcfd2e41174a38d6961e585448b28d41973c77d4"
+    },
+    {
+      "path": "site/images/social.png",
+      "sha256": "d5ccf2243fcfa86a88c6264a108326f209271ca58a24e5af7a3a45adf4e32b55"
+    },
+    {
+      "path": "site/images/detail-upi.avif",
+      "sha256": "81eb8d1d0c227bc410d279565f0737c626169224582dcd94329e2533f545b701"
+    },
+    {
+      "path": "site/images/confirm_repayment-phone@2x.avif",
+      "sha256": "8fe3228c459b23039d830f58b5bb615a3fb6fe415f8f5fdffe18871b821a102f"
+    },
+    {
+      "path": "site/images/device/studio-frame.png",
+      "sha256": "8bee1908f1ad8998bb0d94d279a6f20c5a9b6a95d06f3150d4cbd31327a1208c"
+    },
+    {
+      "path": "docs/evidence/204/captures/home-light-phone.png",
+      "sha256": "b173785ed64215a3d831acd5b57f045c22261daccbae9312ad589c4f659b8a01"
+    },
+    {
+      "path": "docs/evidence/204/captures/spaces-light-phone.png",
+      "sha256": "70f0545e06168b6efa961cb33090219395a3fe52ceaa0461c2a2d2a5d4289593"
+    },
+    {
+      "path": "docs/evidence/204/captures/loans-light-phone.png",
+      "sha256": "87e31a8f5781a2f79481c5a67ca66a96c536ecf5274d4c549111d0c7b42c841e"
+    },
+    {
+      "path": "docs/evidence/204/captures/activity-light-phone.png",
+      "sha256": "43d669ab66a49e93da391ae1203cacc5b0a57790a5d09b136c071c8641df34a3"
+    },
+    {
+      "path": "docs/evidence/204/captures/profile-light-phone.png",
+      "sha256": "873f21b575cf5990e8fd05c952a4fb6b142eefde2ffadacbb49febae4eeb6204"
+    },
+    {
+      "path": "docs/evidence/204/captures/balances-light-phone.png",
+      "sha256": "1ffce1cc43288bbdb288fba747684c5508d3e7ada90774424879c025373990f0"
+    }
+  ]
+}

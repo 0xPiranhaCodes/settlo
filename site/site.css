@@ -1007,7 +1007,7 @@ header .wordmark img {
   margin-inline: auto;
 }
 .tile img[src*="remind"] {
-  width: 350px;
+  width: 100%;
   margin-top: 36px;
 }
 .tile img[src*="instalments"] {
@@ -1022,7 +1022,10 @@ header .wordmark img {
   margin-inline: auto;
   isolation: isolate;
 }
-.hero-screen > img {
+.hero-screen > picture {
+  display: contents;
+}
+.hero-screen > picture > img {
   grid-area: 1 / 1;
 }
 .screen .hero-front {

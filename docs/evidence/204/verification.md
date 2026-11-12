@@ -2,24 +2,44 @@
 
 Website rebrand to SabkiJeb at https://sabkijeb.app.
 
-- `scripts/site-check.cjs` (served by `scripts/site-serve.py --port 8794`): passed at
-  360, 390, 768 and 1440 px, light and dark, landing/privacy/support, with
-  JavaScript disabled, motion, density and the 350 KiB image budget
-  (max 154,457 bytes). The policy-body guard now allows only the name and
-  support-address swap. Results: `site-check-browser.json`, `site-check-motion.json`.
-- `scripts/site-images-ready-check.cjs`: PASS (15 no-JS density runs; corrupt image rejected).
-- Lighthouse 12.3.0, mobile, local server: performance 0.99, accessibility 1,
-  best practices 1, SEO 1 (`lighthouse-mobile.json`).
-- Structured data: `structured-data.json` (SoftwareApplication + FAQPage, URL
-  https://sabkijeb.app/, email support@sabkijeb.app; FAQ matches visible copy per site-check).
-- Palette contrast (WCAG AA): jade #01672D on #FBF8EF 6.64:1, secondary #50645A
-  5.97:1, ivory on jade 6.23:1; marigold #FEBD11 on #000000 12.5:1, forest label
-  on marigold 7.88:1; forest band text #FEF0CE 11.71:1, #A9BCB0 6.63:1, marigold 7.88:1.
-- Screenshots: `landing-1440-{light,dark}.png` (desktop), `landing-390-{light,dark}.png`
-  (mobile), `privacy-360-*.png`, `support-360-*.png`.
+Final local verification on 2026-11-12:
+- Rebased onto origin/main. JOSH Studio remains the operator and linked footer
+  credit, per the owner decision. No `.github` changes.
+- `scripts/site-check.cjs`: PASS, served by `scripts/site-serve.py --port 8794`.
+  Covers 360, 390, 768 and 1440 px, light/dark, landing/privacy/support,
+  JavaScript disabled, motion, density, metadata and policy-body checks.
+  Results: `site-check-browser.json`, `site-check-motion.json`,
+  `site-check-density.json` and `structured-data.json`.
+- `scripts/site-images-ready-check.cjs`: PASS (15 no-JS density runs;
+  corrupt image rejected).
+- Landing image alternatives: 142,280 / 241,361 / 342,877 bytes at 1x/2x/3x,
+  below the 358,400-byte limit.
+- Lighthouse mobile performance is **pending** the required 0.95 threshold.
+  Final unchanged-source runs scored 0.93 and 0.86, both with slow-host CPU
+  warnings; accessibility, best practices and SEO scored 1.00 throughout.
+  A concurrent run scored 0.67 with a cache timeout and slow-CPU warning.
+  The earlier run before the responsive reminder-width fix scored 0.99.
+  `lighthouse-mobile.json` contains the latest final-source run;
+  `lighthouse-runs.json` records the isolated final-source measurements.
+  The coordinator approved pushing with this limitation and plans live-site
+  Lighthouse verification after publishing. Local results are not deployment proof.
 
-Phone images and close-ups are neutral, text-free wireframes in the #202 dark
-palette (`scripts/site-phones.py --placeholders`): the previous captures showed
-the gold UI and the Settlo name. Follow-up: rebuild with
-`scripts/site-build-images.sh` once #202 and #203 land in the app, and restore
-descriptive alt text.
+All six pinned captures were replaced with the supplied fresh iOS 26 simulator
+exports. Profile and the UPI detail show `demo@upi`. `scripts/site-build-images.sh`
+rebuilds all phone densities, PNG fallbacks and detail crops without Flutter or
+external temporary paths; `site/images/sources.json` records source hashes.
+Both site themes use light captures with native system chrome preserved.
+Home uses Home; Goa uses Spaces; the flat uses Balances; loans use Loans and Activity.
+
+Apple Vision accurate OCR scanned every site raster and all six pinned captures
+(40 images), with zero private-VPA marker matches. `image-privacy-check.json`
+records the scope and hashes. The privacy text scan is scoped to this PR's files
+per coordinator direction; repository-wide fixture cleanup remains in #209,
+which must merge before #207.
+
+The reminders detail now shows the Profile Reminders toggle. The instalments
+detail retains Arjun's loan progress card; both PNG and AVIF files differ.
+The reminder image scales to its tile width, keeping its toggle visible on mobile.
+Landing screenshots were refreshed at 360, 390, 768 and 1440 px in both themes.
+The 390/1440 screenshots, mobile detail crop and source-screen contact sheet were
+visually inspected. Privacy and support screenshots were also refreshed by the checker.

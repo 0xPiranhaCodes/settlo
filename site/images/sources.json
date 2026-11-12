@@ -2,14 +2,14 @@
   "commit": "7b8539d9440c13aaa05748ebdd8b9c7723b50b86",
   "sources": {
     "home_main": {
-      "path": "app/test/goldens/home_main_390x844_dark.png",
-      "sha256": "b933044341eeceeeddc73e1f54328fef1042c9742952faebab0cf339b689f9a4",
-      "size": [
-        390,
-        844
-      ],
       "marketing": {
-        "placeholder": "scripts/site-phones.py --placeholders"
+        "path": "docs/evidence/204/captures/home-light-phone.png",
+        "sha256": "b173785ed64215a3d831acd5b57f045c22261daccbae9312ad589c4f659b8a01",
+        "size": [
+          1290,
+          2796
+        ],
+        "platform": "iOS 26 simulator"
       },
       "phone": {
         "angle_degrees": 0,
@@ -20,26 +20,27 @@
         "outputs": [
           "home_main-phone.avif",
           "home_main-phone@2x.avif",
-          "home_main-phone@3x.avif"
+          "home_main-phone@3x.avif",
+          "home_main-phone.png"
         ],
         "screen_crop_rows": null,
         "encoding": {
           "format": "AVIF",
-          "quality": 56,
+          "quality": 48,
           "subsampling": "4:4:4"
         },
         "output_scale": 0.2719665271966527
       }
     },
     "settle_pay": {
-      "path": "app/test/goldens/settle_pay_390x844_dark.png",
-      "sha256": "6e6a26552ca0340294d1f116368f6350888e430b4d62f07e46641c11a247ab44",
-      "size": [
-        390,
-        844
-      ],
       "marketing": {
-        "placeholder": "scripts/site-phones.py --placeholders"
+        "path": "docs/evidence/204/captures/spaces-light-phone.png",
+        "sha256": "70f0545e06168b6efa961cb33090219395a3fe52ceaa0461c2a2d2a5d4289593",
+        "size": [
+          1290,
+          2796
+        ],
+        "platform": "iOS 26 simulator"
       },
       "phone": {
         "angle_degrees": 3,
@@ -50,7 +51,8 @@
         "outputs": [
           "settle_pay-phone.avif",
           "settle_pay-phone@2x.avif",
-          "settle_pay-phone@3x.avif"
+          "settle_pay-phone@3x.avif",
+          "settle_pay-phone.png"
         ],
         "screen_crop_rows": null,
         "encoding": {
@@ -62,14 +64,14 @@
       }
     },
     "spaces_balances": {
-      "path": "app/test/goldens/spaces_balances_390x844_dark.png",
-      "sha256": "ad04f5bf55f8ac1274c9fca9f5cb3c59314fdd72fdb0de2cdb8a5b3389e9544a",
-      "size": [
-        390,
-        844
-      ],
       "marketing": {
-        "placeholder": "scripts/site-phones.py --placeholders"
+        "path": "docs/evidence/204/captures/balances-light-phone.png",
+        "sha256": "1ffce1cc43288bbdb288fba747684c5508d3e7ada90774424879c025373990f0",
+        "size": [
+          1290,
+          2796
+        ],
+        "platform": "iOS 26 simulator"
       },
       "phone": {
         "angle_degrees": -3,
@@ -80,7 +82,8 @@
         "outputs": [
           "spaces_balances-phone.avif",
           "spaces_balances-phone@2x.avif",
-          "spaces_balances-phone@3x.avif"
+          "spaces_balances-phone@3x.avif",
+          "spaces_balances-phone.png"
         ],
         "screen_crop_rows": null,
         "encoding": {
@@ -92,14 +95,14 @@
       }
     },
     "loans_detail": {
-      "path": "app/test/goldens/loans_detail_390x844_dark.png",
-      "sha256": "f4f2ab0d9952fcafe080dfbb470b31135952356c77e9252351586eca1c01e734",
-      "size": [
-        390,
-        844
-      ],
       "marketing": {
-        "placeholder": "scripts/site-phones.py --placeholders"
+        "path": "docs/evidence/204/captures/loans-light-phone.png",
+        "sha256": "87e31a8f5781a2f79481c5a67ca66a96c536ecf5274d4c549111d0c7b42c841e",
+        "size": [
+          1290,
+          2796
+        ],
+        "platform": "iOS 26 simulator"
       },
       "phone": {
         "angle_degrees": 3,
@@ -110,7 +113,8 @@
         "outputs": [
           "loans_detail-phone.avif",
           "loans_detail-phone@2x.avif",
-          "loans_detail-phone@3x.avif"
+          "loans_detail-phone@3x.avif",
+          "loans_detail-phone.png"
         ],
         "screen_crop_rows": null,
         "encoding": {
@@ -122,14 +126,14 @@
       }
     },
     "confirm_repayment": {
-      "path": "app/test/goldens/confirm_repayment_390x844_dark.png",
-      "sha256": "477d4d425caca5db7ddf96b285cabc4248c3ae63dc66d15b845ac60d9d838331",
-      "size": [
-        390,
-        844
-      ],
       "marketing": {
-        "placeholder": "scripts/site-phones.py --placeholders"
+        "path": "docs/evidence/204/captures/activity-light-phone.png",
+        "sha256": "43d669ab66a49e93da391ae1203cacc5b0a57790a5d09b136c071c8641df34a3",
+        "size": [
+          1290,
+          2796
+        ],
+        "platform": "iOS 26 simulator"
       },
       "phone": {
         "angle_degrees": 0,
@@ -140,7 +144,8 @@
         "outputs": [
           "confirm_repayment-phone.avif",
           "confirm_repayment-phone@2x.avif",
-          "confirm_repayment-phone@3x.avif"
+          "confirm_repayment-phone@3x.avif",
+          "confirm_repayment-phone.png"
         ],
         "screen_crop_rows": null,
         "encoding": {
@@ -158,68 +163,70 @@
       430,
       932
     ],
-    "status_bar_height": 54,
-    "home_area_height": 34,
     "bezel_width": 8,
     "display_radius": 52,
     "recipe": "scripts/site-phones.py",
-    "screen_policy": "Full 430 x 932 Flutter export at 3x with 54px top and 34px bottom safe-area insets. Illustrative system chrome is drawn only in those reserved areas. Shared concentric frame/mask geometry. Uniform resampling and AVIF encoding only."
+    "screen_policy": "Full unaltered iOS 26 SabkiJeb simulator captures, including native system chrome. Light captures serve both site themes. Uniform resampling inside a concentric illustrative frame."
   },
   "details": {
     "upi": {
-      "source": "settle_pay",
+      "source": "docs/evidence/204/captures/profile-light-phone.png",
+      "sha256": "873f21b575cf5990e8fd05c952a4fb6b142eefde2ffadacbb49febae4eeb6204",
       "logical_crop": [
-        12,
-        636,
-        378,
-        764
+        20,
+        282,
+        410,
+        372
       ],
       "output": "detail-upi.avif",
       "size": [
-        1098,
-        384
+        1170,
+        270
       ]
     },
     "remind": {
-      "source": "loans_detail",
+      "source": "docs/evidence/204/captures/profile-light-phone.png",
+      "sha256": "873f21b575cf5990e8fd05c952a4fb6b142eefde2ffadacbb49febae4eeb6204",
       "logical_crop": [
         20,
-        484,
-        370,
-        614
+        428,
+        410,
+        512
       ],
       "output": "detail-remind.avif",
       "size": [
-        1050,
-        390
+        1170,
+        252
       ]
     },
     "balance": {
-      "source": "home_main",
+      "source": "docs/evidence/204/captures/home-light-phone.png",
+      "sha256": "b173785ed64215a3d831acd5b57f045c22261daccbae9312ad589c4f659b8a01",
       "logical_crop": [
         20,
-        128,
-        370,
-        352
+        142,
+        410,
+        364
       ],
       "output": "detail-balance.avif",
       "size": [
-        1050,
-        672
+        1170,
+        666
       ]
     },
     "instalments": {
-      "source": "loans_detail",
+      "source": "docs/evidence/204/captures/loans-light-phone.png",
+      "sha256": "87e31a8f5781a2f79481c5a67ca66a96c536ecf5274d4c549111d0c7b42c841e",
       "logical_crop": [
-        44,
-        336,
-        346,
-        452
+        20,
+        166,
+        410,
+        312
       ],
       "output": "detail-instalments.avif",
       "size": [
-        906,
-        348
+        1170,
+        438
       ]
     }
   }
