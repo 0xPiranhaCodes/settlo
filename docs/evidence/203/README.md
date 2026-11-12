@@ -40,7 +40,7 @@ filled and the dark shadow slits between check and pocket kept.
 
 - Space invite (WhatsApp): `Hi, this is Sana. I added you to Flat 402 on SabkiJeb. Nothing is shown until you verify this number. <link>`
 - Loan invite: `Hi, this is Sana. I recorded a loan between us on SabkiJeb. You will see it in SabkiJeb once you verify this number. <link>`
-- Settle-up request: `Hi Priya, settling up Flat 402: please pay ₹2,100 to sana@okaxis on any UPI app. Sent from SabkiJeb.`
+- Settle-up request: `Hi Priya, settling up Flat 402: please pay ₹2,100 to demo@upi on any UPI app. Sent from SabkiJeb.`
 - UPI note: `SabkiJeb: Goa trip` (`tn=SabkiJeb%3A%20Goa%20trip`)
 - PDF statements: wordmark `SabkiJeb`, creator `SabkiJeb`, footer `Made on this device from what you see in SabkiJeb. SabkiJeb is a record; it never holds or moves money.`
 - Export files: `sabkijeb-<space>-expenses-<date>.csv`, `sabkijeb-<space>-summary-<date>.pdf`, `sabkijeb-loan-statement-<date>.pdf`

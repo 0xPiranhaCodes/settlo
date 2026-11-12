@@ -18,7 +18,7 @@ void main() {
             jsonEncode({
               'name': 'Satheesh',
               'phone': '+919876543210',
-              'upi_id': 'satheesh@okaxis',
+              'upi_id': 'demo@upi',
             }),
           );
         } else {
@@ -38,7 +38,7 @@ void main() {
     final profile = await repository.load();
     expect(
       (profile.name, profile.phone, profile.upiId),
-      ('Satheesh', '+919876543210', 'satheesh@okaxis'),
+      ('Satheesh', '+919876543210', 'demo@upi'),
     );
     await repository.update(name: 'Asha', upiId: null);
     expect(requests, hasLength(2));

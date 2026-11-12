@@ -22,7 +22,7 @@ select dblink_exec('setup', $$
   commit;
   begin;
   update public.profiles set name = 'Asha' where id = '00000000-0000-0000-0000-0000000b0001';
-  update public.profiles set name = 'Wren', upi_id = 'wren@okaxis' where id = '00000000-0000-0000-0000-0000000b0002';
+  update public.profiles set name = 'Wren', upi_id = 'demo@upi' where id = '00000000-0000-0000-0000-0000000b0002';
   insert into public.spaces (id, name, created_by) values
     ('00000000-0000-0000-0000-0000000b0101', 'Barrier Q', '00000000-0000-0000-0000-0000000b0001'),
     ('00000000-0000-0000-0000-0000000b0102', 'Barrier R', '00000000-0000-0000-0000-0000000b0001');

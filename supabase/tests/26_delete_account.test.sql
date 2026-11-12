@@ -15,7 +15,7 @@ insert into auth.users (id, phone, phone_confirmed_at) values
   ('00000000-0000-0000-0000-0000000d0002', '919660000002', now()),
   ('00000000-0000-0000-0000-0000000d0003', '919660000003', now());
 update public.profiles set name = 'Asha' where id = '00000000-0000-0000-0000-0000000d0001';
-update public.profiles set name = 'Dev', upi_id = 'dev@okaxis' where id = '00000000-0000-0000-0000-0000000d0002';
+update public.profiles set name = 'Dev', upi_id = 'demo@upi' where id = '00000000-0000-0000-0000-0000000d0002';
 insert into public.friends (user_id, friend_phone, friend_id) values
   ('00000000-0000-0000-0000-0000000d0002', '+919660000001', '00000000-0000-0000-0000-0000000d0001'),
   ('00000000-0000-0000-0000-0000000d0001', '+919660000002', '00000000-0000-0000-0000-0000000d0002');

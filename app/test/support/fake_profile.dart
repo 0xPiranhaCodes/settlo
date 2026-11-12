@@ -5,7 +5,7 @@ import 'package:settlo_profile/settlo_profile.dart';
 const fakeProfile = ProfileData(
   name: 'Satheesh',
   phone: '+919876543210',
-  upiId: 'satheesh@okaxis',
+  upiId: 'demo@upi',
 );
 
 /// In-memory profile repository for app composition tests.

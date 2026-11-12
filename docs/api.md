@@ -534,7 +534,7 @@ same check, so a direct write of a malformed id fails with `23514`. No idempoten
 writes the same values.
 
 ```
-POST /rest/v1/rpc/update_profile  {"p_name": "Asha K", "p_upi_id": "asha.k@okaxis"}
+POST /rest/v1/rpc/update_profile  {"p_name": "Asha K", "p_upi_id": "demo@upi"}
 ```
 
 ### `delete_account()` (#9, #74)
