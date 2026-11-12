@@ -1,0 +1,114 @@
+Issue #202 original local validation at 6efaa2c — 2026-11-12
+Base/main: 7b8539d9440c13aaa05748ebdd8b9c7723b50b86
+Linux image: settlo/flutter-goldens:3.47.9-amd64
+
+flutter analyze
+No issues found! (ran in 6.0s)
+
+Linux: scripts/ci-local.sh linux_tests commands and LCOV merge/gates,
+run in an isolated source mirror at /tmp/palette-linux, /workspace in Docker.
+flutter test --coverage (app)
+08:08 +797: All tests passed!
+flutter test --coverage --concurrency=1 (core)
+05:52 +470 -1: export timing test exceeded 250 ms under simulator load.
+After shutting down and deleting the simulator:
+flutter test test/export/large_export_test.dart --coverage   --coverage-path=coverage/large-export.info --concurrency=1
+00:05 +1: All tests passed!
+Both core LCOV files were included in the unchanged CI merge algorithm.
+
+Other workspace packages, flutter test --coverage --concurrency=1:
+local: 73 passed
+auth: 59 passed
+profile: 42 passed
+platform: 75 passed, 1 excluded known #194 share_files_test flake
+  a second export while the first share is open leaves the first's files alone
+  Bad state: No element, test/share_files_test.dart:87
+  No production/test change made to suppress this failure.
+
+Final Space update and comparison from app/:
+flutter test test/spaces_golden_test.dart test/liquid_glass_golden_test.dart --update-goldens
+00:17 +52: All tests passed!
+flutter test test/spaces_test.dart test/spaces_golden_test.dart test/liquid_glass_golden_test.dart
+00:36 +108: All tests passed!
+388 changed Linux golden PNGs, including 360/390 widths and 200% text.
+
+Total line coverage: 98.52% (5709/5795)
+Main baseline: 98.11%
+Money line coverage: 100.00% (110/110)
+
+Native: Xcode, iPhone 17 Pro / iOS 26.1
+RunnerTests: 24 tests, 0 failures
+testHeaderGlassButtonsOpenTheirScreens: passed light and dark
+testPaletteEvidence with asserted selected tabs: passed light and dark
+testPaletteAuthEvidence: passed before/after, light and dark
+testPaletteLoansEvidence: original app passed light and dark
+Initial missed-tap attempts and timing reruns are explained in README.md.
+36 screenshots exported from xcresult attachments and inspected.
+Dedicated simulator 7CB778C5-7679-4C9A-A596-57DEF56A877E shut down/deleted;
+verified absent from simctl list devices afterward.
+
+git diff --check: clean
+No changes to .github, app name, launcher artwork, in-app S artwork or website.
+
+PR #206 colour-only correction — 2026-11-12
+Parent: 6efaa2cfec51ec505c8bd2ea2e5270a6852d6739
+Base/main unchanged: 7b8539d9440c13aaa05748ebdd8b9c7723b50b86
+
+Removed the per-Space-card Add expense CTA, its route action and the added
+settlement count. _SpaceCard and app/test/spaces_test.dart match main byte for
+byte. Restored the iOS controls test helper to main; its palette assertion stays.
+Restored FilledButton's main RoundedRectangleBorder (radius 16) instead of the
+new StadiumBorder. Retained approved clocks on existing pending lines.
+Audited every production Dart/Swift diff: remaining changes are semantic colours,
+tint propagation and approved pending clocks; no other layout/navigation change.
+Updated the native tint test fixture and expected RGB to marigold.
+
+flutter analyze
+No issues found! (ran in 6.3s)
+
+Isolated Linux mirror: /tmp/palette206-linux, mounted as /workspace.
+Image: settlo/flutter-goldens:3.47.9-amd64 (scripts/ci-local.sh image).
+Goldens regenerated with --concurrency=2 --update-goldens:
+app: test/*golden_test.dart — 238 passed
+core: test/theme/theme_golden_test.dart test/widgets/components_golden_test.dart
+  — 32 passed
+app: test/sheet_hit_test.dart test/scroll_chrome_test.dart
+  test/statement_name_image_test.dart test/golden_harness_sample_test.dart
+  — 147 passed
+174 PNGs changed from the parent; all original dimensions retained.
+All changed images visually inspected, including 12 Spaces-list variants.
+The first full comparison was stopped after discovering sheet button-corner
+mismatches; those sheet goldens were regenerated before the clean full rerun.
+
+Full workspace tests and coverage: extracted the linux_tests shell value from
+scripts/ci-local.sh, changed only the test invocation to:
+  flutter test --coverage --concurrency=2 --reporter expanded
+Ran every workspace member with test/ in the same Linux container. LCOV merge
+and baseline/money gates are unchanged; COVERAGE_BASELINE=98.11.
+app: 795 passed
+core: 471 passed
+local: 73 passed
+platform: 76 passed (including share_files_test; no #194 exclusion needed)
+auth: 59 passed
+profile: 42 passed
+Total: 1516 passed, no failures or exclusions in the final run.
+Total line coverage: 98.52% (5709/5795)
+Main baseline: 98.11%
+Money line coverage: 100.00% (110/110)
+
+Native correction verification:
+flutter build ios --simulator --debug -t integration_test/palette_app.dart
+Built successfully.
+xcodebuild test -workspace ios/Runner.xcworkspace -scheme Runner
+  -destination 'platform=iOS Simulator,id=45C79D4F-1533-48D2-B4B6-EE35D1FC78FC'
+  -parallel-testing-enabled NO -only-testing:RunnerTests
+  -only-testing:RunnerUITests/RunnerUITests/testPaletteEvidence
+Ran with simctl appearance light, then dark on the same simulator.
+Light: 24 Swift tests and testPaletteEvidence passed.
+Dark: 24 Swift tests and testPaletteEvidence passed.
+Spaces attachments exported with xcresulttool and visually inspected, replacing
+only after/light/spaces.png and after/dark/spaces.png.
+Simulator shut down/deleted; its UUID is absent from simctl list devices.
+
+git diff --check: clean.
+.github unchanged.

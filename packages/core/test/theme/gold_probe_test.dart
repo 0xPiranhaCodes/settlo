@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
 
-/// How many pixels of the boundary around [finder] are gold, within a
+/// How many pixels of the boundary around [finder] use the action hue, within a
 /// small tolerance for blending.
-Future<int> _goldPixels(WidgetTester tester, Finder finder) async {
+Future<int> _actionPixels(WidgetTester tester, Finder finder) async {
   final data = (await tester.runAsync(() async {
     final image = await captureImage(tester.element(finder));
     return await image.toByteData();
   }))!;
-  final gold = SettloColors.dark.action;
+  final action = SettloColors.of(tester.element(finder)).action;
   int channel(double v) => (v * 255).round();
   var count = 0;
   for (var i = 0; i < data.lengthInBytes; i += 4) {
-    if ((data.getUint8(i) - channel(gold.r)).abs() <= 4 &&
-        (data.getUint8(i + 1) - channel(gold.g)).abs() <= 4 &&
-        (data.getUint8(i + 2) - channel(gold.b)).abs() <= 4) {
+    if ((data.getUint8(i) - channel(action.r)).abs() <= 4 &&
+        (data.getUint8(i + 1) - channel(action.g)).abs() <= 4 &&
+        (data.getUint8(i + 2) - channel(action.b)).abs() <= 4) {
       count++;
     }
   }
@@ -40,16 +40,15 @@ Future<void> _pump(WidgetTester tester, ThemeData theme, Widget child) async {
 const _probe = Key('probe');
 
 void main() {
-  // Gold means a tappable primary action (ov2). Material tints many widgets
-  // with `colorScheme.primary` by default; this probe pins the theme's
-  // neutral overrides so gold cannot leak back in.
+  // Probe rendered pixels so Material and custom controls really paint the
+  // supplied action hue; checking ThemeData alone would miss overrides.
   for (final (name, theme) in [
     ('dark', SettloTheme.dark),
     ('light', SettloTheme.light),
   ]) {
     group(name, () {
       testWidgets('progress, toggles, sliders, text buttons and focused '
-          'inputs never paint the action colour', (tester) async {
+          'inputs use the semantic palette', (tester) async {
         final controller = TextEditingController(text: 'Dinner')
           ..selection = const TextSelection(baseOffset: 0, extentOffset: 3);
         addTearDown(controller.dispose);
@@ -86,12 +85,11 @@ void main() {
           isTrue,
         );
 
-        // Gold is dark's action colour; light's action (ink) is also its
-        // primary text, so in both themes the probe forbids gold itself.
-        final gold = SettloColors.dark.action;
+        // Editing chrome retains primary-text focus and selection colors.
+        final action = theme().extension<SettloColors>()!.action;
         final field = tester.widget<EditableText>(find.byType(EditableText));
-        expect(field.cursorColor, isNot(gold));
-        expect(field.selectionColor, isNot(gold));
+        expect(field.cursorColor, isNot(action));
+        expect(field.selectionColor, isNot(action));
         // Thin lines at fractional offsets blend with the background, so
         // the focused border is checked as resolved rather than by pixel.
         final decorator = tester.widget<InputDecorator>(
@@ -101,104 +99,118 @@ void main() {
           Theme.of(tester.element(find.byType(TextField))).inputDecorationTheme,
         );
         expect(decoration.focusedBorder?.borderSide.color, isNotNull);
-        expect(decoration.focusedBorder!.borderSide.color, isNot(gold));
-        expect(await _goldPixels(tester, find.byKey(_probe)), 0);
-      });
-
-      testWidgets('primary actions are gold; checked checkboxes are not', (
-        tester,
-      ) async {
-        const button = Key('button');
-        const checkbox = Key('checkbox');
-        await _pump(
-          tester,
-          theme(),
-          Column(
-            children: [
-              RepaintBoundary(
-                key: button,
-                child: FilledButton(onPressed: () {}, child: const Text('Add')),
-              ),
-              RepaintBoundary(
-                key: checkbox,
-                child: Checkbox(value: true, onChanged: (_) {}),
-              ),
-            ],
-          ),
+        expect(decoration.focusedBorder!.borderSide.color, isNot(action));
+        expect(
+          await _actionPixels(tester, find.byKey(_probe)),
+          greaterThan(50),
         );
-        // Light's button is ink, so no gold at all.
-        final expected = name == 'dark' ? greaterThan(50) : equals(0);
-        expect(await _goldPixels(tester, find.byKey(button)), expected);
-        expect(await _goldPixels(tester, find.byKey(checkbox)), 0);
       });
 
-      testWidgets('no Settlo component but the primary button is gold', (
-        tester,
-      ) async {
-        const tabs = [
-          (icon: SizedBox.square(dimension: 22), label: 'Home'),
-          (icon: SizedBox.square(dimension: 22), label: 'Activity'),
-        ];
-        const primary = Key('primary');
-        await _pump(
-          tester,
-          theme(),
-          Column(
-            children: [
-              const SCard(child: Text('Flat 402')),
-              SSecondaryButton(label: 'Settle up', onPressed: () {}),
-              Row(
-                children: [
-                  SChip(label: 'All', selected: true, onSelected: (_) {}),
-                  SChip(label: 'Loans', selected: false, onSelected: (_) {}),
-                  const SAvatar('Arjun'),
-                ],
-              ),
-              SSegmentedControl<int>(
-                segments: const [
-                  (value: 0, label: 'Equally'),
-                  (value: 1, label: '%'),
-                ],
-                selected: 0,
-                onChanged: (_) {},
-              ),
-              SGlassTabBar(tabs: tabs, currentIndex: 0, onTap: (_) {}),
-              SGlassTabBar(
-                tabs: tabs,
-                currentIndex: 1,
-                lowEndBlur: true,
-                onTap: (_) {},
-              ),
-              SizedBox(
-                height: 300,
-                child: SAmountSheet(
-                  title: 'New expense',
-                  amount: const Text('1,800'),
-                  onClose: () {},
-                  body: const Text('Paid by'),
+      testWidgets(
+        'primary actions and checked checkboxes use the action colour',
+        (tester) async {
+          const button = Key('button');
+          const checkbox = Key('checkbox');
+          await _pump(
+            tester,
+            theme(),
+            Column(
+              children: [
+                RepaintBoundary(
+                  key: button,
+                  child: FilledButton(
+                    onPressed: () {},
+                    child: const Text('Add'),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        );
-        expect(await _goldPixels(tester, find.byKey(_probe)), 0);
+                RepaintBoundary(
+                  key: checkbox,
+                  child: Checkbox(value: true, onChanged: (_) {}),
+                ),
+              ],
+            ),
+          );
+          // Both appearances paint their supplied action hue.
+          final expected = greaterThan(50);
+          expect(await _actionPixels(tester, find.byKey(button)), expected);
+          expect(
+            await _actionPixels(tester, find.byKey(checkbox)),
+            greaterThan(50),
+          );
+        },
+      );
 
-        // The same frame with a primary button: the probe sees its gold.
-        await _pump(
-          tester,
-          theme(),
-          RepaintBoundary(
-            key: primary,
-            child: SPrimaryButton(label: 'Save expense', onPressed: () {}),
-          ),
-        );
-        final expected = name == 'dark' ? greaterThan(50) : equals(0);
-        expect(await _goldPixels(tester, find.byKey(primary)), expected);
-      });
+      testWidgets(
+        'selected chips, tabs and primary buttons use the action colour',
+        (tester) async {
+          const tabs = [
+            (icon: SizedBox.square(dimension: 22), label: 'Home'),
+            (icon: SizedBox.square(dimension: 22), label: 'Activity'),
+          ];
+          const primary = Key('primary');
+          await _pump(
+            tester,
+            theme(),
+            Column(
+              children: [
+                const SCard(child: Text('Flat 402')),
+                SSecondaryButton(label: 'Settle up', onPressed: () {}),
+                Row(
+                  children: [
+                    SChip(label: 'All', selected: true, onSelected: (_) {}),
+                    SChip(label: 'Loans', selected: false, onSelected: (_) {}),
+                    const SAvatar('Arjun'),
+                  ],
+                ),
+                SSegmentedControl<int>(
+                  segments: const [
+                    (value: 0, label: 'Equally'),
+                    (value: 1, label: '%'),
+                  ],
+                  selected: 0,
+                  onChanged: (_) {},
+                ),
+                SGlassTabBar(tabs: tabs, currentIndex: 0, onTap: (_) {}),
+                SGlassTabBar(
+                  tabs: tabs,
+                  currentIndex: 1,
+                  lowEndBlur: true,
+                  onTap: (_) {},
+                ),
+                SizedBox(
+                  height: 300,
+                  child: SAmountSheet(
+                    title: 'New expense',
+                    amount: const Text('1,800'),
+                    onClose: () {},
+                    body: const Text('Paid by'),
+                  ),
+                ),
+              ],
+            ),
+          );
+          expect(
+            await _actionPixels(tester, find.byKey(_probe)),
+            greaterThan(50),
+          );
+
+          // The same frame with a primary button exposes the action hue.
+          await _pump(
+            tester,
+            theme(),
+            RepaintBoundary(
+              key: primary,
+              child: SPrimaryButton(label: 'Save expense', onPressed: () {}),
+            ),
+          );
+          final expected = greaterThan(50);
+          expect(await _actionPixels(tester, find.byKey(primary)), expected);
+        },
+      );
 
       testWidgets('an unchecked checkbox is neutral', (tester) async {
         await _pump(tester, theme(), Checkbox(value: false, onChanged: (_) {}));
-        expect(await _goldPixels(tester, find.byKey(_probe)), 0);
+        expect(await _actionPixels(tester, find.byKey(_probe)), 0);
       });
     });
   }

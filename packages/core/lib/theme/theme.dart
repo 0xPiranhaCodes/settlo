@@ -7,23 +7,21 @@ import 'package:settlo_core/widgets/pressable.dart';
 
 /// Settlo [ThemeData]. Dark is the default.
 abstract final class SettloTheme {
-  /// Dark theme: gold primary action.
+  /// Dark theme: marigold primary action.
   static ThemeData dark() => _build(SettloColors.dark, Brightness.dark);
 
-  /// Light theme: ink primary action.
+  /// Light theme: jade primary action.
   static ThemeData light() => _build(SettloColors.light, Brightness.light);
 
   static ThemeData _build(SettloColors c, Brightness brightness) {
     final text = SettloTypography.textTheme(c.textPrimary);
-    // Mint and coral stay out of the scheme (they are reachable only through
-    // MoneyTone), so errors are neutral rather than red.
     final scheme = ColorScheme(
       brightness: brightness,
       primary: c.action,
       onPrimary: c.onAction,
       secondary: c.surfaceHighest,
       onSecondary: c.textPrimary,
-      error: c.textPrimary,
+      error: c.error,
       onError: c.background,
       surface: c.background,
       onSurface: c.textPrimary,
@@ -87,33 +85,29 @@ abstract final class SettloTheme {
           textStyle: text.labelLarge,
         ),
       ),
-      // Gold means a tappable primary action. Everything Material would
-      // otherwise tint with `primary` is set neutral here; the one exception
-      // is the focused OTP box, which opts into `action` where it is built.
-      // Checked boxes are inverted like selected chips (ruling on PR #71),
-      // although the AddExpense and Settle artboards draw them gold.
+      // Material controls share the same action/label pair as iOS.
       checkboxTheme: CheckboxThemeData(
-        fillColor: _selected(c.textPrimary, Colors.transparent),
-        checkColor: WidgetStatePropertyAll(c.background),
+        fillColor: _selected(c.action, Colors.transparent),
+        checkColor: WidgetStatePropertyAll(c.onAction),
         side: BorderSide(color: c.textSecondary, width: 1.5),
       ),
       radioTheme: RadioThemeData(
-        fillColor: _selected(c.textPrimary, c.textSecondary),
+        fillColor: _selected(c.action, c.buttonBorder),
       ),
       switchTheme: SwitchThemeData(
-        thumbColor: _selected(c.background, c.textSecondary),
-        trackColor: _selected(c.textPrimary, c.surfaceHighest),
-        trackOutlineColor: _selected(c.textPrimary, c.buttonBorder),
+        thumbColor: _selected(c.onAction, c.textSecondary),
+        trackColor: _selected(c.action, c.surfaceHighest),
+        trackOutlineColor: _selected(c.action, c.buttonBorder),
       ),
       sliderTheme: SliderThemeData(
-        activeTrackColor: c.textPrimary,
+        activeTrackColor: c.brandAccent,
         inactiveTrackColor: c.surfaceHighest,
-        thumbColor: c.textPrimary,
+        thumbColor: c.action,
         overlayColor: c.hairline,
         valueIndicatorColor: c.surfaceHighest,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: c.textPrimary,
+        color: c.brandAccent,
         linearTrackColor: c.surfaceHighest,
         circularTrackColor: c.surfaceHighest,
       ),
@@ -140,9 +134,9 @@ abstract final class SettloTheme {
         fillColor: c.surfaceRaised,
         hintStyle: text.bodyLarge?.copyWith(color: c.textMuted),
         floatingLabelStyle: TextStyle(color: c.textSecondary),
-        enabledBorder: _inputBorder(c.hairline),
+        enabledBorder: _inputBorder(c.buttonBorder),
         focusedBorder: _inputBorder(c.textPrimary),
-        border: _inputBorder(c.hairline),
+        border: _inputBorder(c.buttonBorder),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: c.surfaceHighest,

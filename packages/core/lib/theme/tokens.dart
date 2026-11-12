@@ -1,6 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/widgets.dart';
+import 'package:settlo_core/theme/colors.dart';
 
 /// Spacing on the 8pt grid. [half] is for tight optical gaps only.
 abstract final class SettloSpacing {
@@ -163,7 +164,7 @@ abstract final class SettloElevation {
 
   /// Low-opacity neutral card edge, without changing palette hues.
   static Color border({required bool dark}) =>
-      dark ? const Color(0x14FFFFFF) : const Color(0x0F000000);
+      dark ? SettloColors.dark.hairline : SettloColors.light.hairline;
 
   /// A broad ambient layer and a close contact layer.
   static List<BoxShadow> ambient({required bool dark}) => [
@@ -193,7 +194,7 @@ abstract final class SettloElevation {
 
   /// Shadow under the floating tab bar, light theme.
   static const floatingLight = [
-    BoxShadow(color: Color(0x101B1B18), offset: Offset(0, 8), blurRadius: 24),
-    BoxShadow(color: Color(0x081B1B18), offset: Offset(0, 2), blurRadius: 8),
+    BoxShadow(color: Color(0x1001381E), offset: Offset(0, 8), blurRadius: 24),
+    BoxShadow(color: Color(0x0801381E), offset: Offset(0, 2), blurRadius: 8),
   ];
 }

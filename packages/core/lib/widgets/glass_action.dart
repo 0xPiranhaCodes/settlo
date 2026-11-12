@@ -90,10 +90,10 @@ class _GlassActionState extends State<GlassAction> {
       'decorative': widget.decorative,
       'enabled': widget.onPressed != null,
       'dark': Theme.of(context).brightness == Brightness.dark,
-      'foreground': c.textPrimary.toARGB32(),
+      'foreground': (widget.decorative ? c.textPrimary : c.action).toARGB32(),
       // Inverted like a selected chip, never gold, as in SBell.
-      'badgeColor': c.textPrimary.toARGB32(),
-      'badgeText': c.background.toARGB32(),
+      'badgeColor': c.action.toARGB32(),
+      'badgeText': c.onAction.toARGB32(),
     };
   }
 

@@ -8,44 +8,27 @@ void main() {
   setUpAll(loadSettloFonts);
 
   group('SettloTheme', () {
-    test('dark: gold primary on near-black', () {
+    test('dark: marigold primary on black', () {
       final theme = SettloTheme.dark();
       expect(theme.brightness, Brightness.dark);
-      expect(theme.colorScheme.primary, const Color(0xFFD8B36A));
-      expect(theme.colorScheme.onPrimary, const Color(0xFF0A0B0D));
-      expect(theme.scaffoldBackgroundColor, const Color(0xFF0A0B0D));
+      expect(theme.colorScheme.primary, const Color(0xFFFEBD11));
+      expect(theme.colorScheme.onPrimary, const Color(0xFF01381E));
+      expect(theme.scaffoldBackgroundColor, const Color(0xFF000000));
       expect(theme.extension<SettloColors>(), SettloColors.dark);
     });
 
-    test('light: ink primary on paper', () {
+    test('light: jade primary on ivory', () {
       final theme = SettloTheme.light();
       expect(theme.brightness, Brightness.light);
-      expect(theme.colorScheme.primary, const Color(0xFF1B1B18));
-      expect(theme.colorScheme.onPrimary, const Color(0xFFF4F1EA));
-      expect(theme.scaffoldBackgroundColor, const Color(0xFFF4F1EA));
+      expect(theme.colorScheme.primary, const Color(0xFF01672D));
+      expect(theme.colorScheme.onPrimary, const Color(0xFFFEF0CE));
+      expect(theme.scaffoldBackgroundColor, const Color(0xFFFBF8EF));
       expect(theme.extension<SettloColors>(), SettloColors.light);
     });
 
-    test('mint and coral stay out of the colour scheme', () {
-      for (final (theme, colors) in [
-        (SettloTheme.dark(), SettloColors.dark),
-        (SettloTheme.light(), SettloColors.light),
-      ]) {
-        final scheme = theme.colorScheme;
-        final schemeColors = [
-          scheme.primary,
-          scheme.secondary,
-          scheme.tertiary,
-          scheme.error,
-          scheme.surface,
-          scheme.onSurface,
-        ];
-        expect(
-          schemeColors,
-          isNot(contains(colors.money(MoneyTone.owedToYou))),
-        );
-        expect(schemeColors, isNot(contains(colors.money(MoneyTone.youOwe))));
-      }
+    test('errors use the supplied semantic role in Material', () {
+      expect(SettloTheme.light().colorScheme.error, const Color(0xFFA42E35));
+      expect(SettloTheme.dark().colorScheme.error, const Color(0xFFFF9CA3));
     });
 
     test('text is Figtree with tabular figures', () {
@@ -67,19 +50,70 @@ void main() {
   });
 
   group('SettloColors', () {
+    test('owner role table is exact in both appearances', () {
+      List<Color> roles(SettloColors c) => [
+        c.background,
+        c.surface,
+        c.textPrimary,
+        c.textSecondary,
+        c.action,
+        c.onAction,
+        c.hairline,
+        c.buttonBorder,
+        c.money(MoneyTone.owedToYou),
+        c.money(MoneyTone.youOwe),
+        c.pending,
+        c.error,
+      ];
+      expect(
+        roles(SettloColors.light),
+        [
+          0xFFFBF8EF,
+          0xFFFFFDF8,
+          0xFF18271F,
+          0xFF50645A,
+          0xFF01672D,
+          0xFFFEF0CE,
+          0xFFD8E0D8,
+          0xFF708478,
+          0xFF01672D,
+          0xFF934636,
+          0xFF795309,
+          0xFFA42E35,
+        ].map(Color.new).toList(),
+      );
+      expect(
+        roles(SettloColors.dark),
+        [
+          0xFF000000,
+          0xFF14271C,
+          0xFFF7F2E8,
+          0xFFA9BCB0,
+          0xFFFEBD11,
+          0xFF01381E,
+          0xFF30473C,
+          0xFF688778,
+          0xFF83DDA1,
+          0xFFF2AB98,
+          0xFFF1C874,
+          0xFFFF9CA3,
+        ].map(Color.new).toList(),
+      );
+    });
+
     test('money tones', () {
       const c = SettloColors.dark;
-      expect(c.money(MoneyTone.owedToYou), const Color(0xFF5BD39B));
-      expect(c.money(MoneyTone.youOwe), const Color(0xFFF0715C));
+      expect(c.money(MoneyTone.owedToYou), const Color(0xFF83DDA1));
+      expect(c.money(MoneyTone.youOwe), const Color(0xFFF2AB98));
       expect(c.money(MoneyTone.settled), c.textSecondary);
       expect(c.money(MoneyTone.neutral), c.textPrimary);
     });
 
     test('light mint and muted are the contrast-adjusted values', () {
       const c = SettloColors.light;
-      expect(c.money(MoneyTone.owedToYou), const Color(0xFF1D7A58));
-      expect(c.money(MoneyTone.youOwe), const Color(0xFFB6342B));
-      expect(c.textMuted, const Color(0xFF6D6B67));
+      expect(c.money(MoneyTone.owedToYou), const Color(0xFF01672D));
+      expect(c.money(MoneyTone.youOwe), const Color(0xFF934636));
+      expect(c.textMuted, const Color(0xFF50645A));
     });
 
     test('lerp and copyWith', () {
@@ -149,7 +183,7 @@ void main() {
       final text = tester.widget<Text>(find.byType(Text));
       expect(text.data, '−₹3,650');
       expect(text.style!.fontFamily, 'packages/settlo_core/Figtree');
-      expect(text.style!.color, const Color(0xFFB6342B));
+      expect(text.style!.color, const Color(0xFF934636));
     });
 
     testWidgets('hero size uses Figtree with the mock-size ₹', (tester) async {

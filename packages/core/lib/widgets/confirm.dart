@@ -20,7 +20,10 @@ Future<bool?> showSettloActionSheet({
         CupertinoActionSheetAction(
           isDestructiveAction: true,
           onPressed: () => _answer(context, true),
-          child: Text(destructive),
+          child: Text(
+            destructive,
+            style: TextStyle(color: SettloColors.of(context).error),
+          ),
         ),
       ],
       cancelButton: CupertinoActionSheetAction(
@@ -78,7 +81,10 @@ Future<bool?> showSettloAlert({
           CupertinoDialogAction(
             isDestructiveAction: true,
             onPressed: () => _answer(context, true),
-            child: Text(destructive),
+            child: Text(
+              destructive,
+              style: TextStyle(color: SettloColors.of(context).error),
+            ),
           ),
         ],
       ),
@@ -93,8 +99,7 @@ void _answer(BuildContext context, bool value) {
   Navigator.of(context).pop(value);
 }
 
-/// System red stays on the destructive button, where Apple's apps use it;
-/// every other button is primary text, never system blue.
+/// Destructive labels use the error role; other actions use the brand tint.
 class _Tinted extends StatelessWidget {
   const new({required this.child});
 
@@ -103,7 +108,7 @@ class _Tinted extends StatelessWidget {
   @override
   Widget build(BuildContext context) => CupertinoTheme(
     data: CupertinoTheme.of(context)
-        .copyWith(primaryColor: SettloColors.of(context).textPrimary),
+        .copyWith(primaryColor: SettloColors.of(context).action),
     child: child,
   );
 }

@@ -171,10 +171,10 @@ class RunnerTests: XCTestCase {
 
   func testTintIsSettloActionNotSystemBlue() {
     let tabs = makeBar()
-    messenger.call(channelName, "update", ["tint": 0xFFD8B36A])
+    messenger.call(channelName, "update", ["tint": 0xFFFEBD11])
     var (r, g, b, a): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
     tabs.bar.tintColor.getRed(&r, green: &g, blue: &b, alpha: &a)
-    XCTAssertEqual([r, g, b, a].map { Int(($0 * 255).rounded()) }, [0xD8, 0xB3, 0x6A, 0xFF])
+    XCTAssertEqual([r, g, b, a].map { Int(($0 * 255).rounded()) }, [0xFE, 0xBD, 0x11, 0xFF])
   }
 
   func testReportsItsHeightOnLayout() {
@@ -269,6 +269,19 @@ class GlassButtonTests: XCTestCase {
     XCTAssertEqual(glass.badge.text, "3")
     XCTAssertFalse(glass.badge.isHidden)
     XCTAssertTrue(glass.button.isEnabled)
+  }
+
+  func testSymbolsFollowBothPaletteTints() throws {
+    for (argb, expected) in [
+      (0xFF01672D, UIColor(red: 1 / 255, green: 103 / 255, blue: 45 / 255, alpha: 1)),
+      (0xFFFEBD11, UIColor(red: 254 / 255, green: 189 / 255, blue: 17 / 255, alpha: 1)),
+    ] {
+      let glass = make(["symbol": "plus", "asset": NSNull(), "foreground": argb, "enabled": true])
+      XCTAssertEqual(glass.button.tintColor, expected)
+      XCTAssertEqual(glass.button.configuration?.baseForegroundColor, expected)
+      let symbol = try XCTUnwrap(glass.button.configuration?.image)
+      XCTAssertEqual(symbol.renderingMode, .alwaysOriginal)
+    }
   }
 
   func testTitleInsteadOfSymbol() {

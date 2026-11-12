@@ -248,7 +248,7 @@ class _Receipt extends StatelessWidget {
             Text(
               error,
               textAlign: TextAlign.center,
-              style: SettloTypography.subheadline(color: c.textPrimary),
+              style: SettloTypography.subheadline(color: c.error),
             ),
           ],
 

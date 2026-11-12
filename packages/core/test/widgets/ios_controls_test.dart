@@ -34,7 +34,7 @@ Widget _opener(
 void main() {
   group('SSwitch', () {
     for (final light in [false, true]) {
-      testWidgets('is a CupertinoSwitch on iOS, tinted primary text, '
+      testWidgets('is a CupertinoSwitch on iOS, tinted primary action, '
           '${light ? 'light' : 'dark'}', (tester) async {
         var value = false;
         await tester.pumpWidget(
@@ -53,7 +53,7 @@ void main() {
         final control = tester.widget<CupertinoSwitch>(
           find.byType(CupertinoSwitch),
         );
-        expect(control.activeTrackColor, colors.textPrimary);
+        expect(control.activeTrackColor, colors.action);
         expect(control.activeTrackColor, isNot(CupertinoColors.systemGreen));
         expect(find.byType(Switch), findsNothing);
 
@@ -64,8 +64,8 @@ void main() {
           tester
               .widget<CupertinoSwitch>(find.byType(CupertinoSwitch))
               .thumbColor,
-          colors.background,
-          reason: 'a white thumb would vanish on the near-white track',
+          colors.onAction,
+          reason: 'the thumb uses the high-contrast action label pair',
         );
       });
     }

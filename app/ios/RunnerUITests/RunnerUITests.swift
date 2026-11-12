@@ -189,4 +189,71 @@ final class RunnerUITests: XCTestCase {
     sleep(1)
     XCTAssertLessThanOrEqual(last.frame.maxY, app.frame.maxY)
   }
+
+  /// Issue #202: fixture screens reached by HID coordinate taps, with native
+  /// glass controls included. Run once per system appearance and revision.
+  func testPaletteEvidence() {
+    let (app, bar) = launch()
+    dismissPrompt(app)
+    func shot(_ name: String) {
+      sleep(2)
+      let attachment = XCTAttachment(screenshot: app.screenshot())
+      attachment.name = "palette-" + name
+      attachment.lifetime = .keepAlways
+      add(attachment)
+    }
+    func hit(_ element: XCUIElement) {
+      XCTAssertTrue(element.waitForExistence(timeout: 10))
+      element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+      sleep(1)
+    }
+    func tab(_ name: String) {
+      touch(name, bar)
+      XCTAssertTrue(becomes(name, bar), "Evidence must show the selected \(name) tab")
+    }
+    shot("home")
+    tab("Loans"); dismissPrompt(app); shot("loans")
+    tab("Activity"); shot("activity")
+    tab("Spaces"); shot("spaces")
+    _ = open("Balances", app, bar); shot("balances")
+    hit(app.descendants(matching: .any).matching(NSPredicate(format: "label == 'Expenses'")).firstMatch)
+    hit(app.buttons.matching(NSPredicate(format: "label == 'Add expense'")).firstMatch)
+    shot("add-expense")
+    hit(app.buttons["Close"])
+    sleep(2) // Let the native sheet dismissal and its hit regions settle.
+    tab("Home")
+    hit(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Profile'")).firstMatch)
+    dismissPrompt(app); shot("profile")
+  }
+
+  func testPaletteLoansEvidence() {
+    let (app, bar) = launch()
+    dismissPrompt(app)
+    touch("Loans", bar)
+    XCTAssertTrue(becomes("Loans", bar))
+    dismissPrompt(app)
+    sleep(2)
+    let attachment = XCTAttachment(screenshot: app.screenshot())
+    attachment.name = "palette-loans"
+    attachment.lifetime = .keepAlways
+    add(attachment)
+  }
+
+  func testPaletteAuthEvidence() {
+    let app = XCUIApplication()
+    app.launch()
+    let action = app.buttons["Continue with phone number"]
+    XCTAssertTrue(action.waitForExistence(timeout: 30))
+    func shot(_ name: String) {
+      sleep(2)
+      let attachment = XCTAttachment(screenshot: app.screenshot())
+      attachment.name = "palette-" + name
+      attachment.lifetime = .keepAlways
+      add(attachment)
+    }
+    shot("welcome")
+    action.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    shot("auth")
+  }
+
 }

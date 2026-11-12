@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:settlo_core/theme/colors.dart';
 
 /// The four tab bar glyphs from the canvas: 1.6px line icons on a 24-unit
 /// grid, drawn in the ambient [IconTheme] colour and size.
@@ -30,7 +31,10 @@ class _TabIcon extends StatelessWidget {
     final size = theme.size ?? 24;
     return CustomPaint(
       size: Size.square(size),
-      painter: _TabIconPainter(icon, theme.color ?? const Color(0xFF000000)),
+      painter: _TabIconPainter(
+        icon,
+        theme.color ?? SettloColors.of(context).textPrimary,
+      ),
     );
   }
 }

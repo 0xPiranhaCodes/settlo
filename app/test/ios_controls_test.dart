@@ -299,7 +299,7 @@ void main() {
       final toggle = tester.widget<CupertinoSwitch>(
         find.byType(CupertinoSwitch),
       );
-      expect(toggle.activeTrackColor, SettloColors.dark.textPrimary);
+      expect(toggle.activeTrackColor, SettloColors.dark.action);
       expect(find.byType(Switch), findsNothing);
       expect(find.byType(DropdownButtonFormField<int>), findsNothing);
 

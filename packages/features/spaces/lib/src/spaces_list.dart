@@ -338,7 +338,7 @@ class _PaidBar extends StatelessWidget {
               child: Container(
                 height: 6,
                 decoration: BoxDecoration(
-                  color: m.isYou ? c.textPrimary : c.surfaceHighest,
+                  color: m.isYou ? c.brandAccent : c.surfaceHighest,
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
@@ -424,11 +424,21 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
                     "${member.name} hasn't joined yet",
                     style: SettloTypography.body(color: c.textPrimary),
                   ),
-                  Text(
-                    detail(formatInr(Paise(b.value.abs()))),
-                    semanticsLabel: detail(spokenInr(Paise(b.value.abs()))),
-                    style: SettloTypography.footnote(color: c.textSecondary)
-                        .copyWith(height: 1.3),
+                  Row(
+                    children: [
+                      Icon(Icons.schedule, size: 14, color: c.pending),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          detail(formatInr(Paise(b.value.abs()))),
+                          semanticsLabel: detail(
+                            spokenInr(Paise(b.value.abs())),
+                          ),
+                          style: SettloTypography.footnote(color: c.pending)
+                              .copyWith(height: 1.3),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -176,16 +176,24 @@ class _LoanCard extends StatelessWidget {
                 value: loan.progress,
                 minHeight: 4,
                 backgroundColor: c.surfaceHighest,
-                color: c.textPrimary,
+                color: c.brandAccent,
               ),
             ),
             if (waiting > 0) ...[
               const SizedBox(height: SettloSpacing.x2),
-              Text(
-                waiting == 1
-                    ? '1 repayment to confirm'
-                    : '$waiting repayments to confirm',
-                style: SettloTypography.subheadline(color: c.textPrimary),
+              Row(
+                children: [
+                  Icon(Icons.schedule, size: 16, color: c.pending),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      waiting == 1
+                          ? '1 repayment to confirm'
+                          : '$waiting repayments to confirm',
+                      style: SettloTypography.subheadline(color: c.pending),
+                    ),
+                  ),
+                ],
               ),
             ],
           ],

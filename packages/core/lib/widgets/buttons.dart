@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/widgets/pressable.dart';
 
-/// The one tappable primary action in a view: gold in dark, ink in light.
+/// A primary action: marigold in dark, jade in light.
 ///
 /// Radius 16, at least 44pt tall (50 by default, as on the canvas). An
 /// optional [icon] trails the label.
