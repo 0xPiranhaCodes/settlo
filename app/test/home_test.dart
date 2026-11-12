@@ -350,12 +350,12 @@ void main() {
     ) async {
       final semantics = tester.ensureSemantics();
       await _pump(tester, FakeHomeRepository(homeMain));
-      expect(find.text('SETTLO'), findsNothing);
+      expect(find.text('SABKIJEB'), findsNothing);
       expect(find.byType(SettloMark), findsOneWidget);
       expect(find.byType(UiKitView), findsNothing);
       expect(
-        tester.getSemantics(find.bySemanticsLabel('Settlo')),
-        matchesSemantics(label: 'Settlo', isHeader: true),
+        tester.getSemantics(find.bySemanticsLabel('SabkiJeb')),
+        matchesSemantics(label: 'SabkiJeb', isHeader: true),
       );
       semantics.dispose();
     });

@@ -234,7 +234,7 @@ class _JoinContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Settlo is a shared record. It is not a lender, holds '
+                    'SabkiJeb is a shared record. It is not a lender, holds '
                     'no money, and shows balances only to the people '
                     'in them.',
                     textAlign: TextAlign.center,
@@ -248,13 +248,13 @@ class _JoinContent extends StatelessWidget {
         ],
         children: [
           Semantics(
-            label: 'Settlo',
+            label: 'SabkiJeb',
             child: Row(
               children: [
                 const SettloMark(semanticsLabel: null),
                 const SizedBox(width: 8),
                 Text(
-                  'settlo',
+                  'SabkiJeb',
                   style: SettloTypography.title2(
                     letterSpacing: -0.6,
                     color: c.textPrimary,

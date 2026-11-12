@@ -1,10 +1,8 @@
-# Owner app icon (#198)
+# SabkiJeb app icon (#203)
 
-`app-icon-v2.png` is the master: the owner's 2576×2576 RGB artwork (geometric
-S on white), saved losslessly from the supplied JPEG without other changes.
-Its mark spans about 75% of the width. iOS and the legacy Android mipmaps use
-the derived `app-icon.png`: the same mark scaled to span 64% (`--margin 0.18`
-per side), centred on white, opaque; iOS applies its own mask.
+`sabkijeb-logo.png` is the master: the owner's 1254×1254 RGB logo (cream
+check with a marigold tip in a jade pocket, on deep forest green), committed
+losslessly as supplied. It is full bleed: it brings its own background.
 
 Regenerate from the repository root (Python 3, Pillow and NumPy):
 
@@ -12,23 +10,34 @@ Regenerate from the repository root (Python 3, Pillow and NumPy):
 python3 scripts/regenerate-app-icons.py
 ```
 
-The wrapper preserves native Xcode settings: flutter_launcher_icons 0.14.4
-also rewrites unrelated ASSETCATALOG boolean settings when run directly.
+This runs `scripts/derive-app-icon.py --full-bleed --margin 0` and then
+flutter_launcher_icons 0.14.4. The wrapper preserves native Xcode settings,
+because flutter_launcher_icons also rewrites unrelated ASSETCATALOG boolean
+settings when run directly.
 
-The derivation script removes the white matte without redrawing the S,
-unmattes antialiased edges and asserts the result recomposites to the master.
-It trims to the mark's bounds and fits it inside a centered circle of diameter
-66% of the canvas (with a small resampling margin), so no launcher mask clips
-its corners, then shrinks it by the same proportion as `app-icon.png` so the
-home-screen spacing matches iOS. The adaptive background is solid white.
-`monochrome.png` uses the same alpha silhouette with white RGB for Android
-themed icons.
+What `--full-bleed` derives:
+
+- `app-icon.png`: the logo at 1024, opaque RGB, used for iOS (which applies
+  its own mask) and the legacy Android mipmaps. `--margin` pads it with the
+  background colour; it is 0 here.
+- Adaptive background: the logo's border median, `#01351B`.
+- `adaptive-foreground.png`: the check and pocket lifted off the background
+  with colour-to-alpha against `#01351B`, so it recomposites over the adaptive
+  background without a halo (asserted within 3/255 near the mark). Away from
+  the mark only lighter pixels count, so the vignette stays behind and the
+  glow is kept. The whole cutout, glow included, fits a centred circle of
+  66% diameter.
+- `monochrome.png`: the solid check-and-pocket silhouette in white, without
+  the glow, at the same scale, for Android themed icons.
+- `packages/core/assets/brand/sabkijeb_mark.png` (1x/2x/3x, 30pt): the whole
+  logo clipped to a circle, the in-app mark on Home and the auth screens.
 
 Optional iOS dark/tinted slots are omitted: flutter_launcher_icons 0.14.4's
 appearance-aware catalog produces missing-required-iPhone/iPad-icon and
 unassigned-child warnings in Xcode 27.2.
 
-`owner-icon.png` and `opaque.png` are the previous (#192) gold-on-dark artwork,
-kept only because `scripts/site-icons.py` derives the website's Apple touch
-icon from `opaque.png`; the website is unchanged by #198. Splash and in-app
-branding are also separate and unchanged.
+Without `--full-bleed`, the script keeps its #198 mode for the white-matte
+`app-icon-v2.png` (geometric S). `owner-icon.png` and `opaque.png` are the
+#192 artwork, kept because `scripts/site-icons.py` derives the website's Apple
+touch icon from `opaque.png`. The website and the splash screen are not part
+of #203.

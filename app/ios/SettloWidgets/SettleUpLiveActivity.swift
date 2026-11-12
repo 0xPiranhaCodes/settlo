@@ -79,7 +79,7 @@ private struct SettleUpCard: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(spacing: 10) {
         Coin(size: 26)
-        Text("Settlo · \(state.space)").font(.system(size: 15)).foregroundStyle(Palette.text)
+        Text("SabkiJeb · \(state.space)").font(.system(size: 15)).foregroundStyle(Palette.text)
           .lineLimit(1)
         Spacer()
         Text(state.recordedAt, format: .relative(presentation: .named))

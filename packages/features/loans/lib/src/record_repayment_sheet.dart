@@ -233,7 +233,7 @@ class _RecordState extends ConsumerState<RecordRepaymentSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            "Settlo doesn't move money. $who confirms it before it counts.",
+            "SabkiJeb doesn't move money. $who confirms it before it counts.",
             textAlign: TextAlign.center,
             style: note,
           ),

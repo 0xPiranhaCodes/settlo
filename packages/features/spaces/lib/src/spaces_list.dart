@@ -452,5 +452,5 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
 
 /// Fixed trust copy for a space capability; never includes balances.
 String spaceInviteText(String inviter, String space, Uri link) =>
-    'Hi, this is $inviter. I added you to $space on Settlo. Nothing is '
+    'Hi, this is $inviter. I added you to $space on SabkiJeb. Nothing is '
     'shown until you verify this number. $link';

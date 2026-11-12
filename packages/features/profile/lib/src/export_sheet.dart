@@ -48,8 +48,8 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
       // isolate; the CSV and PDF are written on a background one.
       final images = await renderTextImages(textsOutsideFonts(summary, fonts));
       await export((dir) async {
-        final csv = File('${dir.path}/settlo-$name-expenses-$stamp.csv');
-        final pdf = File('${dir.path}/settlo-$name-summary-$stamp.pdf');
+        final csv = File('${dir.path}/sabkijeb-$name-expenses-$stamp.csv');
+        final pdf = File('${dir.path}/sabkijeb-$name-summary-$stamp.pdf');
         await writeSpaceExport(
           space,
           ledger,

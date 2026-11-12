@@ -378,21 +378,21 @@ void main() {
       await tester.pumpWidget(
         _app(
           TargetPlatform.iOS,
-          Center(
+          const Center(
             child: GlassAction(
-              label: 'Settlo',
-              asset: settloMarkAsset(Brightness.dark),
+              label: 'SabkiJeb',
+              asset: settloMarkAsset,
               decorative: true,
               onPressed: null,
-              fallback: const SettloMark(),
+              fallback: SettloMark(),
             ),
           ),
         ),
       );
       final params = glass.created.values.single;
-      expect(params['asset'], 'assets/brand/settlo_mark_dark.png');
+      expect(params['asset'], 'assets/brand/sabkijeb_mark.png');
       expect(params['decorative'], true);
-      expect(params['label'], 'Settlo');
+      expect(params['label'], 'SabkiJeb');
       expect(find.byType(SettloMark), findsNothing);
       expect(find.byType(UiKitView).hitTestable(), findsNothing);
     });

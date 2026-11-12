@@ -72,7 +72,7 @@ class SettloApp extends ConsumerWidget {
         );
       });
     return MaterialApp.router(
-      title: 'Settlo',
+      title: 'SabkiJeb',
       scrollBehavior: const SettloScrollBehavior(),
       debugShowCheckedModeBanner: false,
       theme: SettloTheme.light(),

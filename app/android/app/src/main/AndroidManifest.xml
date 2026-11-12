@@ -4,7 +4,7 @@
     <!-- The settle-up ongoing notification (ADR 0012); asked from Activity, not at launch. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="Settlo"
+        android:label="SabkiJeb"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

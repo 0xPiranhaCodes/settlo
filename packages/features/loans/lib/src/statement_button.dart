@@ -48,7 +48,7 @@ class _StatementButtonState extends ConsumerState<StatementButton> {
         textsOutsideFonts(statement, fonts),
       );
       await export((dir) async {
-        final file = File('${dir.path}/settlo-loan-statement-$day.pdf');
+        final file = File('${dir.path}/sabkijeb-loan-statement-$day.pdf');
         await writeStatementPdf(statement, file, fonts: fonts, images: images);
         return [(path: file.path, mimeType: 'application/pdf')];
       }, origin);

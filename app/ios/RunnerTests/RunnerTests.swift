@@ -312,7 +312,7 @@ class GlassButtonTests: XCTestCase {
   func testDecorativeMarkIsAnUntouchableHeaderWithTheArtwork() throws {
     enableAccessibilityRuntime()
     let glass = make([
-      "label": "Settlo", "asset": "assets/brand/settlo_mark_dark.png", "decorative": true,
+      "label": "SabkiJeb", "asset": "assets/brand/sabkijeb_mark.png", "decorative": true,
     ])
     let image = try XCTUnwrap(glass.button.configuration?.image)
     XCTAssertEqual(image.scale, 3)
@@ -321,7 +321,7 @@ class GlassButtonTests: XCTestCase {
     XCTAssertFalse(glass.button.isUserInteractionEnabled)
     XCTAssertTrue(glass.button.accessibilityTraits.contains(.header))
     XCTAssertFalse(glass.button.accessibilityTraits.contains(.button))
-    XCTAssertEqual(glass.button.accessibilityLabel, "Settlo")
+    XCTAssertEqual(glass.button.accessibilityLabel, "SabkiJeb")
   }
 
   /// What VoiceOver reads: one labelled button, 44pt, with the count in the

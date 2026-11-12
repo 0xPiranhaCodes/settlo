@@ -107,7 +107,7 @@ void main() {
         payee: 'kabir@oksbi',
         name: 'Kabir',
         amount: const Paise.rupees(3650),
-        note: 'Settlo: Goa trip',
+        note: 'SabkiJeb: Goa trip',
       ),
     );
     expect(find.text('Did you pay Kabir ₹3,650?'), findsOne);
@@ -267,7 +267,7 @@ void main() {
       payee: 'kabir@oksbi',
       name: 'Kabir',
       amount: const Paise.rupees(3650),
-      note: 'Settlo: Goa trip',
+      note: 'SabkiJeb: Goa trip',
     );
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
@@ -368,7 +368,7 @@ void main() {
     expect(
       uri.queryParameters['text'],
       'Hi Priya, settling up Flat 402: please pay ₹2,100 to sana@okaxis on '
-      'any UPI app. Sent from Settlo.',
+      'any UPI app. Sent from SabkiJeb.',
     );
     expect(h.expenses.calls, isEmpty);
   });

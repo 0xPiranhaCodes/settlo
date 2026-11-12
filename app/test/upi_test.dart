@@ -30,12 +30,12 @@ void main() {
         payee: 'kabir@oksbi',
         name: 'Kabir',
         amount: const Paise.rupees(3650),
-        note: 'Settlo: Goa trip',
+        note: 'SabkiJeb: Goa trip',
       );
       expect(
         uri.toString(),
         'upi://pay?pa=kabir%40oksbi&pn=Kabir&am=3650.00&cu=INR'
-        '&tn=Settlo%3A%20Goa%20trip',
+        '&tn=SabkiJeb%3A%20Goa%20trip',
       );
       expect((uri.scheme, uri.host), ('upi', 'pay'));
     });

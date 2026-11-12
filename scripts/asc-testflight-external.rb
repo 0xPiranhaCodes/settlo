@@ -174,14 +174,14 @@ module TestFlightExternal
       group_builds = @client.list("/v1/betaGroups/#{group.fetch('id')}/relationships/builds")
 
       upsert('betaAppLocalizations', @client.list("/v1/apps/#{app_id}/betaAppLocalizations"), {
-        description: 'Split expenses with flatmates, track personal loans, and record repayments with Settlo.',
-        feedbackEmail: 'settlo@hellojosh.studio', marketingUrl: 'https://settlo.hellojosh.studio/',
+        description: 'Split expenses with flatmates, track personal loans, and record repayments with SabkiJeb.',
+        feedbackEmail: 'support@sabkijeb.app', marketingUrl: 'https://settlo.hellojosh.studio/',
         privacyPolicyUrl: 'https://settlo.hellojosh.studio/privacy/'
       }, 'app', 'apps', app_id)
       @client.request(:patch, "/v1/betaAppReviewDetails/#{detail.fetch('id')}", data: {
         type: 'betaAppReviewDetails', id: detail.fetch('id'), attributes: contacts.merge(
           demoAccountRequired: true, demoAccountName: "+#{phone}", demoAccountPassword: code,
-          notes: "Sign in with phone +#{phone} and the fixed test OTP #{code}. No SMS is needed. Use this account to test shared expenses, loans and repayment confirmation. Settlo records payments; UPI payments happen in the user's UPI app."
+          notes: "Sign in with phone +#{phone} and the fixed test OTP #{code}. No SMS is needed. Use this account to test shared expenses, loans and repayment confirmation. SabkiJeb records payments; UPI payments happen in the user's UPI app."
         )
       })
       upsert('betaBuildLocalizations', @client.list("/v1/builds/#{build_id}/betaBuildLocalizations"),

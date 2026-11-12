@@ -897,7 +897,9 @@ void main() {
     expect(
       csv.path,
       matches(
-        RegExp(r'/exports/share-[^/]+/settlo-flat-4b-expenses-[\d-]{10}\.csv$'),
+        RegExp(
+          r'/exports/share-[^/]+/sabkijeb-flat-4b-expenses-[\d-]{10}\.csv$',
+        ),
       ),
     );
     expect(csv.mimeType, 'text/csv');
@@ -908,7 +910,9 @@ void main() {
     expect(
       pdf.path,
       matches(
-        RegExp(r'/exports/share-[^/]+/settlo-flat-4b-summary-[\d-]{10}\.pdf$'),
+        RegExp(
+          r'/exports/share-[^/]+/sabkijeb-flat-4b-summary-[\d-]{10}\.pdf$',
+        ),
       ),
     );
     expect(String.fromCharCodes(pdfBytes.take(5)), '%PDF-');

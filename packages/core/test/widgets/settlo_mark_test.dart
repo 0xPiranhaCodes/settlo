@@ -5,7 +5,7 @@ import 'package:settlo_core/settlo_core.dart';
 Future<void> _pump(
   WidgetTester tester, {
   required ThemeData theme,
-  String? semanticsLabel = 'Settlo',
+  String? semanticsLabel = 'SabkiJeb',
 }) => tester.pumpWidget(
   MaterialApp(
     theme: theme,
@@ -13,31 +13,31 @@ Future<void> _pump(
   ),
 );
 
-/// The artwork used as supplied, untinted (#191).
+/// The logo used as supplied, untinted, on both themes (#203).
 String _asset(WidgetTester tester) =>
     (tester.widget<Image>(find.byType(Image)).image as AssetImage).assetName;
 
 void main() {
-  testWidgets('announces Settlo and is the white artwork on the dark theme', (
+  testWidgets('announces SabkiJeb and is the logo on the dark theme', (
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
     await _pump(tester, theme: SettloTheme.dark());
 
-    expect(find.bySemanticsLabel('Settlo'), findsOneWidget);
-    expect(_asset(tester), 'assets/brand/settlo_mark_dark.png');
+    expect(find.bySemanticsLabel('SabkiJeb'), findsOneWidget);
+    expect(_asset(tester), 'assets/brand/sabkijeb_mark.png');
     expect(tester.widget<Image>(find.byType(Image)).color, isNull);
     semantics.dispose();
   });
 
-  testWidgets('can be decorative and is the black artwork on the light theme', (
+  testWidgets('can be decorative and is the same logo on the light theme', (
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
     await _pump(tester, theme: SettloTheme.light(), semanticsLabel: null);
 
-    expect(find.bySemanticsLabel('Settlo'), findsNothing);
-    expect(_asset(tester), 'assets/brand/settlo_mark_light.png');
+    expect(find.bySemanticsLabel('SabkiJeb'), findsNothing);
+    expect(_asset(tester), 'assets/brand/sabkijeb_mark.png');
     expect(tester.widget<Image>(find.byType(Image)).color, isNull);
     semantics.dispose();
   });
