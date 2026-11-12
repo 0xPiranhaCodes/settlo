@@ -50,7 +50,8 @@ enum SignInError {
     rateLimited =>
       "That's a lot of tries in a short time. Wait a minute, "
           'then try again.',
-    network => "We couldn't reach Settlo. Check your connection and try again.",
+    network =>
+      "We couldn't reach SabkiJeb. Check your connection and try again.",
     inviteWrongPhone =>
       'This invite was recorded against a different number. Ask the sender '
           'to invite this number instead.',

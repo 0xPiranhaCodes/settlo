@@ -513,7 +513,7 @@ Future<Uint8List> statementPdf(
 }) {
   final s = _Styles(fonts, images);
   final title = statement.title;
-  final doc = pw.Document(title: title, creator: 'Settlo')
+  final doc = pw.Document(title: title, creator: 'SabkiJeb')
     ..addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -530,7 +530,7 @@ Future<Uint8List> statementPdf(
                 child: pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    s.text('settlo', s.wordmark),
+                    s.text('SabkiJeb', s.wordmark),
                     pw.Spacer(),
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.end,
@@ -547,8 +547,8 @@ Future<Uint8List> statementPdf(
           children: [
             pw.Expanded(
               child: s.text(
-                'Made on this device from what you see in Settlo. Settlo is '
-                'a record; it never holds or moves money.',
+                'Made on this device from what you see in SabkiJeb. '
+                'SabkiJeb is a record; it never holds or moves money.',
                 s.muted,
               ),
             ),

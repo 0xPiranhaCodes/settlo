@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-subprocess.run([sys.executable, str(ROOT / 'scripts/derive-app-icon.py')], check=True)
+subprocess.run([sys.executable, str(ROOT / 'scripts/derive-app-icon.py'), '--full-bleed', '--margin', '0'], check=True)
 project = ROOT / 'app/ios/Runner.xcodeproj/project.pbxproj'
 original = project.read_bytes()
 try:

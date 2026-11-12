@@ -77,7 +77,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
       payee: _p.to.upiId!,
       name: _p.to.name,
       amount: _p.amount,
-      note: 'Settlo: ${widget.space.name}',
+      note: 'SabkiJeb: ${widget.space.name}',
     ),
     "There's no UPI app on this phone. Pay ${_p.to.name} another way, "
     'then record it here.',
@@ -88,7 +88,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
     Uri.https('wa.me', '/${_p.from.phone.replaceAll(RegExp(r'\D'), '')}', {
       'text':
           'Hi ${_p.from.name}, settling up ${widget.space.name}: please pay '
-          '$_amount to ${_p.to.upiId} on any UPI app. Sent from Settlo.',
+          '$_amount to ${_p.to.upiId} on any UPI app. Sent from SabkiJeb.',
     }),
     "WhatsApp didn't open. You can ask ${_p.from.name} another way.",
   );
@@ -211,7 +211,7 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
             const SizedBox(height: SettloSpacing.x2),
             _Option(
               title: 'Record cash or bank payment',
-              subtitle: 'Already paid outside Settlo',
+              subtitle: 'Already paid outside SabkiJeb',
               selected: _cash,
               onTap: () => setState(() => _cash = true),
             ),
@@ -232,9 +232,9 @@ class _SettleSheetState extends ConsumerState<SettleSheet> {
         children: [
           note(
             _youPay
-                ? "Settlo doesn't move money. After you pay, ${_other.name} "
+                ? "SabkiJeb doesn't move money. After you pay, ${_other.name} "
                       'confirms and both ledgers update.'
-                : "Settlo doesn't move money. Nothing is recorded until you "
+                : "SabkiJeb doesn't move money. Nothing is recorded until you "
                       'confirm the payment arrived.',
           ),
           const SizedBox(height: SettloSpacing.x2),

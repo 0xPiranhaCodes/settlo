@@ -177,7 +177,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               const SizedBox(width: SettloSpacing.x2),
               Expanded(
                 child: Text(
-                  'This code is valid for 10 minutes. Settlo will never ask '
+                  'This code is valid for 10 minutes. SabkiJeb will never ask '
                   'for it on a call or chat.',
                   style: caption.copyWith(height: 1.5),
                 ),

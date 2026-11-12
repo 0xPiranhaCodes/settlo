@@ -445,7 +445,7 @@ void main() {
         file.path,
         matches(
           RegExp(
-            r'/exports/share-[^/]+/settlo-loan-statement-\d{4}-\d\d-\d\d\.pdf$',
+            r'/exports/share-[^/]+/sabkijeb-loan-statement-\d{4}-\d\d-\d\d\.pdf$',
           ),
         ),
       );
@@ -539,8 +539,8 @@ void main() {
       expect((whatsApp.host, whatsApp.path), ('wa.me', '/919820011223'));
       expect(
         whatsApp.queryParameters['text'],
-        'Hi, this is Sana. I recorded a loan between us on Settlo. You will '
-        'see it in Settlo once you verify this number. '
+        'Hi, this is Sana. I recorded a loan between us on SabkiJeb. You will '
+        'see it in SabkiJeb once you verify this number. '
         'settlo://join/loan-token',
       );
       expect(whatsApp.queryParameters['text'], isNot(contains('10,00,000')));
@@ -585,7 +585,7 @@ void main() {
     test('without a profile name the greeting is fixed', () {
       expect(
         loanInviteText(null, Uri.parse('settlo://join/t')),
-        startsWith('Hi. I recorded a loan between us on Settlo.'),
+        startsWith('Hi. I recorded a loan between us on SabkiJeb.'),
       );
       expect(
         loanInviteText('  ', Uri.parse('settlo://join/t')),

@@ -265,7 +265,7 @@ class _QuietPreferences extends StatelessWidget {
       const _SettingRowData(
         ProfileGlyph.person,
         'Contacts matching',
-        'Find friends already on Settlo',
+        'Find friends already on SabkiJeb',
       ),
       const _SettingRowData(
         ProfileGlyph.shield,

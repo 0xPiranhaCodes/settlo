@@ -46,7 +46,7 @@ class HomeScreen extends ConsumerWidget {
           DefaultTextStyle.merge(
             style: const TextStyle(letterSpacing: 0, height: 1.2),
             child: SettloScrollScaffold(
-              title: 'SETTLO',
+              title: 'SABKIJEB',
               stickyHeader: false,
               onRefresh: () => _refresh(ref),
               padding: EdgeInsets.fromLTRB(
@@ -159,16 +159,16 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The owner's S mark is the header title: in a glass circle on iOS 26,
-    // as supplied elsewhere, and no wordmark (#191).
+    // The owner's logo is the header title: in a glass circle on iOS 26,
+    // as supplied elsewhere, and no wordmark (#191, #203).
     final lockup = GlassAction(
-      label: 'Settlo',
-      asset: settloMarkAsset(Theme.of(context).brightness),
+      label: 'SabkiJeb',
+      asset: settloMarkAsset,
       decorative: true,
       onPressed: null,
       fallback: Semantics(
         header: true,
-        label: 'Settlo',
+        label: 'SabkiJeb',
         excludeSemantics: true,
         child: const SettloMark(semanticsLabel: null, size: 30),
       ),
@@ -1103,7 +1103,7 @@ class _Note extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Why you are seeing this now and not earlier: Settlo only '
+              'Why you are seeing this now and not earlier: SabkiJeb only '
               'reveals what is attached to a number after the number is '
               'verified.',
               style: _caption(c).copyWith(height: 1.5),

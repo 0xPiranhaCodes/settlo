@@ -41,7 +41,7 @@ Future<void> showReminderPermission(
           builder: (context) => AlertDialog(
             title: const Text('Get reminder notifications?'),
             content: const Text(
-              'Settlo can notify you about loan nudges '
+              'SabkiJeb can notify you about loan nudges '
               'and missed instalments. '
               'Names and amounts stay off your lock screen.',
             ),

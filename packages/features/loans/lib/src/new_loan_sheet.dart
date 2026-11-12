@@ -434,7 +434,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
               ],
               Text(
                 '${first ?? 'They'} ${first == null ? 'get' : 'gets'} a '
-                'WhatsApp message.$schedule\nSettlo keeps the record. It is '
+                'WhatsApp message.$schedule\nSabkiJeb keeps the record. It is '
                 'not a lender and never moves money.',
                 textAlign: TextAlign.center,
                 style: SettloTypography.footnote(color: c.textMuted)
@@ -700,8 +700,8 @@ class _Interest extends StatelessWidget {
 String loanInviteText(String? yourName, Uri link) {
   final name = yourName?.trim() ?? '';
   return '${name.isEmpty ? 'Hi' : 'Hi, this is $name'}. I recorded a loan '
-      'between us on Settlo. You will see it in Settlo once you verify this '
-      'number. $link';
+      'between us on SabkiJeb. You will see it in SabkiJeb once you verify '
+      'this number. $link';
 }
 
 /// The schedule fields' padding, narrower than the theme's so three fit

@@ -136,7 +136,7 @@ enum ReminderChannel {
               let body = row["body"] as? String else { continue }
             if id.hasPrefix("manual:") && seen.contains(id) { continue }
             let content = UNMutableNotificationContent()
-            content.title = "Settlo"
+            content.title = "SabkiJeb"
             content.body = body
             content.sound = .default
             let date = max(Date(timeIntervalSince1970: ms.doubleValue / 1000), Date().addingTimeInterval(1))

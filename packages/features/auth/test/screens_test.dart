@@ -174,7 +174,7 @@ int _goldBoxes(WidgetTester tester) =>
     }).length;
 
 const _safetyNote =
-    'This code is valid for 10 minutes. Settlo will never ask for it on a '
+    'This code is valid for 10 minutes. SabkiJeb will never ask for it on a '
     'call or chat.';
 
 void main() {
@@ -182,11 +182,11 @@ void main() {
   setUp(() => auth = FakePhoneAuth());
 
   group('Welcome', () {
-    testWidgets('announces the Settlo lockup once', (tester) async {
+    testWidgets('announces the SabkiJeb lockup once', (tester) async {
       final semantics = tester.ensureSemantics();
       await _pump(tester, auth, location: SettloRoutes.welcome);
 
-      expect(find.bySemanticsLabel('Settlo'), findsOneWidget);
+      expect(find.bySemanticsLabel('SabkiJeb'), findsOneWidget);
       expect(
         find.byWidgetPredicate(
           (widget) =>
@@ -454,7 +454,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         find.text(
-          "We couldn't reach Settlo. Check your connection and try again.",
+          "We couldn't reach SabkiJeb. Check your connection and try again.",
         ),
         findsOneWidget,
       );
@@ -710,7 +710,7 @@ void main() {
       );
       await tester.tap(find.text('Verify my number to see the ledger'));
       await tester.pumpAndSettle();
-      expect(find.textContaining("couldn't reach Settlo"), findsOneWidget);
+      expect(find.textContaining("couldn't reach SabkiJeb"), findsOneWidget);
 
       final invites = _Invites(redeemError: true);
       await _pump(
