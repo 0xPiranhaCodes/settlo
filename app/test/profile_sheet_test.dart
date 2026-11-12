@@ -158,6 +158,42 @@ void main() {
       await tester.pumpAndSettle();
       expect(router.state.matchedLocation, SettloRoutes.space('s1'));
     }, variant: variant);
+
+    for (final (index, tab) in [
+      (1, SettloRoutes.spaces),
+      (2, SettloRoutes.loans),
+      (3, SettloRoutes.activity),
+    ]) {
+      testWidgets('on $tab, the avatar opens the sheet over that tab', (
+        tester,
+      ) async {
+        // Another tab's place, checked after the sheet closes: a space
+        // pushed on Spaces, or Home when the avatar is Spaces' own.
+        final kept = index == 1 ? SettloRoutes.home : SettloRoutes.space('s1');
+        final router = await _open(tester, kept);
+        StatefulNavigationShell shell() => tester.widget(
+          find.byType(StatefulNavigationShell, skipOffstage: false),
+        );
+        shell().goBranch(index);
+        await tester.pumpAndSettle();
+        expect(router.state.matchedLocation, tab);
+
+        await tester.tap(find.byTooltip('Profile'));
+        await tester.pumpAndSettle();
+        expect(_sheet(tester), isA<ModalRoute<void>>());
+        expect(shell().currentIndex, index, reason: 'the tab stays selected');
+
+        await tester.tap(find.byTooltip('Close'));
+        await tester.pumpAndSettle();
+        expect(find.byType(ProfileScreen), findsNothing);
+        expect(shell().currentIndex, index);
+        expect(router.state.matchedLocation, tab);
+
+        shell().goBranch(index == 1 ? 0 : 1);
+        await tester.pumpAndSettle();
+        expect(router.state.matchedLocation, kept);
+      }, variant: variant);
+    }
   }
 
   testWidgets('on iOS, a swipe down with Export pushed closes the sheet', (

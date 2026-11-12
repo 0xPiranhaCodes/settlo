@@ -34,9 +34,9 @@ class SettloTabActions extends ConsumerWidget {
     final name = (this.name ?? ref.watch(accountNameProvider))?.trim() ?? '';
     final initial = name.isEmpty ? 'Y' : name.characters.first.toUpperCase();
     final onBell = this.onBell;
-    // Every tab's avatar opens Profile from here, so moving it to a
-    // root-navigator sheet (#200) changes this one line.
-    void onProfile() => context.go(SettloRoutes.profile);
+    // Every tab's avatar opens Profile here, as a sheet over the current
+    // tab (#200): `push`, since `go` would leave nothing behind it.
+    void onProfile() => context.push(SettloRoutes.profileSheet);
     return Row(
       mainAxisSize: MainAxisSize.min,
       spacing: SettloSpacing.x1,
