@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
+import 'package:settlo_core/widgets/glass_action.dart';
 
 /// The notifications bell of the Home and Activity artboards: a round
 /// button, with how many activity entries are [unread] on it when any are.
@@ -21,54 +22,62 @@ class SBell extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
     final count = unread > 99 ? '99+' : '$unread';
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        IconButton(
-          tooltip: unread > 0 ? 'Notifications, $count new' : 'Notifications',
-          onPressed: onPressed,
-          style: IconButton.styleFrom(
-            fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            backgroundColor: c.surface,
-            side: BorderSide(color: c.hairline),
-          ),
-          icon: CustomPaint(
-            size: const Size.square(22),
-            painter: _BellPainter(c.textPrimary),
-          ),
+    return GlassAction(
+      label: unread > 0 ? 'Notifications, $count new' : 'Notifications',
+      symbol: 'bell',
+      badge: unread > 0 ? count : null,
+      onPressed: onPressed,
+      fallback: _fallback(c, count),
+    );
+  }
+
+  Widget _fallback(SettloColors c, String count) => Stack(
+    clipBehavior: Clip.none,
+    children: [
+      IconButton(
+        tooltip: unread > 0 ? 'Notifications, $count new' : 'Notifications',
+        onPressed: onPressed,
+        style: IconButton.styleFrom(
+          fixedSize: const Size.square(SettloSpacing.minTouchTarget),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          backgroundColor: c.surface,
+          side: BorderSide(color: c.hairline),
         ),
-        if (unread > 0)
-          Positioned(
-            top: -2,
-            right: -4,
-            // The button's label already says the count.
-            child: IgnorePointer(
-              child: ExcludeSemantics(
-                child: Container(
-                  constraints: const BoxConstraints(minWidth: 18),
-                  height: 24,
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  alignment: Alignment.center,
-                  decoration: ShapeDecoration(
-                    color: c.textPrimary,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: Text(
-                    count,
-                    style: SettloTypography.caption1(
-                      weight: FontWeight.w500,
-                      color: c.background,
-                    ),
+        icon: CustomPaint(
+          size: const Size.square(22),
+          painter: _BellPainter(c.textPrimary),
+        ),
+      ),
+      if (unread > 0)
+        Positioned(
+          top: -2,
+          right: -4,
+          // The button's label already says the count.
+          child: IgnorePointer(
+            child: ExcludeSemantics(
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 18),
+                height: 24,
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                alignment: Alignment.center,
+                decoration: ShapeDecoration(
+                  color: c.textPrimary,
+                  shape: const StadiumBorder(),
+                ),
+                child: Text(
+                  count,
+                  style: SettloTypography.caption1(
+                    weight: FontWeight.w500,
+                    color: c.background,
                   ),
                 ),
               ),
             ),
           ),
-      ],
-    );
-  }
+        ),
+    ],
+  );
 }
 
 class _BellPainter extends CustomPainter {

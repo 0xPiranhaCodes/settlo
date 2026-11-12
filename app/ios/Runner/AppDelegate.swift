@@ -17,6 +17,12 @@ import UserNotifications
       with: engineBridge.pluginRegistry.registrar(forPlugin: "ReminderChannel")!.messenger())
     LiveActivityChannel.register(
       with: engineBridge.pluginRegistry.registrar(forPlugin: "LiveActivityChannel")!.messenger())
+    let glass = engineBridge.pluginRegistry.registrar(forPlugin: "GlassButton")!
+    // As the tab bar below: iOS 26's UIButton misses taps under the eager policy.
+    glass.register(
+      GlassButtonFactory(messenger: glass.messenger()), withId: "app.settlo/glass_button",
+      gestureRecognizersBlockingPolicy:
+        FlutterPlatformViewGestureRecognizersBlockingPolicyDoNotBlockGesture)
     let tabBar = engineBridge.pluginRegistry.registrar(forPlugin: "NativeTabBar")!
     // Under the default eager policy, iOS 26's UITabBar never selected a tab
     // even when Flutter's arena accepted the tap (#174, see flutter#175099).

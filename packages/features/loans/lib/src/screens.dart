@@ -33,17 +33,22 @@ class LoanScreen extends ConsumerWidget {
         children: [
           SettloNavigationHeader(
             title: 'Loans',
-            trailing: IconButton(
-              tooltip: 'New loan',
+            trailing: GlassAction(
+              label: 'New loan',
+              symbol: 'plus',
               onPressed: () => context.push(SettloRoutes.newLoan),
-              style: IconButton.styleFrom(
-                fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                backgroundColor: c.surface,
-                side: BorderSide(color: c.hairline),
+              fallback: IconButton(
+                tooltip: 'New loan',
+                onPressed: () => context.push(SettloRoutes.newLoan),
+                style: IconButton.styleFrom(
+                  fixedSize: const Size.square(SettloSpacing.minTouchTarget),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  backgroundColor: c.surface,
+                  side: BorderSide(color: c.hairline),
+                ),
+                icon: LoanGlyph(LoanGlyph.plus, color: c.textPrimary),
               ),
-              icon: LoanGlyph(LoanGlyph.plus, color: c.textPrimary),
             ),
           ),
           const SizedBox(height: SettloSpacing.x3),

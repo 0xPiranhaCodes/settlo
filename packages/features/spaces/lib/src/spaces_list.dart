@@ -65,44 +65,49 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
           children: [
             SettloNavigationHeader(
               title: 'Spaces',
-              // iOS: a plain bar button, as in Apple's lists.
-              trailing: ios
-                  ? Semantics(
-                      label: 'New space',
-                      button: true,
-                      excludeSemantics: true,
-                      onTap: () => showCreateSpaceSheet(context),
-                      child: CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size.square(
-                          SettloSpacing.minTouchTarget,
+              // iOS: a plain bar button, as in Apple's lists; glass on 26.
+              trailing: GlassAction(
+                label: 'New space',
+                symbol: 'plus',
+                onPressed: () => showCreateSpaceSheet(context),
+                fallback: ios
+                    ? Semantics(
+                        label: 'New space',
+                        button: true,
+                        excludeSemantics: true,
+                        onTap: () => showCreateSpaceSheet(context),
+                        child: CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size.square(
+                            SettloSpacing.minTouchTarget,
+                          ),
+                          onPressed: () => showCreateSpaceSheet(context),
+                          child: Icon(
+                            CupertinoIcons.add,
+                            color: c.textPrimary,
+                            size: 28,
+                          ),
                         ),
+                      )
+                    : IconButton(
+                        tooltip: 'New space',
                         onPressed: () => showCreateSpaceSheet(context),
-                        child: Icon(
-                          CupertinoIcons.add,
+                        style: IconButton.styleFrom(
+                          fixedSize: const Size.square(
+                            SettloSpacing.minTouchTarget,
+                          ),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          backgroundColor: c.surface,
+                          side: BorderSide(color: c.hairline),
+                        ),
+                        icon: SpacesIcon(
+                          SpacesGlyph.plus,
                           color: c.textPrimary,
-                          size: 28,
+                          size: 22,
                         ),
                       ),
-                    )
-                  : IconButton(
-                      tooltip: 'New space',
-                      onPressed: () => showCreateSpaceSheet(context),
-                      style: IconButton.styleFrom(
-                        fixedSize: const Size.square(
-                          SettloSpacing.minTouchTarget,
-                        ),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        backgroundColor: c.surface,
-                        side: BorderSide(color: c.hairline),
-                      ),
-                      icon: SpacesIcon(
-                        SpacesGlyph.plus,
-                        color: c.textPrimary,
-                        size: 22,
-                      ),
-                    ),
+              ),
             ),
             if (ios) ...[
               const SizedBox(height: SettloSpacing.x1),

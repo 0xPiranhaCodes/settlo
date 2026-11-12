@@ -22,6 +22,7 @@
 		98F033294AF7432CC6DFC2C2 /* SettleUpAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 160A5DA63AF445EB024401BA /* SettleUpAttributes.swift */; };
 		9BFFF8A636971C695A745CE9 /* SettleUpLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2EA97B5FEFF501958587355 /* SettleUpLiveActivity.swift */; };
 		A15700000000000000000001 /* NativeTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15700000000000000000002 /* NativeTabBar.swift */; };
+		A19100000000000000000001 /* GlassButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A19100000000000000000002 /* GlassButton.swift */; };
 		E09C533E1A2C18E33BD6095B /* SettloWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 35BD0E3411CAE79B5AE99F0D /* SettloWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		ECABCD4F160D79A613B35EFD /* RunnerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEE649B233BCCD6317DD8C0A /* RunnerUITests.swift */; };
 /* End PBXBuildFile section */
@@ -97,6 +98,7 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A15700000000000000000002 /* NativeTabBar.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeTabBar.swift; sourceTree = "<group>"; };
+		A19100000000000000000002 /* GlassButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlassButton.swift; sourceTree = "<group>"; };
 		B660C07F6A660BA834C49A09 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		E2EA97B5FEFF501958587355 /* SettleUpLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettleUpLiveActivity.swift; sourceTree = "<group>"; };
 		EBE9A34C909F6DD8F16DDD56 /* LiveActivityChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveActivityChannel.swift; sourceTree = "<group>"; };
@@ -196,6 +198,7 @@
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				EBE9A34C909F6DD8F16DDD56 /* LiveActivityChannel.swift */,
 				A15700000000000000000002 /* NativeTabBar.swift */,
+				A19100000000000000000002 /* GlassButton.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -456,6 +459,7 @@
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				78800805918A5E2860EEECA3 /* LiveActivityChannel.swift in Sources */,
 				A15700000000000000000001 /* NativeTabBar.swift in Sources */,
+				A19100000000000000000001 /* GlassButton.swift in Sources */,
 				98F033294AF7432CC6DFC2C2 /* SettleUpAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
