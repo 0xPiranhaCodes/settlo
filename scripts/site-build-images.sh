@@ -3,3 +3,5 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 "${SITE_IMAGE_PYTHON:-python3}" scripts/site-phones.py
+
+python3 scripts/site-build.py

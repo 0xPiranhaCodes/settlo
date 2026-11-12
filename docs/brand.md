@@ -91,3 +91,49 @@ The Goa story pins the complete phone beside three compact steps on wide screens
 - Reminders: `packages/features/loans/lib/src/remind_button.dart`, `packages/core/lib/supabase/reminders.dart` and the `remind_loan` SQL function enforce a 24-hour shared cooldown and recipient opt-out. Reminders are online-only.
 - Offline: `packages/local/lib/src/repositories.dart` and `sync.dart` keep saved records and queue supported writes. Initial sign-in needs connectivity; the tile does not promise offline reminders or payments.
 - Instalments: `packages/features/loans/lib/src/loan_detail.dart` renders the same schedule and outstanding amount shown in the tile; repayments count after confirmation.
+
+## Website publication flags (#230 / #228)
+
+The public site is still a buildless `site/` artifact. Edit
+`scripts/site-index.template.html`, then run `python3 scripts/site-build.py` and
+commit its generated `site/index.html`. `scripts/site-features.json` is the single flag
+map, kept outside the published `site/` artifact; every future flag defaults to `false`. Disabled HTML is removed at build
+time, including FAQ entries and comparison rows, rather than hidden with CSS.
+The FAQ JSON-LD is generated from the surviving visible answers.
+
+`site-serve.py` and `site-build-images.sh` run the builder; `site-check.cjs`
+rejects stale generated output. The existing Pages workflow needs no change.
+Run `python3 scripts/site-build-check.py` to check independent flags, combined
+flags, dependency gates, schema generation and output freshness.
+
+| Flag | Issue | Gated content |
+| --- | --- | --- |
+| `settle_link` | #213 | No-install and live-status cards, sample status feed, alternate app-needed FAQ |
+| `person_qr` | #214 | Personal QR card and scan comparison row |
+| `partial_payments` | #215 | Partial-payment card and Spaces pay-over-time point |
+| `pay_by_dates` | #216 | Pay-by card |
+| `reminder_tones` | #217 | Reminder-tone card (existing loan reminders remain visible) |
+| `receipt_scan` | #220 | Receipt card and receipt-photo FAQ |
+| `hindi_toggle` | #222 | Hindi FAQ; language preview also requires `partial_payments` |
+| `widget` | #224 | Home Screen widget card |
+| `guest_add` | #225 | Spaces web-entry point |
+| `summary_card` | #226 | Shareable summary card |
+| `spin` | #227 | Spin-to-pick card |
+| `item_splits` | #219 | Item-level and tax/service comparison rows |
+| `foreign_currency` | #221 | Currency-conversion FAQ |
+
+The final two gates preserve the requested future comparison/FAQ content without
+advertising unshipped features. Flip the relevant flag in the feature's shipping
+PR and regenerate; verify the prepared copy against its final implementation.
+All cards are free: no Pro labels, price switch or coming-soon claims. The
+language preview requires both dependencies. Social handles are omitted.
+Blog (#231) and Terms (#232) have insertion comments, not dead links.
+
+Original bill and conversation examples use fictional Neel, Tara and Dev and
+explicitly distinguish recorded payments from confirmed receipt. The reference
+site informed section order only. Existing real iOS capture assets are reused
+unchanged; the profile crop contains `demo@upi`. No simulator was needed.
+The final QR encodes exactly the existing beta CTA mailto URI:
+`mailto:support@sabkijeb.app?subject=SabkiJeb%20TestFlight%20beta`.
+It was generated locally with Python `qrcode` as an SVG with a four-module quiet
+zone; it does not call a QR service or introduce third-party requests.

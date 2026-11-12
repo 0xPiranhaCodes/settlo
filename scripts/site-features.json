@@ -1,0 +1,15 @@
+{
+  "settle_link": false,
+  "person_qr": false,
+  "partial_payments": false,
+  "pay_by_dates": false,
+  "reminder_tones": false,
+  "receipt_scan": false,
+  "hindi_toggle": false,
+  "widget": false,
+  "guest_add": false,
+  "summary_card": false,
+  "spin": false,
+  "item_splits": false,
+  "foreign_currency": false
+}
