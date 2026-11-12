@@ -83,7 +83,7 @@ const phonesClear = () => {
       page.on("response", (r) => {
         if (r.status() >= 400) failures.push(`${r.status()} ${r.url()}`);
       });
-      for (const path of ["", "privacy/", "support/", "delete-account/"]) {
+      for (const path of ["", "privacy/", "support/", "delete-account/", "terms/"]) {
         await page.goto(localUrl + path);
         await page.evaluate(() => document.fonts.ready);
         await waitForImages(page).catch((error) => {
