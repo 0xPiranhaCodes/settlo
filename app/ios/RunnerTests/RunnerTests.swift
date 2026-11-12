@@ -171,10 +171,10 @@ class RunnerTests: XCTestCase {
 
   func testTintIsSettloActionNotSystemBlue() {
     let tabs = makeBar()
-    messenger.call(channelName, "update", ["tint": 0xFFD8B36A])
+    messenger.call(channelName, "update", ["tint": 0xFFFEBD11])
     var (r, g, b, a): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
     tabs.bar.tintColor.getRed(&r, green: &g, blue: &b, alpha: &a)
-    XCTAssertEqual([r, g, b, a].map { Int(($0 * 255).rounded()) }, [0xD8, 0xB3, 0x6A, 0xFF])
+    XCTAssertEqual([r, g, b, a].map { Int(($0 * 255).rounded()) }, [0xFE, 0xBD, 0x11, 0xFF])
   }
 
   func testReportsItsHeightOnLayout() {

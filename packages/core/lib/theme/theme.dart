@@ -71,7 +71,7 @@ abstract final class SettloTheme {
           backgroundColor: c.action,
           foregroundColor: c.onAction,
           minimumSize: buttonSize,
-          shape: const StadiumBorder(),
+          shape: buttonShape,
           textStyle: text.labelLarge,
         ),
       ),

@@ -18,6 +18,9 @@ Brand: Deep forest #01381E · Pocket jade #01672D · Marigold #FEBD11 · Check i
 | Error | #A42E35 | #FF9CA3 |
 
 Primary button text contrast: light 6.23:1, dark 7.88:1.
+
+Palette illustration only; existing screen layouts and button shapes are retained.
+The clock is the approved non-colour cue on existing pending lines.
 Reference card ("Goa trip"): light = card surface with 1px divider-coloured border, green "Add expense" pill; dark = #14271C card, marigold pill with deep-forest label; amounts in owed/owe colours; a "pending" line with a clock icon in the pending colour.
 
 ## Derived roles

@@ -7,7 +7,7 @@ The app name, launcher icon, supplied in-app S artwork, and website are unchange
 
 ## iOS 26.1 evidence
 
-Captured on one disposable iPhone 17 Pro simulator, using the real app router
+The original captures used one disposable iPhone 17 Pro simulator and the real app router
 with the repository’s offline fixture repositories. The entry point is
 [`palette_app.dart`](../../../app/integration_test/palette_app.dart); no backend,
 SMS, or live account was used. XCUITest sends coordinate-based HID taps to the
@@ -47,7 +47,39 @@ run `testPaletteAuthEvidence`. Export screenshot attachments with
 verification. The dedicated `Settlo Palette 202` simulator was shut down and
 deleted after this run (UUID `7CB778C5-7679-4C9A-A596-57DEF56A877E`).
 
-## Validation
+## PR #206 colour-only correction
+
+The correction after `6efaa2c` removes the per-card **Add expense** button,
+its navigation action, and the new settlement-count line. `_SpaceCard` and
+`spaces_test.dart` now match main byte for byte. Existing pending lines retain
+the approved clock icons. A full production-diff audit also found and reverted
+the new primary-button pill shape: the original radius-16 shape is restored.
+
+All 174 affected PNGs were regenerated in the pinned Linux `ci-local` image and
+visually inspected, retaining their original dimensions. All 12 Spaces-list
+variants now use main's card layout, including both widths and 200% text.
+
+Final validation:
+
+- `flutter analyze`: no issues.
+- Full workspace tests with `--coverage --concurrency=2`: **1,516 passed**
+  (app 795, core 471, local 73, platform 76, auth 59, profile 42).
+- CI LCOV merge and gates: **98.52% (5709/5795)** against **98.11%**;
+  money **100% (110/110)**. No #194 exclusion was needed.
+- iOS 26.1: all 24 Swift tests and `testPaletteEvidence` passed in each
+  appearance. The two **Spaces after** images above were replaced with these
+  inspected captures; the other native images remain historical `6efaa2c`
+  evidence, including its former button shape. Current button shapes are
+  covered by the regenerated Linux goldens.
+- Only one simulator was booted for this correction, iPhone 17 Pro
+  `45C79D4F-1533-48D2-B4B6-EE35D1FC78FC`; it was shut down, deleted and
+  verified absent afterward. No `.github` files changed.
+
+The capture uses the reproduction command above with `-only-testing:RunnerTests`
+added. Detailed commands and the initial sheet-golden rerun are recorded in
+[validation.txt](validation.txt). Hosted CI remains the merge gate.
+
+## Original validation at `6efaa2c`
 
 The key-pair tests enforce 4.5:1 for normal text, button labels, money amounts,
 pending and errors on content surfaces, and 3:1 for control outlines. The exact

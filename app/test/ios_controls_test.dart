@@ -74,10 +74,8 @@ Future<GoRouter> _pump(
 }
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
-  if (finder.hitTestable().evaluate().isEmpty) {
-    await tester.ensureVisible(finder);
-    await tester.pumpAndSettle();
-  }
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
   await tester.tap(finder);
   await tester.pumpAndSettle();
 }
