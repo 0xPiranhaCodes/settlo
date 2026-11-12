@@ -13,8 +13,8 @@ test accepts it and still rejects a handle with no local part.
   A current-app capture would misrepresent their old layouts, palettes, and
   before/after comparisons, so opaque gray rectangles cover the owner's real VPA,
   including four truncated fragments at 200% text size. `redactions.json` records
-  each rectangle as `[left, top, right, bottom]` in image pixels. Pixel comparison
-  against the parent revision confirms no changes outside those rectangles.
+  each rectangle as inclusive `[left, top, right, bottom]` image-pixel coordinates.
+  Pixel comparison against the parent revision confirms no changes outside them.
 - Fresh `profile`, `edit-upi`, and `settle` screenshots in both themes show the
   current app on a dedicated iPhone 15 Plus simulator running iOS 26.1, at
   1290×2796. These are native simulator screenshots with offline app fixtures.
@@ -28,11 +28,12 @@ test accepts it and still rejects a handle with no local part.
   scratchpad location, not added to this PR. Each is 1290×2796.
 
 All 1,050 pre-existing tracked raster assets, including `site/images` PNG, WebP,
-AVIF, and JPEG files, were scanned with Apple's Vision text recognition. The final
-scan found no original bank-handle text; a separate scan of all 20 fresh evidence
-and website captures was also clean. The existing website assets needed no
-redaction. Every changed PNG and every fresh website shot was visually inspected,
-including historical Profile/Settle images that did not produce an OCR match.
+AVIF, and JPEG files, were scanned with Apple's Vision text recognition. That
+initial scan missed six readable instances across the Profile and Edit profile
+comparisons. A
+separate scan of all 20 fresh evidence and website captures reported no matches. The existing website assets needed no
+redaction. The initial visual review also missed those six instances; the follow-up
+below records their correction.
 
 ## Validation
 
@@ -52,3 +53,34 @@ including historical Profile/Settle images that did not produce an OCR match.
 - Original bank-handle search over tracked text: no matches. `.github` unchanged.
 - All six evidence captures and fourteen external website shots are 1290×2796;
   both OCR and visual review passed. The dedicated simulator was deleted.
+
+## PR #209 review follow-up
+
+Added six opaque `#777777` rectangles in the existing style:
+
+- Edit profile comparison: middle column, rows 3 and 4 (the review finding),
+  plus left column, row 2 (found during follow-up visual inspection).
+- Profile comparison: left column, rows 1, 2, and 4 (found by the full audit).
+
+Both corrected images were visually inspected. Pixel comparisons against
+`ecadc81` confirm unchanged dimensions and no changes outside the six new
+inclusive rectangles recorded in `redactions.json`.
+
+The follow-up uses Tesseract 5.5.4, sparse-text mode, on whole images and on
+1,200-pixel-high overlapping crops (1,050-pixel step) for images taller than
+1,500 pixels. The unredacted Edit profile comparison is a positive control:
+the whole-image pass detects all three exposed fields, and the cropped passes
+detect each again. The two corrected comparisons pass all ten whole/cropped
+passes with zero matches and zero errors.
+
+The full repository audit completed all 1,056 tracked raster assets: 1,019 PNG,
+24 AVIF, and 13 WebP (there are no tracked JPG/JPEG files), across 2,382
+whole-image/crop passes with zero decode or OCR execution errors. After fixing
+the Profile findings and rescanning both corrected comparisons, no owner-VPA
+matches remain. The only remaining broad bank-suffix matches are in the Settle
+comparison; visual inspection confirms they belong to the unrelated fictional
+settlement fixture, not the owner's VPA.
+
+A supplementary Apple Vision scan detected the missed Profile fields but
+encountered recognition errors; it is not counted as a complete clean audit.
+`flutter analyze` was rerun and reports no issues. No application code changed.
