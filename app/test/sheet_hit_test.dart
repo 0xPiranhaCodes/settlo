@@ -50,7 +50,9 @@ Future<void> _pump(
     addTearDown(tester.view.reset);
     tester.platformDispatcher.textScaleFactorTestValue = device.textScale;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final root = GlobalKey<NavigatorState>();
     final router = GoRouter(
+      navigatorKey: root,
       initialLocation: location,
       routes: [
         ...authRoutes,
@@ -64,7 +66,7 @@ Future<void> _pump(
           branches: [
             StatefulShellBranch(
               routes: [
-                homeTabRoute(routes: [profileRoute]),
+                homeTabRoute(routes: [profileRoute(root, 'profile')]),
               ],
             ),
             StatefulShellBranch(routes: [spacesTabRoute]),
@@ -283,6 +285,7 @@ void main() {
 
     expect(find.text('Save'), findsNothing);
     // The header scrolled out of the lazy list when the row was brought up.
+    // Profile's list is the last: its sheet is over Home's (#196).
     final scroll = tester.state<ScrollableState>(
       find
           .byWidgetPredicate(
@@ -290,7 +293,7 @@ void main() {
                 widget is Scrollable &&
                 widget.axisDirection == AxisDirection.down,
           )
-          .first,
+          .last,
     );
     scroll.position.jumpTo(0);
     await tester.pumpAndSettle();

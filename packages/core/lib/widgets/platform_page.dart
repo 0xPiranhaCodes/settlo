@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
+import 'package:settlo_core/theme/tokens.dart';
 
 /// A routed screen with native transitions and interactive iOS back gestures.
 class SettloPage<T> extends Page<T> {
@@ -58,6 +59,98 @@ class SettloSheetPage<T> extends SettloPage<T> {
   }
 }
 
+/// A sheet with its own navigation, such as Profile (#196): pages pushed
+/// from inside with [settloPageRoute] stay in the sheet. On iOS it is
+/// [SettloSheetPage]'s [CupertinoSheetRoute]; elsewhere a full-height
+/// Material bottom sheet with a drag handle.
+class SettloNavigatorSheetPage<T> extends SettloPage<T> {
+  /// Keeps the router's page identity and state restoration intact.
+  const new({required super.child, super.key});
+
+  @override
+  Route<T> createRoute(BuildContext context) {
+    final reduced = MediaQuery.disableAnimationsOf(context);
+    final c = SettloColors.of(context);
+    if (Theme.of(context).platform != TargetPlatform.iOS) {
+      return ModalBottomSheetRoute<T>(
+        settings: this,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        backgroundColor: c.background,
+        modalBarrierColor: c.background.withValues(alpha: 0.6),
+        barrierLabel: MaterialLocalizations.of(context).scrimLabel,
+        clipBehavior: Clip.antiAlias,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(SettloRadius.cardHero),
+          ),
+        ),
+        sheetAnimationStyle: reduced ? AnimationStyle.noAnimation : null,
+        builder: (_) => _SheetNavigator(child: child),
+      );
+    }
+    return _SheetRoute<T>(
+      settings: this,
+      reduced: reduced,
+      // The only entry here is the inner Back handler: a drag down closes
+      // the whole sheet even with a page pushed, as a UIKit page sheet does.
+      holdsDrag: false,
+      scrollableBuilder: (context, controller) => ColoredBox(
+        color: c.surface,
+        child: _SheetNavigator(controller: controller, child: child),
+      ),
+    );
+  }
+}
+
+/// A page pushed inside a [SettloNavigatorSheetPage], with the platform's
+/// transition and back gesture.
+Route<T> settloPageRoute<T>(BuildContext context, WidgetBuilder builder) {
+  final reduced = MediaQuery.disableAnimationsOf(context);
+  return Theme.of(context).platform == TargetPlatform.iOS
+      ? _CupertinoRoute<T>(builder: builder, settings: null, reduced: reduced)
+      : _MaterialRoute<T>(builder: builder, settings: null, reduced: reduced);
+}
+
+class _SheetNavigator extends StatefulWidget {
+  const new({required this.child, this.controller});
+
+  final Widget child;
+
+  /// The sheet's drag-to-dismiss controller, for the first page only.
+  final ScrollController? controller;
+
+  @override
+  State<_SheetNavigator> createState() => _SheetNavigatorState();
+}
+
+class _SheetNavigatorState extends State<_SheetNavigator> {
+  final _navigator = GlobalKey<NavigatorState>();
+
+  @override
+  Widget build(BuildContext context) => NavigatorPopHandler<Object?>(
+    // Back pops a pushed page first; on the first page, the sheet.
+    onPopWithResult: (_) => _navigator.currentState?.maybePop(),
+    child: Navigator(
+      key: _navigator,
+      onGenerateInitialRoutes: (_, _) => [
+        settloPageRoute<void>(
+          context,
+          // Each route has its own primary controller; give the first page
+          // the sheet's back so a drag down at the top dismisses it.
+          (_) => widget.controller == null
+              ? widget.child
+              : PrimaryScrollController(
+                  controller: widget.controller!,
+                  child: widget.child,
+                ),
+        ),
+      ],
+    ),
+  );
+}
+
 /// Shows [builder] as a full-height page sheet, such as Create space, on
 /// the root navigator. On iOS it is the same route as [SettloSheetPage]:
 /// a [PopScope] inside holds a drag down. Elsewhere it is [fallback], so
@@ -96,8 +189,12 @@ class _SheetRoute<T> extends CupertinoSheetRoute<T> {
     required super.settings,
     required super.scrollableBuilder,
     required this.reduced,
+    this.holdsDrag = true,
   });
   final bool reduced;
+
+  /// Whether a [PopScope] inside can hold a drag down.
+  final bool holdsDrag;
 
   /// The [PopScope]s inside, read directly: [popDisposition] would recurse
   /// through [willHandlePopInternally].
@@ -107,6 +204,7 @@ class _SheetRoute<T> extends CupertinoSheetRoute<T> {
   /// a form with unsaved input. The framework's drag controller pops
   /// unconditionally, and go_router ignores [didPop] unless this is true.
   bool get _dragVetoed =>
+      holdsDrag &&
       (navigator?.userGestureInProgress ?? false) &&
       _scopes.any((s) => !s.canPopNotifier.value);
 

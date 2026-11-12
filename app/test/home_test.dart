@@ -55,7 +55,7 @@ Future<GoRouter> _pump(
         SettloRoutes.confirmRepaymentPattern,
         SettloRoutes.loanPattern,
         SettloRoutes.activity,
-        SettloRoutes.profile,
+        SettloRoutes.profileSheet,
         SettloRoutes.addExpense,
         SettloRoutes.settle,
       ])
@@ -335,7 +335,7 @@ void main() {
 
     for (final (label, target, location) in [
       ('Notifications', find.byTooltip('Notifications'), SettloRoutes.activity),
-      ('Profile', find.byTooltip('Profile'), SettloRoutes.profile),
+      ('Profile', find.byTooltip('Profile'), SettloRoutes.profileSheet),
     ]) {
       testWidgets('$label goes to $location', (tester) async {
         final router = await _pump(tester, FakeHomeRepository(homeMain));

@@ -69,7 +69,7 @@ final class RunnerUITests: XCTestCase {
   }
 
   func testEveryTabTapWorksFromEveryPushedScreen() {
-    for screen in ["Profile", "Space", "Balances", "Loan"] {
+    for screen in ["Space", "Balances", "Loan"] {
       let (app, bar) = launch()
       let owner = open(screen, app, bar)
       for tab in tabs where tab != owner {
@@ -107,7 +107,7 @@ final class RunnerUITests: XCTestCase {
     let grid = [0.08, 0.5, 0.92].flatMap { x in
       [0.08, 0.5, 0.75, 0.92].map { y in CGVector(dx: x, dy: y) }
     }
-    for screen in ["Home", "Profile", "Space", "Balances", "Loan"] {
+    for screen in ["Home", "Space", "Balances", "Loan"] {
       let (app, bar) = launch()
       let owner = screen == "Home" ? "Home" : open(screen, app, bar)
       dismissPrompt(app)
@@ -125,7 +125,7 @@ final class RunnerUITests: XCTestCase {
   /// A drag that starts on a tab and leaves the bar selects that tab, as a
   /// native tab bar does (#188).
   func testDragOffTheBarSelectsTheTab() {
-    for screen in ["Home", "Profile"] {
+    for screen in ["Home", "Space"] {
       let (app, bar) = launch()
       if screen != "Home" { _ = open(screen, app, bar) }
       dismissPrompt(app)
@@ -137,24 +137,27 @@ final class RunnerUITests: XCTestCase {
     }
   }
 
-  func testEdgeSwipeBackFromProfile() {
-    let (app, bar) = launch()
-    _ = open("Profile", app, bar)
-    let title = app.staticTexts["You"]
-    XCTAssertTrue(title.waitForExistence(timeout: 10))
-    app.coordinate(withNormalizedOffset: CGVector(dx: 0.005, dy: 0.5)).press(
-      forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5)))
-    wait(for: [expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: title)], timeout: 5)
-    XCTAssertEqual(selected(bar), ["Home"])
-  }
-
-  func testHomeTabFromProfileReturnsHome() {
-    let (app, bar) = launch()
-    _ = open("Profile", app, bar)
-    let title = app.staticTexts["You"]
-    XCTAssertTrue(title.waitForExistence(timeout: 10))
-    touch("Home", bar)
-    wait(for: [expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: title)], timeout: 5)
+  /// Profile is a sheet over Home (#196): the avatar opens it, and its
+  /// labelled Close or a swipe down dismisses it back to Home.
+  func testAvatarOpensProfileSheetThatCloseDismisses() {
+    for swipe in [false, true] {
+      let (app, bar) = launch()
+      _ = open("Profile", app, bar)
+      let title = app.staticTexts["You"]
+      XCTAssertTrue(title.waitForExistence(timeout: 10))
+      let close = app.buttons["Close"]
+      XCTAssertTrue(close.waitForExistence(timeout: 10))
+      XCTAssertGreaterThanOrEqual(close.frame.width, 44)
+      XCTAssertGreaterThanOrEqual(close.frame.height, 44)
+      if swipe {
+        let top = title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        top.press(forDuration: 0.05, thenDragTo: top.withOffset(CGVector(dx: 0, dy: 600)))
+      } else {
+        close.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+      }
+      wait(for: [expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: title)], timeout: 5)
+      XCTAssertEqual(selected(bar), ["Home"], swipe ? "swipe" : "close")
+    }
   }
 
   /// Home's glass bell and avatar are UIKit buttons on iOS 26 (#191): each
@@ -176,7 +179,7 @@ final class RunnerUITests: XCTestCase {
     }
   }
 
-  func testProfileLastRowClearsTheBar() {
+  func testProfileLastRowIsOnScreen() {
     let (app, bar) = launch()
     _ = open("Profile", app, bar)
     let last = app.descendants(matching: .any)
@@ -184,6 +187,6 @@ final class RunnerUITests: XCTestCase {
     XCTAssertTrue(last.waitForExistence(timeout: 10))
     for _ in 0..<4 { app.swipeUp() }
     sleep(1)
-    XCTAssertLessThanOrEqual(last.frame.maxY, bar.frame.minY)
+    XCTAssertLessThanOrEqual(last.frame.maxY, app.frame.maxY)
   }
 }

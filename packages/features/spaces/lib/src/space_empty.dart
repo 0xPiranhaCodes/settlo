@@ -142,7 +142,7 @@ class SpaceEmptyView extends StatelessWidget {
                   const _SetUpRow(
                     glyph: SpacesGlyph.card,
                     label: 'Add your UPI ID so settle-ups are one tap',
-                    route: SettloRoutes.profile,
+                    route: SettloRoutes.profileSheet,
                   ),
                 ],
               ),

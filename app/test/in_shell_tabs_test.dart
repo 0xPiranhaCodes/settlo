@@ -13,12 +13,7 @@ import 'support/fake_home.dart';
 import 'support/fake_session.dart';
 
 /// Screens pushed inside the shell, so the tab bar stays over them (#174).
-const _pushed = {
-  '/home/profile': 0,
-  '/spaces/s1': 1,
-  '/spaces/s1/balances': 1,
-  '/loans/l1': 2,
-};
+const _pushed = {'/spaces/s1': 1, '/spaces/s1/balances': 1, '/loans/l1': 2};
 const _roots = ['/home', '/spaces', '/loans', '/activity'];
 
 /// The native bar's platform view id; it grows from test to test.

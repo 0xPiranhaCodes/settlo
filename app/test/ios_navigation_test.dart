@@ -271,7 +271,6 @@ void main() {
       SettloRoutes.loan(loansList().loans.first.id),
       'Loans',
     ),
-    ('Profile', SettloRoutes.home, SettloRoutes.profile, 'Home'),
   ]) {
     testWidgets('on iOS, edge swipe back from $name in the app router', (
       tester,

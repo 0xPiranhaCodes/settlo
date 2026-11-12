@@ -218,7 +218,8 @@ Future<void> _setProfile(
   await tester.tap(find.text('Save'));
   await _waitForGone(tester, find.byKey(const ValueKey('profile-upi-id')));
   await _waitFor(tester, find.text(upi));
-  await tester.tap(find.text('Home').last);
+  // Profile is a sheet over Home (#196).
+  await tester.tap(find.byTooltip('Close'));
   await _waitFor(tester, find.byType(HomeScreen));
 }
 
