@@ -20,8 +20,12 @@ abstract final class SettloRoutes {
   /// Home tab.
   static const home = '/home';
 
-  /// Profile, reached from Home.
+  /// Profile over Home, for deep links and notifications.
   static const profile = '/home/profile';
+
+  /// Profile over the current tab: `push` it, as `go` would leave nothing
+  /// behind the sheet.
+  static const profileSheet = '/profile';
 
   /// Spaces tab.
   static const spaces = '/spaces';

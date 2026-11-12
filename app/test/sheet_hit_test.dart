@@ -66,7 +66,7 @@ Future<void> _pump(
           branches: [
             StatefulShellBranch(
               routes: [
-                homeTabRoute(routes: [profileRoute(root)]),
+                homeTabRoute(routes: [profileRoute(root, 'profile')]),
               ],
             ),
             StatefulShellBranch(routes: [spacesTabRoute]),

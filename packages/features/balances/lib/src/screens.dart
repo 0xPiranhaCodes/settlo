@@ -190,10 +190,10 @@ class _Header extends ConsumerWidget {
         GlassAction(
           label: 'Profile',
           title: initial,
-          onPressed: () => context.go(SettloRoutes.profile),
+          onPressed: () => context.push(SettloRoutes.profileSheet),
           fallback: IconButton(
             tooltip: 'Profile',
-            onPressed: () => context.go(SettloRoutes.profile),
+            onPressed: () => context.push(SettloRoutes.profileSheet),
             style: IconButton.styleFrom(
               fixedSize: const Size.square(SettloHomeMetrics.headerControl),
               minimumSize: Size.zero,

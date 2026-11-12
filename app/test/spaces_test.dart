@@ -73,7 +73,7 @@ Future<GoRouter> _pump(
       ),
       for (final path in [
         SettloRoutes.addExpense,
-        SettloRoutes.profile,
+        SettloRoutes.profileSheet,
         SettloRoutes.settle,
         SettloRoutes.settlePay,
         SettloRoutes.activity,
@@ -625,7 +625,7 @@ void main() {
     for (final (label, location) in [
       ('Add first expense', SettloRoutes.addExpenseIn('s9')),
       ('Add rent as a monthly expense', SettloRoutes.addExpenseIn('s9')),
-      ('Add your UPI ID so settle-ups are one tap', SettloRoutes.profile),
+      ('Add your UPI ID so settle-ups are one tap', SettloRoutes.profileSheet),
     ]) {
       testWidgets('$label goes to $location', (tester) async {
         final router = await pumpEmpty(tester);

@@ -93,6 +93,9 @@ class SettloNavigatorSheetPage<T> extends SettloPage<T> {
     return _SheetRoute<T>(
       settings: this,
       reduced: reduced,
+      // The only entry here is the inner Back handler: a drag down closes
+      // the whole sheet even with a page pushed, as a UIKit page sheet does.
+      holdsDrag: false,
       scrollableBuilder: (context, controller) => ColoredBox(
         color: c.surface,
         child: _SheetNavigator(controller: controller, child: child),
@@ -186,8 +189,12 @@ class _SheetRoute<T> extends CupertinoSheetRoute<T> {
     required super.settings,
     required super.scrollableBuilder,
     required this.reduced,
+    this.holdsDrag = true,
   });
   final bool reduced;
+
+  /// Whether a [PopScope] inside can hold a drag down.
+  final bool holdsDrag;
 
   /// The [PopScope]s inside, read directly: [popDisposition] would recurse
   /// through [willHandlePopInternally].
@@ -197,6 +204,7 @@ class _SheetRoute<T> extends CupertinoSheetRoute<T> {
   /// a form with unsaved input. The framework's drag controller pops
   /// unconditionally, and go_router ignores [didPop] unless this is true.
   bool get _dragVetoed =>
+      holdsDrag &&
       (navigator?.userGestureInProgress ?? false) &&
       _scopes.any((s) => !s.canPopNotifier.value);
 

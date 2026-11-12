@@ -106,6 +106,7 @@ List<RouteBase> _routes({required bool flatChrome}) => [
   ...settleRoutes,
   ...loansRoutes,
   ...spacesRoutes,
+  profileRoute(_rootKey, SettloRoutes.profileSheet),
   StatefulShellRoute.indexedStack(
     builder: (_, _, shell) => AcceptedLoanReminderPrompt(
       child: SettloShell(
@@ -118,7 +119,7 @@ List<RouteBase> _routes({required bool flatChrome}) => [
     ),
     branches: [
       for (final route in [
-        homeTabRoute(routes: [profileRoute(_rootKey)]),
+        homeTabRoute(routes: [profileRoute(_rootKey, 'profile')]),
         spacesTabRoute,
         loansTabRoute,
         activityTabRoute,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -130,7 +132,68 @@ void main() {
       await tester.pumpAndSettle();
       expect(router.state.matchedLocation, SettloRoutes.space('s1'));
     }, variant: variant);
+
+    testWidgets('pushed from another tab, the sheet stays over that tab', (
+      tester,
+    ) async {
+      final router = await _open(tester, SettloRoutes.space('s1'));
+      StatefulNavigationShell shell() => tester.widget(
+        find.byType(StatefulNavigationShell, skipOffstage: false),
+      );
+      unawaited(router.push<void>(SettloRoutes.profileSheet));
+      await tester.pumpAndSettle();
+
+      expect(_sheet(tester), isA<ModalRoute<void>>());
+      expect(shell().currentIndex, 1, reason: 'Spaces stays selected');
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ProfileScreen), findsNothing);
+      expect(shell().currentIndex, 1);
+      expect(router.state.matchedLocation, SettloRoutes.space('s1'));
+      shell().goBranch(0);
+      await tester.pumpAndSettle();
+      expect(router.state.matchedLocation, SettloRoutes.home);
+      shell().goBranch(1);
+      await tester.pumpAndSettle();
+      expect(router.state.matchedLocation, SettloRoutes.space('s1'));
+    }, variant: variant);
   }
+
+  testWidgets('on iOS, a swipe down with Export pushed closes the sheet', (
+    tester,
+  ) async {
+    final router = await _open(tester, SettloRoutes.profile);
+    await tester.ensureVisible(find.text('Export'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ExportSheet), findsOne);
+
+    await tester.flingFrom(const Offset(200, 160), const Offset(0, 600), 2000);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExportSheet), findsNothing);
+    expect(find.byType(ProfileScreen), findsNothing);
+    expect(router.state.matchedLocation, SettloRoutes.home);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+  testWidgets('on iOS, an edge swipe from Export returns to Profile', (
+    tester,
+  ) async {
+    final router = await _open(tester, SettloRoutes.profile);
+    await tester.ensureVisible(find.text('Export'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export'));
+    await tester.pumpAndSettle();
+
+    await tester.flingFrom(const Offset(2, 400), const Offset(380, 0), 2000);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExportSheet), findsNothing);
+    expect(find.byType(ProfileScreen), findsOne);
+    expect(router.state.matchedLocation, SettloRoutes.profile);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
   testWidgets('on iOS, a swipe down dismisses the sheet', (tester) async {
     final router = await _open(tester, SettloRoutes.profile);
