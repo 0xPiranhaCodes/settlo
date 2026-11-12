@@ -1,0 +1,43 @@
+/* Original editorial covers and layouts; shared palette and Figtree in site.css. */
+.blog main { max-width: 1200px; padding-top: 72px; }
+.blog header { flex-wrap: wrap; }
+.blog header nav { gap: 20px; }
+.blog .nav-beta { font-size: 14px; min-height: 44px; padding: 12px 18px; }
+.blog-intro { max-width: 760px; margin-bottom: 56px; }
+.blog-intro h1 { font-size: clamp(48px, 6vw, 80px); letter-spacing: -0.055em; }
+.blog .eyebrow { color: var(--accent); font-size: 15px; }
+.post-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.post-card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 24px; overflow: hidden; }
+.post-cover { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+.post-card-copy { padding: 28px; display: flex; flex-direction: column; flex: 1; }
+.post-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--secondary); margin-bottom: 20px; }
+.post-meta span { color: var(--accent); font-weight: 500; }
+.post-card h2 { font-size: 28px; line-height: 1.15; margin: 0 0 20px; }
+.post-card-copy > p:not(.post-meta) { color: var(--secondary); font-size: 17px; }
+.post-link { margin-top: auto; color: var(--accent); display: inline-flex; gap: 8px; align-items: center; min-height: 44px; font-weight: 500; }
+.post { max-width: 800px; margin: auto; }
+.post h1 { font-size: clamp(36px, 5vw, 60px); line-height: 1.08; text-wrap: balance; }
+.post > .post-cover { border-radius: 24px; margin: 36px 0 48px; }
+.post-body { max-width: 680px; margin: auto; font-size: 19px; line-height: 1.7; }
+.post-body a { color: var(--accent); }
+.post-body strong { font-weight: 500; }
+.back-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); margin-bottom: 28px; }
+.post > .back-link:last-child { margin-top: 40px; margin-bottom: 0; }
+@media (max-width: 1100px) {
+  .blog header nav { order: 3; width: 100%; justify-content: space-between; flex-wrap: wrap; }
+  .post-grid { grid-template-columns: 1fr; max-width: 720px; }
+  .post-card { display: grid; grid-template-columns: 2fr 3fr; }
+  .post-card > .post-cover { height: 100%; object-fit: cover; }
+}
+@media (max-width: 600px) {
+  .blog main { padding-top: 40px; }
+  .blog header { gap: 8px; }
+  .blog header nav { gap: 8px; }
+  .blog header nav a { font-size: 12px; }
+  .blog .nav-beta { font-size: 12px; padding-inline: 12px; }
+  .blog-intro { margin-bottom: 32px; }
+  .post-card { display: flex; }
+  .post-card > .post-cover { height: auto; }
+  .post-card-copy { padding: 24px; }
+  .post-body { font-size: 18px; }
+}

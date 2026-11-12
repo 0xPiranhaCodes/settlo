@@ -1224,3 +1224,7 @@ td { color: var(--secondary); }
 }
 #pause-feed:checked ~ .feed-window .sample-feed { animation-play-state: paused; }
 #pause-feed + label { display: inline-block; padding: 12px; }
+
+/* Policy navigation remains usable as shared destinations grow. */
+body:not(.landing):not(.blog) header { flex-wrap: wrap; }
+body:not(.landing):not(.blog) header nav { flex-wrap: wrap; gap: 8px 20px; }

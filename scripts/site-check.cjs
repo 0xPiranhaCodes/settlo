@@ -45,6 +45,9 @@ const phonesClear = () => {
     args: ["--disable-gpu"],
   });
   const results = [];
+  const blogPaths = ["blog/", ...fs.readdirSync("site/blog", { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && fs.existsSync(`site/blog/${entry.name}/index.html`))
+    .map((entry) => `blog/${entry.name}/`)];
   require("child_process").execFileSync("python3", ["scripts/site-build.py", "--check"]);
   const { execFileSync } = require("child_process");
   for (const slug of ["privacy", "support"]) {
@@ -83,7 +86,7 @@ const phonesClear = () => {
       page.on("response", (r) => {
         if (r.status() >= 400) failures.push(`${r.status()} ${r.url()}`);
       });
-      for (const path of ["", "privacy/", "support/", "delete-account/", "terms/"]) {
+      for (const path of ["", "privacy/", "support/", "delete-account/", "terms/", ...blogPaths]) {
         await page.goto(localUrl + path);
         await page.evaluate(() => document.fonts.ready);
         await waitForImages(page).catch((error) => {
@@ -100,6 +103,39 @@ const phonesClear = () => {
           () => document.documentElement.scrollWidth > innerWidth,
         );
         if (overflow) throw new Error("Overflow " + width + " " + path);
+        if (await page.locator('header nav a').filter({ hasText: /^Blog$/ }).count() !== 1)
+          throw Error("Missing Blog header link: " + path);
+        if (path !== "support/" && await page.locator('footer a').filter({ hasText: /^Blog$/ }).count() !== 1)
+          throw Error("Missing Blog footer link: " + path);
+        if (path.startsWith("blog/")) {
+          for (const property of ["title", "description", "url", "image"]) {
+            if (!await page.locator(`meta[property="og:${property}"]`).getAttribute("content"))
+              throw Error("Missing blog OG metadata: " + path);
+          }
+          if (await page.locator('meta[property="og:url"]').getAttribute("content") !== publicUrl + path)
+            throw Error("Blog OG URL mismatch: " + path);
+          if (path !== "blog/") {
+            const article = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+            if (article["@type"] !== "Article" || article.headline !== await page.locator("h1").textContent()
+              || article.mainEntityOfPage !== publicUrl + path)
+              throw Error("Article schema mismatch: " + path);
+          }
+          // Check every same-site article link and asset, including fragment targets.
+          const links = await page.locator('main a[href], main img[src]').evaluateAll((els) =>
+            els.map((el) => el.href || el.src));
+          for (const link of links) {
+            const url = new URL(link);
+            if (url.protocol === "mailto:") continue;
+            if (url.origin !== new URL(localUrl).origin) throw Error("External blog link: " + link);
+            const response = await context.request.get(url.href);
+            if (!response.ok()) throw Error("Broken blog link: " + link);
+            if (url.hash && !(await response.text()).includes(`id="${url.hash.slice(1)}"`))
+              throw Error("Broken blog fragment: " + link);
+          }
+          if ([360, 390, 1440].includes(width)) await page.screenshot({
+            path: `${outputDir}/${path.replaceAll("/", "-")}${width}-${colorScheme}.png`, fullPage: true,
+          });
+        }
         if (!path) {
           const blocks = await page
             .locator('script[type="application/ld+json"]')
@@ -206,7 +242,7 @@ const phonesClear = () => {
             throw Error("FAQ");
         } else if (width === 360)
           await page.screenshot({
-            path: `${outputDir}/${path.slice(0, -1)}-${width}-${colorScheme}.png`,
+            path: `${outputDir}/${path.slice(0, -1).replaceAll("/", "-")}-${width}-${colorScheme}.png`,
             fullPage: true,
           });
         results.push({ width, colorScheme, path, overflow, jsDisabled: true });
