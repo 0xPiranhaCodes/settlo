@@ -72,7 +72,7 @@ Read against the implementation at landing-page base `0f610060b640b23f0a7a7b73f7
 | Live Activity for pending settle-up, not loan repayment | `packages/platform/lib/src/live_activity.dart` |
 | CSV and summary PDF / loan statements | `packages/features/profile/lib/src/export_sheet.dart`; `packages/features/loans/lib/src/statement_button.dart` |
 | Mumbai hosting, no contacts upload, no tracking | `site/privacy/index.html` where/what/website; `docs/context-pack.md` |
-| In-app Profile › Delete account takes effect at once and cannot be undone; email settlo@hellojosh.studio if unable to sign in; shared records remain with the other people | `packages/features/profile/lib/src/screens.dart` `_deleteAccount`; `packages/features/profile/lib/src/profile_repository.dart` → `delete_account`; `docs/api.md` account deletion; email fallback wording aligned with PR #143 |
+| In-app Profile › Delete account takes effect at once and cannot be undone; email support@sabkijeb.app if unable to sign in; shared records remain with the other people | `packages/features/profile/lib/src/screens.dart` `_deleteAccount`; `packages/features/profile/lib/src/profile_repository.dart` → `delete_account`; `docs/api.md` account deletion; email fallback wording aligned with PR #143 |
 | iPhone TestFlight beta; Android later; operator/contact | Issue #140 and owner assignment; no unsupported public installation link |
 
 Privacy/support policy wording is preserved from merged PR #143. Their `<main>` stays byte-identical apart from the SabkiJeb name and support address (#204), checked by `scripts/site-check.cjs`; the shared header, footer and CSS restyle the pages without rewriting the policy.

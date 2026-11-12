@@ -301,7 +301,7 @@ void main() {
     await tester.tap(find.text('Help and support'));
     await tester.pump();
 
-    expect(opened, [Uri.parse('https://settlo.hellojosh.studio/support/')]);
+    expect(opened, [Uri.parse('https://sabkijeb.app/support/')]);
   });
 
   for (final failure in ['returns false', 'throws']) {

@@ -2,9 +2,9 @@
 
 Settlo helps people in India split expenses with flatmates and track money lent to friends. Create shared spaces, record expenses and loans, and keep balances together. To settle up, Settlo opens your UPI app with the payment details filled in; you approve the payment there, record it in Settlo, and the other person confirms. Settlo never moves money or automatically verifies payments.
 
-[Website](https://settlo.hellojosh.studio/) · [Privacy](https://settlo.hellojosh.studio/privacy/) · [Support](https://settlo.hellojosh.studio/support/)
+[Website](https://sabkijeb.app/) · [Privacy](https://sabkijeb.app/privacy/) · [Support](https://sabkijeb.app/support/)
 
-**Availability:** iPhone TestFlight beta; see the [website for beta access](https://settlo.hellojosh.studio/). Android is planned for later. There is no public App Store or Google Play release yet.
+**Availability:** iPhone TestFlight beta; see the [website for beta access](https://sabkijeb.app/). Android is planned for later. There is no public App Store or Google Play release yet.
 
 ## Stack and layout
 
