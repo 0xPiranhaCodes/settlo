@@ -33,6 +33,9 @@ abstract final class SettloRoutes {
   /// A space's expenses; pattern for [space].
   static const spacePattern = '/spaces/:spaceId';
 
+  /// A space's activity; pattern for [spaceActivity].
+  static const spaceActivityPattern = '/spaces/:spaceId/activity';
+
   /// A space's balances; pattern for [spaceBalances].
   static const spaceBalancesPattern = '/spaces/:spaceId/balances';
 
@@ -91,6 +94,9 @@ abstract final class SettloRoutes {
     path: settlePay,
     queryParameters: {'space': spaceId, 'member': memberId},
   ).toString();
+
+  /// A space's activity.
+  static String spaceActivity(String spaceId) => '/spaces/$spaceId/activity';
 
   /// A space's balances.
   static String spaceBalances(String spaceId) => '/spaces/$spaceId/balances';

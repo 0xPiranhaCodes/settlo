@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_spaces/src/glyphs.dart';
 import 'package:settlo_spaces/src/space_empty.dart';
@@ -101,13 +102,16 @@ class SpaceLedgerController extends AsyncNotifier<SpaceLedger> {
   }
 }
 
-/// The two tabs of a space with spending.
+/// The three tabs of a space with spending.
 enum SpaceTab {
   /// SpaceExpenses: the month's shape and every expense.
   expenses,
 
   /// Space: who paid against their fair share, and how to settle.
   balances,
+
+  /// Activity recorded in this space.
+  activity,
 }
 
 /// A space with spending (SpaceExpenses and Space artboards), on [tab].
@@ -123,6 +127,18 @@ class SpaceDetailView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (tab == SpaceTab.activity) {
+      return ActivityScreen(
+        spaceId: space.id,
+        spaceName: space.name,
+        navTrailing: SpaceAvatars(space),
+        header: [
+          SpaceHeader(space),
+          const SizedBox(height: SettloSpacing.x3),
+          _Tabs(space: space, tab: tab),
+        ],
+      );
+    }
     final c = SettloColors.of(context);
     final media = MediaQuery.of(context);
     final largeText = media.textScaler.scale(14) > 21;
@@ -410,7 +426,11 @@ class _Tabs extends StatelessWidget {
         SettloRoutes.spaceBalances(space.id),
         tab == SpaceTab.balances,
       ),
-      ('Activity', SettloRoutes.activity, false),
+      (
+        'Activity',
+        SettloRoutes.spaceActivity(space.id),
+        tab == SpaceTab.activity,
+      ),
     ];
     return Stack(
       children: [

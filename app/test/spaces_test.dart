@@ -77,6 +77,7 @@ Future<GoRouter> _pump(
         SettloRoutes.settle,
         SettloRoutes.settlePay,
         SettloRoutes.activity,
+        SettloRoutes.spaceActivity('s1'),
       ])
         GoRoute(path: path, builder: (_, state) => Text('at ${state.uri}')),
     ],
@@ -711,7 +712,7 @@ void main() {
     testWidgets('the tabs and actions go where they say', (tester) async {
       for (final (label, location) in [
         ('Balances', SettloRoutes.spaceBalances('s1')),
-        ('Activity', SettloRoutes.activity),
+        ('Activity', SettloRoutes.spaceActivity('s1')),
         ('Add expense', SettloRoutes.addExpenseIn('s1')),
         ('Settle up', SettloRoutes.settleWith('s1')),
       ]) {
