@@ -552,6 +552,33 @@ void main() {
     },
   );
 
+  test(
+    'people added 31 days ago whose answer was lost are not added again',
+    () async {
+      // The first send lands but its answer is lost; by the replay the
+      // server has purged the key, so it would add a departed phone again.
+      server.rpc = (_, _) => _offline;
+      await DriftSpacesRepository(engine, now: () => clock).addMembers(
+        's1',
+        const [(phone: '+919000000004', name: 'Bela')],
+        idempotencyKey: 'add-1',
+      );
+      clock = clock.add(const Duration(days: 31));
+      server.rpc = (_, _) => null;
+      await engine.sync();
+      expect(
+        server.calls.where((c) => c.$1 == 'add_space_members'),
+        hasLength(1),
+      );
+      expect(await db.mutations(_me), isEmpty);
+      expect(
+        notices.single,
+        'Adding people to that space couldn’t be saved because it waited too '
+        'long to reach the server. We’ve undone it on this phone.',
+      );
+    },
+  );
+
   test('a retry keeps the first send as the start of the window', () async {
     server.rpc = (_, _) => _offline;
     await DriftSpaceLedgerRepository(engine)

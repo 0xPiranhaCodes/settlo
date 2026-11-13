@@ -32,6 +32,8 @@ Future<GoRouter> _pump(
   FakeSpaceLedgerRepository? ledger,
   InvitesRepository? invites,
   Future<bool> Function(Uri)? openUrl,
+  Future<bool> Function(String, String)? openWhatsApp,
+  Future<void> Function(String, Rect)? shareText,
   TargetPlatform platform = TargetPlatform.android,
 }) async {
   await loadSettloFonts();
@@ -94,6 +96,9 @@ Future<GoRouter> _pump(
           invites ?? FakeInvitesRepository(),
         ),
         if (openUrl != null) openUrlProvider.overrideWithValue(openUrl),
+        if (openWhatsApp != null)
+          openWhatsAppProvider.overrideWithValue(openWhatsApp),
+        if (shareText != null) shareTextProvider.overrideWithValue(shareText),
         spaceLedgerRepositoryProvider.overrideWithValue(
           ledger ?? FakeSpaceLedgerRepository(),
         ),
@@ -842,44 +847,66 @@ void main() {
       expect(router.state.uri.toString(), SettloRoutes.spaceBalances('s1'));
     });
 
+    final remind = find.descendant(
+      of: find.ancestor(
+        of: find.text('Priya pays you'),
+        matching: find.byType(Row),
+      ),
+      matching: find.text('Remind'),
+    );
+    const reminder =
+        'Hi Priya, a reminder about Flat 402: you owe ₹1,450. '
+        'Sent from SabkiJeb.';
+
     testWidgets('Remind sends a WhatsApp nudge and never opens Settle up', (
       tester,
     ) async {
-      final opened = <Uri>[];
+      final opened = <(String, String)>[];
+      final shared = <String>[];
       final router = await _pump(
         tester,
         FakeSpacesRepository(spacesList),
         initialLocation: SettloRoutes.spaceBalances('s1'),
-        openUrl: (uri) async {
-          opened.add(uri);
-          return opened.length == 1;
+        openWhatsApp: (phone, text) async {
+          opened.add((phone, text));
+          return true;
         },
-      );
-      final remind = find.descendant(
-        of: find.ancestor(
-          of: find.text('Priya pays you'),
-          matching: find.byType(Row),
-        ),
-        matching: find.text('Remind'),
+        shareText: (text, _) async => shared.add(text),
       );
       await _scrollTo(tester, find.text('Priya pays you'));
       await tester.tap(remind.first);
       await tester.pumpAndSettle();
 
       expect(router.state.uri.toString(), SettloRoutes.spaceBalances('s1'));
-      expect(opened.single.host, 'wa.me');
-      expect(opened.single.path, '/919900000010');
-      expect(
-        opened.single.queryParameters['text'],
-        'Hi Priya, a reminder about Flat 402: you owe ₹1,450. '
-        'Sent from SabkiJeb.',
-      );
+      expect(opened.single, ('919900000010', reminder));
+      expect(shared, isEmpty);
+      expect(find.textContaining('WhatsApp'), findsNothing);
+    });
 
+    testWidgets('without WhatsApp, Remind offers the share sheet', (
+      tester,
+    ) async {
+      final shared = <String>[];
+      final router = await _pump(
+        tester,
+        FakeSpacesRepository(spacesList),
+        initialLocation: SettloRoutes.spaceBalances('s1'),
+        openWhatsApp: (_, _) async => false,
+        shareText: (text, origin) async {
+          expect(origin.isEmpty, isFalse);
+          shared.add(text);
+        },
+      );
+      await _scrollTo(tester, find.text('Priya pays you'));
       await tester.tap(remind.first);
       await tester.pumpAndSettle();
-      expect(opened, hasLength(2));
+
       expect(router.state.uri.toString(), SettloRoutes.spaceBalances('s1'));
-      expect(find.text("Couldn't open WhatsApp"), findsOne);
+      expect(shared.single, reminder);
+      expect(
+        find.text("WhatsApp isn't on this phone. Send it another way."),
+        findsOne,
+      );
     });
 
     testWidgets('the segments stay put when switching', (tester) async {

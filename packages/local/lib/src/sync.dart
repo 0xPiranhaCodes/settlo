@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// first sent longer ago is dropped a day early rather than risk applying
 /// twice.
 const _purgedKinds = {
+  'add_space_members',
   'update_expense',
   'delete_expense',
   'confirm_settlement',

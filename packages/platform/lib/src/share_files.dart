@@ -50,6 +50,15 @@ final shareFilesProvider =
           ),
     );
 
+/// Opens the system share sheet with [text], anchored as for
+/// [shareFilesProvider]. Tests override this.
+final shareTextProvider = Provider<Future<void> Function(String, Rect origin)>(
+  (ref) =>
+      (text, origin) => SharePlus.instance.share(
+        ShareParams(text: text, sharePositionOrigin: origin),
+      ),
+);
+
 /// Makes an export and shares it: `write` fills a new folder of its own,
 /// `exports/<random>/`, and the files it returns are shared. The folder is
 /// deleted when the share completes, is dismissed or fails. Another export

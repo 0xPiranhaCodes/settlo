@@ -987,22 +987,34 @@ class _PaymentRow extends ConsumerWidget {
     WidgetRef ref,
     SpaceMember from,
   ) async {
-    final upi = space.you.upiId;
+    final text = spaceReminderText(
+      from.name,
+      space.name,
+      payment.amount,
+      space.you.upiId,
+    );
     final opened = await ref
-        .read(openUrlProvider)(
-          Uri.https('wa.me', '/${from.phone.replaceAll(RegExp(r'\D'), '')}', {
-            'text':
-                'Hi ${from.name}, a reminder about ${space.name}: you owe '
-                '${formatInr(payment.amount)}. '
-                '${upi == null ? '' : 'You can pay it to $upi on any UPI '
-                          'app. '}'
-                'Sent from SabkiJeb.',
-          }),
+        .read(openWhatsAppProvider)(
+          from.phone.replaceAll(RegExp(r'\D'), ''),
+          text,
         )
         .catchError((_) => false);
-    if (!opened && context.mounted) {
-      showSettloNotice(context, "Couldn't open WhatsApp");
-    }
+    if (opened || !context.mounted) return;
+    final box = context.findRenderObject()! as RenderBox;
+    showSettloNotice(
+      context,
+      "WhatsApp isn't on this phone. Send it another way.",
+    );
+    await ref
+        .read(shareTextProvider)(
+          text,
+          box.localToGlobal(Offset.zero) & box.size,
+        )
+        .catchError((_) {
+          if (context.mounted) {
+            showSettloNotice(context, "Couldn't share the reminder");
+          }
+        });
   }
 
   @override
@@ -1517,3 +1529,15 @@ class _ConfirmSettlementSheetState
     );
   }
 }
+
+/// The Remind nudge to [name], who owes [amount] in [space], with your UPI
+/// ID when you have one.
+String spaceReminderText(
+  String name,
+  String space,
+  Paise amount,
+  String? upi,
+) =>
+    'Hi $name, a reminder about $space: you owe ${formatInr(amount)}. '
+    '${upi == null ? '' : 'You can pay it to $upi on any UPI app. '}'
+    'Sent from SabkiJeb.';
