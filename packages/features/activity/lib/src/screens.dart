@@ -638,7 +638,12 @@ class _EntryRow extends StatelessWidget {
             if (e.amount case final amount? when e.kind != ActivityKind.member)
               Padding(
                 padding: const EdgeInsets.only(left: 8),
-                child: MoneyText(amount, tone: e.tone, size: 14),
+                child: MoneyText(
+                  e.toYou == false ? -amount : amount,
+                  signed: e.toYou != null,
+                  tone: e.tone,
+                  size: 14,
+                ),
               ),
           ],
         ),

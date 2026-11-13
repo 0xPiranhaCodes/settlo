@@ -72,6 +72,98 @@ _withSettleUp() {
 Finder get _reviewRahul => find.text('Review').first;
 
 void main() {
+  // Every amount-bearing row uses the same visible and spoken direction cue,
+  // regardless of its title, actor, or confirmation state.
+  for (final kind in ActivityKind.values.where(
+    (k) => k != ActivityKind.member,
+  )) {
+    for (final action in ActivityAction.values) {
+      testWidgets('${kind.name}/${action.name} exposes money direction', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          FakeActivityRepository(
+            pending: [],
+            entries: [
+              for (final (id, direction) in [(3, true), (2, false), (1, null)])
+                ActivityEntry(
+                  id: id,
+                  at: DateTime(2026, 11, 9),
+                  kind: kind,
+                  action: action,
+                  byYou: true,
+                  actor: 'Kabir',
+                  counterparty: 'Kabir',
+                  amount: const Paise.rupees(1200),
+                  status: ActivityStatus.confirmed,
+                  toYou: direction,
+                ),
+            ],
+          ),
+        );
+        expect(find.text('+₹1,200'), findsOneWidget);
+        expect(find.text('−₹1,200'), findsOneWidget);
+        expect(find.text('₹1,200'), findsOneWidget);
+        expect(
+          find.bySemanticsLabel(RegExp('plus one thousand two hundred rupees')),
+          findsOneWidget,
+        );
+        expect(
+          find.bySemanticsLabel(
+            RegExp('minus one thousand two hundred rupees'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+  }
+
+  for (final kind in [ActivityKind.settlement, ActivityKind.repayment]) {
+    for (final status in ActivityStatus.values) {
+      testWidgets(
+        '${kind.name}/${status.name} keeps direction for another actor',
+        (tester) async {
+          await _pump(
+            tester,
+            FakeActivityRepository(
+              pending: [],
+              entries: [
+                for (final direction in [true, false])
+                  ActivityEntry(
+                    id: direction ? 2 : 1,
+                    at: DateTime(2026, 11, 9),
+                    kind: kind,
+                    action: ActivityAction.recorded,
+                    byYou: false,
+                    actor: 'Kabir',
+                    counterparty: 'Kabir',
+                    amount: const Paise.rupees(1200),
+                    status: status,
+                    toYou: direction,
+                  ),
+              ],
+            ),
+          );
+          expect(find.text('+₹1,200'), findsOneWidget);
+          expect(find.text('−₹1,200'), findsOneWidget);
+          expect(
+            find.bySemanticsLabel(
+              RegExp('plus one thousand two hundred rupees'),
+            ),
+            findsOneWidget,
+          );
+          expect(
+            find.bySemanticsLabel(
+              RegExp('minus one thousand two hundred rupees'),
+            ),
+            findsOneWidget,
+          );
+        },
+      );
+    }
+  }
+
   testWidgets('loan nudges have polite Activity copy', (tester) async {
     await _pump(
       tester,
