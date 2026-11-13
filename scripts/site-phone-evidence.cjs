@@ -22,7 +22,7 @@ const fs = require('fs');
         throw Error(`WebKit overflow at ${width} ${colorScheme}`);
       await page.screenshot({ path: `${out}/webkit-${width}-${height}-${colorScheme}-full.png`, fullPage: true });
       if (width < 768) {
-        await page.locator('img[src="images/confirm_repayment-phone.avif"]').scrollIntoViewIfNeeded();
+        await page.locator('img[src="images/confirm_repayment-phone.png"]').scrollIntoViewIfNeeded();
         await page.screenshot({ path: `${out}/webkit-${width}-${height}-${colorScheme}-confirm.png` });
       }
       await context.close();

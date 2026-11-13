@@ -12,10 +12,11 @@ const phonesClear = () => {
     a.top < b.bottom &&
     b.top < a.bottom;
   const images = [...document.querySelectorAll(".screen img, .direction-product img, .direction-capture img")];
-  const group = (image) => image.closest(".loan-screens");
+  // #249 product panels compose a capture with one floating crop.
+  const group = (image) => image.closest(".loan-screens, .product-panel");
   const copies = [
     ...document.querySelectorAll(
-      ".direction-heading, .direction-intro, .direction-panel, .flat-copy, .loan-copy, section h2",
+      ".direction-heading, .direction-intro, .panel-copy, .flat-copy, .loan-copy, section h2",
     ),
   ];
   return (
@@ -333,7 +334,7 @@ const phonesClear = () => {
         const selector = ".direction-pin";
         for (const target of [
           ".direction-story",
-          ".direction-stage",
+          ".direction-panels",
           ".flat",
           ".loan",
           ".closing",
@@ -386,7 +387,7 @@ const phonesClear = () => {
     const page = await context.newPage();
     await page.goto(localUrl);
     await page.evaluate(() => document.fonts.ready);
-    const hero = page.locator(".direction-product img");
+    const hero = page.locator(".direction-product .phone img");
     await hero.evaluate((image) => image.decode());
     const state = await hero.evaluate((image) => ({
       src: image.currentSrc,

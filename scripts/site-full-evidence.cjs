@@ -27,11 +27,11 @@ const output=process.env.SITE_CHECK_OUTPUT || 'docs/evidence/237/full';
   const p=await browser.newPage({viewport,colorScheme,reducedMotion:'reduce'});await p.goto(url);await waitForImages(p);await p.evaluate(()=>document.fonts.ready);
   await p.screenshot({path:`${output}/reduced-${width}-${colorScheme}.png`,fullPage:true});
   await p.locator('.flat').screenshot({path:`${output}/splits-${width}-${colorScheme}.png`});
-  await p.locator('.quiet').screenshot({path:`${output}/safety-${width}-${colorScheme}.png`});
-  results.push({width,colorScheme,reduced:await p.locator('.direction-pin').evaluate(e=>getComputedStyle(e).position),safety:await p.locator('.safety-aside').evaluate(e=>getComputedStyle(e).position),visiblePanels:await p.locator('.direction-panel').evaluateAll(es=>es.every(e=>getComputedStyle(e).opacity==='1'))});
+  await p.locator('.trust').screenshot({path:`${output}/trust-${width}-${colorScheme}.png`});
+  results.push({width,colorScheme,reduced:await p.locator('.direction-pin').evaluate(e=>getComputedStyle(e).position),visiblePanels:await p.locator('.direction-panel').evaluateAll(es=>es.every(e=>getComputedStyle(e).opacity==='1'))});
   await p.close();console.log(`Recorded ${width} ${colorScheme}`);
  }
  fs.writeFileSync(`${output}/browser-checks.json`,JSON.stringify(results,null,2));
  await browser.close();
- if(results.some(r=>r.overflow||r.external?.length||r.failures?.length||r.visiblePanels===false||r.reduced&&r.reduced!=='static'||r.safety&&r.safety!=='static'))throw Error('Full-page checks failed');
+ if(results.some(r=>r.overflow||r.external?.length||r.failures?.length||r.visiblePanels===false||r.reduced&&r.reduced!=='static'))throw Error('Full-page checks failed');
 })();

@@ -20,6 +20,15 @@ function enhanceDirection() {
 enhanceDirection();
 directionMotion.addEventListener('change', enhanceDirection);
 
+// Time-based entrances once a block is in view; content stays visible without JS or with reduced motion.
+const reveals = new IntersectionObserver(entries => {
+  for (const entry of entries) if (entry.isIntersecting) {
+    entry.target.classList.add('is-in');
+    reveals.unobserve(entry.target);
+  }
+}, {rootMargin:'0px 0px -10% 0px'});
+document.querySelectorAll('.reveal').forEach(element => reveals.observe(element));
+
 // Native popover handles light dismissal and Escape; contain keyboard focus.
 const menu = document.querySelector('#mobile-menu');
 const menuButton = document.querySelector('.mobile-menu-button');

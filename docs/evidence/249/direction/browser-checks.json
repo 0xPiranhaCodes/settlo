@@ -1,0 +1,60 @@
+[
+  {
+    "width": 390,
+    "external": [],
+    "states": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ]
+    ],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "reduced": "static",
+    "visiblePanels": true
+  },
+  {
+    "width": 1440,
+    "external": [],
+    "states": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ]
+    ],
+    "overflow": false
+  },
+  {
+    "width": 1440,
+    "reduced": "static",
+    "visiblePanels": true
+  },
+  {
+    "width": 360,
+    "overflow": false
+  }
+]
