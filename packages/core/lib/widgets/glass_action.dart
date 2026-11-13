@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
+import 'package:settlo_core/theme/typography.dart';
+import 'package:settlo_core/widgets/pressable.dart';
 
 /// The running iOS's major version, 0 on other platforms. Tests set it to
 /// take the iOS 26 path on the host.
@@ -44,7 +47,24 @@ class GlassAction extends StatefulWidget {
     this.asset,
     this.decorative = false,
     super.key,
-  });
+  }) : _back = false,
+       destination = null;
+
+  /// A back capsule using the same native bridge and fallback tokens.
+  const new back({required this.onPressed, this.destination, super.key})
+    : _back = true,
+      label = '',
+      fallback = null,
+      symbol = null,
+      title = null,
+      badge = null,
+      asset = null,
+      decorative = false;
+
+  final bool _back;
+
+  /// Full destination for accessibility, even when the visible title truncates.
+  final String? destination;
 
   /// What VoiceOver reads, the count included.
   final String label;
@@ -53,7 +73,7 @@ class GlassAction extends StatefulWidget {
   final VoidCallback? onPressed;
 
   /// Today's Flutter button, for earlier iOS and Android.
-  final Widget fallback;
+  final Widget? fallback;
 
   /// The SF Symbol drawn, such as `bell`.
   final String? symbol;
@@ -82,19 +102,94 @@ class _GlassActionState extends State<GlassAction> {
   Map<String, Object?> _state(BuildContext context) {
     final c = SettloColors.of(context);
     return {
-      'label': widget.label,
-      'symbol': widget.symbol,
-      'title': widget.title,
+      'label': widget._back ? _backLabel : widget.label,
+      'symbol': widget._back
+          ? (Directionality.of(context) == TextDirection.rtl
+                ? 'chevron.right'
+                : 'chevron.left')
+          : widget.symbol,
+      'title': widget._back ? _backTitle(context) : widget.title,
+      if (widget._back) ...{
+        'back': true,
+        'fontSize': MediaQuery.textScalerOf(context).scale(17),
+        'rtl': Directionality.of(context) == TextDirection.rtl,
+      },
       'badge': widget.badge,
       'asset': widget.asset,
       'decorative': widget.decorative,
       'enabled': widget.onPressed != null,
       'dark': Theme.of(context).brightness == Brightness.dark,
-      'foreground': (widget.decorative ? c.textPrimary : c.action).toARGB32(),
+      'foreground':
+          (widget.decorative || widget._back ? c.textPrimary : c.action)
+              .toARGB32(),
       // Inverted like a selected chip, never gold, as in SBell.
       'badgeColor': c.action.toARGB32(),
       'badgeText': c.onAction.toARGB32(),
     };
+  }
+
+  String get _backLabel => widget.destination?.isNotEmpty ?? false
+      ? 'Back to ${widget.destination}'
+      : 'Back';
+
+  // Bound the capsule so the navigation title and trailing action keep room.
+  // At accessibility sizes the full destination stays in the spoken label.
+  String? _backTitle(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(17) > 28
+      ? null
+      : (widget.destination?.isEmpty ?? true)
+      ? null
+      : widget.destination;
+
+  double _backWidth(BuildContext context) {
+    final title = _backTitle(context);
+    if (title == null || title.isEmpty) return SettloSpacing.minTouchTarget;
+    final painter = TextPainter(
+      text: TextSpan(text: title, style: SettloTypography.body()),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final width = (painter.width + 56).clamp(44.0, 160.0);
+    painter.dispose();
+    return width;
+  }
+
+  Widget _backFallback(BuildContext context) {
+    final c = SettloColors.of(context);
+    final title = _backTitle(context);
+    return SPressable(
+      label: _backLabel,
+      onTap: widget.onPressed,
+      ringRadius: BorderRadius.circular(SettloRadius.pill),
+      child: Container(
+        width: _backWidth(context),
+        height: SettloSpacing.minTouchTarget,
+        padding: EdgeInsets.symmetric(horizontal: title == null ? 10 : 12),
+        decoration: BoxDecoration(
+          color: c.glassFallback,
+          border: Border.all(color: c.hairline),
+          borderRadius: BorderRadius.circular(SettloRadius.pill),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(CupertinoIcons.back, color: c.textPrimary, size: 20),
+            if (title != null && title.isNotEmpty) ...[
+              const SizedBox(width: SettloSpacing.half),
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SettloTypography.body(color: c.textPrimary),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   void _created(int id) {
@@ -114,14 +209,17 @@ class _GlassActionState extends State<GlassAction> {
 
   @override
   Widget build(BuildContext context) {
-    if (!liquidGlass(context)) return widget.fallback;
+    if (!liquidGlass(context)) {
+      return widget._back ? _backFallback(context) : widget.fallback!;
+    }
     final state = _state(context);
     if (_sent != null && !mapEquals(_sent, state)) {
       unawaited(_channel?.invokeMethod<void>('update', state));
     }
     _sent = state;
-    final view = SizedBox.square(
-      dimension: SettloSpacing.minTouchTarget,
+    final view = SizedBox(
+      width: widget._back ? _backWidth(context) : SettloSpacing.minTouchTarget,
+      height: SettloSpacing.minTouchTarget,
       child: UiKitView(
         viewType: glassActionViewType,
         creationParams: state,

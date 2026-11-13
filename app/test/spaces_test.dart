@@ -1046,7 +1046,9 @@ void main() {
       final (router, _) = await pumpSpace(tester, platform: TargetPlatform.iOS);
 
       expect(find.byType(CupertinoSliverNavigationBar), findsOne);
-      final back = find.byType(CupertinoNavigationBarBackButton);
+      final back = find.byWidgetPredicate(
+        (widget) => widget is GlassAction && widget.destination == 'Spaces',
+      );
       expect(
         find.descendant(of: back, matching: find.text('Spaces')),
         findsOne,

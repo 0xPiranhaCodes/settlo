@@ -406,26 +406,16 @@ void main() {
     });
 
     for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
-      testWidgets(
-        'back is ${platform == TargetPlatform.iOS ? 'the native '
-                  'chevron' : 'the round button'} on ${platform.name}',
-        (tester) async {
-          final router = await _pump(tester, auth, platform: platform);
-          final ios = platform == TargetPlatform.iOS;
-          expect(
-            find.byType(CupertinoNavigationBarBackButton),
-            ios ? findsOneWidget : findsNothing,
-          );
-          expect(find.text('1 of 2'), findsOneWidget);
-          await tester.tap(
-            ios
-                ? find.byType(CupertinoNavigationBarBackButton)
-                : find.bySemanticsLabel('Back'),
-          );
-          await tester.pumpAndSettle();
-          expect(router.state.uri.path, SettloRoutes.welcome);
-        },
-      );
+      testWidgets('back uses the shared glass capsule on ${platform.name}', (
+        tester,
+      ) async {
+        final router = await _pump(tester, auth, platform: platform);
+        expect(find.byType(GlassAction), findsOneWidget);
+        expect(find.text('1 of 2'), findsOneWidget);
+        await tester.tap(find.bySemanticsLabel('Back to Welcome'));
+        await tester.pumpAndSettle();
+        expect(router.state.uri.path, SettloRoutes.welcome);
+      });
     }
 
     testWidgets('an invalid number shows why and is not sent', (tester) async {
@@ -590,6 +580,8 @@ void main() {
     ) async {
       await _toOtp(tester, auth);
       expect(_texts(tester), {
+        String.fromCharCode(CupertinoIcons.back.codePoint),
+        'Phone number',
         '2 of 2',
         'Enter the code',
         'Sent to +91 90000 00001 · ',

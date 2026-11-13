@@ -1,0 +1,29 @@
+// ignore_for_file: directives_ordering, lines_longer_than_80_chars, unnecessary_type_name_in_constructor
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/supabase/reminders.dart';
+import 'package:settlo_spaces/settlo_spaces.dart';
+import 'package:settlo_loans/settlo_loans.dart';
+import 'support/fake_spaces.dart';
+import 'support/fake_space_ledger.dart';
+import 'support/fake_loans.dart';
+import 'support/fake_reminders.dart';
+void main() => runApp(ProviderScope(overrides: [
+ spacesRepositoryProvider.overrideWithValue(FakeSpacesRepository([...spacesList, spaceEmpty])),
+ spaceLedgerRepositoryProvider.overrideWithValue(FakeSpaceLedgerRepository()),
+ loansRepositoryProvider.overrideWithValue(FakeLoansRepository(loansList())),
+ reminderRepositoryProvider.overrideWithValue(FakeReminders()),
+], child: MaterialApp(theme: SettloTheme.light(), darkTheme: SettloTheme.dark(), home: const Capture())));
+class Capture extends StatelessWidget {
+ const Capture({super.key});
+ @override Widget build(BuildContext context) => Scaffold(body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+ for (final (name, screen) in <(String, Widget)>[
+ ('Expenses', SpaceExpensesScreen(spaceId: spacesList.first.id)),
+ ('Balances', SpaceScreen(spaceId: spacesList.first.id)),
+ ('Empty', SpaceExpensesScreen(spaceId: spaceEmpty.id)),
+ ('Loan', const LoanDetailScreen(loanId: 'l1')),
+ ]) SizedBox(height: 60, child: TextButton(onPressed: () => Navigator.of(context).push(CupertinoPageRoute<void>(title: 'Spaces', builder: (_) => screen)), child: Text(name))),
+ ])));
+}
