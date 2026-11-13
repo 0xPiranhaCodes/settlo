@@ -110,7 +110,7 @@ class _LoanCard extends StatelessWidget {
     final (paid, total) = (loan.installmentsPaid, loan.installmentsTotal);
     if (paid == null || total == null) return '$side · flexible';
     return switch (loan.nextDueOn) {
-      final next? => '$paid of $total · next ${dayMonth(next)}',
+      final next? => '$side · $paid of $total · next ${dayMonth(next)}',
       null => '$side · $paid of $total',
     };
   }

@@ -148,43 +148,42 @@ Future<void> _scrollToEnd(WidgetTester tester) async {
 }
 
 Future<int> _moneyColourPixels(WidgetTester tester) async {
-  // Marigold is now both the paid-bar accent and the owed money role. Inspect
-  // only the rendered delta amounts, so the chart cannot cause a false alarm.
+  // Marigold paid bars are valid; owed marigold is forbidden on deltas.
+  // Salmon has no chart role, so keep the original whole-card guard for it.
   final amounts = find.descendant(
     of: find.byKey(fairnessCardKey),
     matching: find.byType(MoneyText),
   );
   expect(amounts, findsNWidgets(3));
-  final colours = [
-    SettloColors.dark.money(MoneyTone.owedToYou),
-    SettloColors.dark.money(MoneyTone.youOwe),
+  final probes = [
+    (find.byKey(fairnessCardKey), SettloColors.dark.money(MoneyTone.youOwe)),
+    (amounts, SettloColors.dark.money(MoneyTone.owedToYou)),
   ];
   int channel(double value) => (value * 255).round();
   var count = 0;
-  for (final element in amounts.evaluate()) {
-    final box = element.renderObject! as RenderBox;
-    RenderObject boundary = box;
-    while (!boundary.isRepaintBoundary) {
-      boundary = boundary.parent!;
-    }
-    final bounds =
-        box.localToGlobal(Offset.zero, ancestor: boundary) & box.size;
-    final data = (await tester.runAsync(() async {
-      final layer = boundary.debugLayer! as OffsetLayer;
-      final image = await layer.toImage(bounds);
-      try {
-        return await image.toByteData();
-      } finally {
-        image.dispose();
+  for (final (finder, colour) in probes) {
+    for (final element in finder.evaluate()) {
+      final box = element.renderObject! as RenderBox;
+      RenderObject boundary = box;
+      while (!boundary.isRepaintBoundary) {
+        boundary = boundary.parent!;
       }
-    }))!;
-    for (var i = 0; i < data.lengthInBytes; i += 4) {
-      for (final colour in colours) {
+      final bounds =
+          box.localToGlobal(Offset.zero, ancestor: boundary) & box.size;
+      final data = (await tester.runAsync(() async {
+        final layer = boundary.debugLayer! as OffsetLayer;
+        final image = await layer.toImage(bounds);
+        try {
+          return await image.toByteData();
+        } finally {
+          image.dispose();
+        }
+      }))!;
+      for (var i = 0; i < data.lengthInBytes; i += 4) {
         if ((data.getUint8(i) - channel(colour.r)).abs() <= 4 &&
             (data.getUint8(i + 1) - channel(colour.g)).abs() <= 4 &&
             (data.getUint8(i + 2) - channel(colour.b)).abs() <= 4) {
           count++;
-          break;
         }
       }
     }

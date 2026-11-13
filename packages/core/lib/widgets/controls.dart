@@ -62,7 +62,7 @@ class SSwitch extends StatelessWidget {
         onChanged: onChanged,
         activeTrackColor: c.action,
         inactiveTrackColor: c.surfaceHighest,
-        // Dark thumbs are neutral fills; forest is only an action foreground.
+        // Dark thumbs are neutral fills on the marigold track.
         thumbColor: value
             ? (Theme.of(context).brightness == Brightness.dark
                   ? c.background

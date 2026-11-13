@@ -157,13 +157,48 @@ void main() {
       await _pump(tester);
 
       expect(find.text('Arjun · interest free'), findsOne);
-      expect(find.text('13 of 40 · next 5 Dec'), findsOne);
+      expect(find.text('you lent · 13 of 40 · next 5 Dec'), findsOne);
       expect(find.text('you borrowed · flexible'), findsOne);
       expect(find.text('you borrowed · repaid'), findsOne);
       expect(find.text('1 repayment to confirm'), findsOne);
       expect(_said('six lakh seventy-five thousand rupees'), findsOne);
       semantics.dispose();
     });
+
+    for (final youLent in [true, false]) {
+      testWidgets('scheduled loan keeps direction without hue: $youLent', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          loans: FakeLoansRepository(
+            LoansData(
+              today: DateTime(2026, 11, 9),
+              loans: [
+                Loan(
+                  id: 'direction',
+                  counterparty: 'Alex',
+                  youLent: youLent,
+                  principal: const Paise.rupees(1000),
+                  repaid: const Paise.rupees(100),
+                  startOn: DateTime(2026),
+                  installment: const Paise.rupees(100),
+                  installmentsPaid: 1,
+                  installmentsTotal: 10,
+                  nextDueOn: DateTime(2026, 12, 5),
+                ),
+              ],
+            ),
+          ),
+        );
+        expect(
+          find.text(
+            '${youLent ? 'you lent' : 'you borrowed'} · 1 of 10 · next 5 Dec',
+          ),
+          findsOne,
+        );
+      });
+    }
 
     testWidgets('a loan opens its detail', (tester) async {
       final (:router, loans: _) = await _pump(tester);
@@ -550,7 +585,7 @@ void main() {
       router.go(SettloRoutes.loans);
       await tester.pumpAndSettle();
       expect(find.text('+919820011223 · interest free'), findsOne);
-      expect(find.text('0 of 40 · next 5 Dec'), findsNothing);
+      expect(find.text('you lent · 0 of 40 · next 5 Dec'), findsNothing);
       semantics.dispose();
     });
 

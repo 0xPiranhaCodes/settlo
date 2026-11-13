@@ -12,7 +12,7 @@ void main() {
       final theme = SettloTheme.dark();
       expect(theme.brightness, Brightness.dark);
       expect(theme.colorScheme.primary, const Color(0xFFFEBD11));
-      expect(theme.colorScheme.onPrimary, const Color(0xFF01381E));
+      expect(theme.colorScheme.onPrimary, const Color(0xFF111111));
       expect(theme.scaffoldBackgroundColor, const Color(0xFF000000));
       expect(theme.extension<SettloColors>(), SettloColors.dark);
     });
@@ -105,7 +105,7 @@ void main() {
           0xFFF7F2E8,
           0xFFB8B8B8,
           0xFFFEBD11,
-          0xFF01381E,
+          0xFF111111,
           0xFF48484A,
           0xFF858585,
           0xFFFEBD11,

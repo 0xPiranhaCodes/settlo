@@ -3,12 +3,12 @@
 Includes the owner's follow-up: green accents and owed-to-you amounts become
 marigold, pending becomes neutral grey with its clock cue, and light mode stays
 unchanged. Supplied check/logo artwork remains unchanged as an explicit brand
-exception. Forest foreground labels on marigold retain the existing exception.
+exception. All dark theme tokens, including action/nav foregrounds, are green-free.
 
 ## Native screenshots
 
-Captured on a task-owned iPhone 17 Pro / iOS 26.1 simulator,
-`334DB8CA-57C5-4913-BFF8-B8C5FAFFAF88`, with dark system appearance and a fixed
+Refreshed after screenshots captured on a task-owned iPhone 17 Pro / iOS 26.1 simulator,
+`526C032B-5868-4A08-929E-F1A56BB9C22C`, with dark system appearance and a fixed
 9:41 status bar. The screenshots include native UIKit glass and use offline
 fixtures, not a live account. Before source: [before-sha.txt](before-sha.txt),
 with only the capture test added. After source is this PR's palette.
@@ -74,16 +74,18 @@ preflight evidence; hosted CI remains the merge gate.
 
 Eight `glass_scrolled_*_light_*` PNGs also change: `glass_golden_test.dart`
 deliberately paints dark and light cards side by side beneath each appearance
-of the tab bar. Their dark fixture content changes; light-only screen goldens
-and the light token block remain byte-identical.
+of the tab bar. Their dark fixture content changes. The light token block remains byte-identical.
+The review correction also changes Home/Loans light goldens because the
+direction words are retained in scheduled subtitles in both appearances;
+light colours remain unchanged.
 
-The fairness pixel guard now examines the rendered delta amounts rather than
-the whole chart: marigold paid bars and marigold owed amounts intentionally
-share a colour. A negative control changed the deltas to owed marigold and was rejected with
-98 semantic-colour pixels; the mutation was restored before final tests.
+The fairness pixel guard scans the whole card for you-owe salmon and the
+rendered delta amounts for owed marigold. Marigold paid bars are intentional;
+salmon is forbidden everywhere in the card. Both scans retain ±4/channel
+tolerance and expect zero matching pixels.
 Disabled primary-button custom glyphs have a separate pixel regression test.
 
-## Final validation
+## Initial-head validation (77fd94a; superseded below)
 
 - Root `flutter analyze`: no issues.
 - Canonical Docker comparison (no updates): app **795 passed**, core **476 passed**.
@@ -101,3 +103,31 @@ Disabled primary-button custom glyphs have a separate pixel regression test.
 - A first concurrent run exceeded an existing export responsiveness threshold
   under Xcode compilation load. The final single-worker core suite passed with
   the unchanged threshold; no test limit was relaxed.
+
+## Review correction validation
+
+The action/nav ink is now `#111111` in Dart and the Live Activity Swift palette;
+no dark token is exempt from the green-hue test. The logo is the sole exception.
+See [audit.md](audit.md) and [check-tritanopia.py](check-tritanopia.py) for the
+colour-vision check and the direction-cue inventory.
+
+- Focused Home, Loans and Spaces run: **155 passed**, including four new
+  scheduled-loan direction tests (lent/borrowed on both screens).
+- Fairness negative controls: a salmon paid-bar mutation failed with **2,360**
+  forbidden pixels; an owed-marigold delta mutation failed with **98**.
+  Both mutations were reverted before regeneration and final comparison.
+
+- Canonical Linux/amd64 regeneration: core **476 passed**, app **799 passed**.
+- Separate comparison with updates disabled: core **476 passed**, app **799 passed**.
+  Both suites ran single-worker with unchanged test thresholds.
+- All **131 PNGs changed by this correction** were visually inspected in
+  contact sheets. Updated hashes/dimensions are in `golden-review.json`.
+  Scheduled rows retain their direction at normal and 200% text sizes.
+
+- Host `flutter pub get` restored host paths after Docker; root analysis is clean.
+  Removed a redundant default month in a new test fixture after analysis; both
+  affected scheduled-loan tests passed again on the host.
+- Native simulator build succeeded. Swift unit tests: **24 passed**; seven-screen
+  capture: **1 passed** in **62.936 seconds**. All seven refreshed after images
+  were visually inspected, including action labels and the scheduled-loan cue.
+- The dedicated capture simulator was shut down and deleted after review.

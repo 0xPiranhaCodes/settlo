@@ -13,7 +13,7 @@ Brand: Deep forest #01381E · Pocket jade #01672D · Marigold #FEBD11 · Check i
 | Primary text | #18271F | #F7F2E8 |
 | Secondary text | #50645A | #B8B8B8 |
 | Primary action (button fill) | #01672D | #FEBD11 |
-| Button label | #FEF0CE | #01381E |
+| Button label | #FEF0CE | #111111 |
 | Decorative divider | #D8E0D8 | #48484A |
 | Control outline | #708478 | #858585 |
 | You're owed | #01672D | #FEBD11 |
@@ -25,7 +25,7 @@ Primary button text contrast: light 6.23:1, dark 7.88:1.
 
 Palette illustration only; existing screen layouts and button shapes are retained.
 The clock is the approved non-colour cue on existing pending lines.
-Reference card ("Goa trip"): light = card surface with 1px divider-coloured border, green "Add expense" pill; dark = #1C1C1E card, marigold pill with deep-forest label; amounts in owed/owe colours; a "pending" line with a clock icon in the pending colour.
+Reference card ("Goa trip"): light = card surface with 1px divider-coloured border, green "Add expense" pill; dark = #1C1C1E card, marigold pill with neutral near-black label; amounts in owed/owe colours; a "pending" line with a clock icon in the pending colour.
 
 ## Derived roles
 

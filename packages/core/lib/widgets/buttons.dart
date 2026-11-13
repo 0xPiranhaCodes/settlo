@@ -41,8 +41,8 @@ class SPrimaryButton extends StatelessWidget {
                 Theme.of(context).brightness == Brightness.dark &&
                 icon != null
             ? ColorFiltered(
-                // Custom glyphs may paint their own enabled colour. Forest
-                // foregrounds belong on marigold, never disabled grey fills.
+                // Custom glyphs may paint their own enabled colour. Keep
+                // disabled glyphs neutral on their grey backing.
                 colorFilter: ColorFilter.mode(
                   Theme.of(context).colorScheme.onSurface
                       .withValues(alpha: 0.38),

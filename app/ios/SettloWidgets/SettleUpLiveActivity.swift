@@ -45,7 +45,7 @@ struct SettleUpLiveActivity: Widget {
 // Dynamic Island is always dark; use the supplied dark roles verbatim.
 private enum Palette {
   static let action = Color(red: 0xFE / 255, green: 0xBD / 255, blue: 0x11 / 255)
-  static let onAction = Color(red: 0x01 / 255, green: 0x38 / 255, blue: 0x1E / 255)
+  static let onAction = Color(red: 0x11 / 255, green: 0x11 / 255, blue: 0x11 / 255)
   static let text = Color(red: 0xF7 / 255, green: 0xF2 / 255, blue: 0xE8 / 255)
   static let secondary = Color(red: 0xB8 / 255, green: 0xB8 / 255, blue: 0xB8 / 255)
   static let pending = secondary

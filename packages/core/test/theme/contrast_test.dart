@@ -69,11 +69,10 @@ void main() {
     });
   }
 
-  test('dark tokens never have a green cast except labels on marigold', () {
+  test('dark tokens never have a green cast', () {
     const c = SettloColors.dark;
     // Supplied check/logo artwork is the sole brand-art exception. It is
     // rendered untinted, not a theme token; never allowlist a UI fill for it.
-    // onAction/onNavActive are checked separately as labels on marigold.
     final fills = {
       'background': c.background,
       'surface': c.surface,
@@ -86,6 +85,9 @@ void main() {
       'glassFallback': c.glassFallback,
       'glassBorder': c.glassBorder,
       'action': c.action,
+      'onAction': c.onAction,
+      'onNavActive': c.onNavActive,
+      'welcomeAction': c.welcomeAction,
       'brandAccent': c.brandAccent,
       'welcomeActionTop': c.welcomeActionTop,
       'welcomeActionBottom': c.welcomeActionBottom,
@@ -157,9 +159,9 @@ void main() {
     ]) {
       expect(contrast(c.action, surface), greaterThanOrEqualTo(4.5));
     }
-    // Forest labels are permitted only on their marigold action backing.
+    // Neutral ink stays AA on the marigold action backing.
     for (final label in [c.onAction, c.onNavActive]) {
-      expect(label, const Color(0xFF01381E));
+      expect(label, const Color(0xFF111111));
       expect(contrast(label, c.action), greaterThanOrEqualTo(4.5));
     }
   });

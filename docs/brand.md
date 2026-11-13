@@ -31,8 +31,7 @@ Source of truth: `packages/core/lib/theme/colors.dart`, `typography.dart`, `toke
 The app keeps a true-black canvas and neutral charcoal cards, inputs, chips,
 sheets and glass backing. Green accents, including owed-to-you amounts, become
 marigold in dark mode.
-Pending uses neutral grey with its existing clock cue. Forest is allowed only
-for labels on marigold actions. Light-mode tokens are unchanged.
+Pending uses neutral grey with its existing clock cue. Action and selected-navigation labels use neutral near-black `#111111`. Light-mode tokens are unchanged.
 
 The supplied check/logo artwork is an explicit
 brand exception: retain its original pixels and colours in both appearances;
@@ -49,7 +48,7 @@ never tint or redraw it as part of the UI palette.
 | glass / glassFallback | `#1C1C1E` at alpha `0x9E` / `0xEB` |
 | action / welcomeAction / brandAccent / active navigation | `#FEBD11` |
 | enabled switch thumb | `#000000` on marigold |
-| onAction / onNavActive (text on marigold) | `#01381E` |
+| onAction / onNavActive (text on marigold) | `#111111` |
 | owedToYou / youOwe / pending / error | `#FEBD11` / `#F2AB98` / `#B8B8B8` / `#FF9CA3` |
 
 Adjacent opaque surfaces have at least 1.2:1 luminance contrast. Secondary and

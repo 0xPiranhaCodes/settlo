@@ -10,6 +10,26 @@ Searched Dart production sources in `app/lib`, `packages/core/lib`, and every fe
 - Disabled primary-button custom glyphs could retain forest `onAction` on a grey fill. The dark-only disabled foreground filter neutralizes explicit icon paint; a rendered-pixel test covers enabled/disabled and light/dark states.
 - Enabled iOS and Material switch thumbs previously reused forest `onAction` as a fill. Dark thumbs now use neutral black; light thumbs are unchanged.
 - Owed amounts use the shared money role. Pending clocks and labels in Home, Spaces, Loans and Activity remain in place; you-owe stays salmon and errors stay pink.
-- Forest `onAction` / `onNavActive` is restricted to foreground labels/icons on marigold. Transparent layers, black shadows and white shader masks are neutral compositing primitives. Light-only green shadows and statement text on white paper remain unchanged.
+- Dark `onAction` / `onNavActive` and Swift `Palette.onAction` are neutral `#111111`, including Pay and GlassButton badge text. Transparent layers, black shadows and white shader masks are neutral compositing primitives. Light-only green shadows and statement text on white paper remain unchanged.
 - The supplied check/logo artwork is an explicit coordinator-confirmed brand exception; its green pixels remain unchanged, not reused as UI colours.
-- No layout, navigation, data, launcher artwork or website styles changed.
+- Scheduled Home/Loans subtitles retain “you lent” / “you borrowed”, including missing-date Home rows. Navigation, data, launcher artwork and website styles are unchanged.
+
+## Colour-independent money direction
+
+`check-tritanopia.py` reproduces Machado 2009 severity-1 tritanopia using the
+[authors’ matrix table](https://www.inf.ufrgs.br/~oliveira/pubs_files/CVD_Simulation/CVD_Simulation.html).
+Marigold/salmon CIE76 distance is **7.02** after linear-RGB simulation and gamut
+clipping: the pair remains too close to rely on hue alone. Neutral `#111111`
+on marigold is **11.24:1**, above AA.
+
+Audited all owed/you-owe money-role consumers:
+- Home net: signed amount and owed/owe caption; stats: “You are owed” / “You owe”.
+- Home space rows and Spaces list: signed amounts; list also has direction text.
+- Space balance header: “YOU ARE OWED” / “YOU OWE”.
+- Settle rows: “You pay …” / “… pays you”; sheet also names the payer.
+- Loan detail: “Outstanding” / “You owe” headings distinguish the two views.
+- Home loan rows and Loans list: direction words now remain at the beginning of
+  scheduled subtitles, so truncation cannot discard them. Both directions are
+  asserted in each screen’s widget tests; Home also checks spoken semantics.
+
+These are simulation and UI regression checks, not colour-vision user testing.
