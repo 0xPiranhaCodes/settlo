@@ -1,0 +1,32 @@
+{
+  "settle_pay": {
+    "bytes_before": 162459,
+    "bytes_after": 120059,
+    "mean_abs_diff_per_channel_of_255": 0.4372,
+    "max_abs_diff_of_255": 1
+  },
+  "spaces_balances": {
+    "bytes_before": 181381,
+    "bytes_after": 136393,
+    "mean_abs_diff_per_channel_of_255": 0.424,
+    "max_abs_diff_of_255": 1
+  },
+  "home_main": {
+    "bytes_before": 141583,
+    "bytes_after": 106571,
+    "mean_abs_diff_per_channel_of_255": 0.4524,
+    "max_abs_diff_of_255": 1
+  },
+  "loans_detail": {
+    "bytes_before": 143101,
+    "bytes_after": 106432,
+    "mean_abs_diff_per_channel_of_255": 0.4571,
+    "max_abs_diff_of_255": 1
+  },
+  "confirm_repayment": {
+    "bytes_before": 125005,
+    "bytes_after": 97494,
+    "mean_abs_diff_per_channel_of_255": 0.5436,
+    "max_abs_diff_of_255": 1
+  }
+}

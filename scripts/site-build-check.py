@@ -114,11 +114,8 @@ assert all(f'https://sabkijeb.app/blog/{post["slug"]}/' in urls for post in post
 print('PASS: blog metadata, escaping, source/output/cover/social-card drift, post removal, sitemap and unpublished Markdown')
 
 # Transfer budgets: social cards 100 KB, every other published image 150 KB.
-# Pre-existing phone fallbacks and the unreferenced studio frame are over budget until #244.
-OVER_BUDGET = {'images/settle_pay-phone.png', 'images/spaces_balances-phone.png', 'images/device/studio-frame.png'}
 images = [path for path in (root / 'site').rglob('*') if path.suffix in {'.png', '.jpg', '.jpeg', '.webp', '.avif', '.gif', '.svg', '.ico'}]
 heavy = [f'{name} {size:,} B' for path in images
-         if (name := path.relative_to(root / 'site').as_posix()) not in OVER_BUDGET
-         and (size := path.stat().st_size) > (100_000 if name.startswith('images/cards/') else 150_000)]
+         if (size := path.stat().st_size) > (100_000 if (name := path.relative_to(root / 'site').as_posix()).startswith('images/cards/') else 150_000)]
 assert not heavy, 'Over image budget: ' + ', '.join(heavy)
-print(f'PASS: {len(images)} site images within budget (cards 100 KB, others 150 KB; {len(OVER_BUDGET)} allowlisted for #244)')
+print(f'PASS: {len(images)} site images within budget (cards 100 KB, others 150 KB)')

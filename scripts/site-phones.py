@@ -17,6 +17,7 @@ DISPLAY = (430, 932)
 BEZEL = 8
 RADIUS = 52
 PADDING = 16
+FALLBACK_LUT = [min(255, round(v / 3) * 3) for v in range(256)] * 3 + list(range(256))
 ANGLES = {'home_main': 0, 'settle_pay': 3, 'spaces_balances': -3,
           'loans_detail': 3, 'confirm_repayment': 0}
 
@@ -48,6 +49,7 @@ def compose(screen, angle):
 
 # Original iOS 26 simulator captures are pinned in the repository.
 CAPTURES = ROOT / 'docs/evidence/204/captures'
+FRAME = ROOT / 'scripts/phones/studio-frame.png'
 SCREENS = {'home_main': 'home', 'settle_pay': 'spaces',
            'spaces_balances': 'balances', 'loans_detail': 'loans',
            'confirm_repayment': 'activity'}
@@ -60,6 +62,9 @@ def main():
         'display_logical_size': list(DISPLAY),
         'bezel_width': BEZEL, 'display_radius': RADIUS,
         'recipe': 'scripts/site-phones.py',
+        # Historical generated frame, kept unpublished and not composited (#244).
+        'historical_frame': {'path': str(FRAME.relative_to(ROOT)),
+                             'sha256': hashlib.sha256(FRAME.read_bytes()).hexdigest()},
         'screen_policy': 'Full unaltered iOS 26 SabkiJeb simulator captures, including native system chrome. Light captures serve both site themes. Uniform resampling inside a concentric illustrative frame.',
     }
     manifest['sources'] = {}
@@ -77,14 +82,16 @@ def main():
             base.save(OUT / file, quality=48, speed=6, subsampling='4:4:4')
             outputs.append(file)
             if density == 1:
-                base.save(OUT / f'{name}-phone.png', optimize=True)
+                # PNG fallback budget (#244): RGB to multiples of 3, at most 1/255 off.
+                base.point(FALLBACK_LUT).save(OUT / f'{name}-phone.png', optimize=True)
         manifest['sources'][name] = {
             'marketing': {'path': str(export.relative_to(ROOT)),
                           'sha256': hashlib.sha256(raw).hexdigest(),
                           'size': list(screen.size), 'platform': 'iOS 26 simulator'},
             'phone': {'angle_degrees': angle, 'size_1x': [width, height],
                       'outputs': outputs + [f'{name}-phone.png'], 'screen_crop_rows': None,
-                      'encoding': {'format': 'AVIF', 'quality': 48, 'subsampling': '4:4:4'},
+                      'encoding': {'format': 'AVIF', 'quality': 48, 'subsampling': '4:4:4',
+                                   'png_fallback': 'RGB rounded to multiples of 3, optimised PNG'},
                       'output_scale': output_scale}}
     # Whole cards from native captures, in logical 430 x 932 coordinates.
     crops = {

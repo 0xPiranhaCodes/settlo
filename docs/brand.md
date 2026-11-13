@@ -103,7 +103,7 @@ Privacy/support policy wording is preserved from merged PR #143. Their `<main>` 
 
 ### Phone compositions
 
-`site-phones.py` draws an illustrative device around the complete 430×932 Flutter display. Concentric rounded rectangles share a 52px display radius and 8px bezel, so the screen mask exactly matches the frame. The previous generated frame is retained only as historical source material; it is not consumed by the pipeline. The display aspect ratio matches the export exactly, without stretching, cropping, or filling spare rows.
+`site-phones.py` draws an illustrative device around the complete 430×932 Flutter display. Concentric rounded rectangles share a 52px display radius and 8px bezel, so the screen mask exactly matches the frame. The previous generated frame is retained only as historical source material in `scripts/phones/`, outside the published site; it is not consumed by the pipeline. PNG fallbacks round RGB to multiples of 3 (at most 1/255 off) to stay within the 150 KB image budget. The display aspect ratio matches the export exactly, without stretching, cropping, or filling spare rows.
 
 Only illustrative system chrome (time, signal, battery, Dynamic Island and home indicator) is drawn in the reserved safe areas. App controls and text remain real Flutter pixels. The trip, flat and loan-detail frames tilt by ±3 degrees; Home and repayment remain upright. Every phone has one physical scale and 1x/2x/3x AVIF variants. The manifest records display geometry, export hashes and output dimensions; HTML reserves the exact canvas ratio and CSS uses the corresponding 430:390 tilted/upright widths.
 
