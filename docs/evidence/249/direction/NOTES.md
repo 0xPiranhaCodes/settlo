@@ -6,4 +6,6 @@
 
 **Grid.** Twelve columns, at most 1200px wide, with a 24px gap (16px at 760px or less). Spacing follows a 4/8px scale. There are five type sizes: display, h2, h3, lede and small.
 
+**Header.** A floating capsule, 1120px at most and 56px tall, 12px from the top. Ivory glass: 86% surface, blur and saturate, a hairline and a layered shadow. Over the first 64px of scroll a native scroll timeline (or a sentinel IntersectionObserver class) lifts it 4px, tightens the surface to 98.5% × 87.5% and fades in a stronger layer with a deeper shadow. That uses transform and opacity only. Four links (How it works, Why SabkiJeb, Trust, Blog). One pill slides to the hovered or focused link and rests on the current section. Scroll-spy sets `aria-current="location"`: Free counts under Why, and FAQ under Trust. The CTA is dark ink with an arrow that nudges on hover. On mobile the capsule shows a Menu button whose two lines morph into a close icon. The native popover sheet is rounded glass, and its links enter staggered. In `browser-checks.json`, `headerContrast` composites the capsule over every section: the lowest ratio is 5.97:1.
+
 **Checks.** See `lighthouse-summary.json`: LCP is 2.56–2.63s simulated, against a 2.25s baseline.
