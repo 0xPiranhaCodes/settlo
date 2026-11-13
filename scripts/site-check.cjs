@@ -12,10 +12,11 @@ const phonesClear = () => {
     a.top < b.bottom &&
     b.top < a.bottom;
   const images = [...document.querySelectorAll(".screen img, .direction-product img, .direction-capture img")];
-  const group = (image) => image.closest(".loan-screens");
+  // #249 product panels compose a capture with one floating crop.
+  const group = (image) => image.closest(".product-panel");
   const copies = [
     ...document.querySelectorAll(
-      ".direction-heading, .direction-intro, .direction-panel, .flat-copy, .loan-copy, section h2",
+      ".direction-heading, .direction-intro, .panel-copy, section h2",
     ),
   ];
   return (
@@ -68,7 +69,7 @@ const phonesClear = () => {
       throw Error("Policy body changed: " + slug);
   }
   for (const width of [360, 390, 768, 1440]) {
-    for (const colorScheme of ["light", "dark"]) {
+    for (const colorScheme of ["light"]) {
       const context = await browser.newContext({
         viewport: { width, height: 900 },
         colorScheme,
@@ -130,6 +131,17 @@ const phonesClear = () => {
         if (await page.locator('a[href*="hellojosh.studio"], .studio').count()
           || (await page.locator("body").textContent()).includes("Made by JOSH Studio"))
           throw Error("Studio credit must only be metadata: " + path);
+        // #249: light only; a dark system preference must not change the page.
+        if (await page.locator('meta[name="color-scheme"]').getAttribute("content") !== "light")
+          throw Error("Page must declare color-scheme light: " + path);
+        if (width === 360) {
+          await page.emulateMedia({ colorScheme: "dark" });
+          const dark = await page.evaluate(() => [getComputedStyle(document.body).backgroundColor,
+            [...document.styleSheets].some((sheet) => [...sheet.cssRules].some((rule) => rule.cssText.includes("prefers-color-scheme")))]);
+          await page.emulateMedia({ colorScheme: "light" });
+          if (dark[0] !== await page.evaluate(() => getComputedStyle(document.body).backgroundColor) || dark[1])
+            throw Error("Dark preference changes the page: " + path);
+        }
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth > innerWidth,
         );
@@ -212,7 +224,7 @@ const phonesClear = () => {
           for (const [html, allowed] of [
             ['<figure class="screen"><img><img></figure>', false],
             [
-              '<div class="loan-screens"><figure class="screen"><img></figure><figure class="screen"><img></figure></div>',
+              '<div class="product-panel"><figure class="screen"><img></figure><figure class="screen"><img></figure></div>',
               true,
             ],
             [
@@ -236,28 +248,6 @@ const phonesClear = () => {
             if (clear !== allowed)
               throw Error("Overlap fixture misjudged: " + html);
           }
-          const scalesMatch = await page
-            .locator(".loan-screens img")
-            .evaluateAll((images) => {
-              const scales = images.map(
-                (img) => img.getBoundingClientRect().width / img.naturalWidth,
-              );
-              return (
-                Math.abs(scales[0] - scales[1]) < 0.001 &&
-                images.every(
-                  (img) =>
-                    Math.abs(
-                      Number(img.getAttribute("width")) - img.naturalWidth,
-                    ) <= 1 &&
-                    Math.abs(
-                      Number(img.getAttribute("height")) - img.naturalHeight,
-                    ) <= 1,
-                )
-              );
-            });
-          if (!scalesMatch)
-            throw Error("Rendered loan phones use different physical scales");
-
           await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
           await page.screenshot({
             path: `${outputDir}/landing-${width}-${colorScheme}.png`,
@@ -286,7 +276,7 @@ const phonesClear = () => {
   // Active motion, reduced motion, and the small legacy-browser fallback.
   const motionResults = [];
   for (const width of [360, 390, 768, 1440]) {
-    for (const colorScheme of ["light", "dark"]) {
+    for (const colorScheme of ["light"]) {
       for (const mode of ["native", "fallback", "reduced"]) {
         const context = await browser.newContext({
           viewport: { width, height: 900 },
@@ -322,9 +312,9 @@ const phonesClear = () => {
         const selector = ".direction-pin";
         for (const target of [
           ".direction-story",
-          ".direction-stage",
-          ".flat",
-          ".loan",
+          ".direction-panels",
+          "#why",
+          "#faq",
           ".closing",
         ]) {
           await page
@@ -350,7 +340,7 @@ const phonesClear = () => {
         if (
           mode === "reduced" &&
           (await page
-            .locator(".flat .screen")
+            .locator(".why-card").first()
             .evaluate((el) => getComputedStyle(el).animationName !== "none"))
         )
           throw Error("Reduced motion animation");
@@ -375,7 +365,7 @@ const phonesClear = () => {
     const page = await context.newPage();
     await page.goto(localUrl);
     await page.evaluate(() => document.fonts.ready);
-    const hero = page.locator(".direction-product img");
+    const hero = page.locator(".direction-product .phone img");
     await hero.evaluate((image) => image.decode());
     const state = await hero.evaluate((image) => ({
       src: image.currentSrc,
@@ -414,6 +404,28 @@ const phonesClear = () => {
   }));
   if (tabletGeometry.some(image => Math.abs(image.width/image.height-image.ratio)>.01)) throw Error('Distorted direction capture');
   await tablet.close();
+  // #251: hidden captures and reveals fail open without PerformanceObserver or without direction.js.
+  for (const failure of ["no-performance-observer", "no-direction-js"]) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: "no-preference" });
+    if (failure === "no-performance-observer") await page.addInitScript(() => delete window.PerformanceObserver);
+    else await page.route("**/direction.js", (route) => route.abort());
+    await page.goto(localUrl, { waitUntil: "load" });
+    await page.waitForTimeout(3500);
+    const captures = await page.locator(".direction-capture img").evaluateAll((images) => images.map((image) => getComputedStyle(image).display));
+    if (!captures.length || captures.includes("none")) throw Error(`Story captures stay hidden (${failure})`);
+    for (const reveal of await page.locator(".reveal").all()) {
+      await reveal.evaluate((element) => new Promise((resolve, reject) => {
+        element.scrollIntoView({ block: "center" });
+        const start = performance.now();
+        (function poll() {
+          if (getComputedStyle(element).opacity === "1") resolve();
+          else if (performance.now() - start > 3000) reject(Error("Reveal stays hidden"));
+          else requestAnimationFrame(poll);
+        })();
+      })).catch(() => { throw Error(`Reveal stays hidden (${failure})`); });
+    }
+    await page.close();
+  }
   fs.writeFileSync(`${outputDir}/density.json`,JSON.stringify({densityResults,tabletGeometry},null,2));
   const manifest = JSON.parse(fs.readFileSync("site/images/sources.json"));
   const scales = Object.values(manifest.sources).map(

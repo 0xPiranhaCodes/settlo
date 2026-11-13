@@ -6,7 +6,7 @@ const url = process.env.SITE_CHECK_URL || 'http://127.0.0.1:8237/';
 (async () => {
  const browser = await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  const results=[];
- for (const path of ['', 'privacy/', 'support/', 'terms/', 'delete-account/', 'blog/', ...fs.readdirSync('site/blog', {withFileTypes:true}).filter(e=>e.isDirectory() && fs.existsSync(`site/blog/${e.name}/index.html`)).map(e=>`blog/${e.name}/`)]) for (const width of [360,390,720,721,1440]) for (const colorScheme of ['light','dark']) for (const reducedMotion of ['reduce','no-preference']) {
+ for (const path of ['', 'privacy/', 'support/', 'terms/', 'delete-account/', 'blog/', ...fs.readdirSync('site/blog', {withFileTypes:true}).filter(e=>e.isDirectory() && fs.existsSync(`site/blog/${e.name}/index.html`)).map(e=>`blog/${e.name}/`)]) for (const width of [360,390,720,721,1440]) for (const colorScheme of ['light']) for (const reducedMotion of ['reduce','no-preference']) {
   const page=await browser.newPage({viewport:{width,height:844},colorScheme,reducedMotion});
   await page.goto(url+path);
   for (const selector of ['header nav', '#mobile-menu nav', 'footer']) {
@@ -19,7 +19,7 @@ const url = process.env.SITE_CHECK_URL || 'http://127.0.0.1:8237/';
   if(width>720) {assert.equal(await button.isVisible(),false);await page.close();continue;}
   assert.equal((await page.locator('header').boundingBox()).height,56);
   await button.click();
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(400);
   assert.equal(await button.getAttribute('aria-expanded'),'true');
   assert.equal(await menu.evaluate(e=>e.contains(document.activeElement)),true);
   await page.keyboard.press('Shift+Tab');
@@ -29,15 +29,15 @@ const url = process.env.SITE_CHECK_URL || 'http://127.0.0.1:8237/';
   for(const target of await menu.locator('a,button').all()) assert.ok((await target.boundingBox()).height>=44);
   if(reducedMotion==='reduce') assert.equal(await menu.evaluate(e=>getComputedStyle(e).animationName),'none');
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(50);
+  await page.waitForTimeout(400);
   assert.equal(await menu.isVisible(),false);
   assert.equal(await button.getAttribute('aria-expanded'),'false');
   assert.equal(await button.evaluate(e=>e===document.activeElement),true);
   await button.click();
-  await menu.getByRole('link',{name:'FAQ',exact:true}).click();
-  await page.waitForTimeout(350);
+  await menu.getByRole('link',{name:'Trust',exact:true}).click();
+  await page.waitForTimeout(400);
   assert.equal(await menu.isVisible(),false);
-  assert.equal(new URL(page.url()).hash,'#faq');
+  assert.equal(new URL(page.url()).hash,'#trust');
   assert.equal(await page.locator('header').evaluate(e=>getComputedStyle(e).position),'sticky');
   assert.ok(await page.locator('header').evaluate(e=>Number(getComputedStyle(e,'::before').opacity)>.9));
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

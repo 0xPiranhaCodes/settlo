@@ -1,0 +1,28 @@
+[
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "external": [],
+    "failures": [],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "reduced": "static",
+    "visiblePanels": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "external": [],
+    "failures": [],
+    "overflow": false
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "reduced": "static",
+    "visiblePanels": true
+  }
+]

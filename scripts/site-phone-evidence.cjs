@@ -7,7 +7,7 @@ const fs = require('fs');
   fs.mkdirSync(out, { recursive: true });
   const browser = await webkit.launch();
   for (const width of [360, 390, 768, 1440]) {
-    for (const colorScheme of ['light', 'dark']) {
+    for (const colorScheme of ['light']) {
       const height = width < 768 ? 664 : 900;
       const context = await browser.newContext({
         viewport: { width, height }, colorScheme,
@@ -22,7 +22,7 @@ const fs = require('fs');
         throw Error(`WebKit overflow at ${width} ${colorScheme}`);
       await page.screenshot({ path: `${out}/webkit-${width}-${height}-${colorScheme}-full.png`, fullPage: true });
       if (width < 768) {
-        await page.locator('img[src="images/confirm_repayment-phone.avif"]').scrollIntoViewIfNeeded();
+        await page.locator('img[src="images/confirm_repayment-phone.png"]').scrollIntoViewIfNeeded();
         await page.screenshot({ path: `${out}/webkit-${width}-${height}-${colorScheme}-confirm.png` });
       }
       await context.close();

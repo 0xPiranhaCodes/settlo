@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
 <style>.bg{fill:#fef0ce}.pa{fill:#fffdf8}.fo{fill:#01381e}.ja{fill:#01672d}.ma{fill:#febd11}.sh{fill:#18271f;fill-opacity:.14}.ln{fill:none;stroke:#18271f;stroke-width:6;stroke-linecap:round}.st{fill:none;stroke:#01381e;stroke-width:12;stroke-linecap:round;stroke-linejoin:round}.rp{fill:none;stroke:#01381e;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
-@media (prefers-color-scheme:dark){.bg{fill:#14271c}.pa{fill:#efe9db}.fo{fill:#2c5a3e}.st{stroke:#14271c}.sh{fill:#000;fill-opacity:.4}}</style>
+</style>
 <defs>
 <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .09 0 0 0 0 .15 0 0 0 0 .12 0 0 0 .55 0"/></filter>
 <path id="top" d="M0 14l10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12V176L0 170z"/>

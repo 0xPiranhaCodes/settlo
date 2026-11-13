@@ -1,0 +1,25 @@
+{
+  "tool": "Lighthouse 13.6.0, default simulated mobile, local Chrome",
+  "url": "local site/ build",
+  "head": "this branch",
+  "result": {
+    "performance": 0.96,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "seo": 1,
+    "lcpSeconds": 2.649,
+    "cls": 0,
+    "tbtMs": 0
+  },
+  "baselineOriginMain": {
+    "performance": 0.99,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "seo": 1,
+    "lcpSeconds": 2.254,
+    "cls": 0,
+    "tbtMs": 0
+  },
+  "jsGzipBytes": 1827,
+  "note": "Lab numbers on a loaded dev machine, not field data. LCP element is the hero phone; story captures load in the LCP window. Floating-capsule header run: two passes scored 0.97 and 0.96 (the lower one recorded)."
+}

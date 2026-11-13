@@ -1,0 +1,168 @@
+[
+  {
+    "width": 390,
+    "external": [],
+    "states": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ]
+    ],
+    "overflow": false,
+    "headerContrast": [
+      {
+        "section": "direction-hero",
+        "min": "14.69"
+      },
+      {
+        "section": "how-it-works",
+        "min": "14.69"
+      },
+      {
+        "section": "why",
+        "min": "14.66"
+      },
+      {
+        "section": "more",
+        "min": "14.66"
+      },
+      {
+        "section": "section-block",
+        "min": "14.66"
+      },
+      {
+        "section": "section-block",
+        "min": "14.66"
+      },
+      {
+        "section": "flat",
+        "min": "14.66"
+      },
+      {
+        "section": "loan",
+        "min": "14.66"
+      },
+      {
+        "section": "free",
+        "min": "14.66"
+      },
+      {
+        "section": "trust",
+        "min": "14.66"
+      },
+      {
+        "section": "faq",
+        "min": "14.66"
+      },
+      {
+        "section": "closing",
+        "min": "14.69"
+      },
+      {
+        "section": "footer",
+        "min": "14.69"
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "reduced": "static",
+    "visiblePanels": true
+  },
+  {
+    "width": 1440,
+    "external": [],
+    "states": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ]
+    ],
+    "overflow": false,
+    "headerContrast": [
+      {
+        "section": "direction-hero",
+        "min": "5.97"
+      },
+      {
+        "section": "how-it-works",
+        "min": "5.98"
+      },
+      {
+        "section": "why",
+        "min": "5.97"
+      },
+      {
+        "section": "more",
+        "min": "5.97"
+      },
+      {
+        "section": "section-block",
+        "min": "5.97"
+      },
+      {
+        "section": "section-block",
+        "min": "5.97"
+      },
+      {
+        "section": "flat",
+        "min": "5.97"
+      },
+      {
+        "section": "loan",
+        "min": "5.97"
+      },
+      {
+        "section": "free",
+        "min": "5.97"
+      },
+      {
+        "section": "trust",
+        "min": "5.97"
+      },
+      {
+        "section": "faq",
+        "min": "5.97"
+      },
+      {
+        "section": "closing",
+        "min": "5.98"
+      },
+      {
+        "section": "footer",
+        "min": "5.98"
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "reduced": "static",
+    "visiblePanels": true
+  },
+  {
+    "width": 360,
+    "overflow": false
+  }
+]

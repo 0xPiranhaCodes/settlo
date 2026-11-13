@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
 <style>.bg{fill:#01381e}.pa{fill:#fffdf8}.pb{fill:#f6f1e5}.ja{fill:#01672d}.cr{fill:#fef0ce}.ma{fill:#febd11}.fo{fill:#01381e}.sh{fill:#000;fill-opacity:.25}.ln{fill:none;stroke:#18271f;stroke-width:6;stroke-linecap:round}.ru{fill:none;stroke:#01672d;stroke-width:3;stroke-opacity:.35}.ink{fill:#18271f}
-@media (prefers-color-scheme:dark){.bg{fill:#14271c}.pa{fill:#efe9db}.pb{fill:#e4ddcc}.fo{fill:#24432f}.sh{fill:#000;fill-opacity:.4}}</style>
+</style>
 <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="11" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .09 0 0 0 0 .15 0 0 0 0 .12 0 0 0 .55 0"/></filter></defs>
 <rect class="bg" width="1200" height="675"/>
 <g transform="translate(60 34) scale(.9) rotate(-3 600 340)">

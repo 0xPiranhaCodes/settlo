@@ -20,6 +20,28 @@ function enhanceDirection() {
 enhanceDirection();
 directionMotion.addEventListener('change', enhanceDirection);
 
+// Story captures wait for the hero's LCP entry (or 3s), keeping them out of its LCP window (direction.css). Without the LCP observer, they wait for load.
+const storyReady = () => document.documentElement.classList.add('story-ready');
+try {
+  if (!PerformanceObserver.supportedEntryTypes?.includes('largest-contentful-paint')) throw Error('no LCP entries');
+  new PerformanceObserver((list, observer) => {
+    if (list.getEntries().some(entry => entry.element?.closest('.direction-product'))) {observer.disconnect();storyReady();}
+  }).observe({type:'largest-contentful-paint', buffered:true});
+  setTimeout(storyReady, 3000);
+} catch {
+  addEventListener('load', storyReady, {once:true});
+}
+
+// Time-based entrances once a block is in view; content stays visible without JS or with reduced motion.
+const reveals = new IntersectionObserver(entries => {
+  for (const entry of entries) if (entry.isIntersecting) {
+    entry.target.classList.add('is-in');
+    reveals.unobserve(entry.target);
+  }
+}, {rootMargin:'0px 0px -10% 0px'});
+document.querySelectorAll('.reveal').forEach(element => reveals.observe(element));
+window.directionReveals = true;
+
 // Native popover handles light dismissal and Escape; contain keyboard focus.
 const menu = document.querySelector('#mobile-menu');
 const menuButton = document.querySelector('.mobile-menu-button');
@@ -41,10 +63,44 @@ menu.addEventListener('keydown', event => {
 matchMedia('(max-width:720px)').addEventListener('change', event => {
   if (!event.matches) menu.hidePopover();
 });
-// A one-pixel sentinel avoids a scroll handler in older browsers and reduced motion.
+// A sentinel above the fold marks the scrolled header without a scroll handler (older browsers and reduced motion).
+const header = document.querySelector('header');
 const headerSentinel = document.createElement('div');
-headerSentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:1px;pointer-events:none';
+headerSentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:48px;pointer-events:none';
 document.body.prepend(headerSentinel);
 new IntersectionObserver(([entry]) => {
-  document.querySelector('header').classList.toggle('is-scrolled', !entry.isIntersecting);
+  header.classList.toggle('is-scrolled', !entry.isIntersecting);
 }).observe(headerSentinel);
+
+// One pill follows the hovered or focused link and otherwise rests on the current section.
+const siteNav = header.querySelector('nav');
+const indicator = document.createElement('span');
+indicator.className = 'nav-indicator';
+indicator.setAttribute('aria-hidden', 'true');
+siteNav.prepend(indicator);
+const moveIndicator = link => {
+  indicator.classList.toggle('is-on', Boolean(link));
+  if (link) indicator.style.cssText = `--x:${link.offsetLeft}px;--w:${link.offsetWidth}px`;
+};
+const currentLink = () => siteNav.querySelector('[aria-current]');
+siteNav.addEventListener('pointerover', event => event.target.closest('a') && moveIndicator(event.target.closest('a')));
+siteNav.addEventListener('focusin', event => moveIndicator(event.target));
+siteNav.addEventListener('pointerleave', () => moveIndicator(currentLink()));
+siteNav.addEventListener('focusout', () => moveIndicator(currentLink()));
+
+// Scroll-spy: a section belongs to the nearest earlier section with a header link (Free under Why, FAQ under Trust).
+const spyLinks = new Map([...siteNav.querySelectorAll('a[href^="#"]')].map(link => [link.hash.slice(1), link]));
+const sections = [...document.querySelectorAll('main > section')];
+const owner = section => {
+  for (let i = sections.indexOf(section); i >= 0; i--) if (spyLinks.has(sections[i].id)) return spyLinks.get(sections[i].id);
+};
+if (spyLinks.size) {
+  const spy = new IntersectionObserver(entries => {
+    const entry = entries.find(entry => entry.isIntersecting);
+    if (!entry) return;
+    const link = owner(entry.target);
+    spyLinks.forEach(other => other === link ? other.setAttribute('aria-current', 'location') : other.removeAttribute('aria-current'));
+    if (!siteNav.matches(':hover, :focus-within')) moveIndicator(link);
+  }, {rootMargin:'-30% 0px -69% 0px'});
+  sections.forEach(section => spy.observe(section));
+}
