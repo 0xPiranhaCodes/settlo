@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(126);
+select plan(130);
 
 -- Rows a statement touched, run as the current role so RLS filtering is visible.
 create function pg_temp.affected(q text) returns int language plpgsql as $$
@@ -511,6 +511,20 @@ select pg_temp.tagged(is((select count(*)::int from public.loan_reminders),0,
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000008005","role":"authenticated"}';
 select pg_temp.tagged(is((select count(*)::int from public.activity where action='reminded'),0,
  'other loan party nudge hidden [-activity_recipient]'));
+
+-- Loan labels (#257): the creator's own name for the other party; E is L1's accepted borrower.
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000008001","role":"authenticated"}';
+select pg_temp.tagged(lives_ok($$insert into public.loan_labels (loan_id, counterparty_name)
+                                values ('00000000-0000-0000-0000-000000008501', 'Esha')$$,
+  'loan_labels: creator A labels L1 [+loan_labels_insert]'));
+select pg_temp.tagged(is((select counterparty_name from public.loan_labels), 'Esha',
+  'loan_labels: creator A reads the label [+loan_labels_select]'));
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000008005","role":"authenticated"}';
+select pg_temp.tagged(is((select count(*)::int from public.loan_labels), 0,
+  'loan_labels: borrower E does not read A''s label [-loan_labels_select]'));
+select pg_temp.tagged(throws_ok($$insert into public.loan_labels (loan_id, counterparty_name)
+                                  values ('00000000-0000-0000-0000-000000008501', 'A')$$,
+  '42501', null, 'loan_labels: E cannot label a loan E did not create [-loan_labels_insert]'));
 reset role;
 
 select pg_temp.tagged(is(

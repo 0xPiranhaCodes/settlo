@@ -564,6 +564,7 @@ void main() {
       expect(loans.created, (
         youLent: true,
         counterpartyPhone: '+919820011223',
+        counterpartyName: 'Arjun Mehta',
         principal: const Paise.rupees(1000000),
         installment: const Paise.rupees(25000),
         dueDay: 5,
@@ -584,7 +585,7 @@ void main() {
 
       router.go(SettloRoutes.loans);
       await tester.pumpAndSettle();
-      expect(find.text('+919820011223 · interest free'), findsOne);
+      expect(find.text('Arjun Mehta · interest free'), findsOne);
       expect(find.text('you lent · 0 of 40 · next 5 Dec'), findsNothing);
       semantics.dispose();
     });
