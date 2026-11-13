@@ -160,7 +160,10 @@ void main() {
       expect(find.text('Nov spend'), findsOne);
       expect(find.text('Rahul, Priya'), findsOne);
       expect(find.text('5 people'), findsOne);
-      expect(find.text('13 of 40 · next ₹25,000 on 5 Dec'), findsOne);
+      expect(
+        find.text('you lent · 13 of 40 · next ₹25,000 on 5 Dec'),
+        findsOne,
+      );
       await _scrollToEnd(tester);
       expect(find.text('RECENT ACTIVITY'), findsOne);
       expect(find.textContaining('Priya added'), findsOne);
@@ -419,9 +422,49 @@ void main() {
 
       expect(find.text('Just you'), findsOne);
       expect(find.text('you borrowed · flexible repayments'), findsOne);
-      expect(find.text('1 of 2'), findsOne);
+      expect(find.text('you lent · 1 of 2'), findsOne);
     });
   });
+
+  for (final youLent in [true, false]) {
+    testWidgets('Home scheduled loan keeps direction without hue: $youLent', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await _pump(
+        tester,
+        FakeHomeRepository(
+          HomeData(
+            name: 'Sana',
+            phone: homePhone,
+            month: DateTime(2026, 11),
+            loans: [
+              HomeLoan(
+                id: 'direction',
+                counterparty: 'Alex',
+                youLent: youLent,
+                outstanding: const Paise.rupees(900),
+                installment: const Paise.rupees(100),
+                installmentsPaid: 1,
+                installmentsTotal: 10,
+                nextDueOn: DateTime(2026, 12, 5),
+              ),
+            ],
+          ),
+        ),
+      );
+      await _scrollToEnd(tester);
+      final side = youLent ? 'you lent' : 'you borrowed';
+      expect(find.text('$side · 1 of 10 · next ₹100 on 5 Dec'), findsOne);
+      expect(
+        find.bySemanticsLabel(
+          RegExp('$side · 1 of 10 · next one hundred rupees on 5 Dec'),
+        ),
+        findsOne,
+      );
+      semantics.dispose();
+    });
+  }
 
   group('every control is at least 44x44pt', () {
     Future<void> expectTargets(WidgetTester tester, Finder finder) async {
@@ -515,7 +558,7 @@ void main() {
       [
         'Arjun',
         'Arjun · interest free',
-        '13 of 40 · next twenty-five thousand rupees on 5 Dec',
+        'you lent · 13 of 40 · next twenty-five thousand rupees on 5 Dec',
         'six lakh seventy-five thousand rupees',
       ].join('\n'),
       [

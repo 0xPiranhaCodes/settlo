@@ -64,8 +64,8 @@ void main() {
           tester
               .widget<CupertinoSwitch>(find.byType(CupertinoSwitch))
               .thumbColor,
-          colors.onAction,
-          reason: 'the thumb uses the high-contrast action label pair',
+          light ? colors.onAction : colors.background,
+          reason: 'dark thumb fills are neutral on the marigold track',
         );
       });
     }

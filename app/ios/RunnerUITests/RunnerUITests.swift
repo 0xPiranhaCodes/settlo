@@ -226,6 +226,37 @@ final class RunnerUITests: XCTestCase {
     dismissPrompt(app); shot("profile")
   }
 
+  /// Issue #248: the seven dark-mode surfaces, with real native chrome.
+  func testNeutralDarkEvidence() {
+    let (app, bar) = launch()
+    dismissPrompt(app)
+    func shot(_ name: String) {
+      sleep(2)
+      let attachment = XCTAttachment(screenshot: app.screenshot())
+      attachment.name = "dark248-" + name
+      attachment.lifetime = .keepAlways
+      add(attachment)
+    }
+    func hit(_ label: String) {
+      let element = app.buttons[label].firstMatch
+      XCTAssertTrue(element.waitForExistence(timeout: 10))
+      element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+      sleep(2)
+    }
+    func tab(_ name: String) {
+      touch(name, bar)
+      XCTAssertTrue(becomes(name, bar))
+    }
+    shot("home")
+    tab("Loans"); dismissPrompt(app); shot("loans")
+    tab("Activity"); shot("activity")
+    tab("Spaces"); shot("spaces")
+    _ = open("Space", app, bar); shot("space-detail")
+    hit("Add expense"); shot("add-expense")
+    hit("Close")
+    hit("Settle up"); shot("settle-up")
+  }
+
   func testPaletteLoansEvidence() {
     let (app, bar) = launch()
     dismissPrompt(app)

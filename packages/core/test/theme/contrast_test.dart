@@ -69,6 +69,103 @@ void main() {
     });
   }
 
+  test('dark tokens never have a green cast', () {
+    const c = SettloColors.dark;
+    // Supplied check/logo artwork is the sole brand-art exception. It is
+    // rendered untinted, not a theme token; never allowlist a UI fill for it.
+    final fills = {
+      'background': c.background,
+      'surface': c.surface,
+      'surfaceRaised': c.surfaceRaised,
+      'surfaceHighest': c.surfaceHighest,
+      'hairline': c.hairline,
+      'buttonBorder': c.buttonBorder,
+      'specular': c.specular,
+      'glass': c.glass,
+      'glassFallback': c.glassFallback,
+      'glassBorder': c.glassBorder,
+      'action': c.action,
+      'onAction': c.onAction,
+      'onNavActive': c.onNavActive,
+      'welcomeAction': c.welcomeAction,
+      'brandAccent': c.brandAccent,
+      'welcomeActionTop': c.welcomeActionTop,
+      'welcomeActionBottom': c.welcomeActionBottom,
+      'welcomeActionHighlight': c.welcomeActionHighlight,
+      'welcomeActionShadow': c.welcomeActionShadow,
+      'navActiveStart': c.navActiveStart,
+      'navActiveEnd': c.navActiveEnd,
+      'textPrimary': c.textPrimary,
+      'textSecondary': c.textSecondary,
+      'textMuted': c.textMuted,
+      'pending': c.pending,
+      'error': c.error,
+      for (final tone in MoneyTone.values) 'money.${tone.name}': c.money(tone),
+    };
+    // Two 8-bit channel steps allow rounding, not a visible green tint.
+    for (final entry in fills.entries) {
+      expect(
+        entry.value.g - math.max(entry.value.r, entry.value.b),
+        lessThanOrEqualTo(2 / 255),
+        reason: entry.key,
+      );
+    }
+  });
+
+  test('dark surface levels visibly separate without losing AA labels', () {
+    const c = SettloColors.dark;
+    final surfaces = [
+      c.background,
+      c.surface,
+      c.surfaceRaised,
+      c.surfaceHighest,
+    ];
+    for (var i = 1; i < surfaces.length; i++) {
+      expect(
+        surfaces[i].computeLuminance(),
+        greaterThan(surfaces[i - 1].computeLuminance()),
+      );
+      expect(contrast(surfaces[i], surfaces[i - 1]), greaterThanOrEqualTo(1.2));
+    }
+    for (final text in [c.textSecondary, c.textMuted]) {
+      expect(text.r, text.g);
+      expect(text.g, text.b);
+      for (final surface in surfaces) {
+        expect(contrast(text, surface), greaterThanOrEqualTo(4.5));
+      }
+    }
+    expect(c.background, const Color(0xFF000000));
+    expect(c.glass.a, closeTo(0x9E / 255, 0.0001));
+    expect(c.glassFallback.a, closeTo(0xEB / 255, 0.0001));
+  });
+
+  test('dark money and pending roles follow the owner scope', () {
+    const c = SettloColors.dark;
+    expect(c.money(MoneyTone.owedToYou), c.action);
+    expect(c.action, const Color(0xFFFEBD11));
+    expect(c.pending, c.textSecondary);
+    expect(c.money(MoneyTone.youOwe), const Color(0xFFF2AB98));
+    expect(c.error, const Color(0xFFFF9CA3));
+    expect({
+      c.money(MoneyTone.owedToYou),
+      c.money(MoneyTone.youOwe),
+      c.pending,
+    }, hasLength(3));
+    for (final surface in [
+      c.background,
+      c.surface,
+      c.surfaceRaised,
+      c.surfaceHighest,
+    ]) {
+      expect(contrast(c.action, surface), greaterThanOrEqualTo(4.5));
+    }
+    // Neutral ink stays AA on the marigold action backing.
+    for (final label in [c.onAction, c.onNavActive]) {
+      expect(label, const Color(0xFF111111));
+      expect(contrast(label, c.action), greaterThanOrEqualTo(4.5));
+    }
+  });
+
   test('light Home jade clears text and icon contrast', () {
     const c = SettloColors.light;
     for (final surface in [c.background, c.surface, c.surfaceRaised]) {

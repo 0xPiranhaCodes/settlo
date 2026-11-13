@@ -775,8 +775,8 @@ class _LoansCard extends StatelessWidget {
     if (paid == null || total == null) return '$side · flexible repayments';
     final next = l.nextDueOn;
     final installment = l.installment;
-    if (next == null || installment == null) return '$paid of $total';
-    return '$paid of $total · next ${money(installment)} on '
+    if (next == null || installment == null) return '$side · $paid of $total';
+    return '$side · $paid of $total · next ${money(installment)} on '
         '${next.day} ${_months[next.month - 1]}';
   }
 }

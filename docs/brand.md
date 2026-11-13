@@ -26,6 +26,39 @@ Don't:
 
 Source of truth: `packages/core/lib/theme/colors.dart`, `typography.dart`, `tokens.dart`; welcome art direction: `docs/decisions/2026-11-10-welcome-redesign.md`.
 
+### App dark palette (#248)
+
+The app keeps a true-black canvas and neutral charcoal cards, inputs, chips,
+sheets and glass backing. Green accents, including owed-to-you amounts, become
+marigold in dark mode.
+Pending uses neutral grey with its existing clock cue. Action and selected-navigation labels use neutral near-black `#111111`. Light-mode tokens are unchanged.
+
+The supplied check/logo artwork is an explicit
+brand exception: retain its original pixels and colours in both appearances;
+never tint or redraw it as part of the UI palette.
+
+| Role | Dark value |
+| --- | --- |
+| background | `#000000` |
+| surface / surfaceRaised / surfaceHighest | `#1C1C1E` / `#2C2C2E` / `#3A3A3C` |
+| hairline / specular / glassBorder | `#48484A` |
+| buttonBorder | `#858585` |
+| textPrimary | `#F7F2E8` |
+| textSecondary / textMuted | `#B8B8B8` |
+| glass / glassFallback | `#1C1C1E` at alpha `0x9E` / `0xEB` |
+| action / welcomeAction / brandAccent / active navigation | `#FEBD11` |
+| enabled switch thumb | `#000000` on marigold |
+| onAction / onNavActive (text on marigold) | `#111111` |
+| owedToYou / youOwe / pending / error | `#FEBD11` / `#F2AB98` / `#B8B8B8` / `#FF9CA3` |
+
+Adjacent opaque surfaces have at least 1.2:1 luminance contrast. Secondary and
+muted text clear WCAG AA 4.5:1 on all four levels; existing `ContrastPair` tests
+cover the remaining permitted text pairs. Glass retains its previous alpha.
+
+### Website palette
+
+The following marketing values describe the website, not the app dark tokens.
+
 | Token | Value | Site use |
 | --- | --- | --- |
 | background | `#0A0B0D` | Page canvas |

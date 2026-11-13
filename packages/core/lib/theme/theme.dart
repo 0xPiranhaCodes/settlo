@@ -95,7 +95,10 @@ abstract final class SettloTheme {
         fillColor: _selected(c.action, c.buttonBorder),
       ),
       switchTheme: SwitchThemeData(
-        thumbColor: _selected(c.onAction, c.textSecondary),
+        thumbColor: _selected(
+          brightness == Brightness.dark ? c.background : c.onAction,
+          c.textSecondary,
+        ),
         trackColor: _selected(c.action, c.surfaceHighest),
         trackOutlineColor: _selected(c.action, c.buttonBorder),
       ),

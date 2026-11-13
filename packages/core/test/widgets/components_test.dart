@@ -16,6 +16,53 @@ const List<SGlassTab> _tabs = [
 ];
 
 void main() {
+  testWidgets('disabled dark primary icons neutralize explicit green paint', (
+    tester,
+  ) async {
+    for (final dark in [false, true]) {
+      for (final enabled in [false, true]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: dark ? SettloTheme.dark() : SettloTheme.light(),
+            home: Scaffold(
+              body: Center(
+                child: SPrimaryButton(
+                  label: 'Save',
+                  onPressed: enabled ? () {} : null,
+                  icon: const ColoredBox(
+                    color: Color(0xFF01381E),
+                    child: SizedBox.square(dimension: 18),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final greenPixels = await tester.runAsync(() async {
+          final image = await captureImage(
+            tester.element(find.byType(SPrimaryButton)),
+          );
+          final data = (await image.toByteData())!;
+          var count = 0;
+          for (var i = 0; i < data.lengthInBytes; i += 4) {
+            final r = data.getUint8(i);
+            final g = data.getUint8(i + 1);
+            final b = data.getUint8(i + 2);
+            if (g > r + 2 && g > b + 2) count++;
+          }
+          image.dispose();
+          return count;
+        });
+        expect(
+          greenPixels,
+          dark && !enabled ? 0 : greaterThan(0),
+          reason: 'dark=$dark, enabled=$enabled',
+        );
+      }
+    }
+  });
+
   testWidgets('buttons call onPressed and are at least 44pt tall', (
     tester,
   ) async {
