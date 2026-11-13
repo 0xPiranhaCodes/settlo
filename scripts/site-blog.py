@@ -82,7 +82,10 @@ def outputs(root, landing):
     result = {}
     def page(path, title, summary, content, post=None):
         url = ORIGIN + path
-        schema = ''
+        schema = '<script type="application/ld+json">' + json.dumps({
+            '@context': 'https://schema.org', '@type': 'CollectionPage', 'url': url,
+            'publisher': {'@type': 'Organization', 'name': 'JOSH Studio', 'url': 'https://hellojosh.studio'}
+        }) + '</script>'
         if post:
             article = {'@context': 'https://schema.org', '@type': 'Article',
                        'headline': post['title'], 'description': summary,

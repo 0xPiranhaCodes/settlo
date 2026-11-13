@@ -99,6 +99,19 @@ const phonesClear = () => {
           publicUrl + path
         )
           throw Error("Canonical URL mismatch: " + path);
+        if (await page.locator('meta[name="author"]').getAttribute("content") !== "JOSH Studio")
+          throw Error("Missing studio author metadata: " + path);
+        const metadata = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(JSON.parse);
+        const studio = (value) => value?.["@type"] === "Organization"
+          && value.name === "JOSH Studio" && value.url === "https://hellojosh.studio";
+        const entity = metadata.find(value => value["@type"] === (!path ? "SoftwareApplication"
+          : path === "blog/" ? "CollectionPage" : path.startsWith("blog/") ? "Article" : "WebPage"));
+        if (!entity || !(path.startsWith("blog/") && path !== "blog/" ? studio(entity.author) : studio(entity.publisher))
+          || (!path && (!studio(entity.author) || !studio(entity.creator))))
+          throw Error("Missing studio structured attribution: " + path);
+        if (await page.locator('a[href*="hellojosh.studio"], .studio').count()
+          || (await page.locator("body").textContent()).includes("Made by JOSH Studio"))
+          throw Error("Studio credit must only be metadata: " + path);
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth > innerWidth,
         );
