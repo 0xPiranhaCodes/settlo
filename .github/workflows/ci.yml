@@ -31,6 +31,47 @@ permissions:
   contents: read
 
 jobs:
+  website:
+    name: Website drift & budgets
+    if: inputs.update_goldens != true && inputs.supabase_only != true
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      # Filter steps, not the workflow, so unrelated PRs still report success.
+      - name: Determine whether website checks are required
+        id: site-changes
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          should_check=true
+
+          if [[ "$EVENT_NAME" == "pull_request" ]] && \
+             git diff --quiet "$BASE_SHA...$HEAD_SHA" -- \
+               site/ ':(glob)scripts/site-*' scripts/blog/ scripts/cards/ \
+               .github/workflows/ci.yml; then
+            should_check=false
+          fi
+
+          echo "should_check=$should_check" >> "$GITHUB_OUTPUT"
+
+      - name: Verify runner Python
+        if: steps.site-changes.outputs.should_check == 'true'
+        # Ubuntu 24.04 supplies Python 3.12; the check needs only the standard
+        # library. Node/Playwright/Pillow are needed only to render social cards.
+        run: python3 -c 'import sys; print(sys.version); assert sys.version_info >= (3, 9)'
+
+      - name: Check website drift and image budgets
+        if: steps.site-changes.outputs.should_check == 'true'
+        run: python3 scripts/site-build-check.py
+
   analyze-test:
     name: Analyze & test
     if: inputs.update_goldens != true && inputs.supabase_only != true
