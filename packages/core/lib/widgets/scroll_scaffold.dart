@@ -11,6 +11,7 @@ import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
 import 'package:settlo_core/widgets/glass_action.dart';
 import 'package:settlo_core/widgets/glass_tab_bar.dart';
+import 'package:settlo_core/widgets/sheet_header.dart';
 
 /// Native scrolling and keyboard dismissal for every application scroll view.
 class SettloScrollBehavior extends MaterialScrollBehavior {
@@ -62,8 +63,8 @@ class SettloScrollScope extends InheritedWidget {
       registry != oldWidget.registry;
 }
 
-/// Shared sliver chrome. The first child is the expanded mock header; the rest
-/// form a lazily laid out list below the pinned, collapsing navigation bar.
+/// Shared sliver chrome. By default, the first child is the expanded header.
+/// Task sheets supply [onSheetClose] and use every child as list content.
 class SettloScrollScaffold extends StatefulWidget {
   /// Native scrolling with an optional refresh operation.
   const new({
@@ -81,13 +82,14 @@ class SettloScrollScaffold extends StatefulWidget {
     this.previousPageTitle,
     this.trailing,
     this.stickyHeader = true,
+    this.onSheetClose,
     super.key,
   });
 
   /// Compact navigation title, also used as the scroll-position identity.
   final String title;
 
-  /// Expanded header first, then page content.
+  /// Expanded header first, then page content; task sheets supply only content.
   final List<Widget> children;
 
   /// Screen edges and bottom safe-area inset; top is supplied by the bar.
@@ -129,6 +131,10 @@ class SettloScrollScaffold extends StatefulWidget {
   /// False on tab roots (#197): the header scrolls away with the content,
   /// and only a mild blur stays behind the status bar.
   final bool stickyHeader;
+
+  /// A task sheet owns its fixed title and close control.
+  /// All children are content.
+  final VoidCallback? onSheetClose;
 
   @override
   State<SettloScrollScaffold> createState() => _SettloScrollScaffoldState();
@@ -266,7 +272,15 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
     final scroll = CustomScrollView(
       key: PageStorageKey('scroll-${widget.title}'),
       primary: true,
-      physics: const SettloScrollBehavior().getScrollPhysics(context),
+      physics: widget.onSheetClose != null
+          ? (ios
+                ? const _TopClampedScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  )
+                : const ClampingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ))
+          : const SettloScrollBehavior().getScrollPhysics(context),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
         if (largeTitle != null) _largeTitleBar(context, largeTitle),
@@ -286,7 +300,16 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
               ),
             ),
           ),
-        if (largeTitle == null)
+        if (widget.onSheetClose case final close?)
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _TaskSheetHeader(
+              title: widget.title,
+              onClose: close,
+              showGrabber: ios,
+            ),
+          ),
+        if (largeTitle == null && widget.onSheetClose == null)
           SliverPersistentHeader(
             pinned: true,
             delegate: _NavigationHeader(
@@ -312,7 +335,11 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
               padding.right,
               padding.bottom,
             ),
-            sliver: SliverList.list(children: widget.children.skip(1).toList()),
+            sliver: SliverList.list(
+              children: widget.onSheetClose == null
+                  ? widget.children.skip(1).toList()
+                  : widget.children,
+            ),
           ),
       ],
     );
@@ -341,6 +368,59 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
       ),
     );
   }
+}
+
+/// Part of the same viewport as the list: a header drag goes to its scroll
+/// position before the Cupertino route can move, including when pinned.
+class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
+  new({required this.title, required this.onClose, required this.showGrabber});
+  final String title;
+  final VoidCallback onClose;
+  final bool showGrabber;
+
+  @override
+  double get minExtent =>
+      (showGrabber ? SSheetHeader.extent : SettloSpacing.minTouchTarget) +
+      2 * SSheetHeader.frameInset;
+  @override
+  double get maxExtent => minExtent;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final c = SettloColors.of(context);
+    return DecoratedBox(
+      key: const ValueKey('task-sheet-header'),
+      decoration: BoxDecoration(
+        color: overlapsContent || shrinkOffset > 0 ? c.surface : c.background,
+        border: overlapsContent || shrinkOffset > 0
+            ? Border(bottom: BorderSide(color: c.hairline))
+            : null,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: SettloSpacing.screenMargin + SSheetHeader.frameInset,
+          vertical: SSheetHeader.frameInset,
+        ),
+        child: Center(
+          child: SSheetHeader(
+            title: title,
+            onClose: onClose,
+            showGrabber: showGrabber,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_TaskSheetHeader oldDelegate) =>
+      title != oldDelegate.title ||
+      onClose != oldDelegate.onClose ||
+      showGrabber != oldDelegate.showGrabber;
 }
 
 class _NavigationHeader extends SliverPersistentHeaderDelegate {
@@ -736,4 +816,22 @@ class _ChromeState extends InheritedWidget {
   @override
   bool updateShouldNotify(_ChromeState oldWidget) =>
       compact != oldWidget.compact;
+}
+
+/// The pinned header stays fixed at the top; the trailing edge still bounces.
+class _TopClampedScrollPhysics extends BouncingScrollPhysics {
+  const new({super.parent});
+  @override
+  _TopClampedScrollPhysics applyTo(ScrollPhysics? ancestor) =>
+      _TopClampedScrollPhysics(parent: buildParent(ancestor));
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    if (value < position.minScrollExtent) {
+      return value -
+          (position.pixels < position.minScrollExtent
+              ? position.pixels
+              : position.minScrollExtent);
+    }
+    return 0;
+  }
 }

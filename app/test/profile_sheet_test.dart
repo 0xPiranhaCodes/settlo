@@ -67,16 +67,25 @@ void main() {
       // Home stays mounted behind it.
       expect(find.byType(HomeScreen, skipOffstage: false), findsOne);
       expect(
-        tester.getSemantics(find.byTooltip('Close')),
+        tester.getSemantics(find.bySemanticsLabel('Close')),
         // VoiceOver reads it as the Close button.
-        isSemantics(tooltip: 'Close', isButton: true, hasTapAction: true),
+        isSemantics(label: 'Close', isButton: true, hasTapAction: true),
       );
     }, variant: variant);
 
     testWidgets('Close dismisses the sheet once, back to Home', (tester) async {
       final router = await _open(tester, SettloRoutes.profile);
-      await tester.tap(find.byTooltip('Close'));
-      await tester.tap(find.byTooltip('Close'), warnIfMissed: false);
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is SPressable && widget.label == 'Close',
+        ),
+      );
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is SPressable && widget.label == 'Close',
+        ),
+        warnIfMissed: false,
+      );
       await tester.pumpAndSettle();
 
       expect(find.byType(ProfileScreen), findsNothing);
@@ -122,7 +131,11 @@ void main() {
       final router = await _open(tester, SettloRoutes.space('s1'));
       router.go(SettloRoutes.profile);
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Close'));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is SPressable && widget.label == 'Close',
+        ),
+      );
       await tester.pumpAndSettle();
       expect(router.state.matchedLocation, SettloRoutes.home);
 
@@ -145,7 +158,11 @@ void main() {
 
       expect(_sheet(tester), isA<ModalRoute<void>>());
       expect(shell().currentIndex, 1, reason: 'Spaces stays selected');
-      await tester.tap(find.byTooltip('Close'));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is SPressable && widget.label == 'Close',
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byType(ProfileScreen), findsNothing);
@@ -183,7 +200,11 @@ void main() {
         expect(_sheet(tester), isA<ModalRoute<void>>());
         expect(shell().currentIndex, index, reason: 'the tab stays selected');
 
-        await tester.tap(find.byTooltip('Close'));
+        await tester.tap(
+          find.byWidgetPredicate(
+            (widget) => widget is SPressable && widget.label == 'Close',
+          ),
+        );
         await tester.pumpAndSettle();
         expect(find.byType(ProfileScreen), findsNothing);
         expect(shell().currentIndex, index);
