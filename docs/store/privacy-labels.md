@@ -82,7 +82,7 @@ The free-text line is a judgement call. Answering **Yes** to user-generated cont
    - purpose: **App Functionality** only;
    - linked to the user's identity: **Yes**;
    - used for tracking: **No**.
-6. Review the summary. It should show **Data Linked to You** with the five categories above, and nothing under **Data Used to Track You**. Click **Publish**.
+6. Review the summary. It should show **Data Linked to You** with the six categories above, and nothing under **Data Used to Track You**. Click **Publish**.
 
 ### Age rating
 

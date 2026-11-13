@@ -30,6 +30,8 @@ Signing is described in [ADR 0015](adr/0015-ios-release-signing.md), and the tes
 
 Both workflows run in the `production` environment and act on `main` only: **Release** fails unless the tagged commit is on `main`, and **Supabase hosted** refuses any other ref. Only admins can create `v*` tags. See [the trust-boundary decision](decisions/2026-11-10-release-trust-boundary.md).
 
+The hosted Supabase project is in Mumbai (AWS ap-south-1); the owner confirmed this on 2026-11-13. The listing's "stored in India" line and the privacy policy (`site/privacy/index.html:118,129`) rely on it.
+
 ### Cutting a build
 
 1. Apply migrations to the hosted project: run **Supabase hosted** from `main` with `db-push`, read the dry run, then run it again with **apply** ticked. The first migration push also enables `pg_cron`.
