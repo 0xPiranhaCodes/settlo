@@ -99,6 +99,19 @@ const phonesClear = () => {
           publicUrl + path
         )
           throw Error("Canonical URL mismatch: " + path);
+        if (await page.locator('meta[name="author"]').getAttribute("content") !== "JOSH Studio")
+          throw Error("Missing studio author metadata: " + path);
+        const metadata = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(JSON.parse);
+        const studio = (value) => value?.["@type"] === "Organization"
+          && value.name === "JOSH Studio" && value.url === "https://hellojosh.studio";
+        const entity = metadata.find(value => value["@type"] === (!path ? "SoftwareApplication"
+          : path === "blog/" ? "CollectionPage" : path.startsWith("blog/") ? "Article" : "WebPage"));
+        if (!entity || !(path.startsWith("blog/") && path !== "blog/" ? studio(entity.author) : studio(entity.publisher))
+          || (!path && (!studio(entity.author) || !studio(entity.creator))))
+          throw Error("Missing studio structured attribution: " + path);
+        if (await page.locator('a[href*="hellojosh.studio"], .studio').count()
+          || (await page.locator("body").textContent()).includes("Made by JOSH Studio"))
+          throw Error("Studio credit must only be metadata: " + path);
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth > innerWidth,
         );
@@ -279,12 +292,16 @@ const phonesClear = () => {
             content: "* { animation: none !important; }",
           });
         const directionStates = [];
+        const expectedStates = mode === 'reduced' ? [[1,1,1],[1,1,1],[1,1,1]] : [[1,0,0],[0,1,0],[0,0,1]];
         for (const progress of [0.1, 0.48, 0.9]) {
           await page.locator('.direction-story').evaluate((el, progress) => scrollTo({top:el.offsetTop + (el.offsetHeight-innerHeight)*progress,behavior:'instant'}), progress);
-          await page.waitForTimeout(400);
+          // Wait for the exact state instead of sampling an in-flight fallback transition.
+          await page.waitForFunction(expected => {
+            const actual = [...document.querySelectorAll('.direction-panel')].map(el => Number(getComputedStyle(el).opacity));
+            return JSON.stringify(actual) === JSON.stringify(expected);
+          }, expectedStates[directionStates.length], { timeout: 5000 });
           directionStates.push(await page.locator('.direction-panel').evaluateAll(els => els.map(el => Number(getComputedStyle(el).opacity))));
         }
-        const expectedStates = mode === 'reduced' ? [[1,1,1],[1,1,1],[1,1,1]] : [[1,0,0],[0,1,0],[0,0,1]];
         if (JSON.stringify(directionStates) !== JSON.stringify(expectedStates)) throw Error(`Direction states: ${mode} ${JSON.stringify(directionStates)}`);
         const selector = ".direction-pin";
         for (const target of [

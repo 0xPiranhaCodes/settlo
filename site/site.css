@@ -206,11 +206,6 @@ footer a {
   font-weight: 500;
   text-decoration: none;
 }
-.studio {
-  color: var(--accent);
-  font-size: 16px;
-  font-weight: 500;
-}
 .footer-links {
   display: flex;
   flex-wrap: wrap;
