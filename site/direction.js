@@ -20,14 +20,17 @@ function enhanceDirection() {
 enhanceDirection();
 directionMotion.addEventListener('change', enhanceDirection);
 
-// Story captures wait for the hero's LCP entry (or 3s, or load where LCP isn't reported), keeping them out of its LCP window (direction.css).
+// Story captures wait for the hero's LCP entry (or 3s), keeping them out of its LCP window (direction.css). Without the LCP observer, they wait for load.
 const storyReady = () => document.documentElement.classList.add('story-ready');
-if (PerformanceObserver.supportedEntryTypes?.includes('largest-contentful-paint')) {
+try {
+  if (!PerformanceObserver.supportedEntryTypes?.includes('largest-contentful-paint')) throw Error('no LCP entries');
   new PerformanceObserver((list, observer) => {
     if (list.getEntries().some(entry => entry.element?.closest('.direction-product'))) {observer.disconnect();storyReady();}
   }).observe({type:'largest-contentful-paint', buffered:true});
   setTimeout(storyReady, 3000);
-} else addEventListener('load', storyReady, {once:true});
+} catch {
+  addEventListener('load', storyReady, {once:true});
+}
 
 // Time-based entrances once a block is in view; content stays visible without JS or with reduced motion.
 const reveals = new IntersectionObserver(entries => {
@@ -37,6 +40,7 @@ const reveals = new IntersectionObserver(entries => {
   }
 }, {rootMargin:'0px 0px -10% 0px'});
 document.querySelectorAll('.reveal').forEach(element => reveals.observe(element));
+window.directionReveals = true;
 
 // Native popover handles light dismissal and Escape; contain keyboard focus.
 const menu = document.querySelector('#mobile-menu');

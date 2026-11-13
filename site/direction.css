@@ -46,8 +46,8 @@
 .direction-capture {grid-column:7/13; grid-row:1;}
 .direction-capture .phone {aspect-ratio:430/818; height:min(52svh,480px); max-width:100%; margin:auto;}
 .direction-capture .phone img {width:100%; height:100%;}
-/* LCP: story captures wait for the load event, so they never share the hero's LCP window (direction.js). */
-@media (scripting:enabled) {html:not(.story-ready) .direction-capture img {display:none;}}
+/* LCP: story captures wait for the hero's LCP entry, so they never share its window (direction.js). Keyed to the head's .js class, which its fallback removes. */
+.js:not(.story-ready) .direction-capture img {display:none;}
 .direction-markers,.direction-progress {display:none;}
 
 @property --story-step {syntax:'<integer>';inherits:false;initial-value:1;}
@@ -76,10 +76,10 @@
   .direction-hero .float {animation:drift-b linear both; animation-timeline:scroll(root); animation-range:0 100svh;}
  }
 }
-/* Hidden only when script can reveal it; no root class, so no full-page restyle. */
-@media (scripting:enabled) and (prefers-reduced-motion:no-preference) {
- .reveal {transition:opacity var(--dur-reveal) var(--ease-out),transform var(--dur-reveal) var(--ease-out); transition-delay:calc(var(--i,0) * var(--stagger));}
- .reveal:not(.is-in) {opacity:0; transform:translateY(24px);}
+/* Hidden only under the .js class the head sets before first paint, so no restyle; without script, or if direction.js fails, it shows. */
+@media (prefers-reduced-motion:no-preference) {
+ .js .reveal {transition:opacity var(--dur-reveal) var(--ease-out),transform var(--dur-reveal) var(--ease-out); transition-delay:calc(var(--i,0) * var(--stagger));}
+ .js .reveal:not(.is-in) {opacity:0; transform:translateY(24px);}
 }
 @media (prefers-reduced-motion:no-preference) and (min-height:650px) {
  .direction-enhanced .direction-story {height:340svh; view-timeline-name:--settle; view-timeline-axis:block;}
@@ -123,7 +123,7 @@
 .trust-grid p {margin:0; font-size:15px; line-height:1.55;}
 .trust-grid a,.trust-foot a {color:var(--accent);}
 .trust-foot {margin:24px 0 0; font-size:var(--t-small);}
-.trust-head .text-link {display:inline; min-height:0;}
+.trust-head .text-link {display:inline; min-height:0; padding-block:12.5px;}
 
 /* Why SabkiJeb: two feature cards, four facts, the ₹0 band and the comparison, on one grid. */
 .why {padding:128px 0 0;}

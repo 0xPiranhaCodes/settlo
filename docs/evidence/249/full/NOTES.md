@@ -20,7 +20,7 @@ The blog index, posts and policy pages now use the shared tokens, which moved fr
 The hero's LCP paint lands 40–150 ms after the `load` event, so loading the story captures on `load` still put them in the hero's LCP window (measured: no improvement).
 
 The fix has two parts:
-- The story `<img>`s are `display:none` under `(scripting: enabled)` until `html.story-ready`.
+- The story `<img>`s are `display:none` under `html.js` (set by an inline head script) until `html.story-ready`. Fail-open (#251 review): no `PerformanceObserver` releases them on load, and if `direction.js` has not wired reveals 3 s after load the head script drops `.js` so captures and reveals show.
 - `direction.js` sets that class when a `largest-contentful-paint` entry for the hero product image is reported. It falls back to 3 s, or to `load` where the API is missing.
 
 Lazy images that aren't rendered are never requested. The capture frame (`.phone`) now holds the size and aspect ratio, so revealing the images can't shift layout (CLS 0). Without JS the images show normally.
@@ -41,3 +41,9 @@ Lab numbers come from a dev machine, not field data.
 - **Recordings**: `scroll-390-light.webm` and `scroll-1440-light.webm`, full-page scrolls with motion on.
 - **Full-page screenshots**: `full-*.png` (motion on, taken after the scroll pass) and `reduced-*.png`.
 - **Section screenshots**: `why-*`, `trust-*`, `faq-*` and `closing-*`.
+
+## #251 review fixes
+
+- Reveals and story captures fail open: `site-check.cjs` loads the home page with `PerformanceObserver` deleted and with `direction.js` blocked, and asserts all six captures display and every `.reveal` reaches opacity 1. The old head fails the first case (all captures `display:none`).
+- 44 px hit areas: footer links (`min-width`), the 40 px capsule nav links and CTA (transparent `::after`), and the inline privacy-policy link (inline `padding-block`). No control on the home page is under 44 × 44 at 390 or 1440. Full-page screenshots at 390 and 1440 are pixel-identical to `685c0a6`, so the scroll recordings stand.
+- Lighthouse 13.6, simulated mobile, 3 runs: performance 0.98, LCP 2.33 / 2.40 / 2.33 s, CLS 0; accessibility, best practices and SEO 1.00. Menu (54 contexts) and accessibility (27 contexts) checks pass.

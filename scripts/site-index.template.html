@@ -32,6 +32,8 @@
 <link rel="preload" href="fonts/Figtree-Medium.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="site.css">
 <link rel="stylesheet" href="direction.css">
+<!-- Hidden reveal states key off .js; if direction.js has not wired them 3s after load, drop .js so everything shows. -->
+<script>document.documentElement.classList.add('js');addEventListener('load',()=>setTimeout(()=>window.directionReveals||document.documentElement.classList.remove('js'),3000));</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"SabkiJeb","url":"https://sabkijeb.app/","description":"Split expenses with flatmates, track money lent to friends and settle up via UPI. Available as an iPhone TestFlight beta; Android later.","applicationCategory":"FinanceApplication","operatingSystem":"iOS","inLanguage":"en-IN","image":"https://sabkijeb.app/images/cards/home.png","publisher":{"@type":"Organization","name":"JOSH Studio","email":"support@sabkijeb.app","url":"https://hellojosh.studio"},"author":{"@type":"Organization","name":"JOSH Studio","url":"https://hellojosh.studio"},"creator":{"@type":"Organization","name":"JOSH Studio","url":"https://hellojosh.studio"}}
 </script>

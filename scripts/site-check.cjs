@@ -404,6 +404,28 @@ const phonesClear = () => {
   }));
   if (tabletGeometry.some(image => Math.abs(image.width/image.height-image.ratio)>.01)) throw Error('Distorted direction capture');
   await tablet.close();
+  // #251: hidden captures and reveals fail open without PerformanceObserver or without direction.js.
+  for (const failure of ["no-performance-observer", "no-direction-js"]) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: "no-preference" });
+    if (failure === "no-performance-observer") await page.addInitScript(() => delete window.PerformanceObserver);
+    else await page.route("**/direction.js", (route) => route.abort());
+    await page.goto(localUrl, { waitUntil: "load" });
+    await page.waitForTimeout(3500);
+    const captures = await page.locator(".direction-capture img").evaluateAll((images) => images.map((image) => getComputedStyle(image).display));
+    if (!captures.length || captures.includes("none")) throw Error(`Story captures stay hidden (${failure})`);
+    for (const reveal of await page.locator(".reveal").all()) {
+      await reveal.evaluate((element) => new Promise((resolve, reject) => {
+        element.scrollIntoView({ block: "center" });
+        const start = performance.now();
+        (function poll() {
+          if (getComputedStyle(element).opacity === "1") resolve();
+          else if (performance.now() - start > 3000) reject(Error("Reveal stays hidden"));
+          else requestAnimationFrame(poll);
+        })();
+      })).catch(() => { throw Error(`Reveal stays hidden (${failure})`); });
+    }
+    await page.close();
+  }
   fs.writeFileSync(`${outputDir}/density.json`,JSON.stringify({densityResults,tabletGeometry},null,2));
   const manifest = JSON.parse(fs.readFileSync("site/images/sources.json"));
   const scales = Object.values(manifest.sources).map(
