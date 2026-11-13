@@ -59,7 +59,6 @@ final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate,
     }
     bar.delegate = self
     bar.frame = host.bounds
-    bar.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     host.addSubview(bar)
     finger.delegate = self
     finger.onBegin = { [weak self] in self?.began() }
@@ -169,6 +168,11 @@ final class NativeTabBar: NSObject, FlutterPlatformView, UITabBarDelegate,
     override func layoutSubviews() {
       super.layoutSubviews()
       guard let bar, bounds.width > 0 else { return }
+      // UITabBar adjusts its own height on iOS 26. Flexible-height
+      // autoresizing then adds the host's height delta a second time (#258).
+      // Give it exactly the platform view's bounds on every layout pass.
+      bar.frame = bounds
+      bar.layoutIfNeeded()
       let height = bar.sizeThatFits(bounds.size).height
       if height != reported {
         reported = height

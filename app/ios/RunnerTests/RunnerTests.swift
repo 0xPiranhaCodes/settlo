@@ -57,6 +57,42 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(tabs.view().overrideUserInterfaceStyle, .light)
   }
 
+  /// Run on both a home-button and a home-indicator simulator. In #258,
+  /// flexible-height autoresizing added the host delta to UIKit's own size,
+  /// leaving the real labels below the platform view despite a height report.
+  func testReportedHeightContainsLabelsAndFollowsAppTheme() throws {
+    let tabs = makeBar()
+    let window = UIWindow(frame: UIScreen.main.bounds)
+    let controller = UIViewController()
+    window.rootViewController = controller
+    window.overrideUserInterfaceStyle = .dark
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true }
+    let host = tabs.view()
+    controller.view.addSubview(host)
+    host.frame = CGRect(x: 0, y: window.bounds.height - 49, width: window.bounds.width, height: 49)
+    window.layoutIfNeeded()
+    host.layoutIfNeeded()
+    let height = try XCTUnwrap(messenger.sent.last { $0.method == "height" }?.arguments as? Double)
+    host.frame = CGRect(x: 0, y: window.bounds.height - height, width: window.bounds.width, height: height)
+    host.layoutIfNeeded()
+    tabs.bar.layoutIfNeeded()
+    XCTAssertEqual(tabs.bar.frame, host.bounds)
+    func all(_ view: UIView) -> [UIView] { view.subviews.flatMap { [$0] + all($0) } }
+    let labels = all(tabs.bar).compactMap { $0 as? UILabel }.filter { $0.text?.isEmpty == false }
+    XCTAssertGreaterThanOrEqual(labels.count, 4)
+    for dark in [false, true, false] {
+      messenger.call(channelName, "update", ["dark": dark])
+      host.layoutIfNeeded()
+      XCTAssertEqual(tabs.bar.traitCollection.userInterfaceStyle, dark ? .dark : .light)
+      for label in labels {
+        let rect = label.convert(label.bounds, to: host)
+        XCTAssertTrue(host.bounds.contains(rect), "\(label.text ?? ""): \(rect) outside \(host.bounds)")
+        XCTAssertEqual(label.traitCollection.userInterfaceStyle, dark ? .dark : .light)
+      }
+    }
+  }
+
   func testTapIsSentToFlutter() {
     let tabs = makeBar()
     tabs.bar.delegate?.tabBar?(tabs.bar, didSelect: tabs.bar.items![3])
