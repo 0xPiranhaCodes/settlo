@@ -303,7 +303,11 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
         if (widget.onSheetClose case final close?)
           SliverPersistentHeader(
             pinned: true,
-            delegate: _TaskSheetHeader(title: widget.title, onClose: close),
+            delegate: _TaskSheetHeader(
+              title: widget.title,
+              onClose: close,
+              showGrabber: ios,
+            ),
           ),
         if (largeTitle == null && widget.onSheetClose == null)
           SliverPersistentHeader(
@@ -369,12 +373,15 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
 /// Part of the same viewport as the list: a header drag goes to its scroll
 /// position before the Cupertino route can move, including when pinned.
 class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
-  new({required this.title, required this.onClose});
+  new({required this.title, required this.onClose, required this.showGrabber});
   final String title;
   final VoidCallback onClose;
+  final bool showGrabber;
 
   @override
-  double get minExtent => SSheetHeader.extent + 2 * SSheetHeader.frameInset;
+  double get minExtent =>
+      (showGrabber ? SSheetHeader.extent : SettloSpacing.minTouchTarget) +
+      2 * SSheetHeader.frameInset;
   @override
   double get maxExtent => minExtent;
 
@@ -402,7 +409,7 @@ class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
           child: SSheetHeader(
             title: title,
             onClose: onClose,
-            showGrabber: Theme.of(context).platform == TargetPlatform.iOS,
+            showGrabber: showGrabber,
           ),
         ),
       ),
@@ -411,7 +418,9 @@ class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(_TaskSheetHeader oldDelegate) =>
-      title != oldDelegate.title || onClose != oldDelegate.onClose;
+      title != oldDelegate.title ||
+      onClose != oldDelegate.onClose ||
+      showGrabber != oldDelegate.showGrabber;
 }
 
 class _NavigationHeader extends SliverPersistentHeaderDelegate {

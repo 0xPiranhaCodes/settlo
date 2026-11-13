@@ -8,6 +8,7 @@ import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_core/supabase/reminders.dart';
+import 'package:settlo_core/widgets/sheet_header.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 import 'package:settlo_test_support/golden.dart';
 
@@ -93,6 +94,25 @@ void main() {
                     )
                   : null,
             );
+
+            if (platform == TargetPlatform.android && !scrolled) {
+              final firstCard = find
+                  .descendant(
+                    of: find.byType(ProfileScreen),
+                    matching: find.byType(SCard),
+                  )
+                  .first;
+              // Approved 452462d started at y=92. Restoring the native
+              // 48pt drag handle and replacing its old 68pt header with
+              // the 46pt row leaves a deliberate 26pt platform difference.
+              expect(tester.getTopLeft(firstCard).dy, closeTo(118, 1));
+              expect(
+                tester
+                    .getSize(find.byKey(const ValueKey('task-sheet-header')))
+                    .height,
+                SettloSpacing.minTouchTarget + 2 * SSheetHeader.frameInset,
+              );
+            }
 
             await expectLater(
               find.byKey(settloGoldenSurfaceKey),
