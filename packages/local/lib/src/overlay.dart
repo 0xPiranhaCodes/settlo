@@ -14,7 +14,8 @@ String dateKey(DateTime d) =>
 /// stored apart from the queue.
 ///
 /// Ids the device made up are `local:<key>` for an expense and
-/// `local:<key>:me` / `local:<key>:<phone>` for a new space's members;
+/// `local:<key>:me` / `local:<key>:<phone>` for a new or added space's
+/// members;
 /// a new space's, loan's or repayment's id is its key, as their RPCs make
 /// it.
 ///
@@ -226,6 +227,25 @@ Tables applyQueue(
             // Keeps member order, which decides who takes odd paise.
             'created_at': '$at#${i.toString().padLeft(3, '0')}',
             'spaces': space,
+          });
+        }
+      case 'add_space_members':
+        final spaceId = params['p_space_id'];
+        final existing = members.where((r) => r['space_id'] == spaceId);
+        final at = m.createdAt.toUtc().toIso8601String();
+        for (final (i, o)
+            in (params['p_members'] as List).cast<_Row>().indexed) {
+          members.add({
+            'id': 'local:${m.key}:${o['phone']}',
+            'space_id': spaceId,
+            'user_id': null,
+            'name': o['name'],
+            'phone': o['phone'],
+            'role': 'member',
+            'accepted_at': null,
+            'left_at': null,
+            'created_at': '$at#${i.toString().padLeft(3, '0')}',
+            'spaces': existing.firstOrNull?['spaces'],
           });
         }
       case 'add_expense':

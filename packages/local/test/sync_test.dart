@@ -399,6 +399,50 @@ void main() {
     },
   );
 
+  test(
+    'people added offline take expenses that replay with real ids',
+    () async {
+      server.rpc = (_, _) => _offline;
+      final spaces = DriftSpacesRepository(engine, now: () => clock);
+      await spaces.addMembers('s1', const [
+        (phone: '+919000000004', name: 'Bela'),
+      ], idempotencyKey: 'add-1');
+      final flat = (await spaces.load()).single;
+      final bela = flat.members.last;
+      expect(
+        (bela.id, bela.name, bela.joined),
+        ('local:add-1:+919000000004', 'Bela', false),
+      );
+      await DriftExpensesRepository(engine).add(
+        _groceries(members: ['m1', bela.id], amount: 1000),
+        idempotencyKey: 'k1',
+      );
+
+      server.rpc = (fn, body) {
+        if (fn == 'add_space_members') {
+          server.tables['space_members']!.add(_member('m4', '+919000000004'));
+          return null;
+        }
+        return 'e7';
+      };
+      await engine.sync();
+
+      final [..., (addMembers, members), (_, add)] = server.calls;
+      expect(addMembers, 'add_space_members');
+      expect(members['p_members'], [
+        {'phone': '+919000000004', 'name': 'Bela'},
+      ]);
+      expect(
+        [
+          for (final s in (add['p'] as Map)['splits'] as List)
+            (s as Map)['member_id'],
+        ],
+        ['m1', 'm4'],
+      );
+      expect(await db.mutations(_me), isEmpty);
+    },
+  );
+
   test('ids made on the phone still resolve after the refresh', () async {
     server.rpc = (fn, body) {
       if (fn == 'create_space') {

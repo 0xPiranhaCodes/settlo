@@ -374,6 +374,13 @@ void main() {
       ),
     );
     expect(
+      copy('add_space_members', {}, '22023', 'already_member'),
+      startsWith(
+        'Adding people to that space couldn’t be saved because someone in '
+        'it is already in the space.',
+      ),
+    );
+    expect(
       copy('set_member_role', {}, '23514'),
       startsWith(
         'A change couldn’t be saved because the details didn’t '

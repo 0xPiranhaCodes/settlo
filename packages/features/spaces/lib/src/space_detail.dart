@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_spaces/src/glyphs.dart';
 import 'package:settlo_spaces/src/space_empty.dart';
 import 'package:settlo_spaces/src/spaces_controller.dart';
@@ -127,6 +128,8 @@ class SpaceDetailView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final ledger = ref.watch(spaceLedgerProvider(space.id));
+    final loaded = ledger.value;
     if (tab == SpaceTab.activity) {
       return ActivityScreen(
         spaceId: space.id,
@@ -135,15 +138,13 @@ class SpaceDetailView extends ConsumerWidget {
         header: [
           SpaceHeader(space),
           const SizedBox(height: SettloSpacing.x3),
+          _Top(space, loaded),
           _Tabs(space: space, tab: tab),
         ],
       );
     }
     final c = SettloColors.of(context);
     final media = MediaQuery.of(context);
-    final largeText = media.textScaler.scale(14) > 21;
-    final ledger = ref.watch(spaceLedgerProvider(space.id));
-    final loaded = ledger.value;
     return Scaffold(
       body: DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0, height: 1.2),
@@ -165,51 +166,8 @@ class SpaceDetailView extends ConsumerWidget {
           children: [
             SpaceHeader(space),
             const SizedBox(height: SettloSpacing.x3),
-            if (tab == SpaceTab.expenses) ...[
-              _Hero(space, loaded),
-              const SizedBox(height: SettloSpacing.x2),
-              // The canvas pads these 16, not Material's 24, so both
-              // labels fit side by side at 360.
-              Theme(
-                data: _compactButtons(Theme.of(context)),
-                child: Flex(
-                  direction: largeText ? Axis.vertical : Axis.horizontal,
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: largeText
-                      ? CrossAxisAlignment.stretch
-                      : CrossAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      fit: largeText ? FlexFit.loose : FlexFit.tight,
-                      child: SPrimaryButton(
-                        label: 'Add expense',
-                        icon: SpacesIcon(
-                          SpacesGlyph.plus,
-                          color: c.onAction,
-                          size: 18,
-                          stroke: 1.9,
-                        ),
-                        onPressed: () =>
-                            context.push(SettloRoutes.addExpenseIn(space.id)),
-                      ),
-                    ),
-                    SizedBox(
-                      width: SettloSpacing.x2,
-                      height: largeText ? SettloSpacing.x2 : 0,
-                    ),
-                    Flexible(
-                      fit: largeText ? FlexFit.loose : FlexFit.tight,
-                      child: SSecondaryButton(
-                        label: 'Settle up',
-                        onPressed: () =>
-                            context.push(SettloRoutes.settleWith(space.id)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: SettloSpacing.x3),
-            ],
+            // On every segment, so the control never moves under the finger.
+            _Top(space, loaded),
             _Tabs(space: space, tab: tab),
             const SizedBox(height: SettloSpacing.x2),
             if (loaded == null)
@@ -232,6 +190,73 @@ class SpaceDetailView extends ConsumerWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The hero and the space's two actions, above the segments.
+class _Top extends StatelessWidget {
+  const new(this.space, this.ledger);
+
+  final SpaceSummary space;
+  final SpaceLedger? ledger;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
+    // Activity's screen has no space text style; the hero needs the same
+    // height there, or the segments below it move.
+    return DefaultTextStyle.merge(
+      style: const TextStyle(letterSpacing: 0, height: 1.2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Hero(space, ledger),
+          const SizedBox(height: SettloSpacing.x2),
+          // The canvas pads these 16, not Material's 24, so both
+          // labels fit side by side at 360.
+          Theme(
+            data: _compactButtons(Theme.of(context)),
+            child: Flex(
+              direction: largeText ? Axis.vertical : Axis.horizontal,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: largeText
+                  ? CrossAxisAlignment.stretch
+                  : CrossAxisAlignment.center,
+              children: [
+                Flexible(
+                  fit: largeText ? FlexFit.loose : FlexFit.tight,
+                  child: SPrimaryButton(
+                    label: 'Add expense',
+                    icon: SpacesIcon(
+                      SpacesGlyph.plus,
+                      color: c.onAction,
+                      size: 18,
+                      stroke: 1.9,
+                    ),
+                    onPressed: () =>
+                        context.push(SettloRoutes.addExpenseIn(space.id)),
+                  ),
+                ),
+                SizedBox(
+                  width: SettloSpacing.x2,
+                  height: largeText ? SettloSpacing.x2 : 0,
+                ),
+                Flexible(
+                  fit: largeText ? FlexFit.loose : FlexFit.tight,
+                  child: SSecondaryButton(
+                    label: 'Settle up',
+                    onPressed: () =>
+                        context.push(SettloRoutes.settleWith(space.id)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: SettloSpacing.x3),
+        ],
       ),
     );
   }
@@ -882,7 +907,7 @@ class FairShareBar extends StatelessWidget {
 }
 
 /// Balances simplified to the fewest payments (ADR 0003), with a way to
-/// ask for or make each one that involves you, then the settle-ups you
+/// remind about or make each one that involves you, then the settle-ups you
 /// paid that wait for their payee (#78), which are not offered again.
 class _SettleCard extends StatelessWidget {
   const new(this.space);
@@ -941,7 +966,7 @@ class _SettleCard extends StatelessWidget {
   }
 }
 
-class _PaymentRow extends StatelessWidget {
+class _PaymentRow extends ConsumerWidget {
   const new(
     this.space,
     this.payment, {
@@ -956,8 +981,32 @@ class _PaymentRow extends StatelessWidget {
   /// You paid it and the payee has not confirmed: grey, with no action.
   final bool waiting;
 
+  /// A WhatsApp nudge to [from], who owes you; it records nothing.
+  Future<void> _remind(
+    BuildContext context,
+    WidgetRef ref,
+    SpaceMember from,
+  ) async {
+    final upi = space.you.upiId;
+    final opened = await ref
+        .read(openUrlProvider)(
+          Uri.https('wa.me', '/${from.phone.replaceAll(RegExp(r'\D'), '')}', {
+            'text':
+                'Hi ${from.name}, a reminder about ${space.name}: you owe '
+                '${formatInr(payment.amount)}. '
+                '${upi == null ? '' : 'You can pay it to $upi on any UPI '
+                          'app. '}'
+                'Sent from SabkiJeb.',
+          }),
+        )
+        .catchError((_) => false);
+    if (!opened && context.mounted) {
+      showSettloNotice(context, "Couldn't open WhatsApp");
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = SettloColors.of(context);
     final p = payment;
     final (other, label, action) = switch (p) {
@@ -969,12 +1018,14 @@ class _PaymentRow extends StatelessWidget {
       (to: SpaceMember(isYou: true), :final from, amount: _) => (
         from,
         '${from.name} pays you',
-        ('Remind', SettloRoutes.settleWith(space.id, memberId: from.id)),
+        // An amount never goes to a number that hasn't verified; Spaces
+        // offers them the invite instead.
+        from.joined ? ('Remind', () => _remind(context, ref, from)) : null,
       ),
       (from: SpaceMember(isYou: true), :final to, amount: _) => (
         to,
         'You pay ${to.name}',
-        ('Pay', SettloRoutes.settlePayTo(space.id, to.id)),
+        ('Pay', () => context.push(SettloRoutes.settlePayTo(space.id, to.id))),
       ),
       (:final from, :final to, amount: _) => (
         from,
@@ -1016,11 +1067,11 @@ class _PaymentRow extends StatelessWidget {
           ),
           // add_expense takes only active members, so nobody can settle
           // with someone who left.
-          if (action case (final text, final route)
+          if (action case (final text, final onPressed)
               when space.members.contains(other)) ...[
             const SizedBox(width: SettloSpacing.x2),
             TextButton(
-              onPressed: () => context.push(route),
+              onPressed: onPressed,
               style: TextButton.styleFrom(
                 minimumSize: const Size.square(SettloSpacing.minTouchTarget),
                 tapTargetSize: MaterialTapTargetSize.padded,

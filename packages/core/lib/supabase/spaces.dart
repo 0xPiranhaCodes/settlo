@@ -160,6 +160,14 @@ abstract interface class SpacesRepository {
     required List<NewSpaceMember> members,
     required String idempotencyKey,
   });
+
+  /// Adds [members] to space [spaceId] by phone, as [create] does. A retry
+  /// must pass the same [idempotencyKey].
+  Future<void> addMembers(
+    String spaceId,
+    List<NewSpaceMember> members, {
+    required String idempotencyKey,
+  });
 }
 
 /// The idempotency key was already used with a different payload
@@ -289,6 +297,19 @@ Map<String, Object?> createSpaceParams({
   'p_idempotency_key': idempotencyKey,
 };
 
+/// The `add_space_members` params for [members] joining [spaceId].
+Map<String, Object?> addSpaceMembersParams(
+  String spaceId,
+  List<NewSpaceMember> members, {
+  required String idempotencyKey,
+}) => {
+  'p_space_id': spaceId,
+  'p_members': [
+    for (final m in members) {'phone': m.phone, 'name': m.name},
+  ],
+  'p_idempotency_key': idempotencyKey,
+};
+
 /// [SpacesRepository] over PostgREST: the tables and views RLS lets the
 /// caller read, joined on device, and the `create_space` RPC
 /// (docs/api.md).
@@ -364,6 +385,27 @@ final class SupabaseSpacesRepository implements SpacesRepository {
           name: name,
           kind: kind,
           members: members,
+          idempotencyKey: idempotencyKey,
+        ),
+      );
+    } on PostgrestException catch (e) {
+      if (e.code == 'PT409') throw const IdempotencyConflict();
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> addMembers(
+    String spaceId,
+    List<NewSpaceMember> members, {
+    required String idempotencyKey,
+  }) async {
+    try {
+      await _db.rpc<void>(
+        'add_space_members',
+        params: addSpaceMembersParams(
+          spaceId,
+          members,
           idempotencyKey: idempotencyKey,
         ),
       );

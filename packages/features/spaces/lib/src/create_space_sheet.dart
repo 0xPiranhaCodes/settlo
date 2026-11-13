@@ -1,34 +1,41 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/widgets/sheet_header.dart';
 import 'package:settlo_spaces/src/glyphs.dart';
 import 'package:settlo_spaces/src/spaces_controller.dart';
 import 'package:settlo_spaces/src/text.dart';
 
-/// Shows [CreateSpaceSheet]: a page sheet on iOS, [showSettloSheet]
-/// elsewhere.
-Future<void> showCreateSpaceSheet(BuildContext context) =>
-    showSettloPageSheet<void>(
-      context: context,
-      builder: (_) => const CreateSpaceSheet(),
-      fallback: () => showSettloSheet<void>(
-        context: context,
-        builder: (_) => const CreateSpaceSheet(),
-      ),
-    );
+/// Shows [CreateSpaceSheet], for [space]'s members when given: a page
+/// sheet on iOS, [showSettloSheet] elsewhere.
+Future<void> showCreateSpaceSheet(
+  BuildContext context, {
+  SpaceSummary? space,
+}) => showSettloPageSheet<void>(
+  context: context,
+  builder: (_) => CreateSpaceSheet(space: space),
+  fallback: () => showSettloSheet<void>(
+    context: context,
+    builder: (_) => CreateSpaceSheet(space: space),
+  ),
+);
 
 /// New space: a name, what it is for, and people by phone number. People
-/// do not need the app yet; they see the space when they verify.
+/// do not need the app yet; they see the space when they verify. Given a
+/// [space], it is that space's Members: who is in it, and the same step
+/// to add more.
 ///
 /// The idempotency key is made once when the sheet opens and sent with
 /// every attempt, so a retry after a dropped connection never makes a
 /// second space.
 class CreateSpaceSheet extends ConsumerStatefulWidget {
-  /// The sheet.
-  const new({super.key});
+  /// The sheet; adds people to [space] when given.
+  const new({this.space, super.key});
+
+  /// The existing space whose members are shown, or null for a new one.
+  final SpaceSummary? space;
 
   @override
   ConsumerState<CreateSpaceSheet> createState() => _CreateSpaceSheetState();
@@ -65,6 +72,8 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
         _phoneError = "That's your number. You're in the space already.";
       } else if (_members.any((m) => m.phone == phone)) {
         _phoneError = '${groupPhone(phone)} is already added';
+      } else if (widget.space?.members.any((m) => m.phone == phone) ?? false) {
+        _phoneError = '${groupPhone(phone)} is already in the space';
       } else {
         final name = _person.text.trim();
         _members.add((phone: phone, name: name.isEmpty ? phone : name));
@@ -80,27 +89,37 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
       _saving = true;
       _error = null;
     });
+    final controller = ref.read(spacesProvider.notifier);
     try {
-      await ref
-          .read(spacesProvider.notifier)
-          .create(
-            name: _name.text.trim(),
-            kind: _kind,
-            members: List.of(_members),
-            idempotencyKey: _key,
-          );
+      if (widget.space case final space?) {
+        await controller.addMembers(
+          space.id,
+          List.of(_members),
+          idempotencyKey: _key,
+        );
+      } else {
+        await controller.create(
+          name: _name.text.trim(),
+          kind: _kind,
+          members: List.of(_members),
+          idempotencyKey: _key,
+        );
+      }
       if (mounted) Navigator.of(context).pop();
     } on IdempotencyConflict {
       ref.invalidate(spacesProvider);
-      _error =
-          'This space was already saved with the details you first '
-          'entered. Close this to see it.';
+      _error = widget.space == null
+          ? 'This space was already saved with the details you first '
+                'entered. Close this to see it.'
+          : 'The people you first added were already saved. Close this to '
+                'see them.';
     } on SessionEnded {
       // Signed out mid-tap: the user has left, so there is nothing to say.
     } on Exception {
-      _error =
-          "We couldn't create the space. Check your connection and try "
-          'again.';
+      _error = widget.space == null
+          ? "We couldn't create the space. Check your connection and try "
+                'again.'
+          : "We couldn't add them. Check your connection and try again.";
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -112,7 +131,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
       _members.isNotEmpty ||
       [_name, _phone, _person].any((c) => c.text.isNotEmpty);
 
-  /// iOS: a drag down or Cancel asks before discarding input.
+  /// iOS: a drag down or ✕ asks before discarding input.
   Future<void> _confirmClose() async {
     if (_saving) return;
     final discard = await showSettloActionSheet(
@@ -127,108 +146,102 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final text = Theme.of(context).textTheme;
     final ios = Theme.of(context).platform == TargetPlatform.iOS;
-    final canCreate = !_saving && _name.text.trim().isNotEmpty;
+    final space = widget.space;
+    final canCreate =
+        !_saving &&
+        (space == null ? _name.text.trim().isNotEmpty : _members.isNotEmpty);
     const gap = SizedBox(height: SettloSpacing.x2);
-    final form = SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        SettloSpacing.screenMargin,
-        10,
-        SettloSpacing.screenMargin,
-        26 +
-            MediaQuery.paddingOf(context).bottom +
-            // The Material sheet already sits above the keyboard.
-            (ios ? MediaQuery.viewInsetsOf(context).bottom : 0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!ios)
-            Row(
+    Widget person(String name, {String? detail, VoidCallback? onRemove}) =>
+        MergeSemantics(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: SettloSpacing.minTouchTarget,
+            ),
+            child: Row(
               children: [
-                Transform.translate(
-                  offset: const Offset(-12, 0),
-                  child: IconButton(
-                    tooltip: 'Close',
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: SpacesIcon(
-                      SpacesGlyph.close,
-                      color: c.textPrimary,
-                      size: 22,
-                    ),
-                  ),
-                ),
+                SAvatar(name, size: 36),
+                const SizedBox(width: SettloSpacing.x2),
                 Expanded(
-                  child: Text(
-                    'New space',
-                    textAlign: TextAlign.center,
-                    style: text.titleSmall,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: SettloTypography.body(color: c.textPrimary),
+                      ),
+                      if (detail != null)
+                        Text(
+                          detail,
+                          style: SettloTypography.footnote(
+                            color: c.textSecondary,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: SettloSpacing.minTouchTarget - 12),
-              ],
-            ),
-          const SizedBox(height: SettloSpacing.x3),
-          TextField(
-            controller: _name,
-            textCapitalization: TextCapitalization.sentences,
-            onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              labelText: 'Name',
-              hintText: 'Flat 402',
-            ),
-          ),
-          gap,
-          SSegmentedControl<SpaceKind>(
-            segments: const [
-              (value: SpaceKind.flat, label: 'Flat'),
-              (value: SpaceKind.trip, label: 'Trip'),
-              (value: SpaceKind.friend, label: 'Friend'),
-              (value: SpaceKind.other, label: 'Other'),
-            ],
-            selected: _kind,
-            onChanged: (kind) => setState(() => _kind = kind),
-          ),
-          const SizedBox(height: SettloSpacing.x3),
-          Text('PEOPLE', style: sectionLabel(c)),
-          const SizedBox(height: SettloSpacing.x1),
-          for (final m in _members)
-            MergeSemantics(
-              child: Row(
-                children: [
-                  SAvatar(m.name, size: 36),
-                  const SizedBox(width: SettloSpacing.x2),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          m.name,
-                          style: SettloTypography.body(color: c.textPrimary),
-                        ),
-                        if (m.name != m.phone)
-                          Text(
-                            groupPhone(m.phone),
-                            style: SettloTypography.footnote(
-                              color: c.textSecondary,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                if (onRemove != null)
                   IconButton(
-                    tooltip: 'Remove ${m.name}',
-                    onPressed: () => setState(() => _members.remove(m)),
+                    tooltip: 'Remove $name',
+                    onPressed: onRemove,
                     icon: SpacesIcon(
                       SpacesGlyph.close,
                       color: c.textSecondary,
                       size: 18,
                     ),
                   ),
-                ],
+              ],
+            ),
+          ),
+        );
+    final form = SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(
+        SettloSpacing.screenMargin,
+        SettloSpacing.x1,
+        SettloSpacing.screenMargin,
+        SettloSpacing.x3,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (space == null) ...[
+            TextField(
+              controller: _name,
+              textCapitalization: TextCapitalization.sentences,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                hintText: 'Flat 402',
               ),
+            ),
+            gap,
+            SSegmentedControl<SpaceKind>(
+              segments: const [
+                (value: SpaceKind.flat, label: 'Flat'),
+                (value: SpaceKind.trip, label: 'Trip'),
+                (value: SpaceKind.friend, label: 'Friend'),
+                (value: SpaceKind.other, label: 'Other'),
+              ],
+              selected: _kind,
+              onChanged: (kind) => setState(() => _kind = kind),
+            ),
+            const SizedBox(height: SettloSpacing.x3),
+          ],
+          Text('PEOPLE', style: sectionLabel(c)),
+          const SizedBox(height: SettloSpacing.x1),
+          for (final m in [...?space?.members])
+            person(
+              m.isYou ? 'You' : m.name,
+              detail: m.joined
+                  ? null
+                  : "${maskPhone(m.phone)} · hasn't joined yet",
+            ),
+          for (final m in _members)
+            person(
+              m.name,
+              detail: m.name == m.phone ? null : groupPhone(m.phone),
+              onRemove: () => setState(() => _members.remove(m)),
             ),
           Text(
             "They don't need the app yet. They see the space when they "
@@ -266,59 +279,62 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
             gap,
             Text(error, style: SettloTypography.subheadline(color: c.error)),
           ],
-          if (!ios) ...[
-            const SizedBox(height: SettloSpacing.x3),
-            SPrimaryButton(
-              label: _saving ? 'Creating…' : 'Create space',
-              onPressed: canCreate ? _create : null,
-            ),
-          ],
         ],
       ),
     );
-    if (!ios) return form;
-    // A page sheet as in Apple's create sheets: Cancel leading, the
-    // confirming Create trailing in the action colour.
-    final bar = SettloTypography.body(color: c.textPrimary);
+    final n = _members.length;
+    // The shared task-sheet layout: grabber, ✕ and a centred title, the
+    // form, then one primary button pinned at the bottom.
+    final sheet = Material(
+      type: MaterialType.transparency,
+      child: Column(
+        // The iOS page sheet is full height; the Material one fits its form.
+        mainAxisSize: ios ? MainAxisSize.max : MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SettloSpacing.screenMargin,
+            ),
+            child: SSheetHeader(
+              title: space == null ? 'New space' : 'Members',
+              onClose: () => Navigator.of(context).maybePop(),
+              // Material sheets draw their own drag handle.
+              showGrabber: ios,
+            ),
+          ),
+          Flexible(fit: ios ? FlexFit.tight : FlexFit.loose, child: form),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              SettloSpacing.screenMargin,
+              0,
+              SettloSpacing.screenMargin,
+              SettloSpacing.x2 +
+                  MediaQuery.paddingOf(context).bottom +
+                  // The Material sheet already sits above the keyboard.
+                  (ios ? MediaQuery.viewInsetsOf(context).bottom : 0),
+            ),
+            child: SPrimaryButton(
+              label: switch ((space, _saving)) {
+                (null, true) => 'Creating…',
+                (null, false) => 'Create space',
+                (_, true) => 'Adding…',
+                _ when n == 0 => 'Add people',
+                _ => n == 1 ? 'Add ${_members.single.name}' : 'Add $n people',
+              },
+              onPressed: canCreate ? _create : null,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (!ios) return sheet;
     return PopScope(
       canPop: !_saving && !_dirty,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) unawaited(_confirmClose());
       },
-      child: Material(
-        type: MaterialType.transparency,
-        child: Column(
-          children: [
-            CupertinoNavigationBar(
-              automaticallyImplyLeading: false,
-              transitionBetweenRoutes: false,
-              backgroundColor: c.surface,
-              border: null,
-              leading: CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => Navigator.of(context).maybePop(),
-                child: Text('Cancel', style: bar),
-              ),
-              middle: Text(
-                'New space',
-                style: SettloTypography.headline(color: c.textPrimary),
-              ),
-              trailing: CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: canCreate ? _create : null,
-                child: Text(
-                  _saving ? 'Creating…' : 'Create',
-                  style: SettloTypography.body(
-                    weight: FontWeight.w600,
-                    color: canCreate ? c.action : c.textMuted,
-                  ),
-                ),
-              ),
-            ),
-            Expanded(child: form),
-          ],
-        ),
-      ),
+      child: sheet,
     );
   }
 }

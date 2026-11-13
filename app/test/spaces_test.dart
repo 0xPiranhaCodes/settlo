@@ -11,6 +11,7 @@ import 'package:settlo/main.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/widgets/sheet_header.dart';
 import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
@@ -123,7 +124,26 @@ final class _SpaceInvites extends FakeInvitesRepository {
 }
 
 Future<void> _openSheet(WidgetTester tester) async {
-  await tester.tap(find.byTooltip('New space'));
+  final tooltip = find.byTooltip('New space');
+  // iOS's bar button has no tooltip.
+  await tester.tap(
+    tooltip.evaluate().isEmpty ? find.byIcon(CupertinoIcons.add) : tooltip,
+  );
+  await tester.pumpAndSettle();
+}
+
+/// Scrolls the screen's list down until [finder] is built and on screen.
+Future<void> _scrollTo(WidgetTester tester, Finder finder) async {
+  await tester.scrollUntilVisible(
+    finder,
+    200,
+    scrollable: find
+        .descendant(
+          of: find.byType(CustomScrollView),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
   await tester.pumpAndSettle();
 }
 
@@ -308,10 +328,17 @@ void main() {
             matching: find.byType(SPressable),
           )
           .first;
-      await tester.ensureVisible(invite);
-      await tester.tap(invite);
-      await tester.pumpAndSettle();
+      Future<void> resend() async {
+        await tester.ensureVisible(invite);
+        await tester.tap(invite);
+        await tester.pumpAndSettle();
+        // The card says what happens before WhatsApp opens.
+        expect(opened.length, invites.keys.length);
+        await tester.tap(find.text('Resend invite on WhatsApp'));
+        await tester.pumpAndSettle();
+      }
 
+      await resend();
       expect(invites.memberId, isNotNull);
       expect(opened.single.host, 'wa.me');
       expect(
@@ -321,8 +348,7 @@ void main() {
       expect(opened.single.queryParameters['text'], isNot(contains('₹')));
       expect(opened.single.queryParameters['text'], isNot(contains('1,200')));
 
-      await tester.tap(invite);
-      await tester.pumpAndSettle();
+      await resend();
       expect(invites.keys, hasLength(2));
       expect(invites.keys[1], isNot(invites.keys[0]));
       expect(
@@ -445,6 +471,48 @@ void main() {
       expect(repository.calls.single, endsWith(' Flat 7C +919800000009'));
       expect(repository.spaces.last.kind, SpaceKind.trip);
     });
+
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      testWidgets('uses the task-sheet layout on ${platform.name}', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          FakeSpacesRepository(spacesList),
+          platform: platform,
+        );
+        await _openSheet(tester);
+
+        expect(find.byType(SSheetHeader), findsOne);
+        expect(
+          find.byKey(const ValueKey('task-sheet-grabber')),
+          platform == TargetPlatform.iOS ? findsOne : findsNothing,
+        );
+        expect(find.text('Cancel'), findsNothing);
+        final create = find.widgetWithText(FilledButton, 'Create space');
+        expect(create, findsOne);
+        expect(
+          tester.getSize(create).width,
+          tester.getSize(find.byType(SSheetHeader)).width,
+          reason: 'one full-width primary',
+        );
+        // Pinned under the form, not scrolled away with it.
+        expect(
+          tester.getTopLeft(create).dy,
+          greaterThan(tester.getBottomLeft(find.text('Add person')).dy),
+        );
+        if (platform == TargetPlatform.iOS) {
+          expect(
+            tester.getBottomLeft(create).dy,
+            greaterThan(tester.view.physicalSize.height - 80),
+            reason: 'at the foot of the page sheet',
+          );
+        }
+        await tester.tap(find.bySemanticsLabel('Close'));
+        await tester.pumpAndSettle();
+        expect(find.byType(SSheetHeader), findsNothing);
+      });
+    }
 
     testWidgets('a retry after a failure reuses the idempotency key', (
       tester,
@@ -764,19 +832,134 @@ void main() {
       );
       expect(find.text('+₹2,850'), findsOne);
       expect(find.text('−₹2,100'), findsOne);
+      await _scrollTo(tester, find.text('Rahul pays you'));
       expect(find.text('2 PAYMENTS'), findsOne);
       expect(find.text('Priya pays you'), findsOne);
-      expect(find.text('Rahul pays you'), findsOne);
       await _scrollToEnd(tester);
       expect(find.text('BY CATEGORY · NOV'), findsOne);
       expect(find.text('Household'), findsOne);
       expect(find.text('No category'), findsOne);
+      expect(router.state.uri.toString(), SettloRoutes.spaceBalances('s1'));
+    });
 
-      await tester.tap(find.text('Remind').first);
+    testWidgets('Remind sends a WhatsApp nudge and never opens Settle up', (
+      tester,
+    ) async {
+      final opened = <Uri>[];
+      final router = await _pump(
+        tester,
+        FakeSpacesRepository(spacesList),
+        initialLocation: SettloRoutes.spaceBalances('s1'),
+        openUrl: (uri) async {
+          opened.add(uri);
+          return opened.length == 1;
+        },
+      );
+      final remind = find.descendant(
+        of: find.ancestor(
+          of: find.text('Priya pays you'),
+          matching: find.byType(Row),
+        ),
+        matching: find.text('Remind'),
+      );
+      await _scrollTo(tester, find.text('Priya pays you'));
+      await tester.tap(remind.first);
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.toString(), SettloRoutes.spaceBalances('s1'));
+      expect(opened.single.host, 'wa.me');
+      expect(opened.single.path, '/919900000010');
+      expect(
+        opened.single.queryParameters['text'],
+        'Hi Priya, a reminder about Flat 402: you owe ₹1,450. '
+        'Sent from SabkiJeb.',
+      );
+
+      await tester.tap(remind.first);
+      await tester.pumpAndSettle();
+      expect(opened, hasLength(2));
+      expect(router.state.uri.toString(), SettloRoutes.spaceBalances('s1'));
+      expect(find.text("Couldn't open WhatsApp"), findsOne);
+    });
+
+    testWidgets('the segments stay put when switching', (tester) async {
+      await pumpSpace(tester);
+      Offset at() => tester.getCenter(find.text('Balances'));
+      final expenses = at();
+      await tester.tap(find.text('Balances'));
+      await tester.pumpAndSettle();
+      expect(at(), expenses);
+      expect(find.text('YOU ARE OWED'), findsOne);
+      await tester.tap(find.text('Expenses'));
+      await tester.pumpAndSettle();
+      expect(at(), expenses);
+    });
+
+    testWidgets('the avatars open Members, where people can be added', (
+      tester,
+    ) async {
+      final repository = FakeSpacesRepository(spacesList);
+      await _pump(
+        tester,
+        repository,
+        initialLocation: SettloRoutes.space('s1'),
+      );
+      await tester.tap(find.bySemanticsLabel('Members of Flat 402'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Members'), findsOne);
+      expect(find.text('You'), findsOne);
+      expect(find.widgetWithText(TextField, 'Name'), findsNothing);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Add people'),
+            )
+            .onPressed,
+        isNull,
+        reason: 'nobody to add yet',
+      );
+      await _addPerson(tester, '9811100044', 'Rahul again');
+      expect(find.text('+91 98111 00044 is already in the space'), findsOne);
+      await _addPerson(tester, '9800000009', 'Xavier');
+      await tester.tap(find.text('Add Xavier'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Members'), findsNothing);
+      expect(repository.added.single, endsWith(' s1 +919800000009'));
+      expect(
+        repository.spaces.first.members.last,
+        isA<SpaceMember>()
+            .having((m) => m.name, 'name', 'Xavier')
+            .having((m) => m.joined, 'joined', isFalse),
+      );
+    });
+
+    testWidgets('a failed add says so and keeps the people', (tester) async {
+      final repository = FakeSpacesRepository(spacesList);
+      await _pump(
+        tester,
+        repository,
+        initialLocation: SettloRoutes.space('s1'),
+      );
+      await tester.tap(find.bySemanticsLabel('Members of Flat 402'));
+      await tester.pumpAndSettle();
+      await _addPerson(tester, '9800000009', 'Xavier');
+      await _addPerson(tester, '9800000010', 'Yash');
+      repository.failure = Exception('offline');
+      await tester.tap(find.text('Add 2 people'));
       await tester.pumpAndSettle();
       expect(
-        router.state.uri.toString(),
-        SettloRoutes.settleWith('s1', memberId: 'm3'),
+        find.text("We couldn't add them. Check your connection and try again."),
+        findsOne,
+      );
+      await tester.tap(find.text('Add 2 people'));
+      await tester.pumpAndSettle();
+      expect(repository.added, hasLength(2));
+      expect(
+        repository.added[1].split(' ').first,
+        repository.added[0].split(' ').first,
+        reason: 'a retry reuses the idempotency key',
       );
     });
 

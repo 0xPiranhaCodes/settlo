@@ -118,7 +118,7 @@ void main() {
           '${request.method} $path ${request.uri.query}'
           '${body.isEmpty ? '' : ' $body'}',
         );
-        final key = path == 'rpc/create_space'
+        final key = path.startsWith('rpc/')
             ? (jsonDecode(body) as Map)['p_idempotency_key']
             : null;
         if (key == _usedKey) {
@@ -283,6 +283,25 @@ void main() {
         members: const [],
         idempotencyKey: _usedKey,
       ),
+      throwsA(isA<IdempotencyConflict>()),
+    );
+  });
+
+  test('adds people through add_space_members with the key', () async {
+    await repository().addMembers('s1', const [
+      (phone: '+919100000009', name: 'Xavier'),
+    ], idempotencyKey: 'k-add');
+
+    final body = jsonEncode({
+      'p_space_id': 's1',
+      'p_members': [
+        {'phone': '+919100000009', 'name': 'Xavier'},
+      ],
+      'p_idempotency_key': 'k-add',
+    });
+    expect(requests, ['POST rpc/add_space_members  $body']);
+    await expectLater(
+      repository().addMembers('s1', const [], idempotencyKey: _usedKey),
       throwsA(isA<IdempotencyConflict>()),
     );
   });

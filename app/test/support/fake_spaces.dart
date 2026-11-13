@@ -208,4 +208,39 @@ class FakeSpacesRepository implements SpacesRepository {
     );
     return id;
   }
+
+  /// Every [addMembers] call, as `<key> <space id> <phones>`.
+  final added = <String>[];
+
+  @override
+  Future<void> addMembers(
+    String spaceId,
+    List<NewSpaceMember> members, {
+    required String idempotencyKey,
+  }) async {
+    final phones = [for (final m in members) m.phone];
+    added.add('$idempotencyKey $spaceId ${phones.join(',')}');
+    if (failure case final e?) {
+      failure = null;
+      throw e;
+    }
+    final i = spaces.indexWhere((s) => s.id == spaceId);
+    final s = spaces[i];
+    spaces[i] = SpaceSummary(
+      id: s.id,
+      name: s.name,
+      kind: s.kind,
+      month: s.month,
+      monthTotal: s.monthTotal,
+      yourFairShare: s.yourFairShare,
+      hasExpenses: s.hasExpenses,
+      departed: s.departed,
+      pendingFromYou: s.pendingFromYou,
+      members: [
+        ...s.members,
+        for (final m in members)
+          SpaceMember(id: m.phone, name: m.name, phone: m.phone, joined: false),
+      ],
+    );
+  }
 }
