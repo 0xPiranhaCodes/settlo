@@ -127,8 +127,10 @@ void main() {
       expect(find.text('You'), findsNothing);
       expect(find.byKey(const ValueKey('task-sheet-grabber')), findsOneWidget);
       expect(find.byType(GlassAction), findsNothing);
-      expect(tester.getCenter(find.text('Profile')).dx, 195);
-      final close = find.byTooltip('Close');
+      expect(tester.getCenter(find.text('Profile')).dx, 201);
+      final close = find.byWidgetPredicate(
+        (widget) => widget is SPressable && widget.label == 'Close',
+      );
       expect(
         tester.getSize(close),
         const Size.square(SettloSpacing.minTouchTarget),
@@ -156,6 +158,12 @@ void main() {
           SettloSpacing.x1,
         );
       }
+      final initialTitle = tester.getCenter(find.text('Profile'));
+      final initialClose = tester.getCenter(close);
+      final initialFont = tester
+          .widget<Text>(find.text('Profile'))
+          .style!
+          .fontSize;
       tester.view.physicalSize = const Size(390, 667);
       await tester.pumpAndSettle();
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -250));
@@ -178,6 +186,55 @@ void main() {
       await tester.pumpAndSettle();
       expect(scrollable.position.pixels, lessThan(oldOffset));
       expect(scrollable.position.pixels, greaterThanOrEqualTo(0));
+      // Bottom overscroll remains elastic, while a top pull is clamped.
+      scrollable.position.jumpTo(scrollable.position.maxScrollExtent);
+      await tester.pump();
+      final bottomPull = await tester.startGesture(const Offset(195, 550));
+      await bottomPull.moveBy(const Offset(0, -20));
+      await bottomPull.moveBy(const Offset(0, -100));
+      await tester.pump();
+      expect(
+        scrollable.position.pixels,
+        greaterThan(scrollable.position.maxScrollExtent),
+      );
+      await bottomPull.up();
+      await tester.pumpAndSettle();
+      scrollable.position.jumpTo(0);
+      await tester.pump();
+      final topPull = await tester.startGesture(const Offset(195, 250));
+      await topPull.moveBy(const Offset(0, 100));
+      await tester.pump();
+      expect(scrollable.position.pixels, 0);
+      await topPull.up();
+      await tester.pumpAndSettle();
+      final profileTitle = initialTitle;
+      final profileClose = initialClose;
+      final profileFont = initialFont;
+      // Render the real amount-sheet frame used by Add expense and New loan.
+      await tester.pumpWidget(
+        MaterialApp(
+          theme:
+              (brightness == Brightness.dark
+                      ? SettloTheme.dark()
+                      : SettloTheme.light())
+                  .copyWith(platform: TargetPlatform.iOS),
+          home: SAmountSheet(
+            title: 'Add expense',
+            amount: const Text('0'),
+            onClose: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final amountTitle = tester.getCenter(find.text('Add expense'));
+      final amountClose = tester.getCenter(close);
+      expect(profileTitle, amountTitle);
+      expect(profileClose, amountClose);
+      expect(profileFont, 20);
+      expect(
+        profileFont,
+        tester.widget<Text>(find.text('Add expense')).style!.fontSize,
+      );
     });
   }
 
@@ -522,7 +579,14 @@ void main() {
 
     expect(find.text('Satheesh'), findsOneWidget);
     expect(find.text('+91 98765 43210'), findsOneWidget);
-    expect(tester.getSize(find.byTooltip('Close')), const Size(44, 44));
+    expect(
+      tester.getSize(
+        find.byWidgetPredicate(
+          (widget) => widget is SPressable && widget.label == 'Close',
+        ),
+      ),
+      const Size(44, 44),
+    );
     final change = find.ancestor(
       of: find.text('Change'),
       matching: find.byType(TextButton),
@@ -1132,7 +1196,9 @@ void main() {
   });
 
   testWidgets('routed Profile sheet: the identity row edits, Export pushes '
-      'with its own Back, and Close closes the sheet', (tester) async {
+      'with its own Back, and Close and Android handle drags dismiss', (
+    tester,
+  ) async {
     final root = GlobalKey<NavigatorState>();
     final router = GoRouter(
       navigatorKey: root,
@@ -1166,9 +1232,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       tester.widget<BottomSheet>(find.byType(BottomSheet)).showDragHandle,
-      false,
+      true,
     );
-    expect(find.byKey(const ValueKey('task-sheet-grabber')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-sheet-grabber')), findsNothing);
 
     await tester.tap(find.text('Satheesh'));
     await tester.pumpAndSettle();
@@ -1187,7 +1253,22 @@ void main() {
     expect(find.text('CSV and PDF'), findsNothing);
     expect(find.byType(ProfileScreen), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Close'));
+    await tester.tap(
+      find.byWidgetPredicate(
+        (widget) => widget is SPressable && widget.label == 'Close',
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(ProfileScreen), findsNothing);
+    expect(find.text('Home page'), findsOneWidget);
+    unawaited(router.push(SettloRoutes.profileSheet));
+    await tester.pumpAndSettle();
+    final sheetTop = tester.getTopLeft(find.byType(BottomSheet));
+    final sheetSize = tester.getSize(find.byType(BottomSheet));
+    await tester.dragFrom(
+      sheetTop + Offset(sheetSize.width / 2, 24),
+      const Offset(0, 500),
+    );
     await tester.pumpAndSettle();
     expect(find.byType(ProfileScreen), findsNothing);
     expect(find.text('Home page'), findsOneWidget);

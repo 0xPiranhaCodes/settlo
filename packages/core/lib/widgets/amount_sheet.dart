@@ -6,9 +6,9 @@ import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
 import 'package:settlo_core/widgets/confirm.dart';
-import 'package:settlo_core/widgets/pressable.dart';
 import 'package:settlo_core/widgets/scroll_scaffold.dart';
 import 'package:settlo_core/widgets/sheet.dart';
+import 'package:settlo_core/widgets/sheet_header.dart';
 
 /// Font size of the amount at the top of an amount-entry sheet.
 const double _amountSize = 52;
@@ -131,42 +131,7 @@ class _SAmountSheetState extends State<SAmountSheet> {
     // The specular edge is a line clipped by the top corners: Flutter
     // cannot round a border drawn on one side only.
     final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
-    final titleRow = Row(
-      children: [
-        Transform.translate(
-          offset: const Offset(-12, 0),
-          child: SPressable(
-            onTap: _close,
-            label: 'Close',
-            ringRadius: BorderRadius.circular(SettloSpacing.minTouchTarget / 2),
-            child: SizedBox.square(
-              dimension: SettloSpacing.minTouchTarget,
-              child: Center(
-                child: CustomPaint(
-                  size: const Size.square(22),
-                  painter: _CrossPainter(c.textPrimary),
-                ),
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: largeText
-                  ? TextOverflow.visible
-                  : TextOverflow.ellipsis,
-              style: text.titleLarge,
-            ),
-          ),
-        ),
-        const SizedBox(width: SettloSpacing.minTouchTarget - 12),
-      ],
-    );
+    final titleRow = SSheetHeader(title: title, onClose: _close, compact: true);
     // Inside an iOS task sheet the route owns drag to dismiss.
     final routeDrags = CupertinoSheetRoute.hasParentSheet(context);
     final navigation = GestureDetector(
@@ -185,24 +150,7 @@ class _SAmountSheetState extends State<SAmountSheet> {
               _dragging = false;
               _drag = 0;
             }),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(top: 10),
-              decoration: BoxDecoration(
-                color: c.surfaceHighest,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          titleRow,
-        ],
-      ),
+      child: SSheetHeader(title: title, onClose: _close),
     );
     final content = SafeArea(
       top: false,
@@ -281,6 +229,9 @@ class _SAmountSheetState extends State<SAmountSheet> {
         color: c.surface,
         borderRadius: const BorderRadius.vertical(top: radius),
         border: Border.all(
+          // Keep the frame metric shared with Profile.
+          // ignore: avoid_redundant_argument_values
+          width: SSheetHeader.frameInset,
           color: SettloElevation.border(
             dark: Theme.of(context).brightness == Brightness.dark,
           ),
@@ -298,7 +249,7 @@ class _SAmountSheetState extends State<SAmountSheet> {
                 key: const ValueKey('amount-sheet-scroll'),
                 title: title,
                 statusInset: 0,
-                expandedHeight: 108,
+                expandedHeight: SSheetHeader.extent + SettloSpacing.x3,
                 compactHeader: titleRow,
                 slivers: [
                   SliverFillRemaining(hasScrollBody: false, child: content),
@@ -372,36 +323,6 @@ class _KeyboardDone extends StatelessWidget {
       ),
     );
   }
-}
-
-/// The canvas close icon: an X in a 24 box, stroke 1.6, round caps.
-class _CrossPainter extends CustomPainter {
-  const new(this.color);
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final scale = size.width / 24;
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.6 * scale
-      ..strokeCap = StrokeCap.round;
-    canvas
-      ..drawLine(
-        const Offset(6, 6) * scale,
-        const Offset(18, 18) * scale,
-        paint,
-      )
-      ..drawLine(
-        const Offset(18, 6) * scale,
-        const Offset(6, 18) * scale,
-        paint,
-      );
-  }
-
-  @override
-  bool shouldRepaint(_CrossPainter old) => old.color != color;
 }
 
 /// A form body that joins its sheet's single scroll surface at large text.

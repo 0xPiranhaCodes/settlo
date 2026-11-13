@@ -11,6 +11,7 @@ import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
 import 'package:settlo_core/widgets/glass_action.dart';
 import 'package:settlo_core/widgets/glass_tab_bar.dart';
+import 'package:settlo_core/widgets/sheet_header.dart';
 
 /// Native scrolling and keyboard dismissal for every application scroll view.
 class SettloScrollBehavior extends MaterialScrollBehavior {
@@ -272,7 +273,13 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
       key: PageStorageKey('scroll-${widget.title}'),
       primary: true,
       physics: widget.onSheetClose != null
-          ? const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics())
+          ? (ios
+                ? const _TopClampedScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  )
+                : const ClampingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ))
           : const SettloScrollBehavior().getScrollPhysics(context),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
@@ -367,7 +374,7 @@ class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
   final VoidCallback onClose;
 
   @override
-  double get minExtent => SettloSpacing.x3 + SettloSpacing.minTouchTarget;
+  double get minExtent => SSheetHeader.extent + 2 * SSheetHeader.frameInset;
   @override
   double get maxExtent => minExtent;
 
@@ -388,55 +395,15 @@ class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: SettloSpacing.screenMargin,
+          horizontal: SettloSpacing.screenMargin + SSheetHeader.frameInset,
+          vertical: SSheetHeader.frameInset,
         ),
-        child: Column(
-          children: [
-            SizedBox(
-              height: SettloSpacing.x3,
-              child: Center(
-                child: Container(
-                  key: const ValueKey('task-sheet-grabber'),
-                  width: 36,
-                  height: SettloSpacing.half,
-                  decoration: BoxDecoration(
-                    color: c.surfaceHighest,
-                    borderRadius: BorderRadius.circular(SettloSpacing.half),
-                  ),
-                ),
-              ),
-            ),
-            Row(
-              children: [
-                SizedBox.square(
-                  dimension: SettloSpacing.minTouchTarget,
-                  child: IconButton(
-                    tooltip: 'Close',
-                    onPressed: onClose,
-                    padding: EdgeInsets.zero,
-                    icon: Icon(
-                      CupertinoIcons.xmark,
-                      size: 22,
-                      color: c.textPrimary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Semantics(
-                    header: true,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        title,
-                        style: SettloTypography.headline(color: c.textPrimary),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: SettloSpacing.minTouchTarget),
-              ],
-            ),
-          ],
+        child: Center(
+          child: SSheetHeader(
+            title: title,
+            onClose: onClose,
+            showGrabber: Theme.of(context).platform == TargetPlatform.iOS,
+          ),
         ),
       ),
     );
@@ -840,4 +807,22 @@ class _ChromeState extends InheritedWidget {
   @override
   bool updateShouldNotify(_ChromeState oldWidget) =>
       compact != oldWidget.compact;
+}
+
+/// The pinned header stays fixed at the top; the trailing edge still bounces.
+class _TopClampedScrollPhysics extends BouncingScrollPhysics {
+  const new({super.parent});
+  @override
+  _TopClampedScrollPhysics applyTo(ScrollPhysics? ancestor) =>
+      _TopClampedScrollPhysics(parent: buildParent(ancestor));
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    if (value < position.minScrollExtent) {
+      return value -
+          (position.pixels < position.minScrollExtent
+              ? position.pixels
+              : position.minScrollExtent);
+    }
+    return 0;
+  }
 }

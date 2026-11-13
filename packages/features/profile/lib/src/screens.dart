@@ -60,7 +60,7 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: SettloSpacing.x1),
               _AccountCard(data),
             ] else if (profile.hasError) ...[
-              const SizedBox(height: 80),
+              const SizedBox(height: SettloSpacing.x5 * 2),
               Text(
                 "We couldn't load your profile.",
                 textAlign: TextAlign.center,
@@ -77,7 +77,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ] else
               const Padding(
-                padding: EdgeInsets.only(top: 120),
+                padding: EdgeInsets.only(top: SettloSpacing.x5 * 3),
                 child: Center(child: CircularProgressIndicator.adaptive()),
               ),
           ],
@@ -106,7 +106,7 @@ class _CircleButton extends StatelessWidget {
       tooltip: tooltip,
       onPressed: onPressed,
       style: IconButton.styleFrom(
-        fixedSize: const Size.square(44),
+        fixedSize: const Size.square(SettloSpacing.minTouchTarget),
         minimumSize: Size.zero,
         padding: EdgeInsets.zero,
         backgroundColor: colors.surface,
@@ -127,7 +127,7 @@ class _Identity extends StatelessWidget {
     final colors = SettloColors.of(context);
     final row = Row(
       children: [
-        SAvatar(data.name, size: 64),
+        SAvatar(data.name, size: SettloSpacing.x4 * 2),
         const SizedBox(width: SettloSpacing.x2),
         Expanded(
           child: Column(
@@ -145,7 +145,7 @@ class _Identity extends StatelessWidget {
                       : colors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: SettloSpacing.half / 2),
               Text(
                 _groupPhone(data.phone),
                 style: SettloTypography.subheadline(
@@ -192,7 +192,7 @@ class _UpiCard extends StatelessWidget {
                   'UPI ID for settle-ups',
                   style: SettloTypography.footnote(color: colors.textSecondary),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: SettloSpacing.half / 2),
                 Text(
                   data.upiId ?? 'Not added',
                   maxLines: 1,
@@ -206,8 +206,11 @@ class _UpiCard extends StatelessWidget {
             onPressed: () => _showEditProfile(context, data),
             style: TextButton.styleFrom(
               foregroundColor: colors.action,
-              minimumSize: const Size(64, 44),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: const Size(
+                SettloSpacing.x4 * 2,
+                SettloSpacing.minTouchTarget,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: SettloSpacing.x1),
             ),
             child: const Text('Change'),
           ),
@@ -456,7 +459,12 @@ class _LeaveSheetState extends State<_LeaveSheet> {
     final colors = SettloColors.of(context);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      minimum: const EdgeInsets.fromLTRB(
+        SettloSpacing.screenMargin,
+        SettloSpacing.x2,
+        SettloSpacing.screenMargin,
+        SettloSpacing.x3,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -466,7 +474,7 @@ class _LeaveSheetState extends State<_LeaveSheet> {
               widget.title,
               style: SettloTypography.title3(color: colors.textPrimary),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: SettloSpacing.x1),
             Text(
               widget.body,
               style: SettloTypography.body(color: colors.textSecondary)
@@ -480,7 +488,7 @@ class _LeaveSheetState extends State<_LeaveSheet> {
                 onPressed: () => _close(leave: false),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: SettloSpacing.x1),
             SizedBox(
               width: double.infinity,
               child: SSecondaryButton(
@@ -530,9 +538,12 @@ class _SettingsCard extends StatelessWidget {
             _SettingRow(built[index]),
             if (index != built.length - 1)
               Divider(
-                height: 1,
-                thickness: 1,
-                indent: SettloSpacing.screenMargin + 40 + SettloSpacing.x2,
+                height: SettloElevation.hairline,
+                thickness: SettloElevation.hairline,
+                indent:
+                    SettloSpacing.screenMargin +
+                    SettloSpacing.x5 +
+                    SettloSpacing.x2,
                 color: SettloColors.of(context).hairline,
               ),
           ],
@@ -564,7 +575,7 @@ class _SettingRow extends StatelessWidget {
       child: SPressable(
         onTap: data.onTap,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 64),
+          constraints: const BoxConstraints(minHeight: SettloSpacing.x4 * 2),
           padding: const EdgeInsets.symmetric(
             horizontal: SettloSpacing.screenMargin,
             vertical: SettloSpacing.x1,
@@ -584,7 +595,7 @@ class _SettingRow extends StatelessWidget {
                         color: colors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: SettloSpacing.half / 2),
                     Text(
                       data.subtitle,
                       maxLines: 1,
@@ -616,8 +627,8 @@ class _IconTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
     return Container(
-      width: 40,
-      height: 40,
+      width: SettloSpacing.x5,
+      height: SettloSpacing.x5,
       decoration: BoxDecoration(
         color: action
             ? Color.alphaBlend(
@@ -677,7 +688,12 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
     final colors = SettloColors.of(context);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      minimum: const EdgeInsets.fromLTRB(
+        SettloSpacing.screenMargin,
+        SettloSpacing.x2,
+        SettloSpacing.screenMargin,
+        SettloSpacing.x3,
+      ),
       child: Form(
         key: _formKey,
         child: Column(
@@ -698,7 +714,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
               decoration: const InputDecoration(labelText: 'Name'),
               validator: validateProfileName,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: SettloSpacing.x1),
             TextFormField(
               key: const ValueKey('profile-upi-id'),
               controller: _upi,
@@ -770,7 +786,12 @@ class _AppearanceSheet extends ConsumerWidget {
     final colors = SettloColors.of(context);
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      minimum: const EdgeInsets.fromLTRB(
+        SettloSpacing.screenMargin,
+        SettloSpacing.x2,
+        SettloSpacing.screenMargin,
+        SettloSpacing.x3,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -798,7 +819,7 @@ class _AppearanceSheet extends ConsumerWidget {
                 }
               },
               child: ListTile(
-                minTileHeight: 52,
+                minTileHeight: SettloSpacing.x6 + SettloSpacing.half,
                 contentPadding: EdgeInsets.zero,
                 title: Text(_themeLabel(mode)),
                 trailing: mode == selected
