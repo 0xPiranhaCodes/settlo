@@ -20,6 +20,15 @@ function enhanceDirection() {
 enhanceDirection();
 directionMotion.addEventListener('change', enhanceDirection);
 
+// Story captures wait for the hero's LCP entry (or 3s, or load where LCP isn't reported), keeping them out of its LCP window (direction.css).
+const storyReady = () => document.documentElement.classList.add('story-ready');
+if (PerformanceObserver.supportedEntryTypes?.includes('largest-contentful-paint')) {
+  new PerformanceObserver((list, observer) => {
+    if (list.getEntries().some(entry => entry.element?.closest('.direction-product'))) {observer.disconnect();storyReady();}
+  }).observe({type:'largest-contentful-paint', buffered:true});
+  setTimeout(storyReady, 3000);
+} else addEventListener('load', storyReady, {once:true});
+
 // Time-based entrances once a block is in view; content stays visible without JS or with reduced motion.
 const reveals = new IntersectionObserver(entries => {
   for (const entry of entries) if (entry.isIntersecting) {

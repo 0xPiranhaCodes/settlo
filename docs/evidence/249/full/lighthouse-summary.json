@@ -1,0 +1,75 @@
+{
+  "tool": "Lighthouse 13.6.0, default simulated mobile, local Chrome",
+  "head": "this branch",
+  "home": [
+    {
+      "url": "/",
+      "performance": 0.98,
+      "accessibility": 1,
+      "bestPractices": 1,
+      "seo": 1,
+      "lcpSeconds": 2.339,
+      "cls": 0,
+      "tbtMs": 66,
+      "thirdPartyRequests": 0
+    },
+    {
+      "url": "/",
+      "performance": 0.98,
+      "accessibility": 1,
+      "bestPractices": 1,
+      "seo": 1,
+      "lcpSeconds": 2.334,
+      "cls": 0,
+      "tbtMs": 0,
+      "thirdPartyRequests": 0
+    },
+    {
+      "url": "/",
+      "performance": 0.98,
+      "accessibility": 1,
+      "bestPractices": 1,
+      "seo": 1,
+      "lcpSeconds": 2.356,
+      "cls": 0,
+      "tbtMs": 0,
+      "thirdPartyRequests": 0
+    }
+  ],
+  "other": [
+    {
+      "url": "/blog/",
+      "performance": 1,
+      "accessibility": 1,
+      "bestPractices": 1,
+      "seo": 1,
+      "lcpSeconds": 1.881,
+      "cls": 0.00004302565110583495,
+      "tbtMs": 12,
+      "thirdPartyRequests": 0
+    },
+    {
+      "url": "/blog/whats-new/",
+      "performance": 1,
+      "accessibility": 1,
+      "bestPractices": 1,
+      "seo": 1,
+      "lcpSeconds": 1.878,
+      "cls": 0.00004115497062297255,
+      "tbtMs": 0,
+      "thirdPartyRequests": 0
+    },
+    {
+      "url": "/privacy/",
+      "performance": 1,
+      "accessibility": 1,
+      "bestPractices": 1,
+      "seo": 1,
+      "lcpSeconds": 0.902,
+      "cls": 0,
+      "tbtMs": 0,
+      "thirdPartyRequests": 0
+    }
+  ],
+  "jsGzipBytes": 2079
+}

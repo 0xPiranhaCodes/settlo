@@ -13,10 +13,10 @@ const phonesClear = () => {
     b.top < a.bottom;
   const images = [...document.querySelectorAll(".screen img, .direction-product img, .direction-capture img")];
   // #249 product panels compose a capture with one floating crop.
-  const group = (image) => image.closest(".loan-screens, .product-panel");
+  const group = (image) => image.closest(".product-panel");
   const copies = [
     ...document.querySelectorAll(
-      ".direction-heading, .direction-intro, .panel-copy, .flat-copy, .loan-copy, section h2",
+      ".direction-heading, .direction-intro, .panel-copy, section h2",
     ),
   ];
   return (
@@ -224,7 +224,7 @@ const phonesClear = () => {
           for (const [html, allowed] of [
             ['<figure class="screen"><img><img></figure>', false],
             [
-              '<div class="loan-screens"><figure class="screen"><img></figure><figure class="screen"><img></figure></div>',
+              '<div class="product-panel"><figure class="screen"><img></figure><figure class="screen"><img></figure></div>',
               true,
             ],
             [
@@ -248,28 +248,6 @@ const phonesClear = () => {
             if (clear !== allowed)
               throw Error("Overlap fixture misjudged: " + html);
           }
-          const scalesMatch = await page
-            .locator(".loan-screens img")
-            .evaluateAll((images) => {
-              const scales = images.map(
-                (img) => img.getBoundingClientRect().width / img.naturalWidth,
-              );
-              return (
-                Math.abs(scales[0] - scales[1]) < 0.001 &&
-                images.every(
-                  (img) =>
-                    Math.abs(
-                      Number(img.getAttribute("width")) - img.naturalWidth,
-                    ) <= 1 &&
-                    Math.abs(
-                      Number(img.getAttribute("height")) - img.naturalHeight,
-                    ) <= 1,
-                )
-              );
-            });
-          if (!scalesMatch)
-            throw Error("Rendered loan phones use different physical scales");
-
           await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
           await page.screenshot({
             path: `${outputDir}/landing-${width}-${colorScheme}.png`,
@@ -335,8 +313,8 @@ const phonesClear = () => {
         for (const target of [
           ".direction-story",
           ".direction-panels",
-          ".flat",
-          ".loan",
+          "#why",
+          "#faq",
           ".closing",
         ]) {
           await page
@@ -362,7 +340,7 @@ const phonesClear = () => {
         if (
           mode === "reduced" &&
           (await page
-            .locator(".flat .screen")
+            .locator(".why-card").first()
             .evaluate((el) => getComputedStyle(el).animationName !== "none"))
         )
           throw Error("Reduced motion animation");

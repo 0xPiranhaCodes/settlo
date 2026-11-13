@@ -26,7 +26,7 @@ const url = process.env.SITE_CHECK_URL || "http://127.0.0.1:8765/";
     await page.waitForTimeout(800);
     // Native smooth scrolling isn't accelerated by a synthetic screenshot stitch.
     await page.evaluate(async () => {
-      const end = document.querySelector(".loan").offsetTop + 600;
+      const end = document.querySelector(".closing").offsetTop;
       const start = performance.now(),
         duration = 22000;
       await new Promise((resolve) => {
