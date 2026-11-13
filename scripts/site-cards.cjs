@@ -1,7 +1,8 @@
 // Render the 1200x630 social cards from the SVG illustrations (docs/brand.md › Illustration).
-// Needs Playwright with Chromium; commit site/images/cards/ and scripts/cards/manifest.json.
+// Needs Playwright with Chromium and python3 with Pillow; commit site/images/cards/ and scripts/cards/manifest.json.
 // site-build.py --check compares the manifest hashes, so any art, copy or card change needs a rerun.
 const { chromium } = require("playwright");
+const { execFileSync } = require("child_process");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
@@ -21,11 +22,14 @@ const cards = [
   { name: "delete-account", kicker: "Delete your account", title: "What is removed, and what remains.", art: "scripts/cards/art/delete.svg" },
 ];
 
+// Cards only: the grain becomes its mean tone. Per-pixel noise is what PNG cannot compress, and at card size it reads as tone.
+const svg = (name) => "data:image/svg+xml;base64," + Buffer.from(fs.readFileSync(path.join(root, name), "utf8")
+  .replace(/<feTurbulence[^>]*\/>/, `<feFlood flood-opacity=".5"/>`)).toString("base64");
 const panel = (card) => card.cover
-  ? `<img class="cover" src="${file(card.cover)}">`
+  ? `<img class="cover" src="${svg(card.cover)}">`
   : card.fan
-    ? `<div class="fan">${card.fan.map((name) => `<img src="${file(name)}">`).join("")}</div>`
-    : `<img class="spot" src="${file(card.art)}">`;
+    ? `<div class="fan">${card.fan.map((name) => `<img src="${svg(name)}">`).join("")}</div>`
+    : `<img class="spot" src="${svg(card.art)}">`;
 const page = (card) => `<!doctype html><meta charset="utf-8"><style>
 @font-face{font-family:Figtree;font-weight:500;src:url(${file("site/fonts/Figtree-Medium.ttf")})}
 @font-face{font-family:Figtree;font-weight:400;src:url(${file("site/fonts/Figtree-Regular.ttf")})}
@@ -74,8 +78,15 @@ const sha = (name) => crypto.createHash("sha256").update(fs.readFileSync(path.jo
       await tab.waitForFunction(() => [...document.images].every((image) => image.complete && image.naturalWidth));
       const output = `site/images/cards/${card.name}.png`;
       await tab.screenshot({ path: path.join(root, output) });
-      outputs[output] = sha(output);
+      outputs[output] = null;
     }
+    // Deterministic 128-colour palette: median cut, no dither. Any change here changes this script's hash, so the guard sees it.
+    execFileSync("python3", ["-c", `import sys
+from PIL import Image
+for name in sys.argv[1:]:
+    Image.open(name).convert("RGB").quantize(128, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(name, optimize=True)`,
+      ...Object.keys(outputs).map((name) => path.join(root, name))], { stdio: "inherit" });
+    for (const output in outputs) outputs[output] = sha(output);
   } finally {
     fs.rmSync(html, { force: true });
     await browser.close();

@@ -10,21 +10,21 @@
     "scripts/cards/art/letter.svg": "2616d97611bbc44fb3a96dffa678df83b3e1638e9a1145b8b14a2bea5e0e18b7",
     "scripts/cards/art/privacy.svg": "5a0d88cfe1a548bd6337fa9c50804b0f94957f4f64b881088c3d9216022d72c3",
     "scripts/cards/art/terms.svg": "be0589fe7ed131476e777aa42839229b3fb7321a76649f690d3f65157b566af1",
-    "scripts/site-cards.cjs": "1982fd800f93ee925f2374ff8cc9c4b491e69cc14a1c38493f5cc25e11b9236d",
+    "scripts/site-cards.cjs": "97643421854decce0e2c3e2ed2151f9bce12331b55e1cf1159f3746c05be66a6",
     "site/fonts/Figtree-Medium.ttf": "358a4de79ae6c3fd7c6a54fcd778c1101ba376af75b8463e715df6988387bc19",
     "site/fonts/Figtree-Regular.ttf": "448d74e778cc9774db27bd86cf451bba982b2e4dc348f610390eb6e3439cf6ca",
     "site/images/art/chai.svg": "9f91b2a69aafda089f7c120d7b97b61813a6b075b93c00d302ec4ffe6a623909",
     "site/images/mark.png": "c85e33e3e47545bd39fc22691d594af88de18b6ac189423c94c5e8bd28798082"
   },
   "outputs": {
-    "site/images/cards/home.png": "0d0508a2e7217f58395e20edfaded419ac332bd88f325fd4cb48342ecd8b0b65",
-    "site/images/cards/blog.png": "7981c6493a581c75bcf74b4aac62c5f3904aaed504b78e6f835d29614cbe0857",
-    "site/images/cards/settlo-is-now-sabkijeb.png": "7b4826eafb6f2979c7428ffff50bc403632f8f8aa64a8a410172a409a25d5ffb",
-    "site/images/cards/split-bills-with-friends.png": "cfbddaf3983406f4f10fc46327f5cd72d87e1f27742b1ea0ac7c6b5bef677ed9",
-    "site/images/cards/whats-new.png": "675964bdbe13086e4ebd97cde8556850314297730913b330d86240c214aa2ac9",
-    "site/images/cards/privacy.png": "a33e809eb20bce36e56cad4d1afb19ed2f932904afe3f68dbe041e56cfbc5c5b",
-    "site/images/cards/support.png": "44962cf6165b337bd70ae0debc8c0fda32d2aaec791266ce7ec481bfd412dff9",
-    "site/images/cards/terms.png": "2dcd507ee0d00dd20b8de05e26e90d4edee90adb25660e8148250359f4a2bfb8",
-    "site/images/cards/delete-account.png": "5798f54b4ecceb85b77fc7467ced7b221ba901e672186c7f5dbc76624b9bc092"
+    "site/images/cards/home.png": "2b9a97c4b9c0984a77a9f7973ac5a4eff6ed7ef4d027e31fea10ab13ba3e6f5d",
+    "site/images/cards/blog.png": "8ee4ed26be660576751daf0db2b9d35bbb592f0502166b1941f467f47578107c",
+    "site/images/cards/settlo-is-now-sabkijeb.png": "8302b917f1c4ddb728cebba4ecb76c2ffee033bb771fc5646493357fb6864d2b",
+    "site/images/cards/split-bills-with-friends.png": "18d0a40b2f061df575bf7fc52d5d2597a14f3ba0d6eed191dab3e9ce171d198a",
+    "site/images/cards/whats-new.png": "a44469a6074c3879252241f2c2a46300683ba703bec2274f6642c6ba2939ea50",
+    "site/images/cards/privacy.png": "f6ec7dfdeef7ccb4a0a64a14b3eaeae51501833f0a0c8976046501e26a5e3711",
+    "site/images/cards/support.png": "ff8dac6049b24c3b6b02d6edcad407ecffd26e9b5b90e827c6c0544c77818256",
+    "site/images/cards/terms.png": "849150016d4dbecdf09a535600a70c9fa66b6d902188a2e309c32e612270a4e1",
+    "site/images/cards/delete-account.png": "bfbb5b92f2c8ca3803fb028089568db91bdc59eb3dd9ca82264fdf3dea84b732"
   }
 }
