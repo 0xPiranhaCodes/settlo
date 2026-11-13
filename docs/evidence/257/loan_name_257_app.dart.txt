@@ -1,0 +1,69 @@
+// Scratch evidence entry for #257 (not committed). The demo app, but a new
+// loan is rebuilt the way the app reads it back: createLoanParams -> the row
+// create_loan stores -> loansFromRows.
+import 'package:flutter/material.dart';
+import 'package:settlo_core/settlo_core.dart';
+
+import '../test/support/fake_expenses.dart';
+import '../test/support/fake_home.dart';
+import '../test/support/fake_loans.dart';
+import '../test/support/fake_phone_auth.dart';
+import '../test/support/fake_session.dart';
+
+class RowLoans extends FakeLoansRepository {
+  RowLoans(super.data);
+
+  @override
+  Future<String> createLoan(NewLoan loan, {required String idempotencyKey}) async {
+    final id = await super.createLoan(loan, idempotencyKey: idempotencyKey);
+    final p = createLoanParams(loan, idempotencyKey: id)['p']! as Map<String, Object?>;
+    final lent = p['direction'] == 'lent';
+    const at = '2026-11-14T10:00:00Z';
+    final row = <String, dynamic>{
+      'id': id,
+      'lender_id': lent ? 'me' : null,
+      'borrower_id': lent ? null : 'me',
+      'lender_phone': lent ? '+919000000001' : p['counterparty_phone'],
+      'borrower_phone': lent ? p['counterparty_phone'] : '+919000000001',
+      'lender_accepted_at': lent ? at : null,
+      'borrower_accepted_at': lent ? null : at,
+      'created_by': 'me',
+      ...p.containsKey('counterparty_name')
+          ? {'counterparty_name': p['counterparty_name']}
+          : const {},
+    };
+    final summary = <String, dynamic>{
+      'loan_id': id,
+      'principal_minor': p['principal_minor'],
+      'repaid_minor': 0,
+      'installment_minor': p['installment_minor'],
+      'due_day': p['due_day'],
+      'start_on': p['start_on'],
+      'closed_at': null,
+    };
+    final real = loansFromRows(
+      {'loans': [row], 'loan_summaries': [summary], 'loan_repayments': [], 'profiles': []},
+      userId: 'me',
+      today: data.today,
+    ).loans.single;
+    data = LoansData(
+      today: data.today,
+      yourName: data.yourName,
+      loans: [for (final l in data.loans) l.id == id ? real : l],
+    );
+    return id;
+  }
+}
+
+void main() => runApp(
+  fakeSessionApp(
+    fakeSession,
+    themeMode: ThemeMode.system,
+    home: FakeHomeRepository(homeMain),
+    loans: RowLoans(loansList()),
+    overrides: [
+      expensesRepositoryProvider.overrideWithValue(FakeExpensesRepository()),
+      phoneAuthProvider.overrideWithValue(FakePhoneAuth()),
+    ],
+  ),
+);
