@@ -50,7 +50,7 @@ final shareFilesProvider =
           ),
     );
 
-/// Opens the system share sheet with [text], anchored as for
+/// Opens the system share sheet with `text`, anchored as for
 /// [shareFilesProvider]. Tests override this.
 final shareTextProvider = Provider<Future<void> Function(String, Rect origin)>(
   (ref) =>
