@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://sabkijeb.app/blog/</loc></url>
+  <url><loc>https://sabkijeb.app/blog/settlo-is-now-sabkijeb/</loc></url>
+  <url><loc>https://sabkijeb.app/blog/split-bills-with-friends/</loc></url>
+  <url><loc>https://sabkijeb.app/blog/whats-new/</loc></url>
+  <url><loc>https://sabkijeb.app/delete-account/</loc></url>
   <url><loc>https://sabkijeb.app/</loc></url>
   <url><loc>https://sabkijeb.app/privacy/</loc></url>
   <url><loc>https://sabkijeb.app/support/</loc></url>
-  <url><loc>https://sabkijeb.app/delete-account/</loc></url>
   <url><loc>https://sabkijeb.app/terms/</loc></url>
 </urlset>

@@ -30,3 +30,66 @@ else:
 assert not (root / 'site/features.json').exists(), 'Build flags must stay outside the published site'
 module['build'](check=True)
 print('PASS: default, every flag independently, all enabled, dependencies, FAQ schema and output freshness')
+
+# Publication and drift regressions run in a disposable miniature checkout.
+import shutil
+import tempfile
+from xml.etree import ElementTree
+blog = runpy.run_path(str(root / 'scripts/site-blog.py'))
+assert '<script>' not in blog['markdown']('<script>alert(1)</script>')
+try:
+    blog['markdown']('[unsafe](javascript:alert)')
+except ValueError:
+    pass
+else:
+    raise AssertionError('Unsafe link accepted')
+assert not list((root / 'site').rglob('*.md')), 'Authoring Markdown must not be published'
+with tempfile.TemporaryDirectory() as temporary:
+    fixture = Path(temporary)
+    shutil.copytree(root / 'scripts', fixture / 'scripts', ignore=shutil.ignore_patterns('__pycache__'))
+    (fixture / 'site').mkdir()
+    build = runpy.run_path(str(fixture / 'scripts/site-build.py'))['build']
+    build()
+    build(check=True)
+    def rejects_drift():
+        try:
+            build(check=True)
+        except SystemExit:
+            return
+        raise AssertionError('Changed source/output passed freshness check')
+    posts = blog['read_posts'](fixture / 'scripts/blog/posts')
+    post = posts[0]
+    output = fixture / f'site/blog/{post["slug"]}/index.html'
+    clean = output.read_text()
+    output.write_text(clean + '<p>Unreviewed output</p>')
+    rejects_drift()
+    build()
+    source = fixture / f'scripts/blog/posts/{post["slug"]}.md'
+    source.write_text(source.read_text() + '\nA source edit.\n')
+    rejects_drift()
+    build()
+    assert 'A source edit.' in output.read_text()
+    cover = fixture / f'scripts/blog/covers/{post["cover"]}.svg'
+    cover.write_text(cover.read_text() + '\n')
+    rejects_drift()
+    build()
+    source.unlink()
+    rejects_drift()
+    build()
+    build(check=True)
+    assert not output.exists(), 'Removed posts must leave the publication artifact'
+    assert f'/blog/{post["slug"]}/' not in (fixture / 'site/sitemap.xml').read_text()
+    assert not list((fixture / 'site').rglob('*.md'))
+
+posts = blog['read_posts'](root / 'scripts/blog/posts')
+for post in posts:
+    content = (root / f'site/blog/{post["slug"]}/index.html').read_text()
+    schema = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', content, re.S)[1])
+    assert schema['@type'] == 'Article' and schema['headline'] == post['title']
+    assert schema['datePublished'] == post['date']
+    assert schema['description'] == post['summary']
+    assert schema['mainEntityOfPage'] == f'https://sabkijeb.app/blog/{post["slug"]}/'
+urls = {node.text for node in ElementTree.parse(root / 'site/sitemap.xml').iter('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')}
+assert 'https://sabkijeb.app/blog/' in urls
+assert all(f'https://sabkijeb.app/blog/{post["slug"]}/' in urls for post in posts)
+print('PASS: blog metadata, escaping, source/output/cover drift, post removal, sitemap and unpublished Markdown')

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "index",
+    "path": "blog/",
+    "scores": {
+      "performance": 0.99,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "name": "post",
+    "path": "blog/split-bills-with-friends/",
+    "scores": {
+      "performance": 0.99,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1
+    }
+  }
+]

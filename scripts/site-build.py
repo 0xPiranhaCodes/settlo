@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Render flags and FAQ schema; commit the output for the buildless Pages deploy."""
+"""Render the landing page, blog and sitemap for the buildless Pages deploy."""
 import argparse
 import html
 import json
 from pathlib import Path
 import re
+import runpy
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -27,13 +28,30 @@ def render(template, flags):
     return result.replace('<!-- FAQ_SCHEMA -->', '<script type="application/ld+json">\n' + json.dumps(schema, ensure_ascii=False) + '\n</script>')
 
 def build(check=False):
-    output = ROOT / 'site/index.html'
     result = render((ROOT / 'scripts/site-index.template.html').read_text(), json.loads((ROOT / 'scripts/site-features.json').read_text()))
+    outputs = {'site/index.html': result}
+    blog = runpy.run_path(str(ROOT / 'scripts/site-blog.py'))
+    outputs.update(blog['outputs'](ROOT, result))
+    # All public index pages, including future hand-written pages, enter the sitemap.
+    pages = {path.relative_to(ROOT).as_posix() for path in (ROOT / 'site').rglob('index.html')
+             if not path.is_relative_to(ROOT / 'site/blog')}
+    pages.update(path for path in outputs if path.endswith('/index.html'))
+    urls = ["https://sabkijeb.app/" + path.removeprefix('site/').removesuffix('index.html') for path in sorted(pages)]
+    outputs['site/sitemap.xml'] = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + ''.join(f'  <url><loc>{html.escape(url)}</loc></url>\n' for url in urls) + '</urlset>\n'
+    # Removing a source must also remove its old public page and cover.
+    existing = {path.relative_to(ROOT).as_posix() for path in (ROOT / 'site/blog').rglob('*') if path.is_file()}
+    stale = existing - outputs.keys()
     if check:
-        if output.read_text() != result:
-            raise SystemExit('Site output is stale; run python3 scripts/site-build.py')
+        drift = stale | {name for name, content in outputs.items() if not (ROOT / name).exists() or (ROOT / name).read_text() != content}
+        if drift:
+            raise SystemExit('Site output is stale; run python3 scripts/site-build.py: ' + ', '.join(sorted(drift)))
     else:
-        output.write_text(result)
+        for name in stale:
+            (ROOT / name).unlink()
+        for name, content in outputs.items():
+            output = ROOT / name
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_text(content)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)

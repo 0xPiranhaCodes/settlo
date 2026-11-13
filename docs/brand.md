@@ -127,7 +127,7 @@ advertising unshipped features. Flip the relevant flag in the feature's shipping
 PR and regenerate; verify the prepared copy against its final implementation.
 All cards are free: no Pro labels, price switch or coming-soon claims. The
 language preview requires both dependencies. Social handles are omitted.
-Blog (#231) and Terms (#232) have insertion comments, not dead links.
+Blog (#231) and Terms (#232) are published and linked from the shared navigation.
 
 Original bill and conversation examples use fictional Neel, Tara and Dev and
 explicitly distinguish recorded payments from confirmed receipt. The reference
@@ -137,3 +137,47 @@ The final QR encodes exactly the existing beta CTA mailto URI:
 `mailto:support@sabkijeb.app?subject=SabkiJeb%20TestFlight%20beta`.
 It was generated locally with Python `qrcode` as an SVG with a four-module quiet
 zone; it does not call a QR service or introduce third-party requests.
+
+## Blog authoring and publication (#231)
+
+Run `python3 scripts/site-build.py` after editing `scripts/blog/posts/*.md`,
+`scripts/blog/covers/*.svg`, or `scripts/blog/page.template.html`. Commit the
+sources and generated `site/blog/` pages and covers together. `site/blog/posts/`
+was the proposed authoring path; sources instead live under `scripts/` because
+Pages uploads **all** of `site/`, dereferencing symlinks. This keeps Markdown out
+of the published artifact without changing the deployment workflow, just as
+`scripts/site-features.json` stays outside it.
+
+Each post starts with JSON front matter between `---` lines: `title`, `type`
+(Announcement, Guide or Product update), ISO `date`, one-line `summary`, and
+`cover` (the name of a source SVG without its extension). The filename supplies
+the lowercase hyphenated slug. The dependency-free Markdown subset supports
+paragraphs, `##` headings, `-` lists, `**strong**`, and links to root-relative
+site URLs or `mailto:` addresses; raw HTML is escaped. Keep blank lines between
+blocks. Unsupported heading/list syntax and unsafe links fail the build.
+
+The builder reuses the rendered landing page header/footer, generates per-post
+metadata and Article JSON-LD, and includes all public index pages in the sitemap.
+Deleting a post source removes its generated page and unused cover on rebuild.
+`site-build-check.py` checks metadata and sitemap coverage, mutates source, HTML
+and cover fixtures to prove drift rejection, and proves deleted posts disappear.
+`site-check.cjs` discovers all generated post routes and checks both themes at
+360, 390, 768 and 1440px, including internal links, metadata and requests.
+
+The three covers are original abstract SVG drawings in forest, jade, cream and
+marigold. They are editorial illustrations, not app screenshots. Blog styling
+uses the current shared theme tokens and self-hosted Figtree, with no script,
+third-party asset or animation required. Support links to Blog only in its header;
+its guarded main and privacy's guarded main remain byte-identical.
+
+To update the product log, add a dated heading and shipped changes to
+`scripts/blog/posts/whats-new.md`; change the front-matter date only if publishing
+it as a new edition. Keep planned M7 features out until implementation and release
+status support the claim. The launch guide is grounded in
+`packages/features/expenses/lib/src/add_expense_sheet.dart` (four split types),
+`packages/features/spaces/lib/src/space_detail.dart` (simplified settlement),
+`packages/features/settle/lib/src/upi.dart` (handoff),
+`packages/features/spaces/lib/src/confirm_settlement_screen.dart` (confirmation),
+and `packages/features/loans/lib/src/loan_detail.dart` (instalments and repayments).
+Availability follows README; deletion follows Profile, the privacy policy and the
+published deletion page. Owner copy approval is required before merge.

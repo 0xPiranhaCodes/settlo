@@ -1,0 +1,26 @@
+{
+  "densityResults": [
+    {
+      "density": 1,
+      "src": "http://127.0.0.1:8871/images/home_main-phone.avif",
+      "top": 491.078125,
+      "bottom": 1137.21875
+    },
+    {
+      "density": 2,
+      "src": "http://127.0.0.1:8871/images/home_main-phone@2x.avif",
+      "top": 491.078125,
+      "bottom": 1137.21875
+    },
+    {
+      "density": 3,
+      "src": "http://127.0.0.1:8871/images/home_main-phone@3x.avif",
+      "top": 491.078125,
+      "bottom": 1137.21875
+    }
+  ],
+  "tabletWidths": [
+    430,
+    430
+  ]
+}
