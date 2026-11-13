@@ -131,6 +131,7 @@ class SpaceDetailView extends ConsumerWidget {
       return ActivityScreen(
         spaceId: space.id,
         spaceName: space.name,
+        navTrailing: SpaceAvatars(space),
         header: [
           SpaceHeader(space),
           const SizedBox(height: SettloSpacing.x3),

@@ -33,6 +33,9 @@ abstract final class SettloRoutes {
   /// A space's expenses; pattern for [space].
   static const spacePattern = '/spaces/:spaceId';
 
+  /// A space's activity; pattern for [spaceActivity].
+  static const spaceActivityPattern = '/spaces/:spaceId/activity';
+
   /// A space's balances; pattern for [spaceBalances].
   static const spaceBalancesPattern = '/spaces/:spaceId/balances';
 

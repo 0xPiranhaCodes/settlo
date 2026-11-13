@@ -6,6 +6,7 @@ import 'package:settlo/router/router.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_activity.dart';
@@ -35,9 +36,11 @@ void main() {
       );
       final router = container.read(routerProvider)..go('/spaces/s1');
       await tester.pumpAndSettle();
+      expectSpaceAvatars(tester);
       await tester.tap(find.text('Activity').first);
       await tester.pumpAndSettle();
       expect(router.state.uri.path, '/spaces/s1/activity');
+      expectSpaceAvatars(tester);
       expect(
         tester.widget<SettloShell>(find.byType(SettloShell)).currentIndex,
         1,
@@ -58,9 +61,11 @@ void main() {
       await tester.tap(find.text('Balances'));
       await tester.pumpAndSettle();
       expect(router.state.uri.path, '/spaces/s1/balances');
+      expectSpaceAvatars(tester);
       await tester.tap(find.text('Activity').first);
       await tester.pumpAndSettle();
       expect(router.state.uri.path, '/spaces/s1/activity');
+      expectSpaceAvatars(tester);
       router.pop();
       await tester.pumpAndSettle();
       expect(router.state.uri.path, '/spaces');
@@ -83,4 +88,50 @@ void main() {
       TargetPlatform.iOS,
     }),
   );
+  testWidgets(
+    'empty space activity keeps its scoped empty state',
+    (tester) async {
+      await loadSettloFonts();
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform_views,
+        (_) async => null,
+      );
+      final activity = FakeActivityRepository(entries: [], pending: []);
+      await tester.pumpWidget(fakeSessionApp(fakeSession, activity: activity));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(Router<Object>)),
+      );
+      container.read(routerProvider).go('/spaces/s1/activity');
+      await tester.pumpAndSettle();
+      expect(find.text('Nothing here yet'), findsOneWidget);
+      expect(
+        find.text(
+          'Expenses and settle-ups in this space show up here, edits included.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('All'), findsNothing);
+      expect(activity.calls, contains('feed 30 null s1'));
+      expect(activity.calls, isNot(contains('markSeen')));
+      expect(container.read(activityFilterProvider), allActivity);
+    },
+    variant: const TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+}
+
+void expectSpaceAvatars(WidgetTester tester) {
+  final scaffold = tester.widget<SettloScrollScaffold>(
+    find.byType(SettloScrollScaffold).last,
+  );
+  expect(scaffold.trailing, isA<SpaceAvatars>());
+  expect((scaffold.trailing! as SpaceAvatars).space.id, 's1');
+  if (Theme.of(tester.element(find.byType(SettloScrollScaffold).last))
+          .platform ==
+      TargetPlatform.iOS) {
+    expect(find.byWidget(scaffold.trailing!), findsOneWidget);
+  }
 }

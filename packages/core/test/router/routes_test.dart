@@ -5,6 +5,7 @@ void main() {
   test('path builders fill their patterns', () {
     expect(SettloRoutes.join('t'), '/join/t');
     expect(SettloRoutes.space('s'), '/spaces/s');
+    expect(SettloRoutes.spaceActivity('s'), '/spaces/s/activity');
     expect(SettloRoutes.spaceBalances('s'), '/spaces/s/balances');
     expect(SettloRoutes.confirmRepayment('r'), '/loans/repayments/r');
     expect(SettloRoutes.confirmSettlement('s', 'e'), '/spaces/s/settle-ups/e');
@@ -18,6 +19,10 @@ void main() {
     for (final (pattern, path) in [
       (SettloRoutes.joinPattern, SettloRoutes.join(':token')),
       (SettloRoutes.spacePattern, SettloRoutes.space(':spaceId')),
+      (
+        SettloRoutes.spaceActivityPattern,
+        SettloRoutes.spaceActivity(':spaceId'),
+      ),
       (
         SettloRoutes.spaceBalancesPattern,
         SettloRoutes.spaceBalances(':spaceId'),

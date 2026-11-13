@@ -32,13 +32,22 @@ String _dayMonth(DateTime d) {
 /// its row.
 class ActivityScreen extends StatelessWidget {
   /// The global Activity tab, or a fixed space feed with its own header.
-  const new({this.spaceId, this.header, this.spaceName, super.key});
+  const new({
+    this.spaceId,
+    this.header,
+    this.spaceName,
+    this.navTrailing,
+    super.key,
+  });
 
   /// A fixed space filter, isolated from the global tab's selection.
   final String? spaceId;
 
   /// The space header and segment control when shown inside a space.
   final List<Widget>? header;
+
+  /// Trailing navigation content shared with the other space segments.
+  final Widget? navTrailing;
 
   /// The space's navigation title.
   final String? spaceName;
@@ -49,6 +58,7 @@ class ActivityScreen extends StatelessWidget {
       spaceId: spaceId,
       header: header,
       spaceName: spaceName,
+      navTrailing: navTrailing,
     );
     if (spaceId == null) return view;
     return ProviderScope(
@@ -68,11 +78,12 @@ class ActivityScreen extends StatelessWidget {
 
 class _ActivityView extends ConsumerStatefulWidget {
   /// The Activity screen.
-  const new({this.spaceId, this.header, this.spaceName});
+  const new({this.spaceId, this.header, this.spaceName, this.navTrailing});
 
   final String? spaceId;
   final List<Widget>? header;
   final String? spaceName;
+  final Widget? navTrailing;
 
   @override
   ConsumerState<_ActivityView> createState() => _ActivityScreenState();
@@ -327,6 +338,7 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
         child: SettloScrollScaffold(
           title: widget.spaceId == null ? 'Activity' : 'Space',
           largeTitle: widget.spaceName,
+          trailing: widget.navTrailing,
           previousPageTitle: widget.spaceId == null ? null : 'Spaces',
           stickyHeader: widget.spaceId != null,
           onRefresh: _refresh,
