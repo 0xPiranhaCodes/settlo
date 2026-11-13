@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">
+<style>.pa{fill:#fffdf8}.fo{fill:#01381e}.ja{fill:#01672d}.ma{fill:#febd11}.cr{fill:#fef0ce}.sh{fill:#18271f;fill-opacity:.14}.ln{fill:none;stroke:#18271f;stroke-width:6;stroke-linecap:round}.gh{fill:none;stroke:#18271f;stroke-opacity:.12;stroke-width:6;stroke-linecap:round}.ink{fill:#18271f;fill-opacity:.35}</style>
+<defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="23"/><feColorMatrix values="0 0 0 0 .09 0 0 0 0 .15 0 0 0 0 .12 0 0 0 .55 0"/><feComposite in2="SourceGraphic" operator="in"/></filter></defs>
+<g id="art">
+<g transform="rotate(-4 240 180)">
+<rect class="sh" x="88" y="70" width="300" height="220" rx="6"/>
+<rect class="pa" x="80" y="60" width="300" height="220" rx="6"/>
+<!-- your rows rubbed out; the shared one stays -->
+<path class="gh" d="M110 104h140m40 0h40M110 148h110m70 0h40"/>
+<path class="ln" d="M110 192h160m20 0h40"/>
+<path class="gh" d="M110 236h90"/>
+</g>
+<!-- the eraser -->
+<g transform="rotate(-28 330 240)">
+<rect class="sh" x="276" y="226" width="150" height="62" rx="8"/>
+<rect class="cr" x="268" y="216" width="150" height="62" rx="8"/>
+<rect class="ja" x="324" y="216" width="94" height="62"/><path class="ja" d="M418 216h-8q8 0 8 8zM418 278h-8q8 0 8-8z"/>
+</g>
+<path class="ink" d="M228 262h8v6h-8zM248 274h6v6h-6zM214 280h6v5h-6z"/>
+</g>
+<use href="#art" filter="url(#grain)" opacity=".16"/>
+</svg>

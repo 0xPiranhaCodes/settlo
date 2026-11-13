@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">
+<style>.pa{fill:#fffdf8}.fo{fill:#01381e}.ja{fill:#01672d}.ma{fill:#febd11}.sh{fill:#18271f;fill-opacity:.14}.ln{fill:none;stroke:#18271f;stroke-width:6;stroke-linecap:round}.str{fill:none;stroke:#01381e;stroke-width:6;stroke-linecap:round}.ring{fill:none;stroke:#01381e;stroke-width:14}.bl{fill:#708478}
+@media (prefers-color-scheme:dark){.fo{fill:#3d6b4f}.str{stroke:#a9bcb0}.ring{stroke:#a9bcb0}.sh{fill:#000;fill-opacity:.4}.bl{fill:#a9bcb0}}</style>
+<defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="5"/><feColorMatrix values="0 0 0 0 .09 0 0 0 0 .15 0 0 0 0 .12 0 0 0 .55 0"/><feComposite in2="SourceGraphic" operator="in"/></filter></defs>
+<g id="art">
+<!-- the string, snipped -->
+<path class="str" d="M40 40C78 52 102 74 118 104M150 132C176 152 200 176 220 196"/>
+<!-- a blank price tag -->
+<g transform="rotate(18 290 220)">
+<path class="sh" d="M218 158L392 158 394 296 218 298 168 228z"/>
+<path class="ma" d="M210 148L384 148 386 286 210 288 160 218z"/>
+<circle class="pa" cx="210" cy="218" r="14"/>
+</g>
+<!-- scissors -->
+<g transform="rotate(-38 130 120)">
+<circle class="ring" cx="52" cy="96" r="24"/><circle class="ring" cx="52" cy="152" r="24"/>
+<path class="bl" d="M70 104L226 118 226 126 72 132z"/><path class="bl" d="M70 144L222 124 224 134 72 118z"/>
+<circle class="fo" cx="98" cy="124" r="7"/>
+</g>
+</g>
+<use href="#art" filter="url(#grain)" opacity=".16"/>
+</svg>

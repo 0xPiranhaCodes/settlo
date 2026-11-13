@@ -1,9 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
-<rect width="1200" height="675" fill="#fef0ce"/>
-<path d="M260 435L600 220l340 215" fill="none" stroke="#01672d" stroke-width="12" stroke-linecap="round"/>
-<circle cx="260" cy="435" r="98" fill="#01672d"/><circle cx="940" cy="435" r="98" fill="#01672d"/>
-<circle cx="600" cy="220" r="98" fill="#febd11"/>
-<path d="M228 435l24 24 44-48m612 24 24 24 44-48M568 220l24 24 44-48" fill="none" stroke="#01381e" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M228 435l24 24 44-48m612 24 24 24 44-48" fill="none" stroke="#fef0ce" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M500 480h200m-155 36h110" stroke="#01381e" stroke-width="12" stroke-linecap="round"/>
+<style>.bg{fill:#fef0ce}.pa{fill:#fffdf8}.fo{fill:#01381e}.ja{fill:#01672d}.ma{fill:#febd11}.sh{fill:#18271f;fill-opacity:.14}.ln{fill:none;stroke:#18271f;stroke-width:6;stroke-linecap:round}.st{fill:none;stroke:#01381e;stroke-width:12;stroke-linecap:round;stroke-linejoin:round}.rp{fill:none;stroke:#01381e;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+@media (prefers-color-scheme:dark){.bg{fill:#14271c}.pa{fill:#efe9db}.fo{fill:#2c5a3e}.st{stroke:#14271c}.sh{fill:#000;fill-opacity:.4}}</style>
+<defs>
+<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .09 0 0 0 0 .15 0 0 0 0 .12 0 0 0 .55 0"/></filter>
+<path id="top" d="M0 14l10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12 10-12 10 12V176L0 170z"/>
+<path id="mid" d="M0 3L260 0 262 152 2 146z"/>
+<path id="end" d="M0 5L262 0V136l-10 12-10-12-10 12-10-12-10 12-10-12-10 12-10-12-10 12-10-12-10 12-10-12-10 12-10-12-10 12-10-12-10 12-10-12-10 12-10-12-10 12-10-12-10 12-10-12-10 12-10-12z"/>
+<path id="sole" d="M38 0C66 0 78 24 76 56 74 86 64 100 66 128 68 160 76 186 66 208 56 228 18 228 8 208-2 186 8 160 10 128 12 100 0 86 0 56-2 24 10 0 38 0z"/>
+</defs>
+<rect class="bg" width="1200" height="675"/>
+<!-- the beach: sunglasses and chappals -->
+<g transform="translate(124 30) scale(.82) rotate(-10 262 300)">
+<rect class="sh" x="170" y="268" width="196" height="86" rx="38"/>
+<rect class="fo" x="160" y="256" width="94" height="86" rx="38"/>
+<rect class="fo" x="268" y="256" width="94" height="86" rx="38"/>
+<rect class="fo" x="232" y="266" width="58" height="12" rx="6"/>
+<rect class="fo" x="170" y="248" width="182" height="12" rx="6"/>
+</g>
+<g transform="translate(770 210) rotate(-8 38 114)"><use class="sh" href="#sole" x="8" y="10"/><use class="ja" href="#sole"/><path class="st" d="M10 104L38 44 66 104"/></g>
+<g transform="translate(862 234) rotate(9 38 114)"><use class="sh" href="#sole" x="8" y="10"/><use class="ja" href="#sole"/><path class="st" d="M10 104L38 44 66 104"/></g>
+<!-- the bill, cut into three shares -->
+<g transform="translate(456 64) rotate(-5 130 88)"><use class="sh" href="#top" x="8" y="10"/><use class="pa" href="#top"/><path class="ln" d="M36 66h110M36 106h188M36 138h120m48 0h20"/></g>
+<g transform="translate(474 262) rotate(2 130 75)"><use class="sh" href="#mid" x="8" y="10"/><use class="pa" href="#mid"/><path class="ln" d="M36 44h188M36 76h140m28 0h20M36 108h96"/></g>
+<g transform="translate(462 440) rotate(6 130 74)"><use class="sh" href="#end" x="8" y="10"/><use class="pa" href="#end"/><path class="ln" d="M36 40h160M36 74h96m72 0h20"/></g>
+<!-- one share paid -->
+<circle class="sh" cx="756" cy="566" r="52"/>
+<circle class="ma" cx="748" cy="556" r="52"/>
+<path class="rp" d="M727 531h42M727 547h42M735 531c27 0 27 33 0 33h-8l31 27"/>
+<rect width="1200" height="675" filter="url(#grain)" opacity=".16"/>
 </svg>

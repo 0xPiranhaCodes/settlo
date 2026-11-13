@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">
+<style>.fo{fill:#01381e}.ja{fill:#01672d}.cr{fill:#fef0ce}.ma{fill:#febd11}.sh{fill:#18271f;fill-opacity:.14}.sw{fill:none;stroke:#fef0ce;stroke-width:4;stroke-linecap:round;stroke-dasharray:11 9}</style>
+<defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="17"/><feColorMatrix values="0 0 0 0 .09 0 0 0 0 .15 0 0 0 0 .12 0 0 0 .55 0"/><feComposite in2="SourceGraphic" operator="in"/></filter></defs>
+<g id="art" transform="rotate(-3 240 180)">
+<!-- a buttoned pocket: what's yours stays in it -->
+<path class="sh" d="M138 58H354V286L246 330 138 286z"/>
+<path class="ja" d="M128 46H344V274L236 318 128 274z"/>
+<path class="sw" d="M144 62H328V262L236 300 144 262z"/>
+<path class="sh" d="M128 56H344V128L236 168 128 128z"/>
+<path class="fo" d="M124 40H348V118L236 160 124 118z"/>
+<path class="sw" d="M138 54H334V108L236 144 138 108z"/>
+<circle class="ma" cx="236" cy="128" r="20"/><path class="fo" d="M228 122h5v5h-5zM239 122h5v5h-5zM228 131h5v5h-5zM239 131h5v5h-5z"/>
+</g>
+<use href="#art" filter="url(#grain)" opacity=".16"/>
+</svg>

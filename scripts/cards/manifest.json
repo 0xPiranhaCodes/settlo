@@ -1,0 +1,30 @@
+{
+  "inputs": {
+    "scripts/blog/covers/guide.svg": "39bf22a6782772ba5135d3d3351ce13e6cfe1698c42a21f24d0d6b761679563b",
+    "scripts/blog/covers/rebrand.svg": "ff4d21d8c757bebc6d529d17184fbb1726b2dd02590d92bdf37975a6e27db1b8",
+    "scripts/blog/covers/update.svg": "768bd9f7558fd7e0f030331c5d12c3bc307f6a1b992fe3cf93b5d525476e09fd",
+    "scripts/blog/posts/settlo-is-now-sabkijeb.md": "118b1186505f4bf3a122c5b5c2b51436ce2d2090ea14439950f8331381581f85",
+    "scripts/blog/posts/split-bills-with-friends.md": "f98a7f1cde23bf6db673984b7be1723617fd7d7f8f911e1449a061c5d2738c30",
+    "scripts/blog/posts/whats-new.md": "2eedec48809c9d82a1a1e3a64b74c2f53227310e7debc9f4ff8520d653406ed9",
+    "scripts/cards/art/delete.svg": "2006b7f81044425f479d95718a2a4ee711b5741aaa9477a7c6fac0cd6b823c85",
+    "scripts/cards/art/letter.svg": "2616d97611bbc44fb3a96dffa678df83b3e1638e9a1145b8b14a2bea5e0e18b7",
+    "scripts/cards/art/privacy.svg": "5a0d88cfe1a548bd6337fa9c50804b0f94957f4f64b881088c3d9216022d72c3",
+    "scripts/cards/art/terms.svg": "be0589fe7ed131476e777aa42839229b3fb7321a76649f690d3f65157b566af1",
+    "scripts/site-cards.cjs": "1982fd800f93ee925f2374ff8cc9c4b491e69cc14a1c38493f5cc25e11b9236d",
+    "site/fonts/Figtree-Medium.ttf": "358a4de79ae6c3fd7c6a54fcd778c1101ba376af75b8463e715df6988387bc19",
+    "site/fonts/Figtree-Regular.ttf": "448d74e778cc9774db27bd86cf451bba982b2e4dc348f610390eb6e3439cf6ca",
+    "site/images/art/chai.svg": "9f91b2a69aafda089f7c120d7b97b61813a6b075b93c00d302ec4ffe6a623909",
+    "site/images/mark.png": "c85e33e3e47545bd39fc22691d594af88de18b6ac189423c94c5e8bd28798082"
+  },
+  "outputs": {
+    "site/images/cards/home.png": "0d0508a2e7217f58395e20edfaded419ac332bd88f325fd4cb48342ecd8b0b65",
+    "site/images/cards/blog.png": "7981c6493a581c75bcf74b4aac62c5f3904aaed504b78e6f835d29614cbe0857",
+    "site/images/cards/settlo-is-now-sabkijeb.png": "7b4826eafb6f2979c7428ffff50bc403632f8f8aa64a8a410172a409a25d5ffb",
+    "site/images/cards/split-bills-with-friends.png": "cfbddaf3983406f4f10fc46327f5cd72d87e1f27742b1ea0ac7c6b5bef677ed9",
+    "site/images/cards/whats-new.png": "675964bdbe13086e4ebd97cde8556850314297730913b330d86240c214aa2ac9",
+    "site/images/cards/privacy.png": "a33e809eb20bce36e56cad4d1afb19ed2f932904afe3f68dbe041e56cfbc5c5b",
+    "site/images/cards/support.png": "44962cf6165b337bd70ae0debc8c0fda32d2aaec791266ce7ec481bfd412dff9",
+    "site/images/cards/terms.png": "2dcd507ee0d00dd20b8de05e26e90d4edee90adb25660e8148250359f4a2bfb8",
+    "site/images/cards/delete-account.png": "5798f54b4ecceb85b77fc7467ced7b221ba901e672186c7f5dbc76624b9bc092"
+  }
+}

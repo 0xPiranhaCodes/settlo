@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">
+<style>.pa{fill:#fffdf8}.fo{fill:#01381e}.ja{fill:#01672d}.ma{fill:#febd11}.cr{fill:#fef0ce}.sh{fill:#18271f;fill-opacity:.14}.ln{fill:none;stroke:#18271f;stroke-width:6;stroke-linecap:round}.wire{fill:none;stroke:#01381e;stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+@media (prefers-color-scheme:dark){.fo{fill:#3d6b4f}.wire{stroke:#a9bcb0}.sh{fill:#000;fill-opacity:.4}}</style>
+<defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="9"/><feColorMatrix values="0 0 0 0 .09 0 0 0 0 .15 0 0 0 0 .12 0 0 0 .55 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+<path id="k" d="M2 0H70Q74 0 73 6L69 40Q64 90 50 100H22Q8 90 3 40L-1 6Q-2 0 2 0z"/></defs>
+<g id="art">
+<!-- the chaiwala's carrier: one kulhad each -->
+<path class="wire" d="M150 196V60Q150 36 174 36H286Q310 36 310 60V196"/>
+<rect class="sh" x="62" y="300" width="356" height="18" rx="4"/>
+<use class="ja" href="#k" x="76" y="196"/><use class="fo" href="#k" x="164" y="196"/><use class="ja" href="#k" x="252" y="196"/><use class="fo" href="#k" x="340" y="196"/>
+<path class="cr" d="M76 196h72v10H76zM164 196h72v10h-72zM252 196h72v10h-72zM340 196h72v10h-72z"/>
+<path class="wire" d="M60 244H420M60 300H420"/>
+<!-- the tab, clipped to the handle -->
+<g transform="rotate(-8 230 80)">
+<rect class="sh" x="196" y="60" width="96" height="112" rx="4"/>
+<rect class="pa" x="188" y="50" width="96" height="112" rx="4"/>
+<path class="ln" d="M206 86h44M206 110h60M206 134h28m10 0h22"/>
+<rect class="ma" x="222" y="38" width="28" height="26" rx="4"/>
+</g>
+</g>
+<use href="#art" filter="url(#grain)" opacity=".16"/>
+</svg>

@@ -373,6 +373,9 @@ thead th {border-block:1px solid var(--line);color:var(--accent);}
 .quiet-body p {border-top:1px solid var(--line);padding:24px 0 8px;font-size:18px;}
 .quiet-body a {color:var(--accent);}
 .faq {padding:48px 0 128px;display:grid;grid-template-columns:1fr 1.6fr;gap:12%;}
+/* Illustration spots (docs/brand.md › Illustration): decorative, never a product screen. */
+.spot {display:block;width:min(100%,300px);height:auto;margin:0 0 32px;}
+.faq .spot {margin:48px 0 0;}
 .landing .faq h2 {font-size:clamp(36px,4vw,56px);}
 .questions details {border-bottom:1px solid var(--line);}
 .questions details:first-child {border-top:1px solid var(--line);}
@@ -447,6 +450,8 @@ details[open] summary::after {content:'−';}
  .safety-aside {position:static;margin-bottom:40px;}
  .quiet-body {margin-left:10%;}
  .faq {display:block;padding:32px 0 80px;}
+ .spot {width:220px;}
+ .faq .spot {margin:24px 0 32px;}
  .landing main > .closing {grid-template-columns:1fr;padding-block:64px;gap:48px;}
  .closing-scan {display:flex;align-items:center;gap:24px;}
  .beta-qr img {width:100px;height:100px;}
