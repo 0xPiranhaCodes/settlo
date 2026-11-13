@@ -127,6 +127,13 @@ void main() {
         },
       );
 
+      expect(
+        find.textContaining('Money between').hitTestable(),
+        findsOneWidget,
+      );
+      // Repaint the retained scroll layer after the harness freezes tickers.
+      tester.renderObject(find.byType(SingleChildScrollView)).markNeedsPaint();
+      await tester.pump();
       await expectLater(
         find.byKey(settloGoldenSurfaceKey),
         matchesGoldenFile('goldens/auth_welcome_pressed_390x844_dark.png'),

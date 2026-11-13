@@ -598,8 +598,6 @@ class _SettingRow extends StatelessWidget {
                     const SizedBox(height: SettloSpacing.half / 2),
                     Text(
                       data.subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: SettloTypography.footnote(
                         color: colors.textSecondary,
                       ),

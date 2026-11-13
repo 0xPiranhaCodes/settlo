@@ -562,9 +562,6 @@ class _PickerField extends StatelessWidget {
       ),
       child: Text(
         value,
-        maxLines: 1,
-        softWrap: false,
-        overflow: TextOverflow.fade,
         style: SettloTypography.headline(
           color: onTap == null
               ? SettloColors.of(context).textMuted

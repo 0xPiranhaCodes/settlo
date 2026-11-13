@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -56,69 +55,79 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                   SafeArea(
                     child: LayoutBuilder(
-                      builder: (context, constraints) => SingleChildScrollView(
-                        padding: const EdgeInsets.all(
-                          SettloWelcomeMetrics.screenMargin,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: math.max(
-                              0,
-                              constraints.maxHeight - SettloSpacing.x6,
+                      builder: (context, constraints) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.all(
+                                SettloWelcomeMetrics.screenMargin,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: SettloMark(size: 30),
+                                  ),
+                                  SizedBox(
+                                    height: constraints.maxHeight >= 820
+                                        ? 136
+                                        : 96,
+                                  ),
+                                  Semantics(
+                                    header: true,
+                                    child: _WelcomeHeadline(colors: colors),
+                                  ),
+                                  const SizedBox(height: SettloSpacing.x2),
+                                  Text(
+                                    'Flatmates, trips, and the ₹10 lakh you '
+                                    'lent your '
+                                    'friend — one quiet ledger you both '
+                                    'can see.',
+                                    style: SettloTypography.body(
+                                      color: colors.textSecondary,
+                                    ).copyWith(height: 1.5),
+                                  ),
+                                  const SizedBox(height: SettloSpacing.x5),
+                                  const _AvatarStack(),
+                                  const SizedBox(height: SettloSpacing.x5),
+                                  const _ExampleCard(
+                                    semanticsLabel:
+                                        'Example: Rahul owes you 750 rupees. '
+                                        'Flat 402, groceries, wifi.',
+                                    initial: 'R',
+                                    title: 'Rahul owes you',
+                                    detail: 'Flat 402 · groceries, wifi',
+                                    amount: '₹750',
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const _ExampleCard(
+                                    semanticsLabel:
+                                        'Example: Arjun repaid 25,000 rupees. '
+                                        '13 of 40, on schedule.',
+                                    initial: 'A',
+                                    title: 'Arjun repaid',
+                                    detail: '13 of 40 · on schedule',
+                                    amount: '₹25,000',
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          child: IntrinsicHeight(
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              SettloWelcomeMetrics.screenMargin,
+                              SettloSpacing.x2,
+                              SettloWelcomeMetrics.screenMargin,
+                              SettloSpacing.x3,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: SettloMark(size: 30),
-                                ),
-                                SizedBox(
-                                  height: constraints.maxHeight >= 820
-                                      ? 136
-                                      : 96,
-                                ),
-                                Semantics(
-                                  header: true,
-                                  child: _WelcomeHeadline(colors: colors),
-                                ),
-                                const SizedBox(height: SettloSpacing.x2),
-                                Text(
-                                  'Flatmates, trips, and the ₹10 lakh you lent '
-                                  'your '
-                                  'friend — one quiet ledger you both can see.',
-                                  style: SettloTypography.body(
-                                    color: colors.textSecondary,
-                                  ).copyWith(height: 1.5),
-                                ),
-                                const SizedBox(height: SettloSpacing.x5),
-                                const _AvatarStack(),
-                                const SizedBox(height: SettloSpacing.x5),
-                                const _ExampleCard(
-                                  semanticsLabel:
-                                      'Example: Rahul owes you 750 rupees. '
-                                      'Flat 402, groceries, wifi.',
-                                  initial: 'R',
-                                  title: 'Rahul owes you',
-                                  detail: 'Flat 402 · groceries, wifi',
-                                  amount: '₹750',
-                                ),
-                                const SizedBox(height: 12),
-                                const _ExampleCard(
-                                  semanticsLabel:
-                                      'Example: Arjun repaid 25,000 rupees. '
-                                      '13 of 40, on schedule.',
-                                  initial: 'A',
-                                  title: 'Arjun repaid',
-                                  detail: '13 of 40 · on schedule',
-                                  amount: '₹25,000',
-                                ),
-                                const Spacer(),
-                                const SizedBox(height: SettloSpacing.x4),
                                 _WelcomeActionButton(onPressed: _continue),
-                                const SizedBox(height: 14),
+                                const SizedBox(height: SettloSpacing.x2),
                                 Text(
                                   'No email. No password. Your number is your '
                                   'account.',
@@ -127,11 +136,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                     color: colors.textMuted,
                                   ),
                                 ),
-                                const SizedBox(height: SettloSpacing.x6),
                               ],
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),

@@ -100,6 +100,28 @@ class SSegmentedControl<T extends Object> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
+    // Preserve the complete label and a full-width target at accessibility
+    // sizes on both platforms. The normal iOS sliding control is single-line.
+    if (MediaQuery.textScalerOf(context).scale(15) >= 22.5) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: c.surfaceRaised,
+          borderRadius: BorderRadius.circular(SettloRadius.compact),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final segment in segments)
+              _Segment(
+                label: segment.label,
+                selected: segment.value == selected,
+                onTap: () => onChanged(segment.value),
+              ),
+          ],
+        ),
+      );
+    }
     if (Theme.of(context).platform == TargetPlatform.iOS) {
       return SettloCupertinoTheme(
         child: SizedBox(
