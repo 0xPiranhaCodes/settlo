@@ -2,6 +2,8 @@
 
 **Positioning:** Settlo keeps shared expenses and personal loans clear between people who know each other in India.
 
+App UI usage rules: [ui-guidelines.md](ui-guidelines.md).
+
 ## People and promise
 
 For Indian flatmates splitting rent and groceries, friends sharing trips, and people keeping track of money lent or borrowed. Speak to the relationship as well as the record: “Good friends. Clear balances.” is the landing-page expression. Settlo records and reconciles; the user's own UPI app moves the money.
