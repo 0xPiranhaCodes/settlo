@@ -1,0 +1,46 @@
+name: App Store listing
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Print the live vs proposed diff without changing App Store Connect
+        required: true
+        type: boolean
+        default: true
+      create_version:
+        description: Only if no iOS version is editable, create this one on a real run (e.g. 1.0)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# The listing is app-wide state. Never cancel a partial update.
+concurrency:
+  group: asc-store-listing
+  cancel-in-progress: false
+
+jobs:
+  listing:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Check listing lengths
+        run: ruby scripts/asc-store-listing.rb --check
+
+      - name: Upsert App Store listing
+        env:
+          ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          STORE_LISTING_DRY_RUN: ${{ inputs.dry_run }}
+          CREATE_VERSION: ${{ inputs.create_version }}
+        run: ruby scripts/asc-store-listing.rb

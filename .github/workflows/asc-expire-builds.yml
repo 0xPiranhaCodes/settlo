@@ -1,0 +1,42 @@
+name: Expire TestFlight builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      keep_versions:
+        description: Comma-separated iOS build numbers to keep (e.g. 12); every other processed build is expired
+        required: true
+        type: string
+      dry_run:
+        description: Print the plan without expiring anything
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: asc-expire-builds
+  cancel-in-progress: false
+
+jobs:
+  expire:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Expire TestFlight builds
+        env:
+          ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          KEEP_BUILDS: ${{ inputs.keep_versions }}
+          EXPIRE_DRY_RUN: ${{ inputs.dry_run }}
+        run: ruby scripts/asc-expire-builds.rb

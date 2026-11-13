@@ -101,6 +101,23 @@ actionlint .github/workflows/testflight-external.yml
 
 API references: Apple's [beta app localization attributes](https://developer.apple.com/documentation/appstoreconnectapi/betaapplocalizationupdaterequest/data-data.dictionary/attributes-data.dictionary), [review submissions](https://developer.apple.com/documentation/appstoreconnectapi/get-v1-betaappreviewsubmissions), and [external build states](https://developer.apple.com/documentation/appstoreconnectapi/externalbetastate).
 
+### App Store listing (#266)
+
+The listing copy lives in `docs/store/ios-en-US.json`. The owner approves changes to it before they go live. **App Store listing** (`asc-store-listing.yml`) runs from `main` with the **production** App Store Connect secrets. With `dry_run` (the default), it prints a live-vs-proposed diff for each field and changes nothing. A real run writes only the changed fields:
+
+- the en-US app info: name, subtitle and privacy URL;
+- the editable iOS version: description, keywords, promotional text, support URL, marketing URL and copyright;
+- the primary and secondary categories.
+
+The name is written first and on its own. If Apple rejects it, the run stops and reports that, and nothing else is changed. If no version is editable, the run fails. A real run creates a version only when `create_version` is set, and it logs that it did. App Privacy answers and the age rating are entered by hand from `docs/store/privacy-labels.md`.
+
+```sh
+ruby scripts/asc-store-listing.rb --check
+ruby scripts/test/asc-store-listing-test.rb
+```
+
+**Expire TestFlight builds** (`asc-expire-builds.yml`) expires every processed, unexpired iOS build except the build numbers in `keep_versions` (for example `12`). Builds that are still processing are skipped. The run fails without changes if a kept number does not exist. `dry_run` defaults to true and prints the plan. Test locally with `ruby scripts/test/asc-expire-builds-test.rb`.
+
 ### First TestFlight checklist
 
 - [ ] A fresh install from TestFlight signs in with a test number against the hosted project.
