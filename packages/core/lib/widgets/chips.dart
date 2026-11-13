@@ -115,6 +115,7 @@ class SSegmentedControl<T extends Object> extends StatelessWidget {
             for (final segment in segments)
               _Segment(
                 label: segment.label,
+                stacked: true,
                 selected: segment.value == selected,
                 onTap: () => onChanged(segment.value),
               ),
@@ -202,9 +203,15 @@ class SSegmentedControl<T extends Object> extends StatelessWidget {
 }
 
 class _Segment extends StatelessWidget {
-  const new({required this.label, required this.selected, required this.onTap});
+  const new({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.stacked = false,
+  });
 
   final String label;
+  final bool stacked;
   final bool selected;
   final VoidCallback onTap;
 
@@ -231,12 +238,29 @@ class _Segment extends StatelessWidget {
               color: selected ? c.surfaceHighest : null,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
-              label,
-              style: SettloTypography.subheadline(
-                weight: selected ? FontWeight.w500 : FontWeight.w400,
-                color: selected ? c.textPrimary : c.textSecondary,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    label,
+                    style: SettloTypography.subheadline(
+                      weight: selected ? FontWeight.w500 : FontWeight.w400,
+                      color: selected ? c.textPrimary : c.textSecondary,
+                    ),
+                  ),
+                ),
+                if (stacked && selected) ...[
+                  const SizedBox(width: SettloSpacing.x1),
+                  ExcludeSemantics(
+                    child: Icon(
+                      CupertinoIcons.check_mark,
+                      color: c.textPrimary,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),

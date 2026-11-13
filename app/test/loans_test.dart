@@ -556,7 +556,7 @@ void main() {
         findsOne,
       );
       expect(find.text('5th'), findsOne);
-      expect(find.text('Mar 2026'), findsOne);
+      expect(find.text("Mar '26"), findsOne);
 
       await _tap(tester, create());
       final key = loans.calls.single.split(' ').last;

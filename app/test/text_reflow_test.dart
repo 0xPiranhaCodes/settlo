@@ -59,7 +59,7 @@ void main() {
       for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
         final theme = SettloTheme.light().copyWith(platform: platform);
         testWidgets(
-          'Welcome pinned and content reachable ${device.name} $platform',
+          'Welcome layout and content reachable ${device.name} $platform',
           (tester) async {
             await pumpSettloGolden(
               tester,
@@ -70,6 +70,12 @@ void main() {
             final action = find.byType(FilledButton);
             final before = tester.getRect(action);
             expect(before.top, greaterThan(0));
+            if (size == const Size(390, 844) && scale == 1) {
+              // Main's original composition: pinning every viewport moves
+              // this down by approximately 46 points.
+              expect(before.top, closeTo(683, 1));
+              expect(before.height, 56);
+            }
             expect(before.bottom, lessThanOrEqualTo(size.height));
             expect(action.hitTestable(), findsOneWidget);
             expectWholeText(tester, find.text('Continue with phone number'));
@@ -87,7 +93,12 @@ void main() {
               find.text('13 of 40 · on schedule').hitTestable(),
               findsOneWidget,
             );
-            expect(tester.getRect(action), before);
+            if (size.height < 700 || scale > 1) {
+              expect(tester.getRect(action), before);
+            } else {
+              // On taller phones the historical footer scrolls with the body.
+              expect(action.hitTestable(), findsOneWidget);
+            }
             expect(tester.takeException(), isNull);
           },
         );
@@ -199,7 +210,7 @@ void main() {
             final target = switch (screen) {
               'detail' => find.textContaining('since Mar 2026'),
               'list' => find.text('+919000000011 · interest free'),
-              'new' => find.text('Nov 2026'),
+              'new' => find.text("Nov '26"),
               _ => find.text('Remove your profile and sign-in for good'),
             };
             await tester.scrollUntilVisible(

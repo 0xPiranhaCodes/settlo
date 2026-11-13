@@ -1,10 +1,47 @@
 import 'dart:ui' show Tristate;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
 
 void main() {
+  for (final theme in [SettloTheme.light(), SettloTheme.dark()]) {
+    testWidgets('stacked indicator contrast ${theme.brightness}', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: Scaffold(
+              body: SSegmentedControl<int>(
+                segments: const [
+                  (value: 0, label: 'Equally'),
+                  (value: 1, label: 'Shares'),
+                ],
+                selected: 0,
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      final indicator = tester.widget<Icon>(
+        find.byIcon(CupertinoIcons.check_mark),
+      );
+      final context = tester.element(find.byIcon(CupertinoIcons.check_mark));
+      final colors = SettloColors.of(context);
+      expect(indicator.color, colors.textPrimary);
+      final foreground = indicator.color!.computeLuminance();
+      final background = colors.surfaceHighest.computeLuminance();
+      final contrast = (foreground > background)
+          ? (foreground + .05) / (background + .05)
+          : (background + .05) / (foreground + .05);
+      expect(contrast, greaterThanOrEqualTo(3));
+    });
+  }
   for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
     testWidgets('large segments keep full targets and selection on $platform', (
       tester,
