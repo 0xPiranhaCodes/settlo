@@ -3,20 +3,20 @@
     {
       "density": 1,
       "src": "http://127.0.0.1:8238/images/home_main-phone.avif",
-      "top": 296.640625,
-      "bottom": 604.328125
+      "top": 255.640625,
+      "bottom": 879.609375
     },
     {
       "density": 2,
       "src": "http://127.0.0.1:8238/images/home_main-phone@2x.avif",
-      "top": 296.640625,
-      "bottom": 604.328125
+      "top": 255.640625,
+      "bottom": 879.609375
     },
     {
       "density": 3,
       "src": "http://127.0.0.1:8238/images/home_main-phone@3x.avif",
-      "top": 296.640625,
-      "bottom": 604.328125
+      "top": 255.640625,
+      "bottom": 879.609375
     }
   ],
   "tabletGeometry": [

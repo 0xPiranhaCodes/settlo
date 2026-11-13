@@ -15,6 +15,14 @@ const output=process.env.SITE_CHECK_OUTPUT || 'docs/evidence/237/direction';
   await page.goto(url);await page.evaluate(()=>document.fonts.ready);
   await page.screenshot({path:`${output}/hero-${width}-${colorScheme}.png`});
   await page.waitForTimeout(700);
+  if(width===390) {
+   await page.getByRole('button',{name:'Menu',exact:false}).click();
+   await page.waitForTimeout(350);
+   await page.screenshot({path:`${output}/menu-open-${width}-${colorScheme}.png`});
+   await page.waitForTimeout(700);
+   await page.getByRole('button',{name:'Close',exact:false}).click();
+   await page.waitForTimeout(500);
+  }
   const end=await page.locator('.direction-story').evaluate(el=>el.offsetTop+el.offsetHeight-innerHeight);
   await page.evaluate(async end=>{const start=performance.now();await new Promise(resolve=>{function frame(now){const t=Math.min(1,(now-start)/18000);scrollTo({top:end*t,behavior:'instant'});if(t<1)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});},end);
   await page.waitForTimeout(800);

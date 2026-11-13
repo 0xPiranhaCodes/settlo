@@ -367,8 +367,10 @@ const phonesClear = () => {
     }));
     if (Math.min(844, state.bottom) - state.top < 200)
       throw Error("Hero product below fold");
-    if ((await page.locator(".direction-hero .button").boundingBox()).y + 56 > 844)
-      throw Error("Hero CTA below fold");
+    const phone = await hero.boundingBox();
+    const caption = await page.locator('.direction-product figcaption').boundingBox();
+    if (Math.abs(phone.width - Math.min(390 * .78, 340)) > 1 || caption.y < phone.y + phone.height)
+      throw Error('Mobile phone size or stacked caption regressed');
     const suffix = density === 1 ? "-phone.avif" : `-phone@${density}x.avif`;
     if (!state.src.endsWith(suffix))
       throw Error("Wrong density selected: " + state.src);
