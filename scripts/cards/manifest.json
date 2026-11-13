@@ -1,8 +1,8 @@
 {
   "inputs": {
-    "scripts/blog/covers/guide.svg": "39bf22a6782772ba5135d3d3351ce13e6cfe1698c42a21f24d0d6b761679563b",
-    "scripts/blog/covers/rebrand.svg": "ff4d21d8c757bebc6d529d17184fbb1726b2dd02590d92bdf37975a6e27db1b8",
-    "scripts/blog/covers/update.svg": "768bd9f7558fd7e0f030331c5d12c3bc307f6a1b992fe3cf93b5d525476e09fd",
+    "scripts/blog/covers/guide.svg": "2e0d6392c440ab45389270e087dd2468cccc80f1c0cc49b86f160d87beb5c830",
+    "scripts/blog/covers/rebrand.svg": "f248bfdfd56f95455d891eba9412f747a4dd44c9da34229860fdb35e5ec2b4a6",
+    "scripts/blog/covers/update.svg": "282789fc2568e80f716dbe214a96e8697c65abc96f89cf07951e45cb4981f76e",
     "scripts/blog/posts/settlo-is-now-sabkijeb.md": "118b1186505f4bf3a122c5b5c2b51436ce2d2090ea14439950f8331381581f85",
     "scripts/blog/posts/split-bills-with-friends.md": "f98a7f1cde23bf6db673984b7be1723617fd7d7f8f911e1449a061c5d2738c30",
     "scripts/blog/posts/whats-new.md": "2eedec48809c9d82a1a1e3a64b74c2f53227310e7debc9f4ff8520d653406ed9",
@@ -13,7 +13,7 @@
     "scripts/site-cards.cjs": "97643421854decce0e2c3e2ed2151f9bce12331b55e1cf1159f3746c05be66a6",
     "site/fonts/Figtree-Medium.ttf": "358a4de79ae6c3fd7c6a54fcd778c1101ba376af75b8463e715df6988387bc19",
     "site/fonts/Figtree-Regular.ttf": "448d74e778cc9774db27bd86cf451bba982b2e4dc348f610390eb6e3439cf6ca",
-    "site/images/art/chai.svg": "9f91b2a69aafda089f7c120d7b97b61813a6b075b93c00d302ec4ffe6a623909",
+    "site/images/art/chai.svg": "58ddff04fe3706c0ce9aaae94feae0b4874256202f34ec33e680cea6f0385d45",
     "site/images/mark.png": "c85e33e3e47545bd39fc22691d594af88de18b6ac189423c94c5e8bd28798082"
   },
   "outputs": {

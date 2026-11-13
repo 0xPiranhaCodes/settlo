@@ -7,7 +7,7 @@ const output=process.env.SITE_CHECK_OUTPUT || 'docs/evidence/237/direction';
  fs.mkdirSync(output,{recursive:true});
  const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  const results=[];
- for(const width of [390,1440]) for(const colorScheme of ['light','dark']) {
+ for(const width of [390,1440]) for(const colorScheme of ['light']) {
   const viewport={width,height:width===390?844:900};
   const context=await browser.newContext({viewport,colorScheme,recordVideo:{dir:output,size:viewport}});
   const page=await context.newPage();const external=[];
@@ -42,7 +42,7 @@ const output=process.env.SITE_CHECK_OUTPUT || 'docs/evidence/237/direction';
   results.push({width,colorScheme,reduced:await staticPage.locator('.direction-pin').evaluate(el=>getComputedStyle(el).position),visiblePanels:await staticPage.locator('.direction-panel').evaluateAll(els=>els.every(e=>getComputedStyle(e).opacity==='1'))});
   await staticPage.close();
  }
- for(const colorScheme of ['light','dark']) {const p=await browser.newPage({viewport:{width:360,height:800},colorScheme});await p.goto(url);results.push({width:360,colorScheme,overflow:await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth)});await p.close();}
+ for(const colorScheme of ['light']) {const p=await browser.newPage({viewport:{width:360,height:800},colorScheme});await p.goto(url);results.push({width:360,colorScheme,overflow:await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth)});await p.close();}
  fs.writeFileSync(`${output}/browser-checks.json`,JSON.stringify(results,null,2));await browser.close();
  if(results.some(r=>r.overflow||r.external?.length||r.visiblePanels===false))throw Error('Direction checks failed');
 })();

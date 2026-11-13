@@ -9,7 +9,7 @@ const { waitForImages } = require('./site-images-ready.cjs');
     executablePath: process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   });
   const results = [];
-  for (const width of [390, 1440]) for (const colorScheme of ['light', 'dark']) {
+  for (const width of [390, 1440]) for (const colorScheme of ['light']) {
     for (const path of ['', 'privacy/', 'support/', 'terms/', 'delete-account/', 'blog/', ...fs.readdirSync('site/blog', {withFileTypes:true}).filter(e=>e.isDirectory() && fs.existsSync(`site/blog/${e.name}/index.html`)).map(e=>`blog/${e.name}/`)]) {
       const page = await browser.newPage({ viewport: { width, height: 844 }, colorScheme, reducedMotion: 'reduce' });
       await page.goto(url + path);

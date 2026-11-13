@@ -8,7 +8,7 @@ const output=process.env.SITE_CHECK_OUTPUT || 'docs/evidence/237/full';
  fs.mkdirSync(output,{recursive:true});
  const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',args:['--disable-gpu']});
  const results=[];
- for(const width of [390,1440]) for(const colorScheme of ['light','dark']) {
+ for(const width of [390,1440]) for(const colorScheme of ['light']) {
   const viewport={width,height:width===390?844:900};
   const context=await browser.newContext({viewport,colorScheme,recordVideo:{dir:output,size:viewport}});
   const page=await context.newPage();const external=[],failures=[];

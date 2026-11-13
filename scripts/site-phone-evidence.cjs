@@ -7,7 +7,7 @@ const fs = require('fs');
   fs.mkdirSync(out, { recursive: true });
   const browser = await webkit.launch();
   for (const width of [360, 390, 768, 1440]) {
-    for (const colorScheme of ['light', 'dark']) {
+    for (const colorScheme of ['light']) {
       const height = width < 768 ? 664 : 900;
       const context = await browser.newContext({
         viewport: { width, height }, colorScheme,

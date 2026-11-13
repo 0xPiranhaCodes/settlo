@@ -6,7 +6,7 @@ const url = process.env.SITE_CHECK_URL || 'http://127.0.0.1:8237/';
 (async () => {
  const browser = await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  const results=[];
- for (const path of ['', 'privacy/', 'support/', 'terms/', 'delete-account/', 'blog/', ...fs.readdirSync('site/blog', {withFileTypes:true}).filter(e=>e.isDirectory() && fs.existsSync(`site/blog/${e.name}/index.html`)).map(e=>`blog/${e.name}/`)]) for (const width of [360,390,720,721,1440]) for (const colorScheme of ['light','dark']) for (const reducedMotion of ['reduce','no-preference']) {
+ for (const path of ['', 'privacy/', 'support/', 'terms/', 'delete-account/', 'blog/', ...fs.readdirSync('site/blog', {withFileTypes:true}).filter(e=>e.isDirectory() && fs.existsSync(`site/blog/${e.name}/index.html`)).map(e=>`blog/${e.name}/`)]) for (const width of [360,390,720,721,1440]) for (const colorScheme of ['light']) for (const reducedMotion of ['reduce','no-preference']) {
   const page=await browser.newPage({viewport:{width,height:844},colorScheme,reducedMotion});
   await page.goto(url+path);
   for (const selector of ['header nav', '#mobile-menu nav', 'footer']) {

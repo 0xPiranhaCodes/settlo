@@ -68,7 +68,7 @@ const phonesClear = () => {
       throw Error("Policy body changed: " + slug);
   }
   for (const width of [360, 390, 768, 1440]) {
-    for (const colorScheme of ["light", "dark"]) {
+    for (const colorScheme of ["light"]) {
       const context = await browser.newContext({
         viewport: { width, height: 900 },
         colorScheme,
@@ -130,6 +130,17 @@ const phonesClear = () => {
         if (await page.locator('a[href*="hellojosh.studio"], .studio').count()
           || (await page.locator("body").textContent()).includes("Made by JOSH Studio"))
           throw Error("Studio credit must only be metadata: " + path);
+        // #249: light only; a dark system preference must not change the page.
+        if (await page.locator('meta[name="color-scheme"]').getAttribute("content") !== "light")
+          throw Error("Page must declare color-scheme light: " + path);
+        if (width === 360) {
+          await page.emulateMedia({ colorScheme: "dark" });
+          const dark = await page.evaluate(() => [getComputedStyle(document.body).backgroundColor,
+            [...document.styleSheets].some((sheet) => [...sheet.cssRules].some((rule) => rule.cssText.includes("prefers-color-scheme")))]);
+          await page.emulateMedia({ colorScheme: "light" });
+          if (dark[0] !== await page.evaluate(() => getComputedStyle(document.body).backgroundColor) || dark[1])
+            throw Error("Dark preference changes the page: " + path);
+        }
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth > innerWidth,
         );
@@ -286,7 +297,7 @@ const phonesClear = () => {
   // Active motion, reduced motion, and the small legacy-browser fallback.
   const motionResults = [];
   for (const width of [360, 390, 768, 1440]) {
-    for (const colorScheme of ["light", "dark"]) {
+    for (const colorScheme of ["light"]) {
       for (const mode of ["native", "fallback", "reduced"]) {
         const context = await browser.newContext({
           viewport: { width, height: 900 },

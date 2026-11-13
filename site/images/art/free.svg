@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">
 <style>.pa{fill:#fffdf8}.fo{fill:#01381e}.ja{fill:#01672d}.ma{fill:#febd11}.sh{fill:#18271f;fill-opacity:.14}.ln{fill:none;stroke:#18271f;stroke-width:6;stroke-linecap:round}.str{fill:none;stroke:#01381e;stroke-width:6;stroke-linecap:round}.ring{fill:none;stroke:#01381e;stroke-width:14}.bl{fill:#708478}
-@media (prefers-color-scheme:dark){.fo{fill:#3d6b4f}.str{stroke:#a9bcb0}.ring{stroke:#a9bcb0}.sh{fill:#000;fill-opacity:.4}.bl{fill:#a9bcb0}}</style>
+</style>
 <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="5"/><feColorMatrix values="0 0 0 0 .09 0 0 0 0 .15 0 0 0 0 .12 0 0 0 .55 0"/><feComposite in2="SourceGraphic" operator="in"/></filter></defs>
 <g id="art">
 <!-- the string, snipped -->

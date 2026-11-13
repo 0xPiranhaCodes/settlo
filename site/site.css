@@ -12,7 +12,7 @@
   src: url(fonts/Figtree-Medium.ttf) format("truetype");
 }
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --gutter: 24px;
   --nav: #fbf8ef;
   --background: #fbf8ef;
@@ -408,9 +408,6 @@ details[open] summary::after {content:'−';}
 .sample-feed {list-style:none;padding:0;}
 .sample-feed li {padding:24px 0;border-bottom:1px solid var(--line);}
 #pause-feed + label {display:inline-block;padding:12px;}
-@media (prefers-color-scheme:dark) {
- :root {--background:#000000;--surface:#14271c;--text:#f7f2e8;--secondary:#a9bcb0;--accent:#febd11;--action:#febd11;--action-label:#01381e;--action-hover:#ffcf4d;--band:#14271c;--line:#30473c;--nav:#000000;}
-}
 @media (prefers-reduced-transparency:reduce) {
  :is(.landing,.policy,.blog) header {background:var(--nav);backdrop-filter:none;-webkit-backdrop-filter:none;}
 }
