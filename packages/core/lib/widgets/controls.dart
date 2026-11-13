@@ -133,13 +133,13 @@ Future<T?> showSettloPicker<T>({
   ),
 );
 
-/// The band behind the selected row: a Settlo surface, not system fill.
+/// Cupertino paints this band above the selected row, so keep it translucent.
 Widget _selectionOverlay(
   BuildContext context, {
   bool capStart = true,
   bool capEnd = true,
 }) => CupertinoPickerDefaultSelectionOverlay(
-  background: SettloColors.of(context).surfaceHighest,
+  background: SettloColors.of(context).surfaceHighest.withValues(alpha: 0.35),
   capStartEdge: capStart,
   capEndEdge: capEnd,
 );
