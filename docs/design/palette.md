@@ -1,32 +1,36 @@
-# SabkiJeb "Settle Check" palette (owner-supplied)
+# SabkiJeb "Settle Check" palette
+
+Dark surfaces were neutralized in #248. The owner follow-up maps green accents
+and owed amounts to marigold, and pending to neutral grey with its clock cue.
+Light roles are unchanged.
 
 Brand: Deep forest #01381E · Pocket jade #01672D · Marigold #FEBD11 · Check ivory #FEF0CE
 
 | Role | Light | Dark |
 |---|---|---|
 | App background | #FBF8EF | #000000 |
-| Card surface | #FFFDF8 | #14271C |
+| Card surface | #FFFDF8 | #1C1C1E |
 | Primary text | #18271F | #F7F2E8 |
-| Secondary text | #50645A | #A9BCB0 |
+| Secondary text | #50645A | #B8B8B8 |
 | Primary action (button fill) | #01672D | #FEBD11 |
 | Button label | #FEF0CE | #01381E |
-| Decorative divider | #D8E0D8 | #30473C |
-| Control outline | #708478 | #688778 |
-| You're owed | #01672D | #83DDA1 |
+| Decorative divider | #D8E0D8 | #48484A |
+| Control outline | #708478 | #858585 |
+| You're owed | #01672D | #FEBD11 |
 | You owe | #934636 | #F2AB98 |
-| Pending | #795309 | #F1C874 |
+| Pending | #795309 | #B8B8B8 |
 | Error | #A42E35 | #FF9CA3 |
 
 Primary button text contrast: light 6.23:1, dark 7.88:1.
 
 Palette illustration only; existing screen layouts and button shapes are retained.
 The clock is the approved non-colour cue on existing pending lines.
-Reference card ("Goa trip"): light = card surface with 1px divider-coloured border, green "Add expense" pill; dark = #14271C card, marigold pill with deep-forest label; amounts in owed/owe colours; a "pending" line with a clock icon in the pending colour.
+Reference card ("Goa trip"): light = card surface with 1px divider-coloured border, green "Add expense" pill; dark = #1C1C1E card, marigold pill with deep-forest label; amounts in owed/owe colours; a "pending" line with a clock icon in the pending colour.
 
 ## Derived roles
 
-- Raised inputs/secondary surfaces: light `#F6F1E5` (ivory tinted toward the app background); dark `#1A3023` (forest lifted toward the card surface).
-- Highest surfaces, avatars, chip tracks and chart tracks: light `#E8EDDE` (ivory with a jade tint); dark `#244332` (lifted forest). Primary text sits on these fills.
+- Raised inputs/secondary surfaces: light `#F6F1E5` (ivory tinted toward the app background); dark `#2C2C2E` (neutral charcoal).
+- Highest surfaces, avatars, chip tracks and chart tracks: light `#E8EDDE` (ivory with a jade tint); dark `#3A3A3C` (neutral charcoal). Primary text sits on these fills.
 - Selected chips and navigation pills use the primary action and button label pair. Both gradient endpoints are identical so the exact action colour stays intact. Unselected outlines use the control-outline role.
 - Muted text uses secondary text, preserving AA contrast. Specular card edges use the divider; they do not introduce a second border colour.
 - Glass is card surface at 60% light / 62% dark opacity; the fallback is 92%. Glass borders use the divider. Native UIKit receives the same ARGB action tint from Flutter; supplied artwork stays untinted.

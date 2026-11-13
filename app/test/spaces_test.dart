@@ -148,25 +148,44 @@ Future<void> _scrollToEnd(WidgetTester tester) async {
 }
 
 Future<int> _moneyColourPixels(WidgetTester tester) async {
-  final data = (await tester.runAsync(() async {
-    final image = await captureImage(
-      tester.element(find.byKey(fairnessCardKey)),
-    );
-    return await image.toByteData();
-  }))!;
+  // Marigold is now both the paid-bar accent and the owed money role. Inspect
+  // only the rendered delta amounts, so the chart cannot cause a false alarm.
+  final amounts = find.descendant(
+    of: find.byKey(fairnessCardKey),
+    matching: find.byType(MoneyText),
+  );
+  expect(amounts, findsNWidgets(3));
   final colours = [
     SettloColors.dark.money(MoneyTone.owedToYou),
     SettloColors.dark.money(MoneyTone.youOwe),
   ];
   int channel(double value) => (value * 255).round();
   var count = 0;
-  for (var i = 0; i < data.lengthInBytes; i += 4) {
-    for (final colour in colours) {
-      if ((data.getUint8(i) - channel(colour.r)).abs() <= 4 &&
-          (data.getUint8(i + 1) - channel(colour.g)).abs() <= 4 &&
-          (data.getUint8(i + 2) - channel(colour.b)).abs() <= 4) {
-        count++;
-        break;
+  for (final element in amounts.evaluate()) {
+    final box = element.renderObject! as RenderBox;
+    RenderObject boundary = box;
+    while (!boundary.isRepaintBoundary) {
+      boundary = boundary.parent!;
+    }
+    final bounds =
+        box.localToGlobal(Offset.zero, ancestor: boundary) & box.size;
+    final data = (await tester.runAsync(() async {
+      final layer = boundary.debugLayer! as OffsetLayer;
+      final image = await layer.toImage(bounds);
+      try {
+        return await image.toByteData();
+      } finally {
+        image.dispose();
+      }
+    }))!;
+    for (var i = 0; i < data.lengthInBytes; i += 4) {
+      for (final colour in colours) {
+        if ((data.getUint8(i) - channel(colour.r)).abs() <= 4 &&
+            (data.getUint8(i + 1) - channel(colour.g)).abs() <= 4 &&
+            (data.getUint8(i + 2) - channel(colour.b)).abs() <= 4) {
+          count++;
+          break;
+        }
       }
     }
   }
@@ -761,7 +780,7 @@ void main() {
       );
     });
 
-    testWidgets('fairness card never uses outstanding-balance colours', (
+    testWidgets('fairness deltas never use outstanding-balance colours', (
       tester,
     ) async {
       for (final spaces in [
@@ -1001,10 +1020,7 @@ void main() {
     });
 
     testWidgets('on iOS, delete asks with an action sheet', (tester) async {
-      final (_, ledger) = await pumpSpace(
-        tester,
-        platform: TargetPlatform.iOS,
-      );
+      final (_, ledger) = await pumpSpace(tester, platform: TargetPlatform.iOS);
       await openExpense(tester, 'Electricity');
 
       await tester.tap(find.text('Delete expense'));
@@ -1027,10 +1043,7 @@ void main() {
     testWidgets('on iOS, the space has a large title and back to Spaces', (
       tester,
     ) async {
-      final (router, _) = await pumpSpace(
-        tester,
-        platform: TargetPlatform.iOS,
-      );
+      final (router, _) = await pumpSpace(tester, platform: TargetPlatform.iOS);
 
       expect(find.byType(CupertinoSliverNavigationBar), findsOne);
       final back = find.byType(CupertinoNavigationBarBackButton);

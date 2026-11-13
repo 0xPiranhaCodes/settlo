@@ -34,7 +34,24 @@ class SPrimaryButton extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12),
             ),
       onPressed: onPressed,
-      child: _ButtonLabel(label: label, icon: icon),
+      child: _ButtonLabel(
+        label: label,
+        icon:
+            onPressed == null &&
+                Theme.of(context).brightness == Brightness.dark &&
+                icon != null
+            ? ColorFiltered(
+                // Custom glyphs may paint their own enabled colour. Forest
+                // foregrounds belong on marigold, never disabled grey fills.
+                colorFilter: ColorFilter.mode(
+                  Theme.of(context).colorScheme.onSurface
+                      .withValues(alpha: 0.38),
+                  BlendMode.srcIn,
+                ),
+                child: icon,
+              )
+            : icon,
+      ),
     ),
   );
 }

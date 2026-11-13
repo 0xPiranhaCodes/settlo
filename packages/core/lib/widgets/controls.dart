@@ -62,8 +62,12 @@ class SSwitch extends StatelessWidget {
         onChanged: onChanged,
         activeTrackColor: c.action,
         inactiveTrackColor: c.surfaceHighest,
-        // On a near-white dark-theme track the white thumb would vanish.
-        thumbColor: value ? c.onAction : null,
+        // Dark thumbs are neutral fills; forest is only an action foreground.
+        thumbColor: value
+            ? (Theme.of(context).brightness == Brightness.dark
+                  ? c.background
+                  : c.onAction)
+            : null,
       ),
     );
   }

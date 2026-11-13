@@ -31,6 +31,21 @@ void main() {
       expect(SettloTheme.dark().colorScheme.error, const Color(0xFFFF9CA3));
     });
 
+    test('switch thumb stays neutral in dark and unchanged in light', () {
+      expect(
+        SettloTheme.dark().switchTheme.thumbColor!.resolve({
+          WidgetState.selected,
+        }),
+        SettloColors.dark.background,
+      );
+      expect(
+        SettloTheme.light().switchTheme.thumbColor!.resolve({
+          WidgetState.selected,
+        }),
+        SettloColors.light.onAction,
+      );
+    });
+
     test('text is Figtree with tabular figures', () {
       final text = SettloTheme.dark().textTheme;
       for (final style in [
@@ -86,16 +101,16 @@ void main() {
         roles(SettloColors.dark),
         [
           0xFF000000,
-          0xFF14271C,
+          0xFF1C1C1E,
           0xFFF7F2E8,
-          0xFFA9BCB0,
+          0xFFB8B8B8,
           0xFFFEBD11,
           0xFF01381E,
-          0xFF30473C,
-          0xFF688778,
-          0xFF83DDA1,
+          0xFF48484A,
+          0xFF858585,
+          0xFFFEBD11,
           0xFFF2AB98,
-          0xFFF1C874,
+          0xFFB8B8B8,
           0xFFFF9CA3,
         ].map(Color.new).toList(),
       );
@@ -103,7 +118,7 @@ void main() {
 
     test('money tones', () {
       const c = SettloColors.dark;
-      expect(c.money(MoneyTone.owedToYou), const Color(0xFF83DDA1));
+      expect(c.money(MoneyTone.owedToYou), const Color(0xFFFEBD11));
       expect(c.money(MoneyTone.youOwe), const Color(0xFFF2AB98));
       expect(c.money(MoneyTone.settled), c.textSecondary);
       expect(c.money(MoneyTone.neutral), c.textPrimary);

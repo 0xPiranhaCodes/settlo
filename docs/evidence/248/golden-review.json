@@ -1,0 +1,1841 @@
+{
+  "renderer": "Flutter 3.47.9 Linux/amd64",
+  "images": [
+    {
+      "path": "app/test/goldens/activity_360x800_dark.png",
+      "sha256": "e8369fe58c1f6b720dfdddeba72cee24b51f1a389d5ef0d63eeac9f2c029dc8f",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/activity_360x800_new_dark.png",
+      "sha256": "3995bb1b32bfe994a89bcaea7c439bca02023b09c99420520d600c0d37dbabab",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/activity_360x800_text200_dark.png",
+      "sha256": "e8f93771832bec5b24c06616b9511f3dc50c9cc76461a31d6f746206067248a3",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/activity_360x800_text200_new_dark.png",
+      "sha256": "e8f93771832bec5b24c06616b9511f3dc50c9cc76461a31d6f746206067248a3",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/activity_390x844_dark.png",
+      "sha256": "ac8ee50bc271c3fda6ed984f7bc723b5a4133615f670ea233322f58c6a1e045a",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/activity_390x844_new_dark.png",
+      "sha256": "78b83356cf5567fd2a933646590dbb3cedc7fe43cca14df675e804ce268efaf7",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/activity_390x844_text200_dark.png",
+      "sha256": "ecf2ffe290a9a650966001cddc6a67a5c608d100dbc47ea132b4e91ef756eec2",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/activity_390x844_text200_new_dark.png",
+      "sha256": "ecf2ffe290a9a650966001cddc6a67a5c608d100dbc47ea132b4e91ef756eec2",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/add_expense_360x800_dark.png",
+      "sha256": "ccbd34488e75241ecb54d9ee7cad34fe675ae0176c8eb4a221fc96bd4b5f54bf",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/add_expense_360x800_text200_dark.png",
+      "sha256": "d8ff37c8718b8efeba1922b8d5ac733b0f0fb9bc1dd78eac6c4293b9aeebcbd9",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/add_expense_390x844_dark.png",
+      "sha256": "79bf6a16420c5048656d3130b2af024326f692f22efc1248495e9a1167d5a8f0",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/add_expense_390x844_text200_dark.png",
+      "sha256": "68b443afd51b3d9bcd29ecc068d926a9180c9769ec5417a75f662da8a25c8c36",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/add_expense_ios_360x800_dark.png",
+      "sha256": "be04f6e614cd0c0200cc62e1ca7a24500c7032206200c274f7d0dcd5766f4614",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/add_expense_ios_390x844_dark.png",
+      "sha256": "1327fbf0a643cca1db0653f24cfde5dd0f3ccdee0ffc3a981f86d46b9425fe22",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_otp_360x800_dark.png",
+      "sha256": "ba6dd6c0978be613acfe0048910e7c4bd2f01c8197b6229499bb685a11dad4e9",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_otp_360x800_text200_dark.png",
+      "sha256": "835ee5c0437ba8e9ea162c9353fc28146519b68c041278557f416599f8c49351",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_otp_390x844_dark.png",
+      "sha256": "fa23e6538eb9cdea9e8db67578d11ca9c6577497c1babb30b734479e4fb06d7f",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_otp_390x844_text200_dark.png",
+      "sha256": "c0765d6eded1217e5560b5904f87c2a9b2734a78bada1fe6622fb9e7b6255e23",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_phone_360x800_dark.png",
+      "sha256": "99519a445464d84bdf4e56fa866b91e342bf4a47f72ee076891002b76f5dad08",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_phone_360x800_text200_dark.png",
+      "sha256": "f52d56a45834ce84edb4ebb05ddea3484ef9b133e6b3bb0b2ff436926e7891c1",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_phone_390x844_dark.png",
+      "sha256": "e96df64aa2fde57b8faae6512a1fb4746df824533c8615fef09bec1fc440a4df",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_phone_390x844_text200_dark.png",
+      "sha256": "f1285fbcbf0e288a3a2d40fca99bf29b677de1090400ca6ea6ac02ddd8f7a55c",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_welcome_360x800_dark.png",
+      "sha256": "7efe048d4a1c4b5b73a731737225fd9c6c1ed9b2c589b32c0a54e20410c7ee19",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_welcome_360x800_text200_dark.png",
+      "sha256": "ca06a90afb97245a92e85d87e7189a9a14cb7767948d1e0e5a128a7d41c1269c",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_welcome_390x844_dark.png",
+      "sha256": "53796db1b064e1d00e455f02ed6670b6f7a15af4e474a3a215bdf955169cf059",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_welcome_390x844_text200_dark.png",
+      "sha256": "1a48a255bb78da917554c1bef21c706ca3b6145248c18743e18b9a50e9ca36f4",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/auth_welcome_pressed_390x844_dark.png",
+      "sha256": "96da49b6aca44234c61de64497cd6a08be7c911c8d38ac49a0a1a3779b025e32",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/confirm_repayment_360x800_dark.png",
+      "sha256": "713749cf669f3c42a8ad9c5722205919972e042909955f6b4de7c45db9b32318",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/confirm_repayment_360x800_text200_dark.png",
+      "sha256": "cc0b21142f87cebc0b89a451cd9a475984770a7de763e90ae12eed695ff44bde",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/confirm_repayment_390x844_dark.png",
+      "sha256": "494df1a64f755960104c5ed521d119592e0b337e5cb89aaa50c530f7aac16fe4",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/confirm_repayment_390x844_text200_dark.png",
+      "sha256": "91554a90c6da4e9acd97fcb6e76cabd042020d7862509dcbb9ed1d44785126be",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_360x800_dark_blur.png",
+      "sha256": "43a7ca11ae1ce4170abfa8fda8241d15fac15812afdf7148ca02dcc1cb6f05ff",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_360x800_dark_solid.png",
+      "sha256": "c1e13f4fee98d1b0065f5fc05006467150f84f525b0d6dcc6de6904b772a1271",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_360x800_light_blur.png",
+      "sha256": "f4e01b345283391f40e1c4dbe713e81ed11367800f7be8a605204a86f0c4dc5f",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_360x800_light_solid.png",
+      "sha256": "554e733702c64a12e12ab7be39e997eb28cc9bcafe9014ef1e0428e005e6291e",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_360x800_text200_dark_blur.png",
+      "sha256": "efda13ea07be80c3aef1fac278376521e11c21c83cd93c686c12cc6150175b9d",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_360x800_text200_dark_solid.png",
+      "sha256": "a7027bc3800a10c18d9e4c8636c518ab0ea0063050026952748532c73bd98010",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_360x800_text200_light_blur.png",
+      "sha256": "f279cb9e1bbb832d506d4ef82daa34bbceadf53a3f872462d87c718d04032673",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_360x800_text200_light_solid.png",
+      "sha256": "f2b5c33212c9e9b8b858334a5b60fabcb7a5b46845f226a3f3f4b0edb592c808",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_390x844_dark_blur.png",
+      "sha256": "541355078ae36e5329f4773c8491da7992ba4634fffe3aa3da1a12a5e1018372",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_390x844_dark_solid.png",
+      "sha256": "8bcb040490c841bdc8a6c8704eeefbb393bcda44a76930080f15e9c7a224b7d5",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_390x844_light_blur.png",
+      "sha256": "71fd239e18a51d63eababe587891e7fe722c697657a74eaa3270e0cf3a040606",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_390x844_light_solid.png",
+      "sha256": "e2bf22378dde2c6b3d2cae0df7b042ac93304a5e15fb735a203ecaf4a2b4a1ff",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_390x844_text200_dark_blur.png",
+      "sha256": "d019da4589a790577c87cbaea947c26683b6fe626aac0ab2b4c25e9f4fab3cf6",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_390x844_text200_dark_solid.png",
+      "sha256": "67dfa17d0a54c7e06f52e814ed0d3f92403243871133134634315988db7574af",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_390x844_text200_light_blur.png",
+      "sha256": "c40d619ffa50e8f9d196b3f6be9631e8611e670f654b7e4cd9373d8bef8875d3",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/glass_scrolled_390x844_text200_light_solid.png",
+      "sha256": "032286b6fad10f064eb2d07db874693005b70e5e9d9d7d70212ae086e2b25f7b",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/golden_harness_360x800_dark.png",
+      "sha256": "b67e52f0f530d373946e41f19fc9faaff1e8a86196220d3fd5410adbe4cc6b3c",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/golden_harness_390x844_dark.png",
+      "sha256": "6e0226bc4988a2e38a3680c8061d6e3e03448f82542d5fce3574795dc1f50d42",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_comparison_390x844_dark.png",
+      "sha256": "e8dbca9e5954d8012ef59e375d04cc83a5ecedcb2d2b15340b8c345545330ca3",
+      "dimensions": [
+        780,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_empty_360x800_dark.png",
+      "sha256": "33e36934f7cc49d27caf73489a07ccd392bdd44cdd6796b7ed65bc43cc3e2a62",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_empty_360x800_text200_dark.png",
+      "sha256": "7070f06277d57f274c04fabc94035faac3b8ae08624757ec81982271c65f5bf8",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_empty_390x844_dark.png",
+      "sha256": "f20cd3376d88835f8b131d861e36100378b4b290afe8aa39c1e2ec498a073341",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_empty_390x844_text200_dark.png",
+      "sha256": "00073e3257ac9bd87a168223f020e15355ee14f7a55c83178c4fb40396ec506d",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_found_360x800_dark.png",
+      "sha256": "7bbcb8e8f3b500cca1314675a792bdfabd8906ab5e3bbea111325630d33620b4",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_found_360x800_text200_dark.png",
+      "sha256": "8c46ce752f70f51354bf6d4fb323d0ea1c7a0f73a72556cc8c22dc57af7d33aa",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_found_390x844_dark.png",
+      "sha256": "98675e92a2d8bb07ab943f4ebc4ac90bf2f059750392617f1cfa20ae27549bd4",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_found_390x844_text200_dark.png",
+      "sha256": "f518fc7374f73aa3c79824a4a073b876ecc09e6904b5bbc39807fe819ca8d5fe",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_main_360x800_dark.png",
+      "sha256": "0bd87ae90dda2fc8322d8c172bbd8d52384374030633de439dfa9773c489ab28",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_main_360x800_text200_dark.png",
+      "sha256": "5bd2b64298180947c99d59ba0dfca216d7dd9b9c26f7d8ead08da2982d5d35aa",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_main_390x844_dark.png",
+      "sha256": "e9f3dd99f610da805ff5a84ee7e7aeb3ec91c6e0f6a1a5d2584fcb039ce9854a",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/home_main_390x844_text200_dark.png",
+      "sha256": "12af72ca8238e1328bf486ba9e8aa26c67965c5632b5b7f4d5fb04cde239f449",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/ios26_home_dark_rest.png",
+      "sha256": "bf24f52f025f000564de015be6a73dc5741eebccf9565ecd094a036be35cf26b",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/ios26_home_dark_scrolled.png",
+      "sha256": "d345f9da39b07ca253f7b07ab6218bf15109b8bd87eb4ce5d9e7cc57f960fab6",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/ios26_space_dark_rest.png",
+      "sha256": "1d3ec8a2d0dacc9e5b1e7ca59503fc1cb8ad0c648edc868008cf2ca114596f44",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/ios26_space_dark_scrolled.png",
+      "sha256": "babe3cc80d8caaec838bd79605d68589148482399feb6fdebe57588824cfd815",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/join_360x800_dark.png",
+      "sha256": "a5f8323619edb995d9a743e325576c32d5503c3c7019fc1c83770354e3e01741",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/join_360x800_text200_dark.png",
+      "sha256": "89fac74d8e13efd81edf14e88bc9ca5f0441b300b0750651b99373cafcd41884",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/join_390x844_dark.png",
+      "sha256": "b17333ca623f47e2dce47dc337ab912e913c0fed3c596164241900963d183f61",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/join_390x844_text200_dark.png",
+      "sha256": "fcfea5668a04953c4db5e441452e03262f4ea948e6967660522eef10aefec986",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/loans_detail_360x800_dark.png",
+      "sha256": "92bb8b70ef855b31d706cbe862f61816ed99ec020af3d08e787c5a230f630709",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/loans_detail_360x800_text200_dark.png",
+      "sha256": "6431e307d89207f0e3666e246fd041a4e10e8060a9b7324061f5cd4f0fb38f37",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/loans_detail_390x844_dark.png",
+      "sha256": "c984c3d63e5dd5b47a7370405e0fd427e0215dbe9468cf0e06834e61a3eb81c2",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/loans_detail_390x844_text200_dark.png",
+      "sha256": "377391032bef01a4ba1a36df6811ab982660dd759b46cd7e49ea31e9797b8fce",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/loans_list_360x800_dark.png",
+      "sha256": "e08735cf6488d1a4ff82fa281508c7cc5f4415ad3042b198f60f6c914d240c8d",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/loans_list_360x800_text200_dark.png",
+      "sha256": "ee88f6cbf279e65c65bfdd1b5f0cd59ec8de12bbb65dce210282de9a157bec72",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/loans_list_390x844_dark.png",
+      "sha256": "695f6179af5f89038e791304b96855fa54c0edf30692a645417ee80732ea132f",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/loans_list_390x844_text200_dark.png",
+      "sha256": "19c768a79c58df8ccd43d000bd934b5a3e3cb90fa651893cbd8d24bff322915d",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/new_loan_360x800_dark.png",
+      "sha256": "1cc578a881298fbd48165de72fd4b8536f00bdcd9ef958aa10dc22abcb2ccc2a",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/new_loan_360x800_text200_dark.png",
+      "sha256": "ce01f880f5439864b2d71269ebcc2029e6110e3a5af294c6f328dc6d0d4f57a8",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/new_loan_390x844_dark.png",
+      "sha256": "cf3d62399b41afc3f80de7792db4afb9a6cc7e4867ffbe2858c58fb667ade2f5",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/new_loan_390x844_text200_dark.png",
+      "sha256": "0b37d4fb8bfb7f8f0ba6e9e495b413eca513ec3aabe28e6f2170d14b292aa214",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/new_loan_ios_360x800_dark.png",
+      "sha256": "9e79fda8ad99dda154cb904f21792db2e3dff010f77ea5223ad3dc7795616092",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/new_loan_ios_390x844_dark.png",
+      "sha256": "deac3b48986cf5e7cc70f9e2fcc32ecb346c6769776def45fd486e2c58e18a88",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_360x800_dark.png",
+      "sha256": "294c8f20ae3bbfc32ee6f716f5ce80ea749c40df468404510c6e501460c80bf0",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_360x800_text200_dark.png",
+      "sha256": "8135dd6a669529aea19fb398406717ed4eb79be68b88224a2aed6e72df7c0235",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_390x844_dark.png",
+      "sha256": "27ed852b7faddf0c77b312674fad717d9eb6ce083aa2d7003aa994bfc7159a62",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_390x844_text200_dark.png",
+      "sha256": "15cb49d720a3917ac5fddfaaca057c52ee2af1c12662e59e269411216bb45493",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_ios_360x800_dark.png",
+      "sha256": "6f52ca0fed8d75388a9007c615645a46d9599c9bbb5a741ab7b9ef693aae654d",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_ios_360x800_text200_dark.png",
+      "sha256": "a54004a8c5c614e4c57dce389585d0987540abbfdd651da735a138d7d746fb3d",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_ios_390x844_dark.png",
+      "sha256": "bd0f791b77ae54503d631a56ae0a3097038c0158f5fd5f4c4fbf89c9f3bda37b",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_ios_390x844_text200_dark.png",
+      "sha256": "96d2cf6e1dad3603b72b95a734a80ee23d2949fab55e4919a96e1ae65bcbf3c0",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_ios_scrolled_360x800_dark.png",
+      "sha256": "19a0c44131b5a22771d2139476832af11fcec167a9b8190405c21e02cdd15395",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_ios_scrolled_360x800_text200_dark.png",
+      "sha256": "2137453d7408c629dfbd0f68cdca16876b0c679e6ff832a4deb4317aa4740534",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_ios_scrolled_390x844_dark.png",
+      "sha256": "190a47130023d8449cd722eae6a0a695dfe86fb8c40c7f8b00bd2e04bef287e3",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_ios_scrolled_390x844_text200_dark.png",
+      "sha256": "88abbc724a79ea95a1ee11f1749e13d48e8f40a943a2c033f5cc52e220b1ad01",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_scrolled_360x800_dark.png",
+      "sha256": "5786ccab3bdad6964015f3412146fa2bcfb67340e2256cd34714347f72d206a3",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_scrolled_360x800_text200_dark.png",
+      "sha256": "d66d85805f5ca2a9488b715a57dc840b8f1723cc093103aaedec9525a651e409",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_scrolled_390x844_dark.png",
+      "sha256": "ef85ef91a2fa6b1dc322a8f09bbb7f117f5c745a2890fc188439c3e148a7a01a",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/profile_scrolled_390x844_text200_dark.png",
+      "sha256": "cbbbb945969ebfca7d342a260b5ce98cc1511e88d40f7ae4e77ea4a8df836342",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/scroll_rest_360x800_dark.png",
+      "sha256": "bed921ee63b781c6c980934c53b1d5444cba70abadfbf36fb5e24cb8372bf27e",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/scroll_rest_360x800_text200_dark.png",
+      "sha256": "46410ec3a0350cf956f6cb883654fd1717d0042e12359ac33aea693bcb2d78ed",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/scroll_rest_390x844_dark.png",
+      "sha256": "52c5f4679ce5bae87341e79fefeb9caea7a2fc0e46c3e04647fa721b9497d91e",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/scroll_rest_390x844_text200_dark.png",
+      "sha256": "a88064aa3dc15aa48caf44b050b84393b289c7a935491e46a22c8ccb4f044495",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/scroll_scrolled_360x800_dark.png",
+      "sha256": "1856e53a588fd57dd0dc336e2a31b1bdf7b38d181bb166c1376d77e956458923",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/scroll_scrolled_360x800_text200_dark.png",
+      "sha256": "a4d2a658fc48f6ca5bb647d16a885309c8c9931c260cb772da183202ddf6f3ad",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/scroll_scrolled_390x844_dark.png",
+      "sha256": "f48c94f8d41ea18f8ace9126fa4acd69871134126214c2d9320e6212387a6729",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/scroll_scrolled_390x844_text200_dark.png",
+      "sha256": "ee03dc311f7d0b898bc1a9087b5caf252f7ddbc594adbe4bd2ca10fb7d38bfcd",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/settle_360x800_dark.png",
+      "sha256": "4e6d5d920f142996c92138ca60f12a11b1c0e01ba0650e1842e916e7ead86e41",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/settle_360x800_text200_dark.png",
+      "sha256": "cf04a717d724940418429f21438982d677ec99eac289714e37beeda4d75ac414",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/settle_390x844_dark.png",
+      "sha256": "cc23637e1c58fe06bf0e573f2ffa007f60a992cf28b03ab163ab9579cbede60d",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/settle_390x844_text200_dark.png",
+      "sha256": "4c201b3323587706fbb87968b3ce2202857667975c2feac1ccff958e10aa374c",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/settle_pay_360x800_dark.png",
+      "sha256": "5f8afb508e9611e08c94908b97e0b926a8b3341db6772f50a32d23fa10556b4e",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/settle_pay_360x800_text200_dark.png",
+      "sha256": "97ccf2ba5bd36486e454f607ea99366425a300fd73375ebeb54769506ada3f05",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/settle_pay_390x844_dark.png",
+      "sha256": "1b7eba717e40914300da526dd56a35953019c9531f437c5a09b8c1c7572be8ed",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/settle_pay_390x844_text200_dark.png",
+      "sha256": "b08c90623917f5f783efe03520d45f4041d35390a3256a48e2706e594365329c",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_appearance_360x800_dark.png",
+      "sha256": "f25302a656891383fcfc0e1c325a57b37455492dc478bb617a94c7ee526a4ab9",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_appearance_360x800_text200_dark.png",
+      "sha256": "456346447248c99e1b7ff5c66613fffd9e562afc9a37f9cf5b41e5a3262b4bf1",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_appearance_390x844_dark.png",
+      "sha256": "8f56b78f564f37b9c85767809875974f1efe6cdcde434b92005f7158dab4abd2",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_appearance_390x844_text200_dark.png",
+      "sha256": "b669fc6047bd09954c7bbc5b6f0cac4146d62bbac21e316c0ccdaeb0a626b534",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_confirmation_dispute_360x800_dark.png",
+      "sha256": "1d38851c43f27df4fe89e1703414d5aa52a5455b78a04a2973bf604405e3e9c9",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_confirmation_dispute_360x800_text200_dark.png",
+      "sha256": "ac225eda053103d3c4e559685000f3d64a53a7273addc3230531b19a0013c91d",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_confirmation_dispute_390x844_dark.png",
+      "sha256": "829734a3716e5a414cce6f4badc36c24a8f482f1b901b8c1c9e3fa72f7120996",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_confirmation_dispute_390x844_text200_dark.png",
+      "sha256": "70c99cf9fda9d4c433ed93fd78e69a38b20530071d7c89a6b1c4b3bf22886cb5",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_country_picker_360x800_dark.png",
+      "sha256": "db89599fe7eeccfb7205b0d2d028e37196a7a45ae80bf1e4cda8f71ec0d868a4",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_country_picker_360x800_text200_dark.png",
+      "sha256": "de262da741e564fc925ff2f6ba052432d1510e74c9b49da3e60f16b5aae36c81",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_country_picker_390x844_dark.png",
+      "sha256": "786e01630df98cb58fa94475f2431db5318d95f19af5c0a60c97208a19842761",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_country_picker_390x844_text200_dark.png",
+      "sha256": "10acae11913650b1093e84d28a388dc421c954fe8ec183c68003e5938089e7ed",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_create_space_360x800_dark.png",
+      "sha256": "61c89a7b9b9f938a66697898f5bbbbd47224e16efd3bba3be33b3b2ba2b78ecb",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_create_space_360x800_text200_dark.png",
+      "sha256": "71a8bb2fe2c045f52fe8cd3c45f6553996cb940ab7a36030f19ad5335705ac27",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_create_space_390x844_dark.png",
+      "sha256": "2171f48bb95b0f180bae819b121581ea66a3fdcccb9b7890ca190b6d3450cf18",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_create_space_390x844_text200_dark.png",
+      "sha256": "181ea6c23eecf28d47b56f9744a096e1f503eb28d2340b066b01091a82974f2b",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_delete_account_360x800_dark.png",
+      "sha256": "29435ca8f4e835909a1fad5020a3c928e31703fcd7a05d6d497329c99afc210d",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_delete_account_360x800_text200_dark.png",
+      "sha256": "32f4e07f794dd84063391986213324aed38ebcf3fb5c886fe619716cf2dc4778",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_delete_account_390x844_dark.png",
+      "sha256": "d64a1fb2a62b36722865c89f4654a5a27e9c4f52c06a417b80a60f9a25950790",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_delete_account_390x844_text200_dark.png",
+      "sha256": "0445e1df37f29cc27afee9156b25ee4edd93a857187206e263819e74db4be5e0",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_edit_expense_360x800_dark.png",
+      "sha256": "2fb72e7e43a38cda626cbc07f492a0dd668133fcdc88afd50716a04847d1c577",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_edit_expense_360x800_text200_dark.png",
+      "sha256": "84fa991c95b9c2b24882ba2ca22b91875aca637652cdd5c0873a6ca4bc466b8f",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_edit_expense_390x844_dark.png",
+      "sha256": "6d3df98e3b71b0be093e47a777a083013afaf510cd2a0818e2fee5362e38a8df",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_edit_expense_390x844_text200_dark.png",
+      "sha256": "cd813aa71a63a2cbbb013b08ca0db6d0b5c45a27f4cbbdd31101cd95b3f349f1",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_edit_profile_360x800_dark.png",
+      "sha256": "3306cc35984bdd2a9a90d16f27739feb21f5529dd8afd993b99d0e231e88eef3",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_edit_profile_360x800_text200_dark.png",
+      "sha256": "3208cd3e0bfac727883fbc10d8425349b121a7fcc561f4151684d6642fce018e",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_edit_profile_390x844_dark.png",
+      "sha256": "76aa949aa1994d871d54ba38efb5fb6c21d13273e98e49767a9ad5bfcc78cb71",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_edit_profile_390x844_text200_dark.png",
+      "sha256": "bfd78d43871a02c437f081da100bd51c04469ad4d25d78d43038c30711b946a0",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_export_360x800_dark.png",
+      "sha256": "2acf2832c9a0344ab81074b463a34569738324a72b6367699958d612e4639189",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_export_360x800_text200_dark.png",
+      "sha256": "e73d8522758ced8658ff4987793a9c4398a9cfdcf31715832dba1c89c4134e6d",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_export_390x844_dark.png",
+      "sha256": "ac8c91a6d4fef0da208799151833770ea1c33a359395937776b3adb20af732d9",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_export_390x844_text200_dark.png",
+      "sha256": "3ccfca048cc9b88c7dd1453c12cdb6d7445354a0f4f81a4ec5730c3953438cce",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_loan_dispute_360x800_dark.png",
+      "sha256": "f7cc5e2137788d444e2ce30c1f50d7996c7a8f1bef96665fa7431a58442022b6",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_loan_dispute_360x800_text200_dark.png",
+      "sha256": "8f8361d28202e79b9e2133bd4779a44e076d74379218ff3221ef12a6ff570050",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_loan_dispute_390x844_dark.png",
+      "sha256": "a0fc736f7da0ced12c65ab7232886099983dec8c72e95172164b2f00b5124b0e",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_loan_dispute_390x844_text200_dark.png",
+      "sha256": "7295f0771622f472c038f9ba1323371869533c34054af6a9f77d387a22762edd",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_question_edit_360x800_dark.png",
+      "sha256": "113accd478dcfd90df724a3f20e18a3fe33a3a01ba69b28eee2c9289978e4557",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_question_edit_360x800_text200_dark.png",
+      "sha256": "8f8ee3dda92480a1242789fdde8456977350f8ab5f48d99d1eca6869ce9c412b",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_question_edit_390x844_dark.png",
+      "sha256": "39589ca408d32a4abf7089a1abab3793d79cd43c9a342a83177ae3ece2145a45",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_question_edit_390x844_text200_dark.png",
+      "sha256": "531c42006cbbb2e3ffa56f233dc1293bf1a477ed7aaa0f2815e46092ee293a7e",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_record_repayment_360x800_dark.png",
+      "sha256": "146c2c0fbbe507c105c7f7adee5bf5681b1f2a0158018ce2dc47443106158f01",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_record_repayment_360x800_text200_dark.png",
+      "sha256": "659149ae35f84f873b0c1767088e53a63d9541b87d06fdd335a05326a69779a4",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_record_repayment_390x844_dark.png",
+      "sha256": "fb31a7a63ea664c02d251f16a3ef20244ea031506758efb546251cff8fc6d301",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_record_repayment_390x844_text200_dark.png",
+      "sha256": "ff68cf3ad8cf4940b06e21cb7f02eca96608042e9e9f91c7ebc25aa728955ecf",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_sign_out_unsent_360x800_dark.png",
+      "sha256": "5c70ead51f3157e9031b57e406ef3f7235c24dde7c6c14c0bfb682c1e439ffb6",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_sign_out_unsent_360x800_text200_dark.png",
+      "sha256": "6b5be09725f02c3f8912915c700457cbe6c19cde15d7ce24c170b7e695586bac",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_sign_out_unsent_390x844_dark.png",
+      "sha256": "29cba44cb0f9b6928a8bffa875b9819fd89a431ca915d374f54327f986373a3d",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/sheet_sign_out_unsent_390x844_text200_dark.png",
+      "sha256": "db1fb8e83aca65ac3503c3282eea821c53001c654bf0af5139648d36469f248e",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_balances_360x800_dark.png",
+      "sha256": "84af879c389e841d5781b65e30872ce2c11bb1ca2307bd64540d5e9b49741b04",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_balances_360x800_text200_dark.png",
+      "sha256": "338d6dc9b431ada4c63b476a8ccc3464b3ec6b0fb7c47c3fa23c0a956765018a",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_balances_390x844_dark.png",
+      "sha256": "e9aa1122a6d9068bb287e0b6226c3fcfb2c657a6de65432ba452f641c0e3e1b1",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_balances_390x844_text200_dark.png",
+      "sha256": "e572d83f7492183de03d2fc10d5c240983a4ea8444e71be639e59b3a1bd842b0",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_empty_360x800_dark.png",
+      "sha256": "ef9ee909ce9308450279e7f1ab883ae46205ea6271bed02e6d756ac141503548",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_empty_360x800_text200_dark.png",
+      "sha256": "11b14daeeea406af5060ca78f04c5038467d9e0310a5609d9fd3106fb36a34d8",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_empty_390x844_dark.png",
+      "sha256": "b45590efc667ac13c725811eef7aac96ee19ace79d24bcebc5d1072fa471ac65",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_empty_390x844_text200_dark.png",
+      "sha256": "71451462baab7cdf85884d205ef315fd2cbad96db4586a655a727490eba1401f",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_expenses_360x800_dark.png",
+      "sha256": "98cfe67c620e9dcc8bffb4ae225adb8c67c3ebdd20df9b4d8f9343df7887d47a",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_expenses_360x800_text200_dark.png",
+      "sha256": "247cc0592ba37847ad6138dfec1db40abd5488c63d41016f35e8a30056884e74",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_expenses_390x844_dark.png",
+      "sha256": "cea4bc4d4d0a591caaff92dc6cfa84039cc5f218408b3de694651a16c2594e29",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_expenses_390x844_text200_dark.png",
+      "sha256": "a3616058c1f8a8ca4836544fd4327ce4389f8515aab67747b13e4f4018fa925e",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_expenses_ios_360x800_dark.png",
+      "sha256": "218df6c2660c9a1e653535948dcf8794082fef7aaf4b3915fb6493f79a7751de",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_expenses_ios_390x844_dark.png",
+      "sha256": "8fcd213bb1af998cbba2f00654be309d91d5b27497538efb856019a985961cc1",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_list_360x800_dark.png",
+      "sha256": "2453fcfdeed48397a6b902f659044322809760ba471602b175a1440cb46aa105",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_list_360x800_text200_dark.png",
+      "sha256": "4bac5e4b079548cec08898e9fff61cfac22a4568cbafc06cbf8699ef18365409",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_list_390x844_dark.png",
+      "sha256": "81f675f3bf7e7a6cb67c2b6f32b68497100ce5ce43809453a5a737abb25fd50e",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_list_390x844_text200_dark.png",
+      "sha256": "d73d39c17cea43444edd1719e6233199a92837e6fa885ca73399fede364c3ee5",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_list_ios_360x800_dark.png",
+      "sha256": "158d74c188a9eca09c522a29c4ac0787c5667613bc4603e33f988bed4c6df990",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_list_ios_390x844_dark.png",
+      "sha256": "1f233c0b9c92dd98678ec8510364fc0564e66714a96f02d594b1e3c4fd3e2cb3",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_settle_ups_360x800_dark.png",
+      "sha256": "0883b0139f0cbdd1b37e71ab9b92b987e39da680d963684584644ea7ca65793a",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_settle_ups_360x800_text200_dark.png",
+      "sha256": "247cc0592ba37847ad6138dfec1db40abd5488c63d41016f35e8a30056884e74",
+      "dimensions": [
+        360,
+        800
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_settle_ups_390x844_dark.png",
+      "sha256": "74077649ea666fcfa4b9c48213aec022580e0f15ca1c1b311006ce9836d1f63d",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "app/test/goldens/spaces_settle_ups_390x844_text200_dark.png",
+      "sha256": "6c73b68a7f321ed2e514021aa74b4eeccc5ca628c16fe4451baa1a44e132e8f3",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/theme/goldens/money_text_dark.png",
+      "sha256": "8256d804d4782c3014396d977cd0e5333e21d21f16f9a24ced37531d0555cae1",
+      "dimensions": [
+        390,
+        240
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/theme/goldens/token_sheet_dark.png",
+      "sha256": "57f005c6d97461e276456a979da458d053d5345b243068fbae3fd9e45f198642",
+      "dimensions": [
+        390,
+        844
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/amount_sheet_dark_360.png",
+      "sha256": "2938b8835655331a21a1669f940977dda95825e3d35f6167977b3b36c91ffeaa",
+      "dimensions": [
+        360,
+        520
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/amount_sheet_dark_390.png",
+      "sha256": "a3e49b3f5fa21409d8bc891a5b26dc74d723cae237df51e760083dba2a017e19",
+      "dimensions": [
+        390,
+        520
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/avatar_dark_360.png",
+      "sha256": "5bbf8a8d5f1ce356bb27a9192ccb1a127b874977dcd8ce7bc8d23c0b2e75bf62",
+      "dimensions": [
+        360,
+        80
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/avatar_dark_390.png",
+      "sha256": "c404e555d4a975956f252330f4e5c867c3c31251d79af6e1784723bbdb1324ac",
+      "dimensions": [
+        390,
+        80
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/buttons_dark_360.png",
+      "sha256": "e2789efe71cf8c498573f81597e151625a92baef8e5c8a0171e8fd9e3c56ff06",
+      "dimensions": [
+        360,
+        240
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/buttons_dark_390.png",
+      "sha256": "c84b93954bb98e9c2fedf247ee9b4dbc237c318fd0ecaee8e122c88d442496a1",
+      "dimensions": [
+        390,
+        240
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/card_dark_360.png",
+      "sha256": "7240ea44b6bd6e9c67e184e8f14d96628f9aa0ba285a8c0aff0cef3c30652ba7",
+      "dimensions": [
+        360,
+        300
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/card_dark_390.png",
+      "sha256": "588633b75d62a0f95f82b8f8680ea0804c04ef223e054f28170b365bafa4a57f",
+      "dimensions": [
+        390,
+        300
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/chips_dark_360.png",
+      "sha256": "5979c268fcc5169ce7aac7743f43801eaa1262fad7ca87412ffbcacca98bb34f",
+      "dimensions": [
+        295,
+        120
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/chips_dark_390.png",
+      "sha256": "55b0617a22c192a69499ae0f060f0f88d6bdef4444f8ebab614d041bedb6bc5b",
+      "dimensions": [
+        374,
+        84
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/segmented_dark_360.png",
+      "sha256": "554bf9f28a82a63701cb93fee37d6e1aabd2545c12fab613bb5be4822c1ee9a0",
+      "dimensions": [
+        360,
+        80
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/segmented_dark_390.png",
+      "sha256": "d9b9f4be0cdbd8709eeb2dfe4467b1581d4eb6021ec90369fe460fcbac25b950",
+      "dimensions": [
+        390,
+        80
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/tab_bar_dark_360.png",
+      "sha256": "80766af9a8ab500d72c99979b388a5095a0873442b0c29074150c42840034235",
+      "dimensions": [
+        360,
+        240
+      ],
+      "visually_reviewed": true
+    },
+    {
+      "path": "packages/core/test/widgets/goldens/tab_bar_dark_390.png",
+      "sha256": "66e309a5a3b890a18157543f9f3a1aee41fbba390dab6db45431826461fbb8c3",
+      "dimensions": [
+        390,
+        240
+      ],
+      "visually_reviewed": true
+    }
+  ]
+}
