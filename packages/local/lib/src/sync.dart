@@ -448,7 +448,7 @@ Future<Tables> fetchMirror(
           .select(
             'id, lender_id, borrower_id, lender_phone, borrower_phone, '
             'lender_accepted_at, borrower_accepted_at, created_by, '
-            'counterparty_name, closed_at',
+            'closed_at, ...loan_labels(counterparty_name)',
           ),
       order: [('created_at', ascending: true), ('id', ascending: true)],
       bySpace: false,

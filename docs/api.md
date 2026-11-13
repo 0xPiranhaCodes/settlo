@@ -626,7 +626,7 @@ accepts (#9). Nothing about the counterparty is revealed to the caller before th
 | `idempotency_key` | uuid | Required; becomes the loan id |
 | `direction` | text | Required: `lent` (caller is the lender) or `borrowed` |
 | `counterparty_phone` | E.164 | Required; not the caller's own number |
-| `counterparty_name` | text | Optional, ≤ 100 characters after trimming; blank is none. The caller's label for the other party, stored on `loans.counterparty_name` and shown to the caller until that party has a profile name (#257). Never copied from `profiles`. |
+| `counterparty_name` | text | Optional, ≤ 100 characters after trimming; blank is none. The caller's label for the other party, stored in `loan_labels` and shown to the caller until that party has a profile name (#257). Never copied from `profiles`. |
 | `principal_minor` | bigint | Required, > 0 |
 | `installment_minor`, `due_day` | bigint, 1–28 | Both for a `monthly` loan (instalment ≤ principal), neither for `flexible` |
 | `start_on` | date | Default: today in India |
@@ -642,6 +642,14 @@ POST /rest/v1/rpc/create_loan
        "principal_minor": 1000000, "installment_minor": 100000, "due_day": 5, "start_on": "2026-11-10"}}
 
 200 "3e7a…"
+```
+
+The name is the caller's alone, so it is not on `loans` (which the other party reads) nor in loan
+activity snapshots. `loan_labels` (`loan_id`, `created_by`, `counterparty_name`) is readable only by
+`created_by`; there is no update. Clients read it with the loan, null for the other party:
+
+```
+GET /rest/v1/loans?select=id,…,created_by,...loan_labels(counterparty_name)
 ```
 
 ### `record_repayment(p jsonb)`

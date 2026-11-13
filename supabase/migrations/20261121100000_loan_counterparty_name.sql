@@ -1,8 +1,22 @@
 -- #257: the name the creator types for the other party. Like space_members.name, it is the creator's
 -- label for someone who may not have joined yet, never copied from profiles; clients show it to the
--- creator until the other party has a profile name.
-alter table public.loans add column counterparty_name text check (length(counterparty_name) <= 100);
-grant insert (counterparty_name) on public.loans to authenticated;
+-- creator until the other party has a profile name. It is the creator's alone, so it lives here and
+-- not on loans: the counterparty can read every loans column, and loan activity snapshots the row.
+-- Deleting the creator's account deletes their labels.
+create table public.loan_labels (
+  loan_id uuid primary key references public.loans (id) on delete cascade,
+  created_by uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  counterparty_name text not null check (length(counterparty_name) <= 100)
+);
+alter table public.loan_labels enable row level security;
+revoke all on public.loan_labels from public, anon, authenticated;
+grant select, insert (loan_id, counterparty_name) on public.loan_labels to authenticated;
+create policy loan_labels_select on public.loan_labels for select to authenticated
+  using (created_by = auth.uid());
+-- Only on a loan the caller created; the key makes it once per loan, and there is no update.
+create policy loan_labels_insert on public.loan_labels for insert to authenticated
+  with check (created_by = auth.uid()
+              and exists (select from public.loans l where l.id = loan_id and l.created_by = auth.uid()));
 
 -- Creates a loan between the caller and a counterparty phone; see docs/api.md for the payload.
 -- The counterparty may have no account: their side is a pending claim until they verify and accept
@@ -80,7 +94,7 @@ begin
   select id, created_by, idempotency_hash into v_existing from public.loans where id = v_key;
   if not found then
     insert into public.loans (id, lender_phone, borrower_phone, principal_minor, schedule_type, installment_minor,
-                              due_day, start_on, counterparty_name, idempotency_hash)
+                              due_day, start_on, idempotency_hash)
     values (v_key,
             case when v_lent then my_phone else v_other end,
             case when v_lent then v_other else my_phone end,
@@ -88,9 +102,12 @@ begin
             case when v_installment is null then 'flexible' else 'monthly' end::public.loan_schedule_type,
             v_installment, v_due_day,
             coalesce((p ->> 'start_on')::date, (now() at time zone 'Asia/Kolkata')::date),
-            v_name, fingerprint)
+            fingerprint)
     on conflict (id) do nothing;
     if found then
+      if v_name is not null then
+        insert into public.loan_labels (loan_id, counterparty_name) values (v_key, v_name);
+      end if;
       return v_key;
     end if;
     -- Lost a race with a concurrent call carrying the same key, or the id is a loan we cannot see.

@@ -516,7 +516,7 @@ final class SupabaseLoansRepository implements LoansRepository {
           .select(
             'id, lender_id, borrower_id, lender_phone, borrower_phone, '
             'lender_accepted_at, borrower_accepted_at, created_by, '
-            'counterparty_name',
+            '...loan_labels(counterparty_name)',
           )
           .order('created_at'),
       _db

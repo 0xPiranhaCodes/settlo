@@ -239,8 +239,8 @@ typedef Tables = Map<String, List<Map<String, dynamic>>>;
 
 /// Who loan row [l] is with, from [userId]'s side, the [other] one
 /// (`lender` or `borrower`): their profile name, else the name the
-/// creator typed (`counterparty_name`, only theirs to see as a label),
-/// else their phone.
+/// creator typed (`counterparty_name`, from `loan_labels`, which only the
+/// creator can read), else their phone.
 String loanCounterparty(
   Map<String, dynamic> l,
   String other,
@@ -441,7 +441,7 @@ final class SupabaseHomeRepository implements HomeRepository {
           .select(
             'id, lender_id, borrower_id, lender_phone, borrower_phone, '
             'lender_accepted_at, borrower_accepted_at, created_by, '
-            'counterparty_name, closed_at',
+            'closed_at, ...loan_labels(counterparty_name)',
           )
           .order('created_at'),
       _db
