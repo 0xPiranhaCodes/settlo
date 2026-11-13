@@ -30,15 +30,55 @@ String _dayMonth(DateTime d) {
 /// on any of your devices; opening the tab marks it seen. Someone else's
 /// edit can be questioned with a short note that the space's members see on
 /// its row.
-class ActivityScreen extends ConsumerStatefulWidget {
-  /// The Activity screen.
-  const new({super.key});
+class ActivityScreen extends StatelessWidget {
+  /// The global Activity tab, or a fixed space feed with its own header.
+  const new({this.spaceId, this.header, this.spaceName, super.key});
+
+  /// A fixed space filter, isolated from the global tab's selection.
+  final String? spaceId;
+
+  /// The space header and segment control when shown inside a space.
+  final List<Widget>? header;
+
+  /// The space's navigation title.
+  final String? spaceName;
 
   @override
-  ConsumerState<ActivityScreen> createState() => _ActivityScreenState();
+  Widget build(BuildContext context) {
+    final view = _ActivityView(
+      spaceId: spaceId,
+      header: header,
+      spaceName: spaceName,
+    );
+    if (spaceId == null) return view;
+    return ProviderScope(
+      key: ValueKey(spaceId),
+      overrides: [
+        activityFilterProvider.overrideWith(
+          () => ActivityFilterController(
+            initialFilter: (spaceId: spaceId, loansOnly: false),
+          ),
+        ),
+        activityFeedProvider.overrideWith(ActivityFeedController.new),
+      ],
+      child: view,
+    );
+  }
 }
 
-class _ActivityScreenState extends ConsumerState<ActivityScreen> {
+class _ActivityView extends ConsumerStatefulWidget {
+  /// The Activity screen.
+  const new({this.spaceId, this.header, this.spaceName});
+
+  final String? spaceId;
+  final List<Widget>? header;
+  final String? spaceName;
+
+  @override
+  ConsumerState<_ActivityView> createState() => _ActivityScreenState();
+}
+
+class _ActivityScreenState extends ConsumerState<_ActivityView> {
   bool _needsYouOnly = false;
 
   /// iOS search over the loaded feed; empty shows everything.
@@ -71,7 +111,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     // The shell turns tickers off for the tabs it hides, so this is true
     // exactly while Activity is the tab on screen.
     final showing = TickerMode.valuesOf(context).enabled;
-    if (showing && !_showing) unawaited(_seen());
+    if (widget.spaceId == null && showing && !_showing) unawaited(_seen());
     _showing = showing;
   }
 
@@ -105,7 +145,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
       ref.read(needsYouProvider.future),
       ref.read(activityFeedProvider.future),
     ]).catchError((_) => const <Object>[]);
-    if (mounted) await _seen();
+    if (mounted && widget.spaceId == null) await _seen();
   }
 
   /// Shows the feed through [filter].
@@ -155,7 +195,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     final feed = ref.watch(activityFeedProvider);
     final filter = ref.watch(activityFilterProvider);
     final spaces = ref.watch(activitySpacesProvider).value ?? const [];
-    final pending = needs.value ?? const <PendingAnswer>[];
+    final pending = [
+      for (final answer in needs.value ?? const <PendingAnswer>[])
+        if (widget.spaceId == null || answer.spaceId == widget.spaceId) answer,
+    ];
     // Never another filter's rows while this one loads.
     final entries = feed.value?.filter == filter
         ? [
@@ -178,48 +221,51 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     );
 
     final children = <Widget>[
-      const SettloNavigationHeader(
-        title: 'Activity',
-        // No bell: this screen is the notifications list (#197).
-        trailing: SettloTabActions(onBell: null),
-      ),
+      ...?widget.header,
+      if (widget.header == null)
+        const SettloNavigationHeader(
+          title: 'Activity',
+          // No bell: this screen is the notifications list (#197).
+          trailing: SettloTabActions(onBell: null),
+        ),
       if (ios) ...[
         const SizedBox(height: SettloSpacing.x1),
         SSearchField(onChanged: (q) => setState(() => _query = q)),
       ],
       const SizedBox(height: SettloSpacing.x2),
       // One row, as on the canvas; it scrolls once the spaces outgrow it.
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          spacing: 8,
-          children: [
-            SChip(
-              label: 'All',
-              selected: !_needsYouOnly && filter == allActivity,
-              onSelected: (_) => _show(allActivity),
-            ),
-            SChip(
-              label: pending.isEmpty
-                  ? 'Needs you'
-                  : 'Needs you · ${pending.length}',
-              selected: _needsYouOnly,
-              onSelected: (_) => setState(() => _needsYouOnly = true),
-            ),
-            for (final s in spaces)
+      if (widget.spaceId == null)
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 8,
+            children: [
               SChip(
-                label: s.name,
-                selected: !_needsYouOnly && filter.spaceId == s.id,
-                onSelected: (_) => _show((spaceId: s.id, loansOnly: false)),
+                label: 'All',
+                selected: !_needsYouOnly && filter == allActivity,
+                onSelected: (_) => _show(allActivity),
               ),
-            SChip(
-              label: 'Loans',
-              selected: !_needsYouOnly && filter.loansOnly,
-              onSelected: (_) => _show((spaceId: null, loansOnly: true)),
-            ),
-          ],
+              SChip(
+                label: pending.isEmpty
+                    ? 'Needs you'
+                    : 'Needs you · ${pending.length}',
+                selected: _needsYouOnly,
+                onSelected: (_) => setState(() => _needsYouOnly = true),
+              ),
+              for (final s in spaces)
+                SChip(
+                  label: s.name,
+                  selected: !_needsYouOnly && filter.spaceId == s.id,
+                  onSelected: (_) => _show((spaceId: s.id, loansOnly: false)),
+                ),
+              SChip(
+                label: 'Loans',
+                selected: !_needsYouOnly && filter.loansOnly,
+                onSelected: (_) => _show((spaceId: null, loansOnly: true)),
+              ),
+            ],
+          ),
         ),
-      ),
       const SizedBox(height: SettloSpacing.x2),
       if (pending.isNotEmpty) ...[
         _NeedsYouCard(pending, onReview: _review),
@@ -279,8 +325,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
           return false;
         },
         child: SettloScrollScaffold(
-          title: 'Activity',
-          stickyHeader: false,
+          title: widget.spaceId == null ? 'Activity' : 'Space',
+          largeTitle: widget.spaceName,
+          previousPageTitle: widget.spaceId == null ? null : 'Spaces',
+          stickyHeader: widget.spaceId != null,
           onRefresh: _refresh,
           controller: _scroll,
           // With its own controller a short feed would not scroll, and

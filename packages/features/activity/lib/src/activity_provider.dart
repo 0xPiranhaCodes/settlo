@@ -64,8 +64,14 @@ activityFilterProvider = NotifierProvider.autoDispose(
 
 /// The chosen filter chip; [allActivity] to start with.
 class ActivityFilterController extends Notifier<ActivityFilter> {
+  /// Starts at [initialFilter], normally the global feed.
+  new({this.initialFilter = allActivity});
+
+  /// The initial selection for this independently scoped feed.
+  final ActivityFilter initialFilter;
+
   @override
-  ActivityFilter build() => allActivity;
+  ActivityFilter build() => initialFilter;
 
   /// Reads the feed through [filter] from its first page.
   void show(ActivityFilter filter) {

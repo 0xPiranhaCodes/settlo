@@ -17,6 +17,13 @@ final GoRoute spacesTabRoute = GoRoute(
         SpaceExpensesScreen(spaceId: state.pathParameters['spaceId']!),
       ),
     ),
+    GoRoute(
+      path: ':spaceId/activity',
+      pageBuilder: (_, state) => _spacePage(
+        state,
+        SpaceActivityScreen(spaceId: state.pathParameters['spaceId']!),
+      ),
+    ),
     // A sibling, not a child: Expenses and Balances are segments of one
     // destination, so Back from either returns to Spaces.
     GoRoute(
@@ -45,7 +52,7 @@ final List<RouteBase> spacesRoutes = [
 ];
 
 /// A space's page. Explicit pages: go_router's default has no iOS swipe
-/// back. Both segments share its key, so switching updates it in place
+/// back. All segments share its key, so switching updates it in place
 /// instead of pushing.
 Page<void> _spacePage(GoRouterState state, Widget child) => SettloPage<void>(
   key: ValueKey('space ${state.pathParameters['spaceId']}'),

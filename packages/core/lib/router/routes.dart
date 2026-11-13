@@ -92,6 +92,9 @@ abstract final class SettloRoutes {
     queryParameters: {'space': spaceId, 'member': memberId},
   ).toString();
 
+  /// A space's activity.
+  static String spaceActivity(String spaceId) => '/spaces/$spaceId/activity';
+
   /// A space's balances.
   static String spaceBalances(String spaceId) => '/spaces/$spaceId/balances';
 

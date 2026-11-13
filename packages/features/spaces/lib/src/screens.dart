@@ -42,3 +42,19 @@ class SpaceScreen extends ConsumerWidget {
         final s => SpaceDetailView(s, tab: SpaceTab.balances),
       };
 }
+
+/// A space's activity, in the same page as its other segments.
+class SpaceActivityScreen extends ConsumerWidget {
+  /// The activity for [spaceId].
+  const new({required this.spaceId, super.key});
+
+  /// The space shown.
+  final String spaceId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      switch (_space(ref, spaceId)) {
+        null => const Scaffold(),
+        final s => SpaceDetailView(s, tab: SpaceTab.activity),
+      };
+}
