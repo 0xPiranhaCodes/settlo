@@ -1,0 +1,14 @@
+{
+  "locale": "en-US",
+  "name": "SabkiJeb",
+  "subtitle": "Split expenses. Track loans.",
+  "promotionalText": "Split rent and groceries with flatmates, keep loans to friends apart, and settle up in your own UPI app. A payment counts once the person who received it confirms.",
+  "description": "Good friends. Clear balances.\n\nSabkiJeb keeps shared expenses and personal loans clear between people who know each other. Split rent and groceries with flatmates, track money lent to friends, and settle up in your own UPI app.\n\nSHARED SPACES\n• Make a space for the flat, a trip or the office lunch group.\n• Add people by mobile number. They verify their number and choose whether to join.\n• Add each expense when it happens: who paid, and how to split it. Split equally, by exact amounts, by percentages or by shares.\n• Balances sets what each person paid against their fair share and shows the simplest way to settle.\n\nSETTLE UP IN YOUR OWN UPI APP\n• See who to pay, approve the payment in your own UPI app, then record it in SabkiJeb.\n• SabkiJeb never moves money. It keeps the record.\n• The person who received the money checks their bank or UPI app, then confirms it or disputes it. A payment counts once it is confirmed. Recording a payment is not bank verification.\n\nPERSONAL LOANS, KEPT APART\n• A loan to a friend isn't a grocery bill. Record money you lent or borrowed, with an instalment amount if you agreed one, and see what's still outstanding.\n• A recorded repayment waits for the lender. They confirm it, or say they didn't receive it.\n• Send a polite in-app reminder, with a 24-hour cooldown between reminders. Recipients can turn reminders off.\n\nYOUR RECORDS\n• Read saved balances offline. Expense and repayment changes queue until you reconnect. Sign in online first.\n• Export statements as PDF or CSV to check or share your records.\n• A settle-up waiting for your confirmation can appear on the Lock Screen and in the Dynamic Island.\n\nEVERYONE TAKES PART\nThe people you split with use SabkiJeb too: to join a space, record their payments and confirm what they receive.\n\nPRIVACY\n• Sign in with your mobile number and a one-time code. Never share an OTP, UPI PIN or bank details with anyone, including SabkiJeb support.\n• SabkiJeb never uploads your address book.\n• No ads. No selling your data.\n• Account and shared data is stored in India.\n• Delete your account from Profile. It takes effect at once. Shared records stay with the other people in them.\n\nQuestions? Write to support@sabkijeb.app.",
+  "keywords": "split,flatmates,roommates,rent,bills,expenses,loan,lend,borrow,IOU,UPI,trip,shared,owe,settle,rupee",
+  "supportUrl": "https://sabkijeb.app/support/",
+  "marketingUrl": "https://sabkijeb.app/",
+  "privacyPolicyUrl": "https://sabkijeb.app/privacy/",
+  "copyright": "2026 JOSH Studio",
+  "primaryCategory": "FINANCE",
+  "secondaryCategory": "LIFESTYLE"
+}
