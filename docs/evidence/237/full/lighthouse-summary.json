@@ -1,0 +1,15 @@
+{
+  "environment": "Local Chrome, Lighthouse default simulated mobile throttling; not physical Android or field data",
+  "scores": {
+    "performance": 0.99,
+    "accessibility": 1,
+    "best-practices": 1,
+    "seo": 1,
+    "agentic-browsing": 1
+  },
+  "lcpMs": 2253.9627,
+  "cls": 0,
+  "tbtMs": 10,
+  "jsGzipBytes": 1090,
+  "lighthouseVersion": "13.6.0"
+}

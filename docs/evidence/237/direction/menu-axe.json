@@ -1,0 +1,16 @@
+[
+  {
+    "colorScheme": "light",
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "colorScheme": "dark",
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  }
+]

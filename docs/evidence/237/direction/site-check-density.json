@@ -1,0 +1,34 @@
+{
+  "densityResults": [
+    {
+      "density": 1,
+      "src": "http://127.0.0.1:8238/images/home_main-phone.avif",
+      "top": 255.640625,
+      "bottom": 879.609375
+    },
+    {
+      "density": 2,
+      "src": "http://127.0.0.1:8238/images/home_main-phone@2x.avif",
+      "top": 255.640625,
+      "bottom": 879.609375
+    },
+    {
+      "density": 3,
+      "src": "http://127.0.0.1:8238/images/home_main-phone@3x.avif",
+      "top": 255.640625,
+      "bottom": 879.609375
+    }
+  ],
+  "tabletGeometry": [
+    {
+      "width": 290,
+      "height": 594.859375,
+      "ratio": 0.4875
+    },
+    {
+      "width": 189.234375,
+      "height": 360,
+      "ratio": 0.5256723716381418
+    }
+  ]
+}

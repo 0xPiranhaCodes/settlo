@@ -1,0 +1,74 @@
+[
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  }
+]

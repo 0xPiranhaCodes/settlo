@@ -1,0 +1,44 @@
+[
+  {
+    "role": "light text",
+    "foreground": "#18271f",
+    "background": "#fbf8ef",
+    "ratio": 14.66
+  },
+  {
+    "role": "light secondary",
+    "foreground": "#50645a",
+    "background": "#fbf8ef",
+    "ratio": 5.97
+  },
+  {
+    "role": "light story secondary",
+    "foreground": "#50645a",
+    "background": "#fffdf8",
+    "ratio": 6.24
+  },
+  {
+    "role": "light accent",
+    "foreground": "#01672d",
+    "background": "#fbf8ef",
+    "ratio": 6.64
+  },
+  {
+    "role": "dark text",
+    "foreground": "#f7f2e8",
+    "background": "#14271c",
+    "ratio": 14.08
+  },
+  {
+    "role": "dark secondary",
+    "foreground": "#a9bcb0",
+    "background": "#14271c",
+    "ratio": 7.86
+  },
+  {
+    "role": "dark accent",
+    "foreground": "#febd11",
+    "background": "#14271c",
+    "ratio": 9.35
+  }
+]

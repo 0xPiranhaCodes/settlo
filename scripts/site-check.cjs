@@ -11,11 +11,11 @@ const phonesClear = () => {
     b.left < a.right &&
     a.top < b.bottom &&
     b.top < a.bottom;
-  const images = [...document.querySelectorAll(".screen img")];
-  const group = (image) => image.closest(".hero-screen, .loan-screens");
+  const images = [...document.querySelectorAll(".screen img, .direction-product img, .direction-capture img")];
+  const group = (image) => image.closest(".loan-screens");
   const copies = [
     ...document.querySelectorAll(
-      ".hero-copy, .flat-copy, .loan-copy, .trip-steps > li > p, section h2, .hero figcaption",
+      ".direction-heading, .direction-intro, .direction-panel, .flat-copy, .loan-copy, section h2",
     ),
   ];
   return (
@@ -105,7 +105,7 @@ const phonesClear = () => {
         if (overflow) throw new Error("Overflow " + width + " " + path);
         if (await page.locator('header nav a').filter({ hasText: /^Blog$/ }).count() !== 1)
           throw Error("Missing Blog header link: " + path);
-        if (path !== "support/" && await page.locator('footer a').filter({ hasText: /^Blog$/ }).count() !== 1)
+        if (await page.locator('footer a').filter({ hasText: /^Blog$/ }).count() !== 1)
           throw Error("Missing Blog footer link: " + path);
         if (path.startsWith("blog/")) {
           for (const property of ["title", "description", "url", "image"]) {
@@ -181,7 +181,7 @@ const phonesClear = () => {
           if (!geometry) throw Error("Phone overlaps copy or another phone");
           // Regression fixtures: grouped siblings may overlap; ungrouped phones may not.
           for (const [html, allowed] of [
-            ['<figure class="screen hero-screen"><img><img></figure>', true],
+            ['<figure class="screen"><img><img></figure>', false],
             [
               '<div class="loan-screens"><figure class="screen"><img></figure><figure class="screen"><img></figure></div>',
               true,
@@ -278,10 +278,18 @@ const phonesClear = () => {
           await page.addStyleTag({
             content: "* { animation: none !important; }",
           });
-        const selector = ".trip-product";
+        const directionStates = [];
+        for (const progress of [0.1, 0.48, 0.9]) {
+          await page.locator('.direction-story').evaluate((el, progress) => scrollTo({top:el.offsetTop + (el.offsetHeight-innerHeight)*progress,behavior:'instant'}), progress);
+          await page.waitForTimeout(400);
+          directionStates.push(await page.locator('.direction-panel').evaluateAll(els => els.map(el => Number(getComputedStyle(el).opacity))));
+        }
+        const expectedStates = mode === 'reduced' ? [[1,1,1],[1,1,1],[1,1,1]] : [[1,0,0],[0,1,0],[0,0,1]];
+        if (JSON.stringify(directionStates) !== JSON.stringify(expectedStates)) throw Error(`Direction states: ${mode} ${JSON.stringify(directionStates)}`);
+        const selector = ".direction-pin";
         for (const target of [
-          ".trip",
-          ".trip-steps > li:nth-child(2)",
+          ".direction-story",
+          ".direction-stage",
           ".flat",
           ".loan",
           ".closing",
@@ -303,7 +311,7 @@ const phonesClear = () => {
           .locator(selector)
           .evaluate((el) => getComputedStyle(el).position);
         if (
-          sticky !== (mode === "reduced" || width <= 900 ? "static" : "sticky")
+          sticky !== (mode === "reduced" ? "static" : "sticky")
         )
           throw Error("Sticky/reduced motion mismatch");
         if (
@@ -313,22 +321,6 @@ const phonesClear = () => {
             .evaluate((el) => getComputedStyle(el).animationName !== "none"))
         )
           throw Error("Reduced motion animation");
-        if (
-          mode === "fallback" &&
-          !(await page
-            .locator("html")
-            .evaluate((el) => el.classList.contains("motion-fallback")))
-        )
-          throw Error("Fallback did not initialise");
-        await page.locator(".flat .screen").scrollIntoViewIfNeeded();
-        await page.waitForTimeout(800);
-        if (
-          mode === "fallback" &&
-          (await page
-            .locator(".flat .screen")
-            .evaluate((el) => el.classList.contains("awaiting")))
-        )
-          throw Error("Fallback failed to reveal phone");
         motionResults.push({
           width,
           colorScheme,
@@ -350,7 +342,7 @@ const phonesClear = () => {
     const page = await context.newPage();
     await page.goto(localUrl);
     await page.evaluate(() => document.fonts.ready);
-    const hero = page.locator(".hero-front");
+    const hero = page.locator(".direction-product img");
     await hero.evaluate((image) => image.decode());
     const state = await hero.evaluate((image) => ({
       src: image.currentSrc,
@@ -359,8 +351,10 @@ const phonesClear = () => {
     }));
     if (Math.min(844, state.bottom) - state.top < 200)
       throw Error("Hero product below fold");
-    if ((await page.locator(".hero .button").boundingBox()).y + 56 > 844)
-      throw Error("Hero CTA below fold");
+    const phone = await hero.boundingBox();
+    const caption = await page.locator('.direction-product figcaption').boundingBox();
+    if (Math.abs(phone.width - Math.min(390 * .78, 340)) > 1 || caption.y < phone.y + phone.height)
+      throw Error('Mobile phone size or stacked caption regressed');
     const suffix = density === 1 ? "-phone.avif" : `-phone@${density}x.avif`;
     if (!state.src.endsWith(suffix))
       throw Error("Wrong density selected: " + state.src);
@@ -377,25 +371,17 @@ const phonesClear = () => {
       throw Error("Reduce transparency fallback");
     await context.close();
   }
-  // Regression for #167: the tablet Goa canvas must match Flat 402's canvas.
-  const tablet = await browser.newPage({
-    viewport: { width: 768, height: 900 },
-    reducedMotion: "reduce",
-  });
+  // #237 replaces equal-sized story phones with an editorial composition.
+  // Preserve real capture aspect ratios at tablet width instead.
+  const tablet = await browser.newPage({viewport:{width:768,height:900},reducedMotion:'reduce'});
   await tablet.goto(localUrl);
-  const tabletWidths = await tablet.evaluate(() =>
-    [".trip-product img", ".flat .screen img"].map(
-      (selector) =>
-        document.querySelector(selector).getBoundingClientRect().width,
-    ),
-  );
-  if (Math.abs(tabletWidths[0] - tabletWidths[1]) > 1)
-    throw Error("Goa tablet phone shrank");
+  const tabletGeometry = await tablet.locator('.direction-product img, .direction-capture img').evaluateAll(images => images.map(image => {
+    const box=image.getBoundingClientRect();
+    return {width:box.width,height:box.height,ratio:Number(image.getAttribute('width'))/Number(image.getAttribute('height'))};
+  }));
+  if (tabletGeometry.some(image => Math.abs(image.width/image.height-image.ratio)>.01)) throw Error('Distorted direction capture');
   await tablet.close();
-  fs.writeFileSync(
-    `${outputDir}/density.json`,
-    JSON.stringify({ densityResults, tabletWidths }, null, 2),
-  );
+  fs.writeFileSync(`${outputDir}/density.json`,JSON.stringify({densityResults,tabletGeometry},null,2));
   const manifest = JSON.parse(fs.readFileSync("site/images/sources.json"));
   const scales = Object.values(manifest.sources).map(
     (source) => source.phone.output_scale,
