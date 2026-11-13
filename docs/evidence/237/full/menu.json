@@ -1,0 +1,422 @@
+[
+  {
+    "path": "",
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "",
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "privacy/",
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "support/",
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "terms/",
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 360,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 360,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 390,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 390,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 720,
+    "colorScheme": "light",
+    "reducedMotion": "no-preference",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "reduce",
+    "passed": true
+  },
+  {
+    "path": "delete-account/",
+    "width": 720,
+    "colorScheme": "dark",
+    "reducedMotion": "no-preference",
+    "passed": true
+  }
+]

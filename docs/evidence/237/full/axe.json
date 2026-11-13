@@ -1,0 +1,292 @@
+[
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "aria-prohibited-attr",
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "aria-prohibited-attr",
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "support/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "support/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "terms/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "terms/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "delete-account/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "delete-account/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "aria-prohibited-attr",
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "aria-prohibited-attr",
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "support/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "support/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "terms/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "terms/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "delete-account/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "delete-account/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "aria-prohibited-attr",
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "privacy/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "support/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "terms/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "delete-account/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "aria-prohibited-attr",
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "privacy/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "support/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "terms/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "delete-account/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  }
+]

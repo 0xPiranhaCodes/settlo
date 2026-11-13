@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light dark">
 <title>Privacy policy · SabkiJeb</title>
 <meta name="description" content="What SabkiJeb stores, where, who receives it, how long it is kept, and your rights under India's Digital Personal Data Protection Act, 2023.">
 <link rel="canonical" href="https://sabkijeb.app/privacy/">
@@ -12,15 +12,17 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
 <link rel="stylesheet" href="../site.css">
 </head>
-<body>
+<body class="policy">
 <header>
   <a class="wordmark" href="../"><img src="../images/mark.png" width="36" height="36" alt="">SabkiJeb</a>
-  <nav aria-label="Site">
-    <a href="./" aria-current="page">Privacy</a>
-    <a href="../support/">Support</a>
-    <a href="../blog/">Blog</a>
-  </nav>
+  <nav aria-label="Site"><a href="../#how-it-works">How it works</a><a href="../#why">Why SabkiJeb</a><a href="../#free">Free</a><a href="../#faq">FAQ</a><a href="../blog/">Blog</a></nav><a class="button nav-beta" href="mailto:support@sabkijeb.app?subject=SabkiJeb%20TestFlight%20beta">Join the iPhone beta</a>
+  <button class="mobile-menu-button" popovertarget="mobile-menu" aria-expanded="false" aria-controls="mobile-menu">Menu <span aria-hidden="true">☰</span></button>
 </header>
+<div id="mobile-menu" popover aria-label="Site menu" role="dialog">
+  <div class="mobile-menu-heading"><span>Explore SabkiJeb</span><button popovertarget="mobile-menu" popovertargetaction="hide" autofocus>Close <span aria-hidden="true">×</span></button></div>
+  <nav aria-label="Mobile site"><a href="../#how-it-works">How it works</a><a href="../#why">Why SabkiJeb</a><a href="../#free">Free</a><a href="../#faq">FAQ</a><a href="../blog/">Blog</a></nav>
+  <a class="button" href="mailto:support@sabkijeb.app?subject=SabkiJeb%20TestFlight%20beta">Join the iPhone beta ↗</a>
+</div>
 <main>
   <h1>Privacy policy</h1>
   <p class="meta">Effective 10 November 2026</p>
@@ -182,5 +184,6 @@
     <p>Set in Figtree, used under the <a href="../fonts/Figtree-OFL.txt">SIL Open Font License</a>.</p>
   </div>
 </footer>
+<script src="../direction.js" defer></script>
 </body>
 </html>

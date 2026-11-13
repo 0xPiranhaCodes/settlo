@@ -6,9 +6,9 @@ const url = process.env.SITE_CHECK_URL || 'http://127.0.0.1:8237/';
 (async () => {
  const browser = await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  const results=[];
- for (const width of [360,390,720,721,1440]) for (const colorScheme of ['light','dark']) for (const reducedMotion of ['reduce','no-preference']) {
+ for (const path of ['', 'privacy/', 'support/', 'terms/', 'delete-account/']) for (const width of [360,390,720,721,1440]) for (const colorScheme of ['light','dark']) for (const reducedMotion of ['reduce','no-preference']) {
   const page=await browser.newPage({viewport:{width,height:844},colorScheme,reducedMotion});
-  await page.goto(url);
+  await page.goto(url+path);
   const button=page.locator('.mobile-menu-button'), menu=page.locator('#mobile-menu');
   if(width>720) {assert.equal(await button.isVisible(),false);await page.close();continue;}
   assert.equal((await page.locator('header').boundingBox()).height,56);
@@ -35,7 +35,7 @@ const url = process.env.SITE_CHECK_URL || 'http://127.0.0.1:8237/';
   assert.equal(await page.locator('header').evaluate(e=>getComputedStyle(e).position),'sticky');
   assert.ok(await page.locator('header').evaluate(e=>Number(getComputedStyle(e,'::before').opacity)>.9));
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-  results.push({width,colorScheme,reducedMotion,passed:true});
+  results.push({path,width,colorScheme,reducedMotion,passed:true});
   await page.close();
  }
  await browser.close();

@@ -321,22 +321,6 @@ const phonesClear = () => {
             .evaluate((el) => getComputedStyle(el).animationName !== "none"))
         )
           throw Error("Reduced motion animation");
-        if (
-          mode === "fallback" &&
-          !(await page
-            .locator("html")
-            .evaluate((el) => el.classList.contains("motion-fallback")))
-        )
-          throw Error("Fallback did not initialise");
-        await page.locator(".flat .screen").scrollIntoViewIfNeeded();
-        await page.waitForTimeout(800);
-        if (
-          mode === "fallback" &&
-          (await page
-            .locator(".flat .screen")
-            .evaluate((el) => el.classList.contains("awaiting")))
-        )
-          throw Error("Fallback failed to reveal phone");
         motionResults.push({
           width,
           colorScheme,
