@@ -229,46 +229,51 @@ void main() {
     expect(native.gestures.last, 'acceptGesture');
   });
 
-  testWidgets('the last row scrolls clear of the reported bar height', (
-    tester,
-  ) async {
-    tester.view
-      ..physicalSize = const Size(402, 874)
-      ..devicePixelRatio = 1
-      ..viewPadding = const FakeViewPadding(bottom: 34)
-      ..padding = const FakeViewPadding(bottom: 34);
-    addTearDown(tester.view.reset);
-    final native = _FakeNativeBar(tester);
-    await tester.pumpWidget(
-      _Host(
-        child: Scaffold(
-          body: ListView(
-            children: [
-              for (var i = 0; i < 40; i++)
-                SizedBox(
-                  key: i == 39 ? _lastRow : null,
-                  height: 64,
-                  child: Text('Row $i'),
-                ),
-            ],
+  for (final (size, bottom) in [
+    (const Size(375, 667), 0.0),
+    (const Size(390, 844), 34.0),
+  ]) {
+    testWidgets('the last row clears the reported bar on $size', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = size
+        ..devicePixelRatio = 1
+        ..viewPadding = FakeViewPadding(bottom: bottom)
+        ..padding = FakeViewPadding(bottom: bottom);
+      addTearDown(tester.view.reset);
+      final native = _FakeNativeBar(tester);
+      await tester.pumpWidget(
+        _Host(
+          child: Scaffold(
+            body: ListView(
+              children: [
+                for (var i = 0; i < 40; i++)
+                  SizedBox(
+                    key: i == 39 ? _lastRow : null,
+                    height: 64,
+                    child: Text('Row $i'),
+                  ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    // Before UIKit reports, the classic 49pt bar plus home indicator.
-    expect(tester.getSize(find.byType(UiKitView)).height, 49 + 34);
+      );
+      await tester.pumpAndSettle();
+      // Before UIKit reports, the classic 49pt bar plus home indicator.
+      expect(tester.getSize(find.byType(UiKitView)).height, 49 + bottom);
 
-    await native.send('height', 96.0);
-    await tester.drag(find.byType(ListView), const Offset(0, -5000));
-    await tester.pumpAndSettle();
+      await native.send('height', 96.0);
+      await tester.drag(find.byType(ListView), const Offset(0, -5000));
+      await tester.pumpAndSettle();
 
-    final bar = tester.getRect(find.byType(UiKitView));
-    expect(bar.height, 96);
-    expect(bar.bottom, 874);
-    expect(
-      tester.getRect(find.byKey(_lastRow)).bottom,
-      lessThanOrEqualTo(bar.top),
-    );
-  });
+      final bar = tester.getRect(find.byType(UiKitView));
+      expect(bar.height, 96);
+      expect(bar.bottom, size.height);
+      expect(
+        tester.getRect(find.byKey(_lastRow)).bottom,
+        lessThanOrEqualTo(bar.top),
+      );
+    });
+  }
 }

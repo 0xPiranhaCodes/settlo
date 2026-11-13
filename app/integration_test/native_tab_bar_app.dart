@@ -4,7 +4,7 @@
 //
 // The fakes' signed-in Home, with the rc7 owner's profile: no name and no
 // UPI ID.
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:settlo_profile/settlo_profile.dart';
 
 import '../test/support/fake_home.dart';
@@ -14,6 +14,8 @@ import '../test/support/fake_session.dart';
 void main() => runApp(
   fakeSessionApp(
     fakeSession,
+    // Simulator appearance drives before/after captures; Settings can override it.
+    themeMode: ThemeMode.system,
     home: FakeHomeRepository(homeMain),
     profileRepository: FakeProfileRepository(
       const ProfileData(name: '', phone: '+919000001102', upiId: null),

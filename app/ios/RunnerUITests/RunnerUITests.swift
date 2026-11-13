@@ -190,6 +190,37 @@ final class RunnerUITests: XCTestCase {
     XCTAssertLessThanOrEqual(last.frame.maxY, app.frame.maxY)
   }
 
+  /// #258: switch the app theme independently of the system, then touch
+  /// the visible label band using coordinates (no XCTest hit-point repair).
+  func testTabBarAppearanceAndLabelTouches() {
+    let (app, bar) = launch()
+    dismissPrompt(app)
+    for mode in ["Light", "Dark", "Light"] {
+      touch("Home", bar)
+      tap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Profile'")).firstMatch)
+      dismissPrompt(app)
+      let appearance = app.descendants(matching: .any)
+        .matching(NSPredicate(format: "label BEGINSWITH 'Appearance'")).firstMatch
+      tap(appearance)
+      tap(app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", mode)).firstMatch)
+      tap(app.buttons["Close"])
+      sleep(2)
+      let attachment = XCTAttachment(screenshot: app.screenshot())
+      attachment.name = "tabbar-258-" + mode
+      attachment.lifetime = .keepAlways
+      add(attachment)
+      for name in tabs {
+        let button = bar.buttons[name]
+        XCTAssertLessThanOrEqual(button.frame.maxY, app.frame.maxY)
+        let point = app.coordinate(withNormalizedOffset: .zero)
+          .withOffset(CGVector(dx: button.frame.midX, dy: button.frame.maxY - 8))
+        point.tap()
+        XCTAssertTrue(becomes(name, bar))
+        dismissPrompt(app)
+      }
+    }
+  }
+
   /// Issue #202: fixture screens reached by HID coordinate taps, with native
   /// glass controls included. Run once per system appearance and revision.
   func testPaletteEvidence() {
