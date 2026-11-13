@@ -1,0 +1,45 @@
+{
+  "issue": 255,
+  "base": "cecd375ed08f3ba390ae4b0a0fb4be6e757b3d0a",
+  "audit": "origin/Inj3ct0R/ux-253:docs/audits/ux-2026-11-13.md, row B1 (not present on main)",
+  "change": "Shared Cupertino selection overlay uses surfaceHighest at 0.35 alpha; shape and picker callbacks unchanged.",
+  "docker_image": "settlo/flutter-goldens:3.47.9-amd64",
+  "checks": {
+    "regression_before": "4/4 wheel selection band cases fail: expected alpha <= 0.35, actual 1.0",
+    "analyze": "PASS: flutter analyze, no issues",
+    "core": "PASS: cd packages/core && flutter test (486 tests)",
+    "app_existing": "PASS: 108 tests across loans_test.dart, add_expense_test.dart, new_loan_golden_test.dart, add_expense_golden_test.dart",
+    "app_new": "PASS: cd app && flutter test test/date_picker_test.dart (6 tests)",
+    "test_development": "Initial new app cases passed their assertions but failed SemanticsHandle cleanup; disposal moved before test completion and all six rerun successfully.",
+    "goldens": "Only picker_golden_test.dart regenerated: eight new date/value picker images at 390x844 and 360x800, light and dark; visually inspected all eight and compared in full core run.",
+    "host_pub_get": "PASS after final Docker run"
+  },
+  "simulator": {
+    "model": "iPhone 14",
+    "os": "iOS 26.1",
+    "viewport": "390x844",
+    "udid": "DEEE3E55-BE54-43F4-860B-176E1A8CF1D3",
+    "deleted": true,
+    "build": "flutter build ios --simulator --debug -t integration_test/palette_app.dart",
+    "fixture": "Offline palette app with repository fakes; no backend verification claimed.",
+    "input": "SimulatorKit SimDeviceLegacyHIDClient, docs/evidence/188/simtouch.m",
+    "before": "Opaque bands hide the selected date in Add expense (both themes), Record repayment and New loan (dark).",
+    "after": "All three date pickers visually verified in light and dark; expense wheel changed and Done committed 6 Nov to its date chip.",
+    "recordings": [
+      "before.mp4",
+      "after.mp4"
+    ],
+    "screenshots": [
+      "before-light.png",
+      "before-dark.png",
+      "after-expense-light.png",
+      "after-expense-dark.png",
+      "after-expense-saved.png",
+      "after-repayment-light.png",
+      "after-repayment-dark.png",
+      "after-loan-light.png",
+      "after-loan-dark.png"
+    ],
+    "video_encoding": "H.264 resized to 390 px wide, normal speed"
+  }
+}

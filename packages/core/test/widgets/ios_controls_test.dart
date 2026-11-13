@@ -415,7 +415,7 @@ void main() {
         ),
       };
       for (final MapEntry(key: name, value: open) in pickers.entries) {
-        testWidgets('is a Settlo surface on the $name wheel, '
+        testWidgets('keeps selected text visible through the $name wheel band, '
             '${light ? 'light' : 'dark'}', (tester) async {
           await tester.pumpWidget(
             MaterialApp(
@@ -439,7 +439,15 @@ void main() {
               );
           expect(bands, isNotEmpty);
           for (final band in bands) {
-            expect(band.background, colors.surfaceHighest);
+            expect(
+              band.background.a,
+              lessThanOrEqualTo(0.35),
+              reason: 'The overlay paints above the selected text.',
+            );
+            expect(
+              band.background,
+              colors.surfaceHighest.withValues(alpha: 0.35),
+            );
           }
         });
       }
