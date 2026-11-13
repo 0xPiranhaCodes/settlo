@@ -109,7 +109,7 @@ The listing copy lives in `docs/store/ios-en-US.json`. The owner approves change
 - the editable iOS version: description, keywords, promotional text, support URL, marketing URL and copyright;
 - the primary and secondary categories.
 
-The name is written first and on its own. If Apple rejects it, the run stops and reports that, and nothing else is changed. If no version is editable, the run fails. A real run creates a version only when `create_version` is set, and it logs that it did. App Privacy answers and the age rating are entered by hand from `docs/store/privacy-labels.md`.
+The name is written first and on its own. If no version is editable, the run fails. A real run creates a version only when `create_version` is set, and it logs that it did. If Apple then rejects the name, the run stops and says what it wrote: the new version, if it created one, and nothing else. The copyright holder is the single `copyright` field in the listing JSON. App Privacy answers and the age rating are entered by hand from `docs/store/privacy-labels.md`.
 
 ```sh
 ruby scripts/asc-store-listing.rb --check

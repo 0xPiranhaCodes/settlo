@@ -102,7 +102,8 @@ module StoreListing
         type: 'appStoreVersions', attributes: { platform: 'IOS', versionString: wanted },
         relationships: { app: { data: { type: 'apps', id: app_id } } }
       }).fetch('data')
-      @output.puts "Created iOS App Store version #{wanted} (#{created.fetch('id')}) because none was editable"
+      @created = "iOS App Store version #{wanted} (#{created.fetch('id')})"
+      @output.puts "Created #{@created} because none was editable"
       created
     end
 
@@ -139,8 +140,9 @@ module StoreListing
         begin
           info_loc = write('appInfoLocalizations', info_loc, { name: proposed['name'] }, 'appInfo', 'appInfos', info_id)
         rescue Error
+          written = @created ? "This run already created #{@created}; it stays in App Store Connect. Nothing else was changed" : 'Nothing else was changed'
           raise Error, "Apple rejected the app name #{proposed['name'].inspect} (it may be taken). " \
-                       'Nothing else was changed; report to the owner and do not pick a fallback name'
+                       "#{written}; report to the owner and do not pick a fallback name"
         end
       end
       info_changes = (APP_INFO_FIELDS - ['name']).select { |f| changed.include?(f) }

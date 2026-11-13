@@ -116,6 +116,15 @@ state[:reject_name] = true
 expect_error('name rejection', 'Apple rejected the app name "SabkiJeb"') { run.call(state, false) }
 assert(state[:writes].length == 1, 'nothing else written after a name rejection')
 
+# A created version is reported, not hidden behind "nothing else changed".
+state = world(row)
+state[:versions] = [row.call('appStoreVersions', 'old', 'appStoreState' => 'READY_FOR_SALE')]
+state[:reject_name] = true
+expect_error('name rejection after creating a version', 'already created iOS App Store version 1.0 (v1)') do
+  run.call(state, false, 'CREATE_VERSION' => '1.0')
+end
+assert(state[:writes].map { |w| w[0..1] } == [%w[POST /v1/appStoreVersions], %w[PATCH /v1/appInfoLocalizations/il]], 'only the version and the name were attempted')
+
 state = world(row)
 state[:versions] = [row.call('appStoreVersions', 'old', 'appStoreState' => 'READY_FOR_SALE')]
 expect_error('dry run with no version', 'a dry run never creates one') { run.call(state, true, 'CREATE_VERSION' => '1.0') }

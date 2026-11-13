@@ -17,6 +17,7 @@ For every type below, answer **Used for: App Functionality** only, **Linked to t
 | Financial Info › Other Financial Info | Expense amounts and splits; loan principal, instalment and due day; repayment and settle-up amounts. | `packages/core/lib/supabase/expenses.dart:74-83`; `packages/core/lib/supabase/loans.dart:413-425,444`; `packages/core/lib/supabase/space_ledger.dart:313-316` | `expenses.amount_minor` `20261109120000_core_schema.sql:60`; `expense_payers`/`expense_splits` `:72-85`; `loans.principal_minor`/`installment_minor` `20261109130000_loans.sql:19-22`; `loan_repayments.amount_minor` `:43` |
 | User Content › Other User Content | Free text: expense descriptions and categories, space names, repayment references, dispute reasons and activity notes. | `packages/core/lib/supabase/expenses.dart:81-82`; `packages/core/lib/supabase/spaces.dart:284`; `packages/core/lib/supabase/loans.dart:444,460-461`; `packages/core/lib/supabase/space_ledger.dart:325-326`; `packages/core/lib/supabase/activity.dart:379` | `expenses.description`/`category` `20261109120000_core_schema.sql:58-59`; `spaces.name` `:34`; `activity.before`/`after` `:115-116`; `loan_repayments.reference`/`dispute_reason` `20261109130000_loans.sql:48,54` |
 | Identifiers › User ID | The account's UUID, which keys every record. | Supabase Auth session (`phone_auth.dart:62`) | `profiles.id` `20261109120000_core_schema.sql:16` |
+| Diagnostics › Other Diagnostic Data | IP addresses in our host's request, sign-in and security logs. Supabase keeps them with the session and user ID ([Supabase auth audit logs](https://supabase.com/docs/guides/auth/audit-logs)), and our privacy policy says so (`site/privacy/index.html:118,138`). They serve security and the running of the service only. The app does not use them as a device identifier or derive location from them. | every request to Supabase | Supabase platform and auth logs, held on our behalf until they expire |
 
 ### Processor
 
@@ -24,11 +25,12 @@ Our SMS provider, MSG91, receives the phone number and the one-time code (`supab
 
 ### Not collected (answer "No")
 
-- **Diagnostics** (crash data, performance data) and **Usage Data**: the app has no analytics or crash SDK. The package list in `app/pubspec.yaml` and `packages/*/pubspec.yaml` is Supabase, drift, pdf, share_plus, url_launcher, path_provider, shared_preferences and app_links.
-- **Device ID / advertising identifiers**: none. Reminders send no device token, because the remote transport is null (`packages/platform/lib/src/reminders.dart:13-24`).
-- **Location, Health & Fitness, Sensitive Info, Browsing History, Search History, Purchases, Email Address, Photos/Videos, Audio, Gameplay, Customer Support, Other Data**: none. `Info.plist` has no usage-description keys for location, camera, photos or microphone.
+- **Diagnostics › Crash Data and Performance Data**, and **Usage Data**: the app has no analytics or crash SDK. The package list in `app/pubspec.yaml` and `packages/*/pubspec.yaml` is Supabase, drift, pdf, share_plus, url_launcher, path_provider, shared_preferences and app_links.
+- **Device ID / advertising identifiers**: none. Reminders send no device token, because the remote transport is null (`packages/platform/lib/src/reminders.dart:13-24`). Logged IP addresses are declared as Other Diagnostic Data above, not Device ID, because nothing uses them to recognise a device.
+- **Location** (precise or coarse): none. Nothing derives location from IP addresses. `Info.plist` has no location usage key.
+- **Health & Fitness, Sensitive Info, Browsing History, Search History, Purchases, Email Address, Photos/Videos, Audio, Gameplay, Customer Support, Other Data**: none. `Info.plist` has no usage-description keys for location, camera, photos or microphone.
 
-**Owner decision: IP addresses.** Supabase's platform logs record request IP addresses for security, and the app does not use them. Apple's guidance does not clearly settle whether hosting-provider security logs count as collection. Our reading is that they don't, so this draft leaves Diagnostics undeclared. Declare **Identifiers › Device ID** or **Diagnostics › Other Diagnostic Data** only if you take the stricter view.
+**IP addresses.** Apple counts data kept off the device by partners, and asks for stored IP addresses to be classified by how they are used. Security is an App Functionality purpose, not an exemption. So the logged IPs are declared above as **Other Diagnostic Data**, linked to the user, because the logs keep them alongside the user ID. Before publishing, check in the Supabase dashboard that log retention and use still match this. If IPs are ever used to recognise a device, add Device ID. If location is ever derived from them, declare Coarse Location.
 
 ### Deletion
 
@@ -75,11 +77,12 @@ The free-text line is a judgement call. Answering **Yes** to user-generated cont
    - Financial Info: Payment Info, Other Financial Info
    - User Content: Other User Content
    - Identifiers: User ID
+   - Diagnostics: Other Diagnostic Data
 5. For each ticked type, click **Set Up** and give the same three answers:
    - purpose: **App Functionality** only;
    - linked to the user's identity: **Yes**;
    - used for tracking: **No**.
-6. Review the summary. It should show **Data Linked to You** with the four categories above, and nothing under **Data Used to Track You**. Click **Publish**.
+6. Review the summary. It should show **Data Linked to You** with the five categories above, and nothing under **Data Used to Track You**. Click **Publish**.
 
 ### Age rating
 
