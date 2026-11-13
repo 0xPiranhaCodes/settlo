@@ -322,6 +322,7 @@ Tables applyQueue(
           '${mine}_accepted_at': at,
           '${theirs}_accepted_at': null,
           'created_by': userId,
+          'counterparty_name': p['counterparty_name'],
           'closed_at': null,
         });
         final summary = <String, dynamic>{

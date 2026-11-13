@@ -237,6 +237,20 @@ typedef _Row = Map<String, dynamic>;
 /// The online repositories fetch them; the offline mirror stores them.
 typedef Tables = Map<String, List<Map<String, dynamic>>>;
 
+/// Who loan row [l] is with, from [userId]'s side, the [other] one
+/// (`lender` or `borrower`): their profile name, else the name the
+/// creator typed (`counterparty_name`, only theirs to see as a label),
+/// else their phone.
+String loanCounterparty(
+  Map<String, dynamic> l,
+  String other,
+  Map<Object?, String?> names, {
+  required String userId,
+}) =>
+    names[l['${other}_id']] ??
+    (l['created_by'] == userId ? l['counterparty_name'] as String? : null) ??
+    l['${other}_phone'] as String;
+
 /// Home for [userId] from [t]: `space_members` (with `spaces`),
 /// `space_member_balances`, `space_monthly_fairness` for [month], `loans`,
 /// `loan_summaries`, pending `loan_repayments` and `profiles`.
@@ -323,8 +337,7 @@ HomeData homeFromRows(
     final (side, other) = youLent
         ? ('lender', 'borrower')
         : ('borrower', 'lender');
-    final counterparty =
-        names[l['${other}_id']] ?? l['${other}_phone'] as String;
+    final counterparty = loanCounterparty(l, other, names, userId: userId);
     final s = summaryOf[l['id']] ?? const <String, dynamic>{};
     final pending = repayments
         .where(
@@ -428,7 +441,7 @@ final class SupabaseHomeRepository implements HomeRepository {
           .select(
             'id, lender_id, borrower_id, lender_phone, borrower_phone, '
             'lender_accepted_at, borrower_accepted_at, created_by, '
-            'closed_at',
+            'counterparty_name, closed_at',
           )
           .order('created_at'),
       _db

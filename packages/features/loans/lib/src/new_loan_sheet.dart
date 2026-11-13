@@ -197,6 +197,9 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
         : (
             youLent: _youLent,
             counterpartyPhone: who.phone,
+            counterpartyName: who.name == groupPhone(who.phone)
+                ? null
+                : who.name,
             principal: principal,
             installment: installment,
             dueDay: installment == null ? null : _dueDay,

@@ -27,9 +27,10 @@ const _loanClaim = Claim(
   amount: Paise(50000),
 );
 
-NewLoan _newLoan({int? installment = 10000}) => (
+NewLoan _newLoan({int? installment = 10000, String? name}) => (
   youLent: true,
   counterpartyPhone: '+919000000004',
+  counterpartyName: name,
   principal: const Paise(25000),
   installment: installment == null ? null : Paise(installment),
   dueDay: installment == null ? null : 5,
@@ -263,7 +264,10 @@ void main() {
 
   test('a loan made offline takes a repayment; both replay in order', () async {
     offline();
-    final id = await loans().createLoan(_newLoan(), idempotencyKey: 'k1');
+    final id = await loans().createLoan(
+      _newLoan(name: 'Ravi'),
+      idempotencyKey: 'k1',
+    );
     // create_loan makes the key the id, so nothing waits for the server.
     expect(id, 'k1');
     final repayment = await loans().recordRepayment((
@@ -279,7 +283,7 @@ void main() {
     var l = await loan('k1');
     expect(
       (l.counterparty, l.youLent, l.principal.value, l.outstanding.value),
-      ('+919000000004', true, 25000, 25000),
+      ('Ravi', true, 25000, 25000),
     );
     // Three instalments from December; none due yet, so on track.
     expect(
@@ -294,7 +298,10 @@ void main() {
     );
     // Pending money never counts, and Home lists the loan already.
     expect(l.repaid.value, 0);
-    expect([for (final h in (await home().load()).loans) h.id], ['l1', 'k1']);
+    expect(
+      [for (final h in (await home().load()).loans) (h.id, h.counterparty)],
+      [('l1', 'Rahul'), ('k1', 'Ravi')],
+    );
 
     server.rpc = loanRpc;
     await engine.sync();

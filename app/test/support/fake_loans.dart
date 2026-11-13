@@ -164,10 +164,10 @@ class FakeLoansRepository implements LoansRepository {
       yourName: data.yourName,
       loans: [
         ...data.loans,
-        // The other side has not joined, so it shows as their number.
+        // The other side has not joined: the name you gave, else the number.
         Loan(
           id: idempotencyKey,
-          counterparty: loan.counterpartyPhone,
+          counterparty: loan.counterpartyName ?? loan.counterpartyPhone,
           youLent: loan.youLent,
           principal: loan.principal,
           repaid: Paise.zero,

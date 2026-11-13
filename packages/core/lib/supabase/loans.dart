@@ -215,6 +215,7 @@ final class LoansData {
 typedef NewLoan = ({
   bool youLent,
   String counterpartyPhone,
+  String? counterpartyName,
   Paise principal,
   Paise? installment,
   int? dueDay,
@@ -372,7 +373,7 @@ LoansData loansFromRows(
     result.add(
       Loan(
         id: l['id'] as String,
-        counterparty: names[l['${other}_id']] ?? l['${other}_phone'] as String,
+        counterparty: loanCounterparty(l, other, names, userId: userId),
         youLent: youLent,
         principal: money('principal_minor')!,
         repaid: money('repaid_minor') ?? Paise.zero,
@@ -419,6 +420,7 @@ Map<String, Object?> createLoanParams(
     'idempotency_key': idempotencyKey,
     'direction': loan.youLent ? 'lent' : 'borrowed',
     'counterparty_phone': loan.counterpartyPhone,
+    'counterparty_name': ?loan.counterpartyName,
     'principal_minor': loan.principal.value,
     'installment_minor': ?loan.installment?.value,
     'due_day': ?loan.dueDay,
@@ -513,7 +515,8 @@ final class SupabaseLoansRepository implements LoansRepository {
           .from('loans')
           .select(
             'id, lender_id, borrower_id, lender_phone, borrower_phone, '
-            'lender_accepted_at, borrower_accepted_at',
+            'lender_accepted_at, borrower_accepted_at, created_by, '
+            'counterparty_name',
           )
           .order('created_at'),
       _db

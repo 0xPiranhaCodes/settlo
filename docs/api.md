@@ -626,12 +626,14 @@ accepts (#9). Nothing about the counterparty is revealed to the caller before th
 | `idempotency_key` | uuid | Required; becomes the loan id |
 | `direction` | text | Required: `lent` (caller is the lender) or `borrowed` |
 | `counterparty_phone` | E.164 | Required; not the caller's own number |
+| `counterparty_name` | text | Optional, ≤ 100 characters after trimming; blank is none. The caller's label for the other party, stored on `loans.counterparty_name` and shown to the caller until that party has a profile name (#257). Never copied from `profiles`. |
 | `principal_minor` | bigint | Required, > 0 |
 | `installment_minor`, `due_day` | bigint, 1–28 | Both for a `monthly` loan (instalment ≤ principal), neither for `flexible` |
 | `start_on` | date | Default: today in India |
 | `interest_type` | text | Optional; only `none` in v1 |
 
-The fingerprint is every field above except the key, with `start_on` as sent. A replay with another
+The fingerprint is every field above except the key, with `start_on` as sent and `counterparty_name`
+trimmed (left out when blank, so an unnamed payload keeps its old fingerprint). A replay with another
 payload, or a key that is another user's loan id, is `PT409`.
 
 ```

@@ -44,6 +44,8 @@ final _tables = <String, List<Map<String, Object?>>>{
       'borrower_phone': '+919876543210',
       'lender_accepted_at': '2026-11-01T10:00:00Z',
       'borrower_accepted_at': null,
+      'created_by': 'u-meera',
+      'counterparty_name': 'Sana',
     },
     // Fully repaid, and flexible.
     {
@@ -64,6 +66,20 @@ final _tables = <String, List<Map<String, Object?>>>{
       'borrower_phone': '+919876543210',
       'lender_accepted_at': null,
       'borrower_accepted_at': '2026-11-02T10:00:00Z',
+      'created_by': _me,
+      'counterparty_name': null,
+    },
+    // You lent Ravi, not joined yet, under the name you typed (#257).
+    {
+      'id': 'l5',
+      'lender_id': _me,
+      'borrower_id': null,
+      'lender_phone': '+919876543210',
+      'borrower_phone': '+919876500011',
+      'lender_accepted_at': '2026-11-03T10:00:00Z',
+      'borrower_accepted_at': null,
+      'created_by': _me,
+      'counterparty_name': 'Ravi',
     },
   ],
   'loan_summaries': [
@@ -84,6 +100,7 @@ final _tables = <String, List<Map<String, Object?>>>{
       'on_track': null,
     },
     _summary('l4', repaid: 0),
+    _summary('l5', repaid: 0),
   ],
   'loan_repayments': [
     {
@@ -193,7 +210,7 @@ void main() {
 
     expect(data.today, DateTime(2026, 11, 9));
     expect(data.yourName, 'Sana');
-    expect([for (final l in data.loans) l.id], ['l1', 'l4', 'l3']);
+    expect([for (final l in data.loans) l.id], ['l1', 'l4', 'l5', 'l3']);
 
     final arjun = data.loans.first;
     expect(
@@ -230,8 +247,10 @@ void main() {
     expect((disputed.recordedByYou, disputed.awaitsYou), (true, false));
     expect(arjun.awaitsYou, isTrue);
 
-    // A number that has not joined shows as itself.
+    // A number that has not joined shows as the name you gave it, else
+    // itself.
     expect(data.loans[1].counterparty, '+919800000005');
+    expect(data.loans[2].counterparty, 'Ravi');
 
     final dev = data.loans.last;
     expect((dev.counterparty, dev.youLent, dev.closed), ('Dev', false, true));
@@ -241,9 +260,10 @@ void main() {
   });
 
   group('createLoan', () {
-    NewLoan loan({Paise? installment, int? dueDay}) => (
+    NewLoan loan({Paise? installment, int? dueDay, String? name}) => (
       youLent: true,
       counterpartyPhone: '+919800000002',
+      counterpartyName: name,
       principal: const Paise.rupees(1000000),
       installment: installment,
       dueDay: dueDay,
@@ -252,7 +272,7 @@ void main() {
 
     test('sends a monthly loan with its key and returns the id', () async {
       final id = await repository().createLoan(
-        loan(installment: const Paise.rupees(25000), dueDay: 5),
+        loan(installment: const Paise.rupees(25000), dueDay: 5, name: 'Ravi'),
         idempotencyKey: '3e7a0000-0000-4000-8000-000000000001',
       );
 
@@ -262,6 +282,7 @@ void main() {
           'idempotency_key': '3e7a0000-0000-4000-8000-000000000001',
           'direction': 'lent',
           'counterparty_phone': '+919800000002',
+          'counterparty_name': 'Ravi',
           'principal_minor': 100000000,
           'installment_minor': 2500000,
           'due_day': 5,
@@ -277,6 +298,7 @@ void main() {
         await repository().createLoan((
           youLent: false,
           counterpartyPhone: '+919800000002',
+          counterpartyName: null,
           principal: const Paise(500),
           installment: null,
           dueDay: null,
