@@ -294,7 +294,9 @@ void main() {
         expect(find.byType(CupertinoSliverNavigationBar), findsOne);
         expect(
           find.descendant(
-            of: find.byType(CupertinoNavigationBarBackButton),
+            of: find.byWidgetPredicate(
+              (widget) => widget is GlassAction && widget.destination == back,
+            ),
             matching: find.text(back),
           ),
           findsOne,
@@ -339,7 +341,7 @@ void main() {
       expect(router.state.uri.toString(), SettloRoutes.spaceBalances('s1'));
       expect(find.byType(SpaceScreen), findsOne);
 
-      await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+      await tester.tap(find.bySemanticsLabel('Back to Spaces'));
       await tester.pumpAndSettle();
       expect(router.state.uri.toString(), SettloRoutes.spaces);
     } finally {

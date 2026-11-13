@@ -83,3 +83,62 @@ Final host validation: `flutter analyze` reported no issues, and
 `flutter build ios --simulator --debug -t test/capture252.dart` succeeded.
 The temporary runnable capture file and the 681 MB native build directory
 were removed after verification; the reproducible source is retained here.
+
+
+## Hosted CI follow-up — PR #273
+
+Rebased onto `21431c4` (main after #269, #270 and #271). The full app
+suite in `settlo/flutter-goldens:3.47.9-amd64` reproduced all 13 failures
+from hosted run `43508943307`: five navigation assertions still targeted
+`CupertinoNavigationBarBackButton`, and eight country-picker snapshots
+still showed the previous auth back control.
+
+Updated the navigation finders to the destination-bearing `GlassAction`
+and the “Back to Spaces” semantic label. Existing visible destination,
+tap-to-pop, and edge-swipe assertions remain. No production behavior changed.
+Only the country-picker tests were regenerated using:
+
+```sh
+cd app
+flutter test --update-goldens test/sheet_hit_test.dart --plain-name "country picker"
+```
+
+Visually inspected all eight resulting images and confirmed that each is
+byte-identical to its full-suite reproduction image. Pixel differences are
+confined to the auth back control behind the sheet (within x=20–148,
+y=51–96); the country-picker sheet itself is unchanged. Updated goldens:
+
+- `sheet_country_picker_360x800_dark.png`
+- `sheet_country_picker_360x800_light.png`
+- `sheet_country_picker_360x800_text200_dark.png`
+- `sheet_country_picker_360x800_text200_light.png`
+- `sheet_country_picker_390x844_dark.png`
+- `sheet_country_picker_390x844_light.png`
+- `sheet_country_picker_390x844_text200_dark.png`
+- `sheet_country_picker_390x844_text200_light.png`
+
+The full app suite then passed all 870 tests with coverage. The first full
+core run had one timing failure in the unchanged 5,000-expense export test
+(334 ms against its 250 ms pause limit); a full core retry with the unchanged
+`flutter test --coverage` command and default concurrency passed all 493
+tests. No tests were filtered or excluded. The successful full app coverage
+was retained while core and subsequent workspace members ran; coverage
+merging and gates use the Linux test block from `scripts/ci-local.sh`, which
+matches the hosted workflow's per-package commands and thresholds.
+
+
+The platform suite initially hit an asynchronous file-readiness race with
+scratch on the macOS bind mount (`shared.single` ran before the export
+write completed). Its full unchanged retry passed with container-local
+scratch (`--tmpfs /ci-scratch --env TMPDIR=/ci-scratch`). Scratch was kept
+outside `/tmp`; no test or production code was changed for either timing
+failure.
+
+Final complete package results: app 870, core 493, local 73, platform 76,
+auth 59, profile 45 — 1,616 tests passed, with no exclusions. Merged line
+coverage passed at **98.41% (5809/5903)** against main's **98.11%** baseline;
+money coverage passed at **100% (110/110)**. Host `flutter pub get` was run
+after golden regeneration and again after the final Docker run to restore
+host package paths.
+
+Final host `flutter analyze` reported no issues.
