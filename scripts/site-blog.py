@@ -90,22 +90,24 @@ def outputs(root, landing):
             article = {'@context': 'https://schema.org', '@type': 'Article',
                        'headline': post['title'], 'description': summary,
                        'datePublished': post['date'], 'mainEntityOfPage': url, 'url': url,
-                       'image': ORIGIN + '/blog/covers/' + post['cover'] + '.svg',
+                       'image': ORIGIN + '/images/cards/' + post['slug'] + '.png',
                        'author': {'@type': 'Organization', 'name': 'JOSH Studio', 'url': 'https://hellojosh.studio'},
-                       'publisher': {'@type': 'Organization', 'name': 'JOSH Studio'}}
+                       'publisher': {'@type': 'Organization', 'name': 'JOSH Studio', 'url': 'https://hellojosh.studio'}}
             schema = '<script type="application/ld+json">' + json.dumps(article, ensure_ascii=False).replace('<', '\\u003c') + '</script>'
         values = dict(TITLE=html.escape(title + ' · SabkiJeb'), DESCRIPTION=html.escape(summary, quote=True),
                       URL=url, OG_TYPE='article' if post else 'website', SCHEMA=schema,
                       HEADER=chrome(landing, 'header'), FOOTER=chrome(landing, 'footer'), CONTENT=content,
-                      IMAGE=ORIGIN + ('/blog/covers/' + post['cover'] + '.svg' if post else '/images/social.png'))
+                      IMAGE=ORIGIN + '/images/cards/' + (post['slug'] if post else 'blog') + '.png',
+                      IMAGE_ALT=html.escape('Illustrated SabkiJeb card: ' + title, quote=True))
         result['site' + path + 'index.html'] = re.sub(r'\{\{([A-Z_]+)\}\}', lambda m: values[m[1]], template)
     cards = []
     for post in posts:
         slug, cover = post['slug'], post['cover']
         title, summary = html.escape(post['title']), html.escape(post['summary'])
         meta = f'<p class="post-meta"><span>{post["type"]}</span><time datetime="{post["date"]}">{date_label(post["date"])}</time></p>'
-        art = f'<img class="post-cover" src="/blog/covers/{cover}.svg" width="1200" height="675" alt="">'
-        cards.append(f'<article class="post-card">{art}<div class="post-card-copy">{meta}<h2>{title}</h2><p>{summary}</p><a class="post-link" href="/blog/{slug}/" aria-label="Read the post: {html.escape(post["title"], quote=True)}">Read the post <span aria-hidden="true">→</span></a></div></article>')
+        art = f'<img class="post-cover" src="/blog/covers/{cover}.svg" width="1200" height="675" decoding="async" alt="">'
+        listed = art if not cards else art.replace(' decoding=', ' loading="lazy" decoding=')
+        cards.append(f'<article class="post-card">{listed}<div class="post-card-copy">{meta}<h2>{title}</h2><p>{summary}</p><a class="post-link" href="/blog/{slug}/" aria-label="Read the post: {html.escape(post["title"], quote=True)}">Read the post <span aria-hidden="true">→</span></a></div></article>')
         content = f'<article class="post"><a class="back-link" href="/blog/">← All posts</a>{meta}<h1>{title}</h1><p class="lede">{summary}</p>{art}<div class="post-body">{post["body"]}</div><a class="back-link" href="/blog/">← Back to the blog</a></article>'
         page('/blog/' + slug + '/', post['title'], post['summary'], content, post)
         result['site/blog/covers/' + cover + '.svg'] = (source / 'covers' / (cover + '.svg')).read_text()

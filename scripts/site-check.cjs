@@ -99,6 +99,24 @@ const phonesClear = () => {
           publicUrl + path
         )
           throw Error("Canonical URL mismatch: " + path);
+        // Every page shares its own committed 1200x630 PNG card (scripts/site-cards.cjs).
+        const card = publicUrl + "images/cards/" + (path.replace(/\/$/, "").split("/").pop() || (path ? "blog" : "home")) + ".png";
+        for (const [selector, expected] of [
+          ['meta[property="og:image"]', card], ['meta[name="twitter:image"]', card],
+          ['meta[name="twitter:card"]', "summary_large_image"],
+          ['meta[property="og:image:width"]', "1200"], ['meta[property="og:image:height"]', "630"],
+        ]) {
+          if ((await page.locator(selector).getAttribute("content")) !== expected)
+            throw Error("Social card metadata mismatch: " + path + " " + selector);
+        }
+        if (!(await page.locator('meta[property="og:image:alt"]').getAttribute("content")))
+          throw Error("Missing social card alt: " + path);
+        if (width === 360 && colorScheme === "light") {
+          const response = await context.request.get(card.replace(publicUrl, localUrl));
+          const png = await response.body();
+          if (!response.ok() || png.readUInt32BE(16) !== 1200 || png.readUInt32BE(20) !== 630)
+            throw Error("Social card does not resolve as 1200x630 PNG: " + card);
+        }
         if (await page.locator('meta[name="author"]').getAttribute("content") !== "JOSH Studio")
           throw Error("Missing studio author metadata: " + path);
         const metadata = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(JSON.parse);
@@ -157,13 +175,11 @@ const phonesClear = () => {
           const app = schemas.find((x) => x["@type"] === "SoftwareApplication");
           if (
             app.url !== publicUrl ||
-            app.image !== publicUrl + "images/social.png"
+            app.image !== publicUrl + "images/cards/home.png"
           )
             throw Error("Application schema URL mismatch");
           for (const [selector, expected] of [
             ['meta[property="og:url"]', publicUrl],
-            ['meta[property="og:image"]', publicUrl + "images/social.png"],
-            ['meta[name="twitter:image"]', publicUrl + "images/social.png"],
           ]) {
             if (
               (await page.locator(selector).getAttribute("content")) !==

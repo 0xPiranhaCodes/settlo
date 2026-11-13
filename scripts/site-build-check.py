@@ -48,6 +48,10 @@ with tempfile.TemporaryDirectory() as temporary:
     fixture = Path(temporary)
     shutil.copytree(root / 'scripts', fixture / 'scripts', ignore=shutil.ignore_patterns('__pycache__'))
     (fixture / 'site').mkdir()
+    # Card inputs and outputs that live in the published tree.
+    for name in ('images/cards', 'images/art', 'fonts'):
+        shutil.copytree(root / 'site' / name, fixture / 'site' / name)
+    shutil.copy(root / 'site/images/mark.png', fixture / 'site/images/mark.png')
     build = runpy.run_path(str(fixture / 'scripts/site-build.py'))['build']
     build()
     build(check=True)
@@ -65,18 +69,33 @@ with tempfile.TemporaryDirectory() as temporary:
     rejects_drift()
     build()
     source = fixture / f'scripts/blog/posts/{post["slug"]}.md'
+    cover = fixture / f'scripts/blog/covers/{post["cover"]}.svg'
+    card = fixture / f'site/images/cards/{post["slug"]}.png'
+    spot = fixture / 'site/images/art/chai.svg'
+    originals = {path: path.read_bytes() for path in (source, cover, card, spot)}
+    def restore():
+        for path, content in originals.items():
+            path.write_bytes(content)
+        build()
+        build(check=True)
     source.write_text(source.read_text() + '\nA source edit.\n')
     rejects_drift()
     build()
     assert 'A source edit.' in output.read_text()
-    cover = fixture / f'scripts/blog/covers/{post["cover"]}.svg'
-    cover.write_text(cover.read_text() + '\n')
-    rejects_drift()
-    build()
+    restore()
+    # Covers, spots and the rendered PNG cards all guard the committed social cards.
+    for path, change in ((cover, b'\n'), (card, b'\0'), (spot, b'\n')):
+        path.write_bytes(originals[path] + change)
+        rejects_drift()
+        restore()
     source.unlink()
     rejects_drift()
     build()
-    build(check=True)
+    try:
+        build(check=True)
+    except SystemExit as error:
+        # Pages are clean; only the removed post's card and inputs remain to re-render.
+        assert all('site-cards' in name for name in str(error).split(': ', 1)[1].split(', ')), error
     assert not output.exists(), 'Removed posts must leave the publication artifact'
     assert f'/blog/{post["slug"]}/' not in (fixture / 'site/sitemap.xml').read_text()
     assert not list((fixture / 'site').rglob('*.md'))
@@ -92,4 +111,14 @@ for post in posts:
 urls = {node.text for node in ElementTree.parse(root / 'site/sitemap.xml').iter('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')}
 assert 'https://sabkijeb.app/blog/' in urls
 assert all(f'https://sabkijeb.app/blog/{post["slug"]}/' in urls for post in posts)
-print('PASS: blog metadata, escaping, source/output/cover drift, post removal, sitemap and unpublished Markdown')
+print('PASS: blog metadata, escaping, source/output/cover/social-card drift, post removal, sitemap and unpublished Markdown')
+
+# Transfer budgets: social cards 100 KB, every other published image 150 KB.
+# Pre-existing phone fallbacks and the unreferenced studio frame are over budget until #244.
+OVER_BUDGET = {'images/settle_pay-phone.png', 'images/spaces_balances-phone.png', 'images/device/studio-frame.png'}
+images = [path for path in (root / 'site').rglob('*') if path.suffix in {'.png', '.jpg', '.jpeg', '.webp', '.avif', '.gif', '.svg', '.ico'}]
+heavy = [f'{name} {size:,} B' for path in images
+         if (name := path.relative_to(root / 'site').as_posix()) not in OVER_BUDGET
+         and (size := path.stat().st_size) > (100_000 if name.startswith('images/cards/') else 150_000)]
+assert not heavy, 'Over image budget: ' + ', '.join(heavy)
+print(f'PASS: {len(images)} site images within budget (cards 100 KB, others 150 KB; {len(OVER_BUDGET)} allowlisted for #244)')

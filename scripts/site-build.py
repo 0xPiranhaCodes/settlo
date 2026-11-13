@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Render the landing page, blog and sitemap for the buildless Pages deploy."""
 import argparse
+import hashlib
 import html
 import json
 from pathlib import Path
@@ -27,6 +28,21 @@ def render(template, flags):
         {'@type': 'Question', 'name': plain(q), 'acceptedAnswer': {'@type': 'Answer', 'text': plain(a)}} for q, a in pairs]}
     return result.replace('<!-- FAQ_SCHEMA -->', '<script type="application/ld+json">\n' + json.dumps(schema, ensure_ascii=False) + '\n</script>')
 
+def stale_cards(posts):
+    """Social card PNGs need a browser, so the check compares scripts/cards/manifest.json hashes instead."""
+    manifest_path = ROOT / 'scripts/cards/manifest.json'
+    if not manifest_path.exists():
+        return {str(manifest_path.relative_to(ROOT))}
+    manifest = json.loads(manifest_path.read_text())
+    digest = lambda name: (ROOT / name).exists() and hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+    pages = ['home', 'blog', 'privacy', 'support', 'terms', 'delete-account', *(post['slug'] for post in posts)]
+    expected = {f'site/images/cards/{page}.png' for page in pages}
+    sources = {f'scripts/blog/posts/{post["slug"]}.md' for post in posts} | {f'scripts/blog/covers/{post["cover"]}.svg' for post in posts}
+    published = {path.relative_to(ROOT).as_posix() for path in (ROOT / 'site/images/cards').glob('*')}
+    stale = (expected ^ manifest['outputs'].keys()) | (published ^ expected) | (sources - manifest['inputs'].keys())
+    stale |= {name for name, value in {**manifest['inputs'], **manifest['outputs']}.items() if digest(name) != value}
+    return {name + ' (run node scripts/site-cards.cjs)' for name in stale}
+
 def build(check=False):
     result = render((ROOT / 'scripts/site-index.template.html').read_text(), json.loads((ROOT / 'scripts/site-features.json').read_text()))
     outputs = {'site/index.html': result}
@@ -43,6 +59,7 @@ def build(check=False):
     stale = existing - outputs.keys()
     if check:
         drift = stale | {name for name, content in outputs.items() if not (ROOT / name).exists() or (ROOT / name).read_text() != content}
+        drift |= stale_cards(blog['read_posts'](ROOT / 'scripts/blog/posts'))
         if drift:
             raise SystemExit('Site output is stale; run python3 scripts/site-build.py: ' + ', '.join(sorted(drift)))
     else:

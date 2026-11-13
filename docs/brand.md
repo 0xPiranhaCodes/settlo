@@ -46,6 +46,30 @@ Source of truth: `packages/core/lib/theme/colors.dart`, `typography.dart`, `toke
 
 The website extends the app type scale for product headings (42–132px) and body copy (16–21px). Gold arcs frame the product; they are not badges or status indicators. The existing S mark remains intact. The gold S mark is marketing only: the website, the social card and the App Store page. Inside the app the mark is monochrome and follows the theme, ink in light mode and white in dark mode (`SettloMark` uses `textPrimary`); the app icon and launch screen are unchanged. No stock photography, decorative financial graphs or synthetic product screens. Steps that happen outside a captured app screen (the payment in the user's own UPI app, a settle-up awaiting confirmation) are typeset sketch cards in site styles, captioned as illustrations; they never imitate a named UPI app or Settlo's own UI. The landing page defaults to warm paper (#faf9f6), charcoal text (#17191b), and accessible muted gold links (#806025), with two near-black sections. The system dark preference restores the app palette throughout. Phones rise gently on native CSS view timelines; a small IntersectionObserver supplies the fallback. Reduced motion disables animations, transitions, smooth scrolling and sticky positioning. The landing page uses restrained gold eyebrow labels and short headings; each section carries one real moment (the Goa trip, Flat 402, the loan to Arjun) shown with its app screen. Native HTML disclosure elements work without JavaScript.
 
+## Illustration (#242)
+
+SabkiJeb illustrations are cut paper laid on a table: a few flat, hand-cut shapes, one ink line, one grain. They are hand-written SVG, authored by Claude in code; no stock, traced, generated or copied imagery. Simple, confident and specific beats busy. Every piece follows these rules:
+
+- **One subject, one moment.** Each piece shows one everyday Indian scene through its objects: the Goa bill cut into shares, the shirt pocket (*jeb*) holding the record, the khata with today's entry, the chaiwala's carrier with the tab clipped on, a price tag snipped off. At most six objects. The story sits in the central square of a cover (x 262–938 of 1200), so square crops in cards and the blog list keep it; flanking props may crop.
+- **No people.** Never faces, hands, figures or mascots. People are present through their things: one kulhad each, a pair of chappals, sunglasses.
+- **Two views only.** Flat-lay from directly above, or straight elevation. No perspective, isometric or 3D.
+- **Shapes.** Flat fills only: no gradients, outlines, glows or blurs. Paper is cut square with a 6-unit corner (4 on small parts); round things are true circles. Receipts tear with a 10-unit zigzag. Cut edges may run a few units off true, and objects rest at −10° to +10°; the focal object stays nearest to straight.
+- **Line.** One ink line: 6 units, round caps and joins, `#18271f`. Ink appears only on paper, as writing rows (never real text or numerals) and fold lines. Thin objects (strings, wire, straws, straps) use the same 6–12-unit weight in forest. Stitching is a cream 4–5-unit dash (11–14 on, 9–12 off).
+- **Units.** Covers are 1200×675 and spots 480×360, both shown at about half size, so ink reads at about 3 CSS px everywhere.
+- **Shadow.** Lifted paper and objects cast one hard shadow: the same shape offset 8 right and 10 down, ink at 14% (black at 40% in dark). Nothing sewn or printed casts a shadow.
+- **Palette.** Forest `#01381e`, jade `#01672d`, cream `#fef0ce`, paper `#fffdf8`/`#f6f1e5`, ink `#18271f`, plus the steel `#708478` of scissor blades. Marigold `#febd11` appears once per piece, on the money or the moment (the coin, the newest entry, the blank tag, the stamp). The app's owed/owe colours are never used: illustrations do not show balance direction.
+- **Money.** The ₹ is drawn as a forest stroke on a marigold coin, never typeset. No amounts, cards, banks or UPI apps.
+- **Grain.** One `feTurbulence` noise (fractal, base frequency 0.85, two octaves) tinted ink at 16%. Covers lay it over the whole field; spots clip it to their shapes so the page shows through.
+- **Light and dark.** Each published SVG carries its own `prefers-color-scheme` styles, so `<img>` follows the reader's theme. In dark, fields become surface `#14271c`, forest lifts to `#24432f`–`#3d6b4f`, paper dims to `#efe9db`, wire and strings turn sage `#a9bcb0`; jade, cream and marigold hold. Social cards are always light.
+- **Budget and markup.** Each SVG at most 15 KB gzipped (current pieces are about 1 KB). Images carry width and height, `decoding="async"`, and `loading="lazy"` below the fold. Spots and covers are decorative (`alt=""`); every social card has descriptive `og:image:alt`.
+- **Restraint.** Spots never replace or sit inside the real app captures. The landing page has two: the snipped price tag in Free and the chai carrier under the FAQ heading. Anything that does not add meaning is cut.
+
+Sources: covers in `scripts/blog/covers/`, landing spots in `site/images/art/`, card-only art (privacy pocket, support envelope, terms, deletion eraser) in `scripts/cards/art/`.
+
+### Social cards
+
+Every page has a 1200×630 PNG card in `site/images/cards/` for `og:image` and `twitter:image` (`summary_large_image`). `node scripts/site-cards.cjs` (Playwright and Chromium, a local tool, not a site dependency) renders them from the SVG art, the post front matter and self-hosted Figtree, then records input and output hashes in `scripts/cards/manifest.json`. `python3 scripts/site-build.py --check`, and so `site-build-check.py` and `site-check.cjs`, rejects a changed cover, spot, post, font or card until the cards are re-rendered and committed. A new page needs an entry in the script's card list. The layout is fixed: wordmark top left, a jade kicker, the title in Figtree 500 sized to fit, `sabkijeb.app`, and the illustration in a 24px-radius panel on the right.
+
 ## Regenerating imagery
 
 The opt-in marketing export shares the golden fixtures and screen builders. Run it from `app/`; it does not match or write CI golden PNGs and is not named `_test.dart`, so normal test discovery does not run it.
@@ -54,9 +78,9 @@ The opt-in marketing export shares the golden fixtures and screen builders. Run 
 SITE_IMAGE_PYTHON=python scripts/site-build-images.sh
 ```
 
-Use Pillow 13.0.0 with AVIF support. The single rebuild command always renders the current app widgets first, so a merged in-app mark/theme change is picked up automatically without editing screen pixels or reusing stale exports. The export renders 390×844 detail sources (1170×2532 pixels) and 430×932 phone displays (1290×2796 pixels), both directly from Flutter at devicePixelRatio 3 in `build/marketing/`. Phone exports supply 54px top and 34px bottom safe-area insets. The shared golden harness and all committed golden PNGs remain unchanged. `site-images.py` maintains the logo, social card and golden provenance; `site-phones.py` consumes the separate 3x export for the actual page imagery. `sources.json` records both source hashes, the DPR, crop rectangles, output dimensions and encoding recipe.
+Use Pillow 13.0.0 with AVIF support. The single rebuild command always renders the current app widgets first, so a merged in-app mark/theme change is picked up automatically without editing screen pixels or reusing stale exports. The export renders 390×844 detail sources (1170×2532 pixels) and 430×932 phone displays (1290×2796 pixels), both directly from Flutter at devicePixelRatio 3 in `build/marketing/`. Phone exports supply 54px top and 34px bottom safe-area insets. The shared golden harness and all committed golden PNGs remain unchanged. `site-images.py` maintains the logo and golden provenance; `site-phones.py` consumes the separate 3x export for the actual page imagery. `sources.json` records both source hashes, the DPR, crop rectangles, output dimensions and encoding recipe.
 
-Phone composites have 1x, 2x and 3x AVIF alternatives in `srcset`. The image budget is the total unique images selected by one page at each density, including all below-fold phone images, detail crops and the mark: at most 350 KiB at every density. Alternate density files and the social sharing card are not fetched together. Crop images contain complete UI controls or cards, and are capped at their logical source widths to preserve 3x sharpness. No generated app UI or retyped screenshot text is used.
+Phone composites have 1x, 2x and 3x AVIF alternatives in `srcset`. The image budget is the total unique images selected by one page at each density, including all below-fold phone images, detail crops and the mark: at most 350 KiB at every density. Alternate density files are not fetched together, and pages never fetch the social cards. Crop images contain complete UI controls or cards, and are capped at their logical source widths to preserve 3x sharpness. No generated app UI or retyped screenshot text is used.
 
 ## Claim evidence
 
@@ -164,8 +188,7 @@ and cover fixtures to prove drift rejection, and proves deleted posts disappear.
 `site-check.cjs` discovers all generated post routes and checks both themes at
 360, 390, 768 and 1440px, including internal links, metadata and requests.
 
-The three covers are original abstract SVG drawings in forest, jade, cream and
-marigold. They are editorial illustrations, not app screenshots. Blog styling
+The three covers follow the Illustration rules above. Blog styling
 uses the current shared theme tokens and self-hosted Figtree, with no script,
 third-party asset or animation required. Support links to Blog only in its header;
 its guarded main and privacy's guarded main remain byte-identical.

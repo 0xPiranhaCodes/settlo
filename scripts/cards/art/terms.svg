@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">
+<style>.pa{fill:#fffdf8}.pb{fill:#f6f1e5}.fo{fill:#01381e}.ja{fill:#01672d}.ma{fill:#febd11}.sh{fill:#18271f;fill-opacity:.14}.ln{fill:none;stroke:#18271f;stroke-width:6;stroke-linecap:round}.sl{fill:none;stroke:#fef0ce;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}</style>
+<defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="19"/><feColorMatrix values="0 0 0 0 .09 0 0 0 0 .15 0 0 0 0 .12 0 0 0 .55 0"/><feComposite in2="SourceGraphic" operator="in"/></filter></defs>
+<g id="art">
+<!-- two sheets: the agreement, read in full -->
+<g transform="rotate(-8 230 180)"><rect class="sh" x="150" y="44" width="200" height="270" rx="6"/><rect class="pb" x="142" y="34" width="200" height="270" rx="6"/></g>
+<g transform="rotate(4 250 180)">
+<rect class="sh" x="168" y="46" width="200" height="270" rx="6"/>
+<rect class="pa" x="160" y="36" width="200" height="270" rx="6"/>
+<path class="ln" d="M188 76h96M188 112h144M188 140h144M188 168h120M188 196h144M188 224h64"/>
+<!-- the seal -->
+<path class="ma" d="M318 252l18 52-14-6-8 14-10-46z"/><path class="ma" d="M300 252l-12 54 12-8 10 12 6-48z"/>
+<circle class="sh" cx="314" cy="252" r="38"/><circle class="ja" cx="308" cy="244" r="38"/>
+<path class="sl" d="M290 244l12 12 24-26"/>
+</g>
+</g>
+<use href="#art" filter="url(#grain)" opacity=".16"/>
+</svg>

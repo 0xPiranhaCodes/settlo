@@ -1,0 +1,39 @@
+{
+  "/": {
+    "performance": 0.98,
+    "accessibility": 1,
+    "best-practices": 1,
+    "seo": 1,
+    "lcp_ms": 2258,
+    "cls": 0,
+    "tbt_ms": 53
+  },
+  "/blog/": {
+    "performance": 0.99,
+    "accessibility": 1,
+    "best-practices": 1,
+    "seo": 1,
+    "lcp_ms": 2032,
+    "cls": 4e-05,
+    "tbt_ms": 0
+  },
+  "/blog/split-bills-with-friends/": {
+    "performance": 0.99,
+    "accessibility": 1,
+    "best-practices": 1,
+    "seo": 1,
+    "lcp_ms": 1978,
+    "cls": 0,
+    "tbt_ms": 0
+  },
+  "/privacy/": {
+    "performance": 0.99,
+    "accessibility": 1,
+    "best-practices": 1,
+    "seo": 1,
+    "lcp_ms": 1654,
+    "cls": 0,
+    "tbt_ms": 0
+  },
+  "_note": "Lighthouse 13.6.0, default simulated mobile, local Chromium against scripts/site-serve.py on 127.0.0.1:8794."
+}

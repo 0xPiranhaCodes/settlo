@@ -12,11 +12,15 @@ A short record of what's live in SabkiJeb. We'll add dated entries here as more 
 
 ## 13 November 2026
 
-- **Settlo is now SabkiJeb.** The app has a new name and logo. The rebrand does not change your existing data. Read the [announcement](/blog/settlo-is-now-sabkijeb/).
-- **A new website.** sabkijeb.app explains Spaces, shared expenses, personal loans and paying through your own UPI app. It also brings support and account information together.
+- **A redesigned website.** sabkijeb.app now explains Spaces, shared expenses, personal loans and paying through your own UPI app, with real app screens. It also brings support and account information together.
+- **This blog.** Product updates and practical guides, starting with [how to split bills with friends](/blog/split-bills-with-friends/).
 - **Terms of use.** The [Terms](/terms/) explain the service and the role of JOSH Studio, which operates SabkiJeb. SabkiJeb is a record-keeping app, not a bank, payment service or lender.
-- **Account deletion information.** Open Profile in the app and choose Delete account. If you cannot sign in, email support@sabkijeb.app. Deletion takes effect at once and cannot be undone; records shared with other people stay in their records. The [deletion page](/delete-account/) and [privacy policy](/privacy/#deletion) explain what is removed and what remains.
+
+## 12 November 2026
+
+- **Settlo is now SabkiJeb.** The app has a new name and logo. The rebrand does not change your existing data. Read the [announcement](/blog/settlo-is-now-sabkijeb/).
 - **A redesigned palette.** Jade, forest green and marigold bring the new identity into the app and website, with light and dark themes.
+- **Account deletion information.** Open Profile in the app and choose Delete account. If you cannot sign in, email support@sabkijeb.app. Deletion takes effect at once and cannot be undone; records shared with other people stay in their records. The [deletion page](/delete-account/) and [privacy policy](/privacy/#deletion) explain what is removed and what remains.
 
 ## Availability
 
