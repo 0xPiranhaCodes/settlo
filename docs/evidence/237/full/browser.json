@@ -36,6 +36,34 @@
   },
   {
     "width": 360,
+    "colorScheme": "light",
+    "path": "blog/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "path": "blog/split-bills-with-friends/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "light",
+    "path": "blog/whats-new/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
     "colorScheme": "dark",
     "path": "",
     "overflow": false,
@@ -70,6 +98,34 @@
     "jsDisabled": true
   },
   {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "blog/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "blog/split-bills-with-friends/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 360,
+    "colorScheme": "dark",
+    "path": "blog/whats-new/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
     "width": 390,
     "colorScheme": "light",
     "path": "",
@@ -106,6 +162,34 @@
   },
   {
     "width": 390,
+    "colorScheme": "light",
+    "path": "blog/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "blog/split-bills-with-friends/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "blog/whats-new/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
     "colorScheme": "dark",
     "path": "",
     "overflow": false,
@@ -140,6 +224,34 @@
     "jsDisabled": true
   },
   {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/split-bills-with-friends/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/whats-new/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
     "width": 768,
     "colorScheme": "light",
     "path": "",
@@ -176,6 +288,34 @@
   },
   {
     "width": 768,
+    "colorScheme": "light",
+    "path": "blog/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "path": "blog/split-bills-with-friends/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "light",
+    "path": "blog/whats-new/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
     "colorScheme": "dark",
     "path": "",
     "overflow": false,
@@ -210,6 +350,34 @@
     "jsDisabled": true
   },
   {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "blog/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "blog/split-bills-with-friends/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 768,
+    "colorScheme": "dark",
+    "path": "blog/whats-new/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
     "width": 1440,
     "colorScheme": "light",
     "path": "",
@@ -246,6 +414,34 @@
   },
   {
     "width": 1440,
+    "colorScheme": "light",
+    "path": "blog/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "blog/split-bills-with-friends/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "blog/whats-new/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
     "colorScheme": "dark",
     "path": "",
     "overflow": false,
@@ -276,6 +472,34 @@
     "width": 1440,
     "colorScheme": "dark",
     "path": "terms/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "blog/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "blog/split-bills-with-friends/",
+    "overflow": false,
+    "jsDisabled": true
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "blog/whats-new/",
     "overflow": false,
     "jsDisabled": true
   }

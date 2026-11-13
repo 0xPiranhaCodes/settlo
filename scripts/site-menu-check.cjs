@@ -6,9 +6,15 @@ const url = process.env.SITE_CHECK_URL || 'http://127.0.0.1:8237/';
 (async () => {
  const browser = await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  const results=[];
- for (const path of ['', 'privacy/', 'support/', 'terms/', 'delete-account/']) for (const width of [360,390,720,721,1440]) for (const colorScheme of ['light','dark']) for (const reducedMotion of ['reduce','no-preference']) {
+ for (const path of ['', 'privacy/', 'support/', 'terms/', 'delete-account/', 'blog/', ...fs.readdirSync('site/blog', {withFileTypes:true}).filter(e=>e.isDirectory() && fs.existsSync(`site/blog/${e.name}/index.html`)).map(e=>`blog/${e.name}/`)]) for (const width of [360,390,720,721,1440]) for (const colorScheme of ['light','dark']) for (const reducedMotion of ['reduce','no-preference']) {
   const page=await browser.newPage({viewport:{width,height:844},colorScheme,reducedMotion});
   await page.goto(url+path);
+  for (const selector of ['header nav', '#mobile-menu nav', 'footer']) {
+   const blog = page.locator(selector).getByRole('link', {name:'Blog', exact:true, includeHidden:true});
+   assert.equal(await blog.count(),1);
+   assert.equal(await blog.evaluate(e=>new URL(e.href).pathname),'/blog/');
+  }
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   const button=page.locator('.mobile-menu-button'), menu=page.locator('#mobile-menu');
   if(width>720) {assert.equal(await button.isVisible(),false);await page.close();continue;}
   assert.equal((await page.locator('header').boundingBox()).height,56);

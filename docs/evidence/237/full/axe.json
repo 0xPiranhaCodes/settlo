@@ -103,6 +103,86 @@
   },
   {
     "width": 390,
+    "colorScheme": "light",
+    "path": "blog/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "blog/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "blog/split-bills-with-friends/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "blog/split-bills-with-friends/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "blog/whats-new/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "path": "blog/whats-new/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
     "colorScheme": "dark",
     "path": "",
     "menu": false,
@@ -204,6 +284,86 @@
     ]
   },
   {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/split-bills-with-friends/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/split-bills-with-friends/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/whats-new/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "path": "blog/whats-new/",
+    "menu": true,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
     "width": 1440,
     "colorScheme": "light",
     "path": "",
@@ -248,6 +408,40 @@
   },
   {
     "width": 1440,
+    "colorScheme": "light",
+    "path": "blog/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "blog/split-bills-with-friends/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "path": "blog/whats-new/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
     "colorScheme": "dark",
     "path": "",
     "menu": false,
@@ -285,6 +479,40 @@
     "width": 1440,
     "colorScheme": "dark",
     "path": "delete-account/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "blog/",
+    "menu": false,
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "blog/settlo-is-now-sabkijeb/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "blog/split-bills-with-friends/",
+    "menu": false,
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "path": "blog/whats-new/",
     "menu": false,
     "violations": [],
     "incomplete": []

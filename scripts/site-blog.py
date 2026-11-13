@@ -68,6 +68,8 @@ def date_label(value):
 
 def chrome(landing, tag):
     fragment = re.search(fr'<{tag}>.*?</{tag}>', landing, re.S)[0]
+    if tag == 'header':
+        fragment += re.search(r'<div id="mobile-menu".*?</nav>.*?</div>', landing, re.S)[0]
     fragment = fragment.replace(' aria-current="page"', '')
     # Landing links and assets become root-relative on nested blog routes.
     return re.sub(r'(href|src)="([^\"]+)"', lambda m: f'{m[1]}="{urljoin("/", m[2])}"', fragment)

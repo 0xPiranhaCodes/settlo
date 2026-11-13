@@ -12,10 +12,10 @@ const phonesClear = () => {
     a.top < b.bottom &&
     b.top < a.bottom;
   const images = [...document.querySelectorAll(".screen img, .direction-product img, .direction-capture img")];
-  const group = (image) => image.closest(".hero-screen, .loan-screens");
+  const group = (image) => image.closest(".loan-screens");
   const copies = [
     ...document.querySelectorAll(
-      ".hero-copy, .direction-heading, .direction-intro, .direction-panel, .flat-copy, .loan-copy, .trip-steps > li > p, section h2, .hero figcaption",
+      ".direction-heading, .direction-intro, .direction-panel, .flat-copy, .loan-copy, section h2",
     ),
   ];
   return (
@@ -105,7 +105,7 @@ const phonesClear = () => {
         if (overflow) throw new Error("Overflow " + width + " " + path);
         if (await page.locator('header nav a').filter({ hasText: /^Blog$/ }).count() !== 1)
           throw Error("Missing Blog header link: " + path);
-        if (path !== "support/" && await page.locator('footer a').filter({ hasText: /^Blog$/ }).count() !== 1)
+        if (await page.locator('footer a').filter({ hasText: /^Blog$/ }).count() !== 1)
           throw Error("Missing Blog footer link: " + path);
         if (path.startsWith("blog/")) {
           for (const property of ["title", "description", "url", "image"]) {
@@ -181,7 +181,7 @@ const phonesClear = () => {
           if (!geometry) throw Error("Phone overlaps copy or another phone");
           // Regression fixtures: grouped siblings may overlap; ungrouped phones may not.
           for (const [html, allowed] of [
-            ['<figure class="screen hero-screen"><img><img></figure>', true],
+            ['<figure class="screen"><img><img></figure>', false],
             [
               '<div class="loan-screens"><figure class="screen"><img></figure><figure class="screen"><img></figure></div>',
               true,
