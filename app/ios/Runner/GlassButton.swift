@@ -87,6 +87,17 @@ final class GlassButton: NSObject, FlutterPlatformView {
         config.image = config.image?.withTintColor(foreground, renderingMode: .alwaysOriginal)
       }
     }
+    if args["back"] as? Bool == true {
+      config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12)
+      config.imagePadding = 4
+      config.titleLineBreakMode = .byTruncatingTail
+      if let title = args["title"] as? String {
+        let size = args["fontSize"] as? Double ?? 17
+        config.attributedTitle = AttributedString(
+          title, attributes: .init([.font: UIFont.systemFont(ofSize: size)]))
+      }
+      button.semanticContentAttribute = args["rtl"] as? Bool == true ? .forceRightToLeft : .forceLeftToRight
+    }
     button.configuration = config
     button.isEnabled = args["enabled"] as? Bool ?? true
     button.accessibilityLabel = args["label"] as? String

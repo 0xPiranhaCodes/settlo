@@ -202,6 +202,12 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
   }
 
   Widget _largeTitleBar(BuildContext context, String title) {
+    final route = ModalRoute.of(context);
+    final destination =
+        widget.previousPageTitle ??
+        (route is CupertinoRouteTransitionMixin
+            ? route.previousTitle.value
+            : null);
     final c = SettloColors.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
     final solid = MediaQuery.highContrastOf(context);
@@ -226,6 +232,12 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
       child: CupertinoSliverNavigationBar(
         largeTitle: Text(title),
         previousPageTitle: widget.previousPageTitle,
+        leading: route?.canPop ?? false
+            ? GlassAction.back(
+                destination: destination,
+                onPressed: () => Navigator.of(context).maybePop(),
+              )
+            : null,
         trailing: widget.trailing,
         // Clear keeps the page colour's luminance for the status bar style.
         backgroundColor: solid

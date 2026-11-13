@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
@@ -211,32 +210,10 @@ class StepHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // iOS: the standard back chevron, as a navigation bar shows it.
-        if (Theme.of(context).platform == TargetPlatform.iOS)
-          Transform.translate(
-            offset: const Offset(-SettloSpacing.x1, 0),
-            child: CupertinoNavigationBarBackButton(
-              color: c.textPrimary,
-              onPressed: () => goBack(context),
-            ),
-          )
-        else
-          SPressable(
-            label: 'Back',
-            onTap: () => goBack(context),
-            ringRadius: BorderRadius.circular(SettloRadius.pill),
-            child: Container(
-              width: SettloSpacing.minTouchTarget,
-              height: SettloSpacing.minTouchTarget,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: c.surface,
-                shape: BoxShape.circle,
-                border: Border.all(color: c.hairline),
-              ),
-              child: AuthIcon(AuthGlyph.back, color: c.textPrimary, size: 22),
-            ),
-          ),
+        GlassAction.back(
+          destination: step == 1 ? 'Welcome' : 'Phone number',
+          onPressed: () => goBack(context),
+        ),
         Text(
           '$step of $of',
           style: SettloTypography.subheadline(color: c.textSecondary),
