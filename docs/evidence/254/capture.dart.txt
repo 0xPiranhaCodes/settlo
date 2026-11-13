@@ -1,0 +1,16 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_core/supabase/reminders.dart';
+import 'package:settlo_profile/settlo_profile.dart';
+import 'support/fake_profile.dart';
+import 'support/fake_reminders.dart';
+void main() => runApp(ProviderScope(overrides: [
+ profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
+ reminderRepositoryProvider.overrideWithValue(FakeReminders()),
+ themeModeRepositoryProvider.overrideWithValue(FakeThemeModeRepository(ThemeMode.system)),
+], child: MaterialApp(theme: SettloTheme.light(), darkTheme: SettloTheme.dark(), home: const Capture())));
+class Capture extends StatelessWidget {
+ const Capture({super.key});
+ @override Widget build(BuildContext context) => Scaffold(body: Center(child: TextButton(onPressed: () => Navigator.of(context).push(SettloNavigatorSheetPage<void>(child: const ProfileScreen()).createRoute(context)), child: const Text('Open Profile'))));
+}

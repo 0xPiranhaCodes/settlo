@@ -47,7 +47,10 @@ Future<Widget> _profileOverHome(ThemeMode mode) async {
             child: const HomeScreen(),
           ),
         ),
-        const SettloNavigatorSheetPage<void>(child: ProfileScreen()),
+        const SettloNavigatorSheetPage<void>(
+          showDragHandle: false,
+          child: ProfileScreen(),
+        ),
       ],
       onDidRemovePage: (_) {},
     ),

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,37 +28,36 @@ class ProfileScreen extends ConsumerWidget {
       body: DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0, height: 1.2),
         child: SettloScrollScaffold(
-          title: 'You',
+          title: 'Profile',
+          onSheetClose: () =>
+              Navigator.of(context, rootNavigator: true).maybePop(),
+          headerGap: SettloSpacing.x3,
           // The sheet already sits below the status bar.
           statusInset: 0,
-          // The 44pt header row plus the 24 the bar keeps under it.
-          expandedHeight: 68,
           padding: EdgeInsets.fromLTRB(
             SettloSpacing.screenMargin,
-            math.max(media.padding.top, 44) + 16,
+            0,
             SettloSpacing.screenMargin,
             media.padding.bottom + SettloSpacing.x2,
           ),
           children: [
-            const _Header(),
-            const SizedBox(height: SettloSpacing.x1),
             if (data != null) ...[
               _Identity(data),
               const SizedBox(height: SettloSpacing.x3),
               _UpiCard(data),
               const SizedBox(height: SettloSpacing.x3),
               const _SectionLabel('Preferences'),
-              const SizedBox(height: SettloSpacing.x2),
+              const SizedBox(height: SettloSpacing.x1),
               const ReminderToggle(),
               const SizedBox(height: SettloSpacing.x2),
               const _QuietPreferences(),
-              const SizedBox(height: 16),
+              const SizedBox(height: SettloSpacing.x3),
               const _SectionLabel('Help'),
-              const SizedBox(height: SettloSpacing.x2),
+              const SizedBox(height: SettloSpacing.x1),
               const _HelpCard(),
-              const SizedBox(height: 16),
+              const SizedBox(height: SettloSpacing.x3),
               const _SectionLabel('Account'),
-              const SizedBox(height: SettloSpacing.x2),
+              const SizedBox(height: SettloSpacing.x1),
               _AccountCard(data),
             ] else if (profile.hasError) ...[
               const SizedBox(height: 80),
@@ -84,43 +82,6 @@ class ProfileScreen extends ConsumerWidget {
               ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = SettloColors.of(context);
-    // The whole sheet: a page pushed inside it has its own Back.
-    void close() => Navigator.of(context, rootNavigator: true).maybePop();
-    return SizedBox(
-      height: 44,
-      child: Row(
-        children: [
-          Expanded(
-            child: Semantics(
-              header: true,
-              child: Text(
-                'You',
-                style: SettloTypography.title2(color: colors.textPrimary),
-              ),
-            ),
-          ),
-          GlassAction(
-            label: 'Close',
-            symbol: 'xmark',
-            onPressed: close,
-            fallback: _CircleButton(
-              tooltip: 'Close',
-              glyph: ProfileGlyph.close,
-              onPressed: close,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -167,7 +128,7 @@ class _Identity extends StatelessWidget {
     final row = Row(
       children: [
         SAvatar(data.name, size: 64),
-        const SizedBox(width: 16),
+        const SizedBox(width: SettloSpacing.x2),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

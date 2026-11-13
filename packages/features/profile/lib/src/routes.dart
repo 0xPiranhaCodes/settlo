@@ -12,6 +12,7 @@ GoRoute profileRoute(GlobalKey<NavigatorState> root, String path) => GoRoute(
   parentNavigatorKey: root,
   pageBuilder: (_, state) => SettloNavigatorSheetPage<void>(
     key: state.pageKey,
+    showDragHandle: false,
     child: const ProfileScreen(),
   ),
 );

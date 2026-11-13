@@ -65,7 +65,10 @@ class SettloSheetPage<T> extends SettloPage<T> {
 /// Material bottom sheet with a drag handle.
 class SettloNavigatorSheetPage<T> extends SettloPage<T> {
   /// Keeps the router's page identity and state restoration intact.
-  const new({required super.child, super.key});
+  const new({required super.child, this.showDragHandle = true, super.key});
+
+  /// False when the page supplies its own task-sheet grabber.
+  final bool showDragHandle;
 
   @override
   Route<T> createRoute(BuildContext context) {
@@ -76,7 +79,7 @@ class SettloNavigatorSheetPage<T> extends SettloPage<T> {
         settings: this,
         isScrollControlled: true,
         useSafeArea: true,
-        showDragHandle: true,
+        showDragHandle: showDragHandle,
         backgroundColor: c.background,
         modalBarrierColor: c.background.withValues(alpha: 0.6),
         barrierLabel: MaterialLocalizations.of(context).scrimLabel,

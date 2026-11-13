@@ -95,6 +95,159 @@ final class _SessionNotifier extends SessionNotifier {
 }
 
 void main() {
+  for (final brightness in Brightness.values) {
+    testWidgets('Profile task header and token spacing ${brightness.name}', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 1800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            remindersEnabledProvider.overrideWith((ref) async => true),
+            profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
+            themeModeRepositoryProvider.overrideWithValue(
+              _ThemeRepository(ThemeMode.system),
+            ),
+          ],
+          child: MaterialApp(
+            theme:
+                (brightness == Brightness.dark
+                        ? SettloTheme.dark()
+                        : SettloTheme.light())
+                    .copyWith(platform: TargetPlatform.iOS),
+            home: const ProfileScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final header = find.byKey(const ValueKey('task-sheet-header'));
+      expect(find.text('Profile'), findsOneWidget);
+      expect(find.text('You'), findsNothing);
+      expect(find.byKey(const ValueKey('task-sheet-grabber')), findsOneWidget);
+      expect(find.byType(GlassAction), findsNothing);
+      expect(tester.getCenter(find.text('Profile')).dx, 195);
+      final close = find.byTooltip('Close');
+      expect(
+        tester.getSize(close),
+        const Size.square(SettloSpacing.minTouchTarget),
+      );
+      expect(tester.getCenter(close).dx, lessThan(195));
+      final cards = find.byType(SCard);
+      expect(
+        tester.getTopLeft(cards.first).dy - tester.getBottomLeft(header).dy,
+        SettloSpacing.x3,
+      );
+      for (final (label, before, after) in [
+        ('PREFERENCES', 1, 2),
+        ('HELP', 3, 4),
+        ('ACCOUNT', 4, 5),
+      ]) {
+        final section = find.text(label);
+        expect(
+          tester.getTopLeft(section).dy -
+              tester.getBottomLeft(cards.at(before)).dy,
+          SettloSpacing.x3,
+        );
+        expect(
+          tester.getTopLeft(cards.at(after)).dy -
+              tester.getBottomLeft(section).dy,
+          SettloSpacing.x1,
+        );
+      }
+      tester.view.physicalSize = const Size(390, 667);
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -250));
+      await tester.pumpAndSettle();
+      final decoration =
+          tester.widget<DecoratedBox>(header).decoration as BoxDecoration;
+      final context = tester.element(header);
+      expect(decoration.color, SettloColors.of(context).surface);
+      expect(
+        decoration.border,
+        Border(bottom: BorderSide(color: SettloColors.of(context).hairline)),
+      );
+      final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
+      final oldOffset = scrollable.position.pixels;
+      // A drag on the pinned title scrolls the same position as the content.
+      await tester.dragFrom(
+        tester.getCenter(find.text('Profile')),
+        const Offset(0, 70),
+      );
+      await tester.pumpAndSettle();
+      expect(scrollable.position.pixels, lessThan(oldOffset));
+      expect(scrollable.position.pixels, greaterThanOrEqualTo(0));
+    });
+  }
+
+  testWidgets('iOS pinned header scrolls content before dragging the sheet', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 667);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          remindersEnabledProvider.overrideWith((ref) async => true),
+          profileRepositoryProvider.overrideWithValue(_ProfileRepository()),
+          themeModeRepositoryProvider.overrideWithValue(
+            _ThemeRepository(ThemeMode.system),
+          ),
+        ],
+        child: MaterialApp(
+          theme: SettloTheme.light().copyWith(platform: TargetPlatform.iOS),
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  const SettloNavigatorSheetPage<void>(child: ProfileScreen())
+                      .createRoute(context),
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    final header = find.byKey(const ValueKey('task-sheet-header'));
+    final top = tester.getTopLeft(header).dy;
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -250));
+    await tester.pumpAndSettle();
+    final scroll = tester.state<ScrollableState>(find.byType(Scrollable));
+    final offset = scroll.position.pixels;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Profile')),
+    );
+    await gesture.moveBy(const Offset(0, 20));
+    await tester.pump();
+    await gesture.moveBy(const Offset(0, 50));
+    await tester.pump();
+    expect(scroll.position.pixels, lessThan(offset));
+    expect(scroll.position.pixels, greaterThan(0));
+    expect(tester.getTopLeft(header).dy, closeTo(top, .1));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    scroll.position.jumpTo(0);
+    await tester.pump();
+    final dismiss = await tester.startGesture(
+      tester.getCenter(find.text('Profile')),
+    );
+    await dismiss.moveBy(const Offset(0, 20));
+    await tester.pump();
+    await dismiss.moveBy(const Offset(0, 100));
+    await tester.pump();
+    expect(scroll.position.pixels, 0);
+    expect(tester.getTopLeft(header).dy, greaterThan(top));
+    await dismiss.up();
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   group('server-matching validation', () {
     test('counts Unicode characters rather than UTF-16 code units', () {
       expect(validateProfileName(null), nameValidationMessage);
@@ -298,6 +451,11 @@ void main() {
       250,
       scrollable: find.byType(Scrollable),
     );
+    await Scrollable.ensureVisible(
+      tester.element(find.text('Help and support')),
+      alignment: .5,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Help and support'));
     await tester.pump();
 
@@ -331,6 +489,11 @@ void main() {
         250,
         scrollable: find.byType(Scrollable),
       );
+      await Scrollable.ensureVisible(
+        tester.element(find.text('Help and support')),
+        alignment: .5,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Help and support'));
       await tester.pump();
 
@@ -1001,6 +1164,11 @@ void main() {
     );
     unawaited(router.push(SettloRoutes.profileSheet));
     await tester.pumpAndSettle();
+    expect(
+      tester.widget<BottomSheet>(find.byType(BottomSheet)).showDragHandle,
+      false,
+    );
+    expect(find.byKey(const ValueKey('task-sheet-grabber')), findsOneWidget);
 
     await tester.tap(find.text('Satheesh'));
     await tester.pumpAndSettle();
