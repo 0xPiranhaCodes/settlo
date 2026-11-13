@@ -1,0 +1,42 @@
+{
+  "url": "/",
+  "lighthouse": "13.6.0 default mobile, local Chromium",
+  "runs": [
+    {
+      "performance": 0.81,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1,
+      "lcp_ms": 2255,
+      "cls": 0,
+      "tbt_ms": 690
+    },
+    {
+      "performance": 0.98,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1,
+      "lcp_ms": 2330,
+      "cls": 0,
+      "tbt_ms": 0
+    },
+    {
+      "performance": 0.99,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1,
+      "lcp_ms": 2252,
+      "cls": 0,
+      "tbt_ms": 0
+    },
+    {
+      "performance": 0.99,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1,
+      "lcp_ms": 2255,
+      "cls": 0,
+      "tbt_ms": 1
+    }
+  ]
+}

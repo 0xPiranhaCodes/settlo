@@ -27,7 +27,8 @@
         "encoding": {
           "format": "AVIF",
           "quality": 48,
-          "subsampling": "4:4:4"
+          "subsampling": "4:4:4",
+          "png_fallback": "RGB rounded to multiples of 3, optimised PNG"
         },
         "output_scale": 0.2719665271966527
       }
@@ -58,7 +59,8 @@
         "encoding": {
           "format": "AVIF",
           "quality": 48,
-          "subsampling": "4:4:4"
+          "subsampling": "4:4:4",
+          "png_fallback": "RGB rounded to multiples of 3, optimised PNG"
         },
         "output_scale": 0.2719665271966527
       }
@@ -89,7 +91,8 @@
         "encoding": {
           "format": "AVIF",
           "quality": 48,
-          "subsampling": "4:4:4"
+          "subsampling": "4:4:4",
+          "png_fallback": "RGB rounded to multiples of 3, optimised PNG"
         },
         "output_scale": 0.2719665271966527
       }
@@ -120,7 +123,8 @@
         "encoding": {
           "format": "AVIF",
           "quality": 48,
-          "subsampling": "4:4:4"
+          "subsampling": "4:4:4",
+          "png_fallback": "RGB rounded to multiples of 3, optimised PNG"
         },
         "output_scale": 0.2719665271966527
       }
@@ -151,7 +155,8 @@
         "encoding": {
           "format": "AVIF",
           "quality": 48,
-          "subsampling": "4:4:4"
+          "subsampling": "4:4:4",
+          "png_fallback": "RGB rounded to multiples of 3, optimised PNG"
         },
         "output_scale": 0.2719665271966527
       }
@@ -166,6 +171,10 @@
     "bezel_width": 8,
     "display_radius": 52,
     "recipe": "scripts/site-phones.py",
+    "historical_frame": {
+      "path": "scripts/phones/studio-frame.png",
+      "sha256": "8bee1908f1ad8998bb0d94d279a6f20c5a9b6a95d06f3150d4cbd31327a1208c"
+    },
     "screen_policy": "Full unaltered iOS 26 SabkiJeb simulator captures, including native system chrome. Light captures serve both site themes. Uniform resampling inside a concentric illustrative frame."
   },
   "details": {
