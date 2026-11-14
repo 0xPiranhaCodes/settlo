@@ -8,18 +8,11 @@ import 'package:settlo_spaces/src/spaces_controller.dart';
 import 'package:settlo_spaces/src/text.dart';
 
 /// Shows [CreateSpaceSheet], for [space]'s members when given: a page
-/// sheet on iOS, [showSettloSheet] elsewhere.
+/// sheet at the root, or a nested step inside the current sheet.
 Future<void> showCreateSpaceSheet(
   BuildContext context, {
   SpaceSummary? space,
-}) => showSettloPageSheet<void>(
-  context: context,
-  builder: (_) => CreateSpaceSheet(space: space),
-  fallback: () => showSettloSheet<void>(
-    context: context,
-    builder: (_) => CreateSpaceSheet(space: space),
-  ),
-);
+}) => pushSettloSheet<void>(context, (_) => CreateSpaceSheet(space: space));
 
 /// New space: a name, what it is for, and people by phone number. People
 /// do not need the app yet; they see the space when they verify. Given a
@@ -104,7 +97,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
           idempotencyKey: _key,
         );
       }
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) finishSettloSheet(context);
     } on IdempotencyConflict {
       ref.invalidate(spacesProvider);
       _error = widget.space == null
@@ -139,7 +132,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
       destructive: 'Discard',
       cancel: 'Keep editing',
     );
-    if (discard == true && mounted) Navigator.of(context).pop();
+    if (discard == true && mounted) finishSettloSheet(context);
   }
 
   @override
@@ -195,9 +188,9 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
         );
     final form = SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
-        SettloSpacing.screenMargin,
+        16,
         SettloSpacing.x1,
-        SettloSpacing.screenMargin,
+        16,
         SettloSpacing.x3,
       ),
       child: Column(
@@ -282,31 +275,29 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
       ),
     );
     final n = _members.length;
-    // The shared task-sheet layout: grabber, ✕ and a centred title, the
-    // form, then one primary button pinned at the bottom.
+    // Shared sheet chrome and form, with the primary action pinned below.
     final sheet = Material(
-      type: MaterialType.transparency,
+      color: c.background,
       child: Column(
-        // The iOS page sheet is full height; the Material one fits its form.
-        mainAxisSize: ios ? MainAxisSize.max : MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: SettloSpacing.screenMargin,
-            ),
-            child: SSheetHeader(
-              title: space == null ? 'New space' : 'Members',
-              onClose: () => Navigator.of(context).maybePop(),
-              // Material sheets draw their own drag handle.
-            ),
+          SSheetHeader(
+            title: space == null ? 'New space' : 'Members',
+            onClose: () {
+              if (ios && (_dirty || _saving)) {
+                unawaited(_confirmClose());
+              } else {
+                finishSettloSheet(context);
+              }
+            },
           ),
-          Flexible(fit: ios ? FlexFit.tight : FlexFit.loose, child: form),
+          const SizedBox(height: 16),
+          Expanded(child: form),
           Container(
             width: double.infinity,
             padding: EdgeInsets.fromLTRB(
-              SettloSpacing.screenMargin,
+              16,
               0,
-              SettloSpacing.screenMargin,
+              16,
               SettloSpacing.x2 +
                   MediaQuery.paddingOf(context).bottom +
                   // The Material sheet already sits above the keyboard.

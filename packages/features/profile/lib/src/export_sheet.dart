@@ -86,11 +86,6 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Export',
-            style: SettloTypography.title3(color: colors.textPrimary),
-          ),
-          const SizedBox(height: SettloSpacing.x1),
-          Text(
             'Every expense as CSV and a summary PDF, made on this phone. '
             'Members appear by name, never by number. Loan statements are '
             'on each loan.',

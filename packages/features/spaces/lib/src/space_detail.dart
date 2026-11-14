@@ -216,8 +216,10 @@ class _SheetTop extends StatelessWidget {
                   fit: largeText ? FlexFit.loose : FlexFit.tight,
                   child: SPrimaryButton(
                     label: 'Add expense',
-                    onPressed: () =>
-                        context.push(SettloRoutes.addExpenseIn(space.id)),
+                    onPressed: () => pushSettloTask<void>(
+                      context,
+                      SettloRoutes.addExpenseIn(space.id),
+                    ),
                   ),
                 ),
                 SizedBox(
@@ -228,8 +230,10 @@ class _SheetTop extends StatelessWidget {
                   fit: largeText ? FlexFit.loose : FlexFit.tight,
                   child: SSecondaryButton(
                     label: 'Settle up',
-                    onPressed: () =>
-                        context.push(SettloRoutes.settleWith(space.id)),
+                    onPressed: () => pushSettloTask<void>(
+                      context,
+                      SettloRoutes.settleWith(space.id),
+                    ),
                   ),
                 ),
               ],
@@ -919,7 +923,13 @@ class _PaymentRow extends ConsumerWidget {
       (from: SpaceMember(isYou: true), :final to, amount: _) => (
         to,
         'You pay ${to.name}',
-        ('Pay', () => context.push(SettloRoutes.settlePayTo(space.id, to.id))),
+        (
+          'Pay',
+          () => pushSettloTask<void>(
+            context,
+            SettloRoutes.settlePayTo(space.id, to.id),
+          ),
+        ),
       ),
       (:final from, :final to, amount: _) => (
         from,
@@ -1053,7 +1063,7 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
     });
     try {
       await write(ref.read(spaceLedgerProvider(widget.space.id).notifier));
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) finishSettloSheet(context);
     } on IdempotencyConflict {
       _error =
           'This change was already saved with what you first entered. '
@@ -1120,7 +1130,7 @@ class _EditExpenseSheetState extends ConsumerState<EditExpenseSheet> {
     final text = Theme.of(context).textTheme;
     return SAmountSheet(
       title: 'Edit expense · ${widget.space.name}',
-      onClose: () => Navigator.of(context).pop(),
+      onClose: () => finishSettloSheet(context),
       dirty:
           _amount.text != formatInr(widget.expense.amount).substring(1) ||
           _description.text != widget.expense.description,
@@ -1242,7 +1252,7 @@ class _ConfirmSettlementSheetState
     });
     try {
       await write(ref.read(spaceLedgerProvider(widget.space.id).notifier));
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) finishSettloSheet(context);
       // Done: stay busy, so a tap still queued on this frame is dropped.
       return;
     } on IdempotencyConflict {
@@ -1287,7 +1297,7 @@ class _ConfirmSettlementSheetState
     final amount = formatInr(widget.expense.amount);
     return SAmountSheet(
       title: 'Confirm settle-up · ${widget.space.name}',
-      onClose: () => Navigator.of(context).pop(),
+      onClose: () => finishSettloSheet(context),
       dirty: _disputing && _reason.text.isNotEmpty,
       saving: _busy,
       amountLabel: '${widget.payer} says they paid you',

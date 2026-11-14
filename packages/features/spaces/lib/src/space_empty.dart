@@ -98,8 +98,10 @@ class SpaceEmptyView extends StatelessWidget {
                       size: 18,
                       stroke: 1.9,
                     ),
-                    onPressed: () =>
-                        context.push(SettloRoutes.addExpenseIn(space.id)),
+                    onPressed: () => pushSettloTask<void>(
+                      context,
+                      SettloRoutes.addExpenseIn(space.id),
+                    ),
                   ),
                 ],
               ),
@@ -335,7 +337,7 @@ class _SetUpRow extends StatelessWidget {
     final c = SettloColors.of(context);
     return MergeSemantics(
       child: SPressable(
-        onTap: () => context.push(route),
+        onTap: () => pushSettloTask<void>(context, route),
         child: Container(
           constraints: const BoxConstraints(
             minHeight: SettloSpacing.minTouchTarget,

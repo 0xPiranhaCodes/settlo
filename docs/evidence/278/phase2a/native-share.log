@@ -1,0 +1,8 @@
+00:00 +0: loading /Users/hackerearth381/orca/workspaces/settlo/chrome2a/packages/platform/test/share_files_test.dart
+00:00 +0: the share sheet gets the files, their types and the origin
+00:00 +1: a text share gets the text and the origin
+00:00 +2: each export gets its own folder, deleted when its share ends
+00:00 +3: a second export while the first share is open leaves the first's files alone
+00:00 +4: a failed export leaves nothing behind
+00:00 +5: app start clears what the last run left
+00:00 +6: All tests passed!

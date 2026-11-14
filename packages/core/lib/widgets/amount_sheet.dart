@@ -6,9 +6,8 @@ import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
 import 'package:settlo_core/widgets/confirm.dart';
+import 'package:settlo_core/widgets/platform_page.dart';
 import 'package:settlo_core/widgets/scroll_scaffold.dart';
-import 'package:settlo_core/widgets/sheet.dart';
-import 'package:settlo_core/widgets/sheet_header.dart';
 
 /// Font size of the amount at the top of an amount-entry sheet.
 const double _amountSize = 52;
@@ -69,8 +68,6 @@ class SAmountSheet extends StatefulWidget {
 }
 
 class _SAmountSheetState extends State<SAmountSheet> {
-  double _drag = 0;
-  bool _dragging = false;
   bool _dismissed = false;
   String get title => widget.title;
   String get amountLabel => widget.amountLabel;
@@ -103,26 +100,6 @@ class _SAmountSheetState extends State<SAmountSheet> {
     onClose();
   }
 
-  void _endDrag(DragEndDetails details) {
-    if (_dismissed) return;
-    if (_drag > 100 || (details.primaryVelocity ?? 0) > 700) {
-      if (!_guarded) {
-        _dismissed = true;
-        return onClose();
-      }
-      setState(() {
-        _dragging = false;
-        _drag = 0;
-      });
-      unawaited(_close());
-    } else {
-      setState(() {
-        _dragging = false;
-        _drag = 0;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
@@ -131,38 +108,15 @@ class _SAmountSheetState extends State<SAmountSheet> {
     // The specular edge is a line clipped by the top corners: Flutter
     // cannot round a border drawn on one side only.
     final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
-    final titleRow = SSheetHeader(title: title, onClose: _close, compact: true);
-    // Inside an iOS task sheet the route owns drag to dismiss.
-    final routeDrags = CupertinoSheetRoute.hasParentSheet(context);
-    final navigation = GestureDetector(
-      excludeFromSemantics: true,
-      behavior: HitTestBehavior.opaque,
-      onVerticalDragUpdate: routeDrags
-          ? null
-          : (details) => setState(() {
-              _dragging = true;
-              _drag = (_drag + details.delta.dy).clamp(0, double.infinity);
-            }),
-      onVerticalDragEnd: routeDrags ? null : _endDrag,
-      onVerticalDragCancel: routeDrags
-          ? null
-          : () => setState(() {
-              _dragging = false;
-              _drag = 0;
-            }),
-      child: SSheetHeader(title: title, onClose: _close),
-    );
     final content = SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: SettloSpacing.screenMargin,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           mainAxisSize: largeText ? MainAxisSize.min : MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 22),
+            const SizedBox(height: 16),
             if (header case final header?) ...[
               header,
               const SizedBox(height: 18),
@@ -219,26 +173,10 @@ class _SAmountSheetState extends State<SAmountSheet> {
         ),
       ),
     );
-    final sheet = AnimatedContainer(
-      duration: _dragging || MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : SettloMotion.panel,
-      curve: SettloMotion.curve,
-      transform: Matrix4.translationValues(0, _drag, 0),
+    final sheet = Container(
       decoration: BoxDecoration(
-        color: c.surface,
+        color: c.background,
         borderRadius: const BorderRadius.vertical(top: radius),
-        border: Border.all(
-          // Keep the frame metric shared with Profile.
-          // ignore: avoid_redundant_argument_values
-          width: SSheetHeader.frameInset,
-          color: SettloElevation.border(
-            dark: Theme.of(context).brightness == Brightness.dark,
-          ),
-        ),
-        boxShadow: SettloElevation.ambient(
-          dark: Theme.of(context).brightness == Brightness.dark,
-        ),
       ),
       child: Column(
         children: [
@@ -249,13 +187,11 @@ class _SAmountSheetState extends State<SAmountSheet> {
                 key: const ValueKey('amount-sheet-scroll'),
                 title: title,
                 statusInset: 0,
-                // The navigation delegate reserves 24pt below its header.
-                expandedHeight: SSheetHeader.extent + 24,
-                compactHeader: titleRow,
+                onSheetClose: _close,
                 slivers: [
                   SliverFillRemaining(hasScrollBody: false, child: content),
                 ],
-                children: [navigation],
+                children: const [],
               ),
             ),
           ),
@@ -271,27 +207,17 @@ class _SAmountSheetState extends State<SAmountSheet> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) unawaited(_close());
       },
-      child: sheet,
+      child: Material(type: MaterialType.transparency, child: sheet),
     );
   }
 }
 
-/// Shows [builder]'s [SAmountSheet] with [showSettloSheet], risen to 54px
+/// Shows [builder]'s [SAmountSheet] with [pushSettloSheet], risen to 54px
 /// below the top of the screen, as on the canvas.
 Future<T?> showSAmountSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
-}) => showSettloSheet<T>(
-  context: context,
-  backgroundColor: Colors.transparent,
-  showDragHandle: false,
-  builder: (context) => Padding(
-    padding: EdgeInsets.only(
-      top: 54 - MediaQuery.paddingOf(context).top.clamp(0, 54),
-    ),
-    child: builder(context),
-  ),
-);
+}) => pushSettloSheet<T>(context, builder);
 
 /// Done above the keyboard, as a keyboard toolbar would show it.
 class _KeyboardDone extends StatelessWidget {

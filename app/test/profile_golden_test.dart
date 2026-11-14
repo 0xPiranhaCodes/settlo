@@ -57,7 +57,15 @@ Future<Widget> _profileOverHome(ThemeMode mode) async {
 void main() {
   for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
     final suffix = platform == TargetPlatform.iOS ? '_ios' : '';
-    for (final device in SettloGoldenDevices.accessible) {
+    for (final device in [
+      ...SettloGoldenDevices.accessible,
+      const GoldenDevice(name: 'se375x667', size: Size(375, 667)),
+      const GoldenDevice(
+        name: 'se375x667_text200',
+        size: Size(375, 667),
+        textScale: 2,
+      ),
+    ]) {
       for (final mode in [ThemeMode.dark, ThemeMode.light]) {
         for (final scrolled in [false, true]) {
           final state = scrolled ? '_scrolled' : '';
@@ -101,14 +109,19 @@ void main() {
                     matching: find.byType(SCard),
                   )
                   .first;
-              // The existing modal retains its native handle; the shared
-              // header now contributes 64pt (#278).
-              expect(tester.getTopLeft(firstCard).dy, closeTo(136, 1));
+              final header = find.descendant(
+                of: find.byType(ProfileScreen),
+                matching: find.byType(SSheetHeader),
+              );
+              // Full-height modal chrome has no separate native grabber.
               expect(
-                tester
-                    .getSize(find.byKey(const ValueKey('task-sheet-header')))
-                    .height,
-                SSheetHeader.extent,
+                tester.getTopLeft(firstCard).dy -
+                    tester.getBottomLeft(header).dy,
+                closeTo(16, 1),
+              );
+              expect(
+                tester.getSize(header).height,
+                greaterThanOrEqualTo(SSheetHeader.extent),
               );
             }
 

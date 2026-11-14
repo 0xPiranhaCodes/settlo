@@ -1,0 +1,47 @@
+Phase 2a review correction validation — PASS
+
+Base reviewed head: e84571499bde088eeb5259b9d7c434e1a64787d7.
+Docker image: settlo/flutter-goldens:3.47.9-amd64.
+Waited for chrome2b-validation to exit; only one validation container active.
+Final full run: all packages serial, flutter test --no-pub --coverage
+--concurrency=1 --reporter expanded. The large-export and share-files tests
+ran serially afterward in the same container with separate coverage traces;
+they are INCLUDED in the package totals and merged coverage below.
+
+Package                         Passed  Failed
+app                               1148       0
+packages/core                      525       0
+packages/local                      75       0
+packages/platform                   79       0
+packages/features/auth              60       0
+packages/features/profile           48       0
+TOTAL                            1935       0
+
+Merged coverage: 98.26% (6114/6222).
+Main baseline: 98.11%.
+Money coverage: 100.00% (110/110).
+Coverage gate: PASS. No exclusions; source/line union follows ci-local.sh.
+Full-suite gate: PASS.
+
+Additional checks:
+- flutter analyze --no-pub: clean in the pinned Linux image.
+- Core group_chrome_test: 16 passed.
+- Focused app suites (spaces_golden, space_sheet_chrome_golden,
+  phase2a_sheet_golden, profile_sheet): 160 passed.
+- Golden refresh: 176 passed, plus 4 liquid-glass space captures.
+- Native large export: 1 passed; native share_files: 6 passed.
+
+30 changed goldens visually inspected: 24 expense-row captures and six
+repayment-copy captures. Matching after/ images refreshed byte-for-byte.
+review-before/ contains the 24 expense captures from e845714; twelve
+review-expenses contact sheets compare them with this correction.
+The two changed Phase 2a contact sheets were refreshed.
+
+The initial full app pass found four stale liquid-glass expense captures:
+1144 passed, 4 failed. After refreshing them, the complete serial run above
+passed. review-initial-full-tests.log preserves that diagnostic result.
+Earlier profile failures remain historical in profile-test-failures.log.
+
+Host flutter pub get restored after Docker; native exceptions rerun on host.
+Validation container exited; no simulator was created or booted.
+Hosted CI and device Reduce Motion dismissal remain separate checks.

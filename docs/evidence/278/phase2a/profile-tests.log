@@ -1,0 +1,52 @@
+00:00 +0: loading /workspace/packages/features/profile/test/profile_repository_test.dart
+00:00 +0: /workspace/packages/features/profile/test/profile_repository_test.dart: loads the current profile and updates through the RPC
+00:00 +1: /workspace/packages/features/profile/test/profile_repository_test.dart: a lost delete response is retried, then the session is dropped
+00:00 +2: /workspace/packages/features/profile/test/profile_repository_test.dart: a session the server no longer accepts counts as deleted
+00:00 +3: /workspace/packages/features/profile/test/profile_repository_test.dart: a delete that is refused or never answered stays signed in
+00:00 +4: /workspace/packages/features/profile/test/profile_repository_test.dart: server errors are translated only for 22023
+00:00 +5: loading /workspace/packages/features/profile/test/profile_test.dart
+00:02 +5: /workspace/packages/features/profile/test/profile_test.dart: Profile task header and token spacing dark
+00:04 +6: /workspace/packages/features/profile/test/profile_test.dart: Profile task header and token spacing light
+00:05 +7: /workspace/packages/features/profile/test/profile_test.dart: iOS pinned header scrolls content before dragging the sheet
+00:05 +8: /workspace/packages/features/profile/test/profile_test.dart: server-matching validation counts Unicode characters rather than UTF-16 code units
+00:05 +9: /workspace/packages/features/profile/test/profile_test.dart: server-matching validation accepts exactly the server VPA grammar and blank clears it
+00:05 +10: /workspace/packages/features/profile/test/profile_test.dart: theme selection survives a new controller
+00:05 +11: /workspace/packages/features/profile/test/profile_test.dart: stored theme modes load, save, and reject unknown values
+00:05 +12: /workspace/packages/features/profile/test/profile_test.dart: default theme repository persists through the async platform
+00:05 +13: /workspace/packages/features/profile/test/profile_test.dart: profile repository provider binds to the signed-in user
+00:06 +14: /workspace/packages/features/profile/test/profile_test.dart: profile controller trims, clears, refreshes, and signs out
+00:06 +15: /workspace/packages/features/profile/test/profile_test.dart: every profile glyph paints without a font dependency
+00:06 +16: /workspace/packages/features/profile/test/profile_test.dart: Help and support opens the existing support page
+00:06 +17: /workspace/packages/features/profile/test/profile_test.dart: support returns false shows safe feedback on android
+00:06 +18: /workspace/packages/features/profile/test/profile_test.dart: support throws shows safe feedback on android
+00:07 +19: /workspace/packages/features/profile/test/profile_test.dart: support throws shows safe feedback on iOS
+00:07 +20: /workspace/packages/features/profile/test/profile_test.dart: edits profile, validates VPA, and signs out
+00:08 +21: /workspace/packages/features/profile/test/profile_test.dart: load, save, and sign-out failures use safe copy
+00:09 +22: /workspace/packages/features/profile/test/profile_test.dart: signing out with unsent changes on iOS, sign out asks with an action sheet
+00:09 +23: /workspace/packages/features/profile/test/profile_test.dart: signing out with unsent changes on iOS, delete account asks with an alert
+00:10 +24: /workspace/packages/features/profile/test/profile_test.dart: signing out with unsent changes nothing unsent signs out without asking
+00:10 +25: /workspace/packages/features/profile/test/profile_test.dart: signing out with unsent changes Keep stays signed in and tries to send them
+00:10 +26: /workspace/packages/features/profile/test/profile_test.dart: signing out with unsent changes Sign out anyway signs out once on a no-pump double tap
+00:10 +27: /workspace/packages/features/profile/test/profile_test.dart: signing out with unsent changes dismissing the sheet stays signed in
+00:10 +28: /workspace/packages/features/profile/test/profile_test.dart: signing out with unsent changes Delete account confirms, naming what goes and what stays, and deletes once on a no-pump double tap
+00:11 +29: /workspace/packages/features/profile/test/profile_test.dart: signing out with unsent changes Keep my account and dismissing delete nothing
+00:11 +30: /workspace/packages/features/profile/test/profile_test.dart: signing out with unsent changes Delete account warns that unsent changes are lost
+00:11 +31: /workspace/packages/features/profile/test/profile_test.dart: signing out with unsent changes a failed deletion uses safe copy and can be retried
+00:12 +32: /workspace/packages/features/profile/test/profile_test.dart: appearance save failures use safe copy and keep the sheet
+00:12 +33: /workspace/packages/features/profile/test/profile_test.dart: no name shows a prompt, and unbuilt rows are hidden (#174)
+00:12 +34: /workspace/packages/features/profile/test/profile_test.dart: Export shares a space as CSV and PDF, once on a no-pump double tap
+00:14 +35: /workspace/packages/features/profile/test/profile_test.dart: Export says when there is nothing to export or it fails
+00:14 +36: /workspace/packages/features/profile/test/profile_test.dart: routed Profile sheet: the identity row edits, Export pushes with its own Back, and Close and Android header drags dismiss
+00:15 +37: loading /workspace/packages/features/profile/test/reminder_toggle_test.dart
+00:16 +37: /workspace/packages/features/profile/test/reminder_toggle_test.dart: asks only when turned on: notDetermined, continue=false
+00:18 +38: /workspace/packages/features/profile/test/reminder_toggle_test.dart: asks only when turned on: notDetermined, continue=true
+00:19 +39: /workspace/packages/features/profile/test/reminder_toggle_test.dart: asks only when turned on: denied, continue=false
+00:19 +40: /workspace/packages/features/profile/test/reminder_toggle_test.dart: asks only when turned on: denied, continue=true
+00:19 +41: /workspace/packages/features/profile/test/reminder_toggle_test.dart: asks only when turned on: granted, continue=false
+00:19 +42: /workspace/packages/features/profile/test/reminder_toggle_test.dart: asks only when turned on: granted, continue=true
+00:19 +43: /workspace/packages/features/profile/test/reminder_toggle_test.dart: opening default-on reminders never asks (#259)
+00:19 +44: /workspace/packages/features/profile/test/reminder_toggle_test.dart: iOS explains with a native alert (variant: TargetPlatform.iOS)
+00:20 +45: /workspace/packages/features/profile/test/reminder_toggle_test.dart: one pending write, saved preference survives reopening
+00:20 +46: /workspace/packages/features/profile/test/reminder_toggle_test.dart: load retry and failed save preserve server preference
+00:20 +47: /workspace/packages/features/profile/test/reminder_toggle_test.dart: a held save can finish after the screen closes
+00:20 +48: All tests passed!

@@ -23,96 +23,54 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
     final data = profile.value;
-    final media = MediaQuery.of(context);
-    return Scaffold(
-      body: DefaultTextStyle.merge(
-        style: const TextStyle(letterSpacing: 0, height: 1.2),
-        child: SettloScrollScaffold(
-          title: 'Profile',
-          onSheetClose: () =>
-              Navigator.of(context, rootNavigator: true).maybePop(),
-          headerGap: SettloSpacing.x3,
-          // The sheet already sits below the status bar.
-          statusInset: 0,
-          padding: EdgeInsets.fromLTRB(
-            SettloSpacing.screenMargin,
-            0,
-            SettloSpacing.screenMargin,
-            media.padding.bottom + SettloSpacing.x2,
-          ),
-          children: [
-            if (data != null) ...[
-              _Identity(data),
-              const SizedBox(height: SettloSpacing.x3),
-              _UpiCard(data),
-              const SizedBox(height: SettloSpacing.x3),
-              const _SectionLabel('Preferences'),
-              const SizedBox(height: SettloSpacing.x1),
-              const ReminderToggle(),
-              const SizedBox(height: SettloSpacing.x2),
-              const _QuietPreferences(),
-              const SizedBox(height: SettloSpacing.x3),
-              const _SectionLabel('Help'),
-              const SizedBox(height: SettloSpacing.x1),
-              const _HelpCard(),
-              const SizedBox(height: SettloSpacing.x3),
-              const _SectionLabel('Account'),
-              const SizedBox(height: SettloSpacing.x1),
-              _AccountCard(data),
-            ] else if (profile.hasError) ...[
-              const SizedBox(height: SettloSpacing.x5 * 2),
-              Text(
-                "We couldn't load your profile.",
-                textAlign: TextAlign.center,
-                style: SettloTypography.headline(
-                  color: SettloColors.of(context).textPrimary,
-                ),
+    return DefaultTextStyle.merge(
+      style: const TextStyle(letterSpacing: 0, height: 1.2),
+      child: SSheetScaffold(
+        title: 'Profile',
+        leading: SAvatar(data?.name ?? '', size: 28),
+        onClose: () => Navigator.of(context, rootNavigator: true).maybePop(),
+        children: [
+          if (data != null) ...[
+            _Identity(data),
+            const SizedBox(height: SettloSpacing.x3),
+            _UpiCard(data),
+            const SizedBox(height: SettloSpacing.x3),
+            const _SectionLabel('Preferences'),
+            const SizedBox(height: SettloSpacing.x1),
+            const ReminderToggle(),
+            const SizedBox(height: SettloSpacing.x2),
+            const _QuietPreferences(),
+            const SizedBox(height: SettloSpacing.x3),
+            const _SectionLabel('Help'),
+            const SizedBox(height: SettloSpacing.x1),
+            const _HelpCard(),
+            const SizedBox(height: SettloSpacing.x3),
+            const _SectionLabel('Account'),
+            const SizedBox(height: SettloSpacing.x1),
+            _AccountCard(data),
+          ] else if (profile.hasError) ...[
+            const SizedBox(height: SettloSpacing.x5 * 2),
+            Text(
+              "We couldn't load your profile.",
+              textAlign: TextAlign.center,
+              style: SettloTypography.headline(
+                color: SettloColors.of(context).textPrimary,
               ),
-              const SizedBox(height: SettloSpacing.x2),
-              Center(
-                child: SSecondaryButton(
-                  label: 'Try again',
-                  onPressed: () => ref.invalidate(profileProvider),
-                ),
+            ),
+            const SizedBox(height: SettloSpacing.x2),
+            Center(
+              child: SSecondaryButton(
+                label: 'Try again',
+                onPressed: () => ref.invalidate(profileProvider),
               ),
-            ] else
-              const Padding(
-                padding: EdgeInsets.only(top: SettloSpacing.x5 * 3),
-                child: Center(child: CircularProgressIndicator.adaptive()),
-              ),
-          ],
-        ),
+            ),
+          ] else
+            const Padding(
+              padding: EdgeInsets.only(top: SettloSpacing.x5 * 3),
+              child: Center(child: CircularProgressIndicator.adaptive()),
+            ),
+        ],
       ),
-    );
-  }
-}
-
-/// A 44pt round header button on the surface, such as Close or Back.
-class _CircleButton extends StatelessWidget {
-  const new({
-    required this.tooltip,
-    required this.glyph,
-    required this.onPressed,
-  });
-
-  final String tooltip;
-  final ProfileGlyph glyph;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = SettloColors.of(context);
-    return IconButton(
-      tooltip: tooltip,
-      onPressed: onPressed,
-      style: IconButton.styleFrom(
-        fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-        minimumSize: Size.zero,
-        padding: EdgeInsets.zero,
-        backgroundColor: colors.surface,
-        side: BorderSide(color: colors.hairline),
-      ),
-      icon: ProfileIcon(glyph, color: colors.textPrimary, size: 18),
     );
   }
 }
@@ -315,9 +273,9 @@ class _AccountCard extends ConsumerWidget {
                 destructive: 'Sign Out Anyway',
                 cancel: 'Keep',
               )
-            : await showSettloSheet<bool>(
-                context: context,
-                builder: (_) => _LeaveSheet(
+            : await pushSettloSheet<bool>(
+                context,
+                (_) => _LeaveSheet(
                   title: title,
                   body: body,
                   keep: 'Keep',
@@ -363,9 +321,9 @@ class _AccountCard extends ConsumerWidget {
               destructive: 'Delete Account',
               cancel: 'Keep My Account',
             )
-          : await showSettloSheet<bool>(
-              context: context,
-              builder: (_) => _LeaveSheet(
+          : await pushSettloSheet<bool>(
+              context,
+              (_) => _LeaveSheet(
                 title: title,
                 body: body,
                 keep: 'Keep my account',
@@ -442,54 +400,47 @@ class _LeaveSheetState extends State<_LeaveSheet> {
     _busy = true;
     // Sent in the background; nothing here waits for the network.
     if (!leave) unawaited(widget.onKeep?.call().catchError((_) {}));
-    Navigator.of(context).pop(leave);
+    finishSettloSheet(context, leave);
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.fromLTRB(
-        SettloSpacing.screenMargin,
-        SettloSpacing.x2,
-        SettloSpacing.screenMargin,
-        SettloSpacing.x3,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.title,
-              style: SettloTypography.title3(color: colors.textPrimary),
-            ),
-            const SizedBox(height: SettloSpacing.x1),
-            Text(
-              widget.body,
-              style: SettloTypography.body(color: colors.textSecondary)
-                  .copyWith(height: 1.4),
-            ),
-            const SizedBox(height: SettloSpacing.x3),
-            SizedBox(
-              width: double.infinity,
-              child: SPrimaryButton(
-                label: widget.keep,
-                onPressed: () => _close(leave: false),
+    return SSheetScaffold(
+      title: widget.title,
+      onClose: () => finishSettloSheet(context),
+      children: [
+        SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: SettloSpacing.x1),
+              Text(
+                widget.body,
+                style: SettloTypography.body(color: colors.textSecondary)
+                    .copyWith(height: 1.4),
               ),
-            ),
-            const SizedBox(height: SettloSpacing.x1),
-            SizedBox(
-              width: double.infinity,
-              child: SSecondaryButton(
-                label: widget.leave,
-                onPressed: () => _close(leave: true),
+              const SizedBox(height: SettloSpacing.x3),
+              SizedBox(
+                width: double.infinity,
+                child: SPrimaryButton(
+                  label: widget.keep,
+                  onPressed: () => _close(leave: false),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: SettloSpacing.x1),
+              SizedBox(
+                width: double.infinity,
+                child: SSecondaryButton(
+                  label: widget.leave,
+                  onPressed: () => _close(leave: true),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -637,10 +588,7 @@ class _IconTile extends StatelessWidget {
 }
 
 Future<void> _showEditProfile(BuildContext context, ProfileData data) =>
-    showSettloSheet<void>(
-      context: context,
-      builder: (_) => _EditProfileSheet(data),
-    );
+    pushSettloSheet<void>(context, (_) => _EditProfileSheet(data));
 
 class _EditProfileSheet extends ConsumerStatefulWidget {
   const new(this.data);
@@ -675,64 +623,61 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.fromLTRB(
-        SettloSpacing.screenMargin,
-        SettloSpacing.x2,
-        SettloSpacing.screenMargin,
-        SettloSpacing.x3,
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Name and UPI ID',
-              style: SettloTypography.title3(color: colors.textPrimary),
-            ),
-            const SizedBox(height: SettloSpacing.x3),
-            TextFormField(
-              key: const ValueKey('profile-name'),
-              controller: _name,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              maxLength: 100,
-              decoration: const InputDecoration(labelText: 'Name'),
-              validator: validateProfileName,
-            ),
-            const SizedBox(height: SettloSpacing.x1),
-            TextFormField(
-              key: const ValueKey('profile-upi-id'),
-              controller: _upi,
-              autocorrect: false,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'UPI ID',
-                hintText: 'name@bank',
-              ),
-              validator: validateUpiId,
-            ),
-            if (_serverError != null) ...[
-              const SizedBox(height: SettloSpacing.x2),
+    return SSheetScaffold(
+      title: 'Edit profile',
+      onClose: () => finishSettloSheet(context),
+      children: [
+        Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                _serverError!,
-                style: SettloTypography.subheadline(color: colors.error),
+                'Name and UPI ID',
+                style: SettloTypography.title3(color: colors.textPrimary),
+              ),
+              const SizedBox(height: SettloSpacing.x3),
+              TextFormField(
+                key: const ValueKey('profile-name'),
+                controller: _name,
+                textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.next,
+                maxLength: 100,
+                decoration: const InputDecoration(labelText: 'Name'),
+                validator: validateProfileName,
+              ),
+              const SizedBox(height: SettloSpacing.x1),
+              TextFormField(
+                key: const ValueKey('profile-upi-id'),
+                controller: _upi,
+                autocorrect: false,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'UPI ID',
+                  hintText: 'name@bank',
+                ),
+                validator: validateUpiId,
+              ),
+              if (_serverError != null) ...[
+                const SizedBox(height: SettloSpacing.x2),
+                Text(
+                  _serverError!,
+                  style: SettloTypography.subheadline(color: colors.error),
+                ),
+              ],
+              const SizedBox(height: SettloSpacing.x3),
+              SizedBox(
+                width: double.infinity,
+                child: SPrimaryButton(
+                  label: _saving ? 'Saving…' : 'Save',
+                  onPressed: _saving ? null : _save,
+                ),
               ),
             ],
-            const SizedBox(height: SettloSpacing.x3),
-            SizedBox(
-              width: double.infinity,
-              child: SPrimaryButton(
-                label: _saving ? 'Saving…' : 'Save',
-                onPressed: _saving ? null : _save,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -744,7 +689,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       await ref
           .read(profileProvider.notifier)
           .save(name: _name.text, upiId: _upi.text);
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) finishSettloSheet(context);
     } on ProfileInputException catch (error) {
       if (mounted) setState(() => _serverError = error.message);
     } on Object {
@@ -760,61 +705,69 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
 }
 
 Future<void> _showAppearance(BuildContext context, ThemeMode selected) =>
-    showSettloSheet<void>(
-      context: context,
-      builder: (_) => _AppearanceSheet(selected),
-    );
+    pushSettloSheet<void>(context, (_) => _AppearanceSheet(selected));
 
-class _AppearanceSheet extends ConsumerWidget {
+class _AppearanceSheet extends ConsumerStatefulWidget {
   const new(this.selected);
 
   final ThemeMode selected;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AppearanceSheet> createState() => _AppearanceSheetState();
+}
+
+class _AppearanceSheetState extends ConsumerState<_AppearanceSheet> {
+  String? _error;
+
+  @override
+  Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.fromLTRB(
-        SettloSpacing.screenMargin,
-        SettloSpacing.x2,
-        SettloSpacing.screenMargin,
-        SettloSpacing.x3,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Appearance',
-            style: SettloTypography.title3(color: colors.textPrimary),
-          ),
-          const SizedBox(height: SettloSpacing.x2),
-          for (final mode in ThemeMode.values)
-            SPressable(
-              onTap: () async {
-                try {
-                  await ref.read(themeModeProvider.notifier).setMode(mode);
-                  if (context.mounted) Navigator.of(context).pop();
-                } on Object {
-                  if (!context.mounted) return;
-                  showSettloNotice(
-                    context,
-                    "We couldn't change your appearance. Try again.",
-                  );
-                }
-              },
-              child: ListTile(
-                minTileHeight: SettloSpacing.x6 + SettloSpacing.half,
-                contentPadding: EdgeInsets.zero,
-                title: Text(_themeLabel(mode)),
-                trailing: mode == selected
-                    ? ProfileIcon(ProfileGlyph.check, color: colors.textPrimary)
-                    : null,
+    return SSheetScaffold(
+      title: 'Appearance',
+      onClose: () => finishSettloSheet(context),
+      children: [
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: SettloSpacing.x2),
+            for (final mode in ThemeMode.values)
+              SPressable(
+                onTap: () async {
+                  try {
+                    await ref.read(themeModeProvider.notifier).setMode(mode);
+                    if (context.mounted) finishSettloSheet(context);
+                  } on Object {
+                    if (!context.mounted) return;
+                    setState(
+                      () => _error =
+                          "We couldn't change your appearance. Try again.",
+                    );
+                  }
+                },
+                child: ListTile(
+                  minTileHeight: SettloSpacing.x6 + SettloSpacing.half,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(_themeLabel(mode)),
+                  trailing: mode == widget.selected
+                      ? ProfileIcon(
+                          ProfileGlyph.check,
+                          color: colors.textPrimary,
+                        )
+                      : null,
+                ),
               ),
-            ),
-        ],
-      ),
+            if (_error != null)
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  _error!,
+                  style: SettloTypography.body(color: colors.error),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -838,20 +791,12 @@ class _ExportPage extends StatelessWidget {
     body: SafeArea(
       bottom: false,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              SettloSpacing.screenMargin,
-              SettloSpacing.x2,
-              SettloSpacing.screenMargin,
-              0,
-            ),
-            child: _CircleButton(
-              tooltip: 'Back',
-              glyph: ProfileGlyph.back,
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
+          SSheetHeader(
+            title: 'Export',
+            onClose: () =>
+                Navigator.of(context, rootNavigator: true).maybePop(),
+            onBack: () => Navigator.of(context).maybePop(),
           ),
           const Expanded(child: ExportSheet()),
         ],

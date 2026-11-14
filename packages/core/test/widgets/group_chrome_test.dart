@@ -1,9 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_test_support/golden.dart';
 
 void main() {
+  for (final width in [320.0, 375.0]) {
+    for (final scale in [1.0, 2.0]) {
+      testWidgets('short amount preserves full share at $width / $scale', (
+        tester,
+      ) async {
+        await loadSettloFonts();
+        await tester.binding.setSurfaceSize(Size(width, 667));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: SettloTheme.light(),
+            home: MediaQuery(
+              data: MediaQueryData(
+                size: Size(width, 667),
+                textScaler: TextScaler.linear(scale),
+              ),
+              child: const Scaffold(
+                body: SRow(
+                  title: 'Groceries for the entire household',
+                  leading: SAvatar('Priya', size: 36),
+                  trailing: Text('₹8'),
+                  trailingSub: 'your share ₹600',
+                  chevron: true,
+                ),
+              ),
+            ),
+          ),
+        );
+        final amount = find.text('₹8');
+        final sub = find.text('your share ₹600');
+        final paragraph = tester.renderObject<RenderParagraph>(sub);
+        expect(paragraph.didExceedMaxLines, isFalse);
+        expect(paragraph.maxLines, isNull);
+        expect(
+          tester.getSize(sub).width,
+          greaterThan(tester.getSize(amount).width),
+        );
+        expect(tester.getSize(sub).width, lessThanOrEqualTo(width * .45));
+        expect(
+          tester.getTopRight(amount).dx,
+          closeTo(tester.getTopRight(sub).dx, .01),
+        );
+        final title = tester.getRect(
+          find.text('Groceries for the entire household'),
+        );
+        expect(
+          title.right + 12,
+          lessThanOrEqualTo(tester.getRect(sub).left + .01),
+        );
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
   for (final height in [52.0, 62.0, 64.0]) {
     testWidgets('legacy frame $height preserves the 44pt close target', (
       tester,
@@ -151,7 +205,7 @@ void main() {
                     context,
                     (context) => SSheetScaffold(
                       title: 'Sheet',
-                      onClose: () => Navigator.pop(context),
+                      onClose: () => finishSettloSheet(context),
                       children: const [Text('Body')],
                     ),
                   ),

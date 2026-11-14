@@ -48,17 +48,18 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final route = ModalRoute.of(tester.element(find.text('Sheet entry 0')));
+      final route = ModalRoute.of(
+        Navigator.of(tester.element(find.text('Sheet entry 0'))).context,
+      );
       final ios = platform == TargetPlatform.iOS;
       expect(
         route,
-        ios ? isA<CupertinoSheetRoute<void>>() : isA<PageRoute<void>>(),
+        ios
+            ? isA<CupertinoSheetRoute<void>>()
+            : isA<ModalBottomSheetRoute<void>>(),
       );
       if (!ios) expect(route, isNot(isA<CupertinoSheetRoute<void>>()));
-      expect(
-        settloSheetTop(tester.element(find.text('Sheet entry 0'))),
-        ios ? 0 : 54,
-      );
+      expect(settloSheetTop(tester.element(find.text('Sheet entry 0'))), 0);
     });
   }
 

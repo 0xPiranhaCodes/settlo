@@ -17,7 +17,15 @@ void main() {
     ('settle', const SettleScreen(spaceId: 's1', memberId: 'm3')),
     ('settle_pay', const SettlePayScreen(spaceId: 's2', memberId: 'm5')),
   ]) {
-    for (final device in SettloGoldenDevices.accessible) {
+    for (final device in [
+      ...SettloGoldenDevices.accessible,
+      const GoldenDevice(name: 'se375x667', size: Size(375, 667)),
+      const GoldenDevice(
+        name: 'se375x667_text200',
+        size: Size(375, 667),
+        textScale: 2,
+      ),
+    ]) {
       for (final (themeName, theme) in [
         ('dark', SettloTheme.dark()),
         ('light', SettloTheme.light()),

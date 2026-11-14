@@ -138,7 +138,7 @@ void main() {
     // make; yours to Kabir waits for him (#78) and is not offered again.
     expect(find.text('1 PAYMENT'), findsOne);
     expect(find.text('You pay Kabir'), findsNothing);
-    expect(find.text('Waiting for Kabir to confirm'), findsOne);
+    expect(find.text('Waiting for Kabir to confirm').hitTestable(), findsOne);
 
     // Request side, paid in cash.
     await _tap(tester, 'Priya pays you');
@@ -153,7 +153,7 @@ void main() {
     });
 
     // Recorded by the payee, Priya's counts at once; yours waits.
-    expect(find.text('Waiting for Kabir to confirm'), findsOne);
+    expect(find.text('Waiting for Kabir to confirm').hitTestable(), findsOne);
     expect(find.text("You're all settled up."), findsNothing);
     h.expenses.answer('s2', 'm5', confirmed: true);
     await _reload(tester);
@@ -174,7 +174,7 @@ void main() {
     await _tap(tester, 'Yes, I paid');
 
     expect(find.text('You pay Kabir'), findsNothing);
-    expect(find.text('Waiting for Kabir to confirm'), findsOne);
+    expect(find.text('Waiting for Kabir to confirm').hitTestable(), findsOne);
     expect(
       h.spaces.spaces.last.you.balance,
       const Paise.rupees(-3650),
@@ -185,7 +185,10 @@ void main() {
     unawaited(h.router.push(SettloRoutes.settlePayTo('s2', 'm5')));
     await tester.pumpAndSettle();
     // Native pushed pages keep the previous route offstage.
-    expect(find.text('Waiting for Kabir to confirm'), findsOneWidget);
+    expect(
+      find.text('Waiting for Kabir to confirm').hitTestable(),
+      findsOneWidget,
+    );
     expect(find.textContaining('via UPI'), findsNothing);
     expect(find.text('I already paid in cash'), findsNothing);
     h.router.pop();

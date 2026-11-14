@@ -19,7 +19,17 @@ void main() {
     final platform = ios ? TargetPlatform.iOS : TargetPlatform.android;
     final suffix = ios ? '_ios' : '';
     for (final device
-        in ios ? SettloGoldenDevices.all : SettloGoldenDevices.accessible) {
+        in ios
+            ? SettloGoldenDevices.all
+            : [
+                ...SettloGoldenDevices.accessible,
+                const GoldenDevice(name: 'se375x667', size: Size(375, 667)),
+                const GoldenDevice(
+                  name: 'se375x667_text200',
+                  size: Size(375, 667),
+                  textScale: 2,
+                ),
+              ]) {
       for (final (themeName, theme) in [
         ('dark', SettloTheme.dark().copyWith(platform: platform)),
         ('light', SettloTheme.light().copyWith(platform: platform)),

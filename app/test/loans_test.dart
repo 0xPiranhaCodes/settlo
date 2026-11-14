@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -394,7 +393,7 @@ void main() {
         location: SettloRoutes.loan('l1'),
       );
 
-      await _tap(tester, find.text("Didn't get it"));
+      await _tap(tester, find.text('Not received'));
       expect(find.text("Didn't get ₹25,000 from Arjun?"), findsOne);
       final send = find.widgetWithText(FilledButton, 'Mark as not received');
       expect(tester.widget<FilledButton>(send).onPressed, isNull);
@@ -450,7 +449,7 @@ void main() {
         tester,
         location: SettloRoutes.loan('l1'),
       );
-      await _tap(tester, find.byTooltip('Back'));
+      await _tap(tester, find.bySemanticsLabel('Close'));
       expect(router.state.uri.toString(), SettloRoutes.loans);
     });
 
@@ -717,7 +716,7 @@ void main() {
       _canOpen = false;
       await fill(tester);
       await _tap(tester, create());
-      expect(find.text("Couldn't open WhatsApp"), findsOne);
+      expect(find.text("Couldn't open WhatsApp").hitTestable(), findsOne);
       expect(find.byType(LoanDetailScreen), findsOne);
     });
 
@@ -738,7 +737,7 @@ void main() {
         100,
         scrollable: find
             .descendant(
-              of: find.byType(CustomScrollView),
+              of: find.byType(CustomScrollView).hitTestable(),
               matching: find.byType(Scrollable),
             )
             .first,
@@ -831,7 +830,8 @@ void main() {
       );
 
       await _tap(tester, find.text('awaiting you'));
-      expect(router.state.uri.toString(), SettloRoutes.confirmRepayment('r3'));
+      expect(router.state.uri.toString(), SettloRoutes.loan('l1'));
+      expect(find.byType(ConfirmRepaymentScreen), findsOneWidget);
       expect(find.text('Arjun says they paid you'), findsOne);
       expect(find.textContaining('on 5 Oct · UPI'), findsOne);
       expect(find.text('Outstanding after'), findsOne);
@@ -842,7 +842,7 @@ void main() {
         findsOne,
       );
       await tester.scrollUntilVisible(
-        find.text("Didn't receive this"),
+        find.text('Not received'),
         100,
         scrollable: find
             .byWidgetPredicate(
@@ -852,7 +852,7 @@ void main() {
             )
             .first,
       );
-      expect(find.text("Didn't receive this"), findsOne);
+      expect(find.text('Not received'), findsOne);
       expect(find.textContaining('Confirming is final'), findsOne);
       semantics.dispose();
     });
@@ -865,10 +865,10 @@ void main() {
       );
       await _tap(tester, find.text('awaiting you'));
 
-      expect(find.byType(CupertinoSliverNavigationBar), findsOne);
+      expect(find.byType(SSheetHeader).hitTestable(), findsOne);
       expect(find.text('Confirm repayment'), findsWidgets);
-      expect(find.byType(IconButton), findsNothing, reason: 'no round chevron');
-      await tester.tap(find.byType(GlassAction));
+      expect(find.bySemanticsLabel('Back').hitTestable(), findsOne);
+      await tester.tap(find.bySemanticsLabel('Back').hitTestable());
       await tester.pumpAndSettle();
       expect(router.state.uri.toString(), SettloRoutes.loan('l1'));
     });
@@ -908,7 +908,7 @@ void main() {
         findsOne,
       );
       await tester.scrollUntilVisible(
-        find.text("Didn't pay this"),
+        find.text('Not paid'),
         100,
         scrollable: find
             .byWidgetPredicate(
@@ -918,10 +918,10 @@ void main() {
             )
             .first,
       );
-      expect(find.text("Didn't pay this"), findsOne);
+      expect(find.text('Not paid'), findsOne);
       expect(find.textContaining(' says he '), findsNothing);
 
-      await _tap(tester, find.text("Didn't pay this"));
+      await _tap(tester, find.text('Not paid'));
       expect(find.text("Didn't pay ₹5,000 to Meera?"), findsOne);
       expect(find.widgetWithText(FilledButton, 'Mark as not paid'), findsOne);
     });
@@ -945,7 +945,7 @@ void main() {
       expect(loans.calls, [startsWith('confirm_repayment ')]);
       // Opened directly, so there is nothing to pop: it goes to the loan.
       expect(router.state.uri.toString(), SettloRoutes.loan('l1'));
-      expect(find.text('Confirmed. ₹6,50,000 left'), findsOne);
+      expect(find.text('Confirmed. ₹6,50,000 left').hitTestable(), findsOne);
     });
 
     testWidgets('confirming says so and pops back to the loan (#259)', (
@@ -964,7 +964,7 @@ void main() {
       expect(router.state.uri.toString(), SettloRoutes.loan('l1'));
       expect(find.byType(ConfirmRepaymentScreen), findsNothing);
       expect(find.byType(LoanDetailScreen), findsOne);
-      expect(find.text('Confirmed. ₹6,50,000 left'), findsOne);
+      expect(find.text('Confirmed. ₹6,50,000 left').hitTestable(), findsOne);
       expect(
         find.text('This repayment has already been answered and is read-only.'),
         findsNothing,
@@ -990,7 +990,7 @@ void main() {
 
       testWidgets('after Back', (tester) async {
         final (:router, :hold) = await pending(tester);
-        router.pop();
+        Navigator.of(tester.element(find.byType(ConfirmRepaymentScreen))).pop();
         await tester.pump();
         // The receipt is still mounted, mid exit transition.
         hold.complete();
@@ -1078,7 +1078,7 @@ void main() {
         findsOne,
       );
       expect(find.byType(FilledButton), findsNothing);
-      expect(find.text("Didn't receive this"), findsNothing);
+      expect(find.text('Not received'), findsNothing);
     });
 
     testWidgets('controls and receipt rows meet accessibility guidelines', (
@@ -1161,7 +1161,7 @@ void main() {
         tester,
         location: SettloRoutes.loan('l1'),
       );
-      await _tap(tester, find.text("Didn't get it"));
+      await _tap(tester, find.text('Not received'));
       await tester.enterText(find.byType(TextField), 'Not received yet');
       await tester.pump();
       await twice(
@@ -1183,7 +1183,10 @@ void main() {
         await _pump(tester, location: location);
         await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
         await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-        await tester.drag(find.byType(CustomScrollView), const Offset(0, -800));
+        await tester.drag(
+          find.byType(CustomScrollView).hitTestable(),
+          const Offset(0, -800),
+        );
         await tester.pumpAndSettle();
         await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
         semantics.dispose();
@@ -1197,7 +1200,10 @@ void main() {
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
       await tester.enterText(find.byType(TextField).at(1), '98200 11223');
       await _tap(tester, find.text('Add person'));
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -800));
+      await tester.drag(
+        find.byType(CustomScrollView).hitTestable(),
+        const Offset(0, -800),
+      );
       await tester.pumpAndSettle();
       await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));

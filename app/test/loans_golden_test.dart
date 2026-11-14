@@ -18,7 +18,15 @@ void main() {
     ('list', const LoanScreen()),
     ('detail', const LoanDetailScreen(loanId: 'l1')),
   ]) {
-    for (final device in SettloGoldenDevices.accessible) {
+    for (final device in [
+      ...SettloGoldenDevices.accessible,
+      const GoldenDevice(name: 'se375x667', size: Size(375, 667)),
+      const GoldenDevice(
+        name: 'se375x667_text200',
+        size: Size(375, 667),
+        textScale: 2,
+      ),
+    ]) {
       for (final (themeName, theme) in [
         ('dark', SettloTheme.dark()),
         ('light', SettloTheme.light()),
@@ -44,11 +52,25 @@ void main() {
             theme: theme,
             child: UncontrolledProviderScope(
               container: container,
-              child: SettloShell(
-                currentIndex: 2,
-                onTabSelected: (_) {},
-                child: screen,
-              ),
+              child: state == 'list'
+                  ? SettloShell(
+                      currentIndex: 2,
+                      onTabSelected: (_) {},
+                      child: screen,
+                    )
+                  : Navigator(
+                      pages: [
+                        MaterialPage<void>(
+                          child: SettloShell(
+                            currentIndex: 2,
+                            onTabSelected: (_) {},
+                            child: const LoanScreen(),
+                          ),
+                        ),
+                        SettloRootSheetPage<void>(child: screen),
+                      ],
+                      onDidRemovePage: (_) {},
+                    ),
             ),
           );
 
@@ -75,7 +97,15 @@ void main() {
     }
   }
 
-  for (final device in SettloGoldenDevices.accessible) {
+  for (final device in [
+    ...SettloGoldenDevices.accessible,
+    const GoldenDevice(name: 'se375x667', size: Size(375, 667)),
+    const GoldenDevice(
+      name: 'se375x667_text200',
+      size: Size(375, 667),
+      textScale: 2,
+    ),
+  ]) {
     for (final (themeName, theme) in [
       ('dark', SettloTheme.dark()),
       ('light', SettloTheme.light()),

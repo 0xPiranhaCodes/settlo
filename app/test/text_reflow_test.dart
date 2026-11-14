@@ -26,9 +26,14 @@ void expectWholeText(WidgetTester tester, Finder finder) {
     final paragraph = tester.renderObject<RenderParagraph>(rich.first);
     expect(paragraph.didExceedMaxLines, isFalse);
     final text = paragraph.text.toPlainText();
-    for (final box in paragraph.getBoxesForSelection(
-      TextSelection(baseOffset: 0, extentOffset: text.length),
-    )) {
+    // Selection boxes include invisible trailing spaces beyond a wrapped
+    // line's width. Check every word so only painted glyphs define overflow.
+    for (final box in [
+      for (final word in RegExp(r'\S+').allMatches(text))
+        ...paragraph.getBoxesForSelection(
+          TextSelection(baseOffset: word.start, extentOffset: word.end),
+        ),
+    ]) {
       expect(box.left, greaterThanOrEqualTo(-0.5), reason: text);
       expect(
         box.right,

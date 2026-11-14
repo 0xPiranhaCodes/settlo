@@ -86,12 +86,16 @@ class SRow extends StatelessWidget {
       children: [
         Text(
           title,
+          maxLines: trailingSub == null ? null : 1,
+          overflow: trailingSub == null ? null : TextOverflow.ellipsis,
           style: SettloTypography.body(color: c.textPrimary)
               .copyWith(height: 1.2),
         ),
         if (subtitle != null)
           Text(
             subtitle!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: SettloTypography.subheadline(color: c.textSecondary)
                 .copyWith(height: 1.2),
           ),
@@ -99,7 +103,9 @@ class SRow extends StatelessWidget {
     );
     final accessory = Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: trailingSub == null
+          ? CrossAxisAlignment.stretch
+          : CrossAxisAlignment.end,
       children: [
         if (trailing != null)
           DefaultTextStyle(
@@ -112,69 +118,80 @@ class SRow extends StatelessWidget {
         if (trailingSub != null)
           Text(
             trailingSub!,
+            textAlign: TextAlign.end,
             semanticsLabel: trailingSubSemanticsLabel,
             style: SettloTypography.footnote(color: c.textSecondary)
                 .copyWith(height: 1.2),
           ),
       ],
     );
-    final large = MediaQuery.textScalerOf(context).scale(17) > 25.5;
-    final row = Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(minHeight: subtitle == null ? 44 : 46),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                if (leading != null) ...[
-                  SizedBox.square(dimension: 36, child: leading),
-                  const SizedBox(width: 12),
-                ],
-                Expanded(
-                  child: large
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            text,
-                            if (trailing != null || trailingSub != null) ...[
-                              const SizedBox(height: 8),
-                              accessory,
+    // Keep both accessory lines together; a share may wrap at large text sizes.
+    final stacked =
+        trailingSub == null &&
+        MediaQuery.textScalerOf(context).scale(17) > 25.5;
+    final row = LayoutBuilder(
+      builder: (context, constraints) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ConstrainedBox(
+            constraints: BoxConstraints(minHeight: subtitle == null ? 44 : 46),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  if (leading != null) ...[
+                    SizedBox.square(dimension: 36, child: leading),
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    child: stacked
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              text,
+                              if (trailing != null) ...[
+                                const SizedBox(height: 8),
+                                accessory,
+                              ],
                             ],
-                          ],
-                        )
-                      : text,
-                ),
-                if (!large && (trailing != null || trailingSub != null)) ...[
-                  const SizedBox(width: 12),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.sizeOf(context).width * .5,
+                          )
+                        : text,
+                  ),
+                  if (!stacked &&
+                      (trailing != null || trailingSub != null)) ...[
+                    const SizedBox(width: 12),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: trailingSub == null
+                            ? MediaQuery.sizeOf(context).width * .5
+                            : constraints.maxWidth * .45,
+                      ),
+                      child: trailingSub == null
+                          ? IntrinsicWidth(child: accessory)
+                          : accessory,
                     ),
-                    child: accessory,
-                  ),
+                  ],
+                  if (chevron) ...[
+                    const SizedBox(width: 8),
+                    Icon(
+                      CupertinoIcons.chevron_right,
+                      size: 16,
+                      color: c.textSecondary,
+                    ),
+                  ],
                 ],
-                if (chevron) ...[
-                  const SizedBox(width: 8),
-                  Icon(
-                    CupertinoIcons.chevron_right,
-                    size: 16,
-                    color: c.textSecondary,
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
-        ),
-        if (separator)
-          Padding(
-            padding: EdgeInsets.only(left: leading == null ? 16 : 64),
-            child: SizedBox(height: .5, child: ColoredBox(color: c.hairline)),
-          ),
-      ],
+          if (separator)
+            Padding(
+              padding: EdgeInsets.only(left: leading == null ? 16 : 64),
+              child: SizedBox(height: .5, child: ColoredBox(color: c.hairline)),
+            ),
+        ],
+      ),
     );
     return onTap == null ? row : SPressable(onTap: onTap, child: row);
   }

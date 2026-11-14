@@ -1,0 +1,165 @@
+00:00 +0: loading /workspace/app/test/spaces_golden_test.dart
+00:00 +0: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces list golden
+00:02 +1: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces list golden
+00:02 +2: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces empty golden
+00:03 +3: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces empty golden
+00:03 +4: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces expenses golden
+00:03 +5: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces expenses golden
+00:03 +6: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces balances golden
+00:03 +7: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces balances golden
+00:03 +8: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces list golden
+00:04 +9: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces list golden
+00:04 +10: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces empty golden
+00:04 +11: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces empty golden
+00:04 +12: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces expenses golden
+00:05 +13: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces expenses golden
+00:05 +14: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces balances golden
+00:05 +15: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces balances golden
+00:06 +16: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces list golden
+00:06 +17: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces list golden
+00:06 +18: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces empty golden
+00:06 +19: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces empty golden
+00:07 +20: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces expenses golden
+00:07 +21: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces expenses golden
+00:07 +22: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces balances golden
+00:07 +23: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces balances golden
+00:07 +24: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces list golden
+00:07 +25: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces list golden
+00:07 +26: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces empty golden
+00:07 +27: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces empty golden
+00:07 +28: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces expenses golden
+00:08 +29: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces expenses golden
+00:08 +30: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces balances golden
+00:08 +31: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces balances golden
+00:08 +32: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces_expenses_ios golden
+00:08 +33: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces_expenses_ios golden
+00:08 +34: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces_expenses_ios golden
+00:08 +35: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces_expenses_ios golden
+00:08 +36: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces_list_ios golden
+00:09 +37: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces_list_ios golden
+00:09 +38: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces_list_ios golden
+00:09 +39: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces_list_ios golden
+00:09 +40: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces settle-ups golden
+00:09 +41: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces settle-ups golden
+00:09 +42: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces settle-ups golden
+00:09 +43: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces settle-ups golden
+00:10 +44: loading /workspace/app/test/space_sheet_chrome_golden_test.dart
+00:11 +44: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=false segment=expenses
+00:14 +45: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=false segment=balances
+00:14 +46: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=false segment=activity
+00:14 +47: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=true segment=expenses
+00:15 +48: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=true segment=balances
+00:15 +49: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=true segment=activity
+00:15 +50: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=false segment=expenses
+00:15 +51: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=false segment=balances
+00:16 +52: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=false segment=activity
+00:16 +53: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=true segment=expenses
+00:16 +54: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=true segment=balances
+00:16 +55: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=true segment=activity
+00:16 +56: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=false segment=expenses
+00:16 +57: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=false segment=balances
+00:16 +58: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=false segment=activity
+00:16 +59: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=true segment=expenses
+00:17 +60: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=true segment=balances
+00:17 +61: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=true segment=activity
+00:17 +62: loading /workspace/app/test/phase2a_sheet_golden_test.dart
+00:18 +62: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan 390x844 dark=false
+00:21 +63: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile 390x844 dark=false
+00:22 +64: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense 390x844 dark=false
+00:23 +65: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle 390x844 dark=false
+00:23 +66: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment 390x844 dark=false
+00:23 +67: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan 390x844 dark=false
+00:23 +68: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment 390x844 dark=false
+00:23 +69: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space 390x844 dark=false
+00:25 +70: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members 390x844 dark=false
+00:25 +71: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite 390x844 dark=false
+00:26 +72: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export 390x844 dark=false
+00:26 +73: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance 390x844 dark=false
+00:26 +74: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account 390x844 dark=false
+00:27 +75: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan 390x844 dark=true
+00:28 +76: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile 390x844 dark=true
+00:28 +77: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense 390x844 dark=true
+00:28 +78: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle 390x844 dark=true
+00:28 +79: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment 390x844 dark=true
+00:28 +80: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan 390x844 dark=true
+00:29 +81: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment 390x844 dark=true
+00:29 +82: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space 390x844 dark=true
+00:29 +83: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members 390x844 dark=true
+00:30 +84: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite 390x844 dark=true
+00:30 +85: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export 390x844 dark=true
+00:30 +86: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance 390x844 dark=true
+00:32 +87: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account 390x844 dark=true
+00:32 +88: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan se375x667 dark=false
+00:32 +89: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile se375x667 dark=false
+00:33 +90: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense se375x667 dark=false
+00:33 +91: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle se375x667 dark=false
+00:33 +92: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment se375x667 dark=false
+00:33 +93: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan se375x667 dark=false
+00:33 +94: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment se375x667 dark=false
+00:33 +95: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space se375x667 dark=false
+00:34 +96: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members se375x667 dark=false
+00:34 +97: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite se375x667 dark=false
+00:34 +98: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export se375x667 dark=false
+00:35 +99: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance se375x667 dark=false
+00:36 +100: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account se375x667 dark=false
+00:36 +101: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan se375x667 dark=true
+00:36 +102: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile se375x667 dark=true
+00:36 +103: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense se375x667 dark=true
+00:37 +104: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle se375x667 dark=true
+00:37 +105: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment se375x667 dark=true
+00:37 +106: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan se375x667 dark=true
+00:37 +107: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment se375x667 dark=true
+00:37 +108: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space se375x667 dark=true
+00:37 +109: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members se375x667 dark=true
+00:37 +110: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite se375x667 dark=true
+00:38 +111: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export se375x667 dark=true
+00:38 +112: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance se375x667 dark=true
+00:38 +113: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account se375x667 dark=true
+00:39 +114: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan se375x667_text200 dark=false
+00:39 +115: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile se375x667_text200 dark=false
+00:39 +116: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense se375x667_text200 dark=false
+00:39 +117: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle se375x667_text200 dark=false
+00:39 +118: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment se375x667_text200 dark=false
+00:39 +119: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan se375x667_text200 dark=false
+00:39 +120: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment se375x667_text200 dark=false
+00:40 +121: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space se375x667_text200 dark=false
+00:40 +122: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members se375x667_text200 dark=false
+00:41 +123: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite se375x667_text200 dark=false
+00:41 +124: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export se375x667_text200 dark=false
+00:41 +125: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance se375x667_text200 dark=false
+00:42 +126: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account se375x667_text200 dark=false
+00:42 +127: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan se375x667_text200 dark=true
+00:42 +128: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile se375x667_text200 dark=true
+00:42 +129: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense se375x667_text200 dark=true
+00:42 +130: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle se375x667_text200 dark=true
+00:42 +131: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment se375x667_text200 dark=true
+00:43 +132: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan se375x667_text200 dark=true
+00:43 +133: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment se375x667_text200 dark=true
+00:43 +134: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space se375x667_text200 dark=true
+00:44 +135: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members se375x667_text200 dark=true
+00:44 +136: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite se375x667_text200 dark=true
+00:45 +137: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export se375x667_text200 dark=true
+00:45 +138: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance se375x667_text200 dark=true
+00:45 +139: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account se375x667_text200 dark=true
+00:46 +140: loading /workspace/app/test/profile_sheet_test.dart
+00:48 +140: /workspace/app/test/profile_sheet_test.dart: a deep link opens Profile as a sheet over Home (variant: TargetPlatform.iOS)
+00:53 +141: /workspace/app/test/profile_sheet_test.dart: Close dismisses the sheet once, back to Home (variant: TargetPlatform.iOS)
+00:55 +142: /workspace/app/test/profile_sheet_test.dart: Export pushes inside the sheet, and Back returns to it (variant: TargetPlatform.iOS)
+00:56 +143: /workspace/app/test/profile_sheet_test.dart: the other tabs keep their place under the sheet (variant: TargetPlatform.iOS)
+00:58 +144: /workspace/app/test/profile_sheet_test.dart: pushed from another tab, the sheet stays over that tab (variant: TargetPlatform.iOS)
+01:01 +145: /workspace/app/test/profile_sheet_test.dart: on /spaces, the avatar opens the sheet over that tab (variant: TargetPlatform.iOS)
+01:02 +146: /workspace/app/test/profile_sheet_test.dart: on /loans, the avatar opens the sheet over that tab (variant: TargetPlatform.iOS)
+01:03 +147: /workspace/app/test/profile_sheet_test.dart: on /activity, the avatar opens the sheet over that tab (variant: TargetPlatform.iOS)
+01:05 +148: /workspace/app/test/profile_sheet_test.dart: a deep link opens Profile as a sheet over Home (variant: TargetPlatform.android)
+01:06 +149: /workspace/app/test/profile_sheet_test.dart: Close dismisses the sheet once, back to Home (variant: TargetPlatform.android)
+01:07 +150: /workspace/app/test/profile_sheet_test.dart: Export pushes inside the sheet, and Back returns to it (variant: TargetPlatform.android)
+01:07 +151: /workspace/app/test/profile_sheet_test.dart: the other tabs keep their place under the sheet (variant: TargetPlatform.android)
+01:08 +152: /workspace/app/test/profile_sheet_test.dart: pushed from another tab, the sheet stays over that tab (variant: TargetPlatform.android)
+01:10 +153: /workspace/app/test/profile_sheet_test.dart: on /spaces, the avatar opens the sheet over that tab (variant: TargetPlatform.android)
+01:11 +154: /workspace/app/test/profile_sheet_test.dart: on /loans, the avatar opens the sheet over that tab (variant: TargetPlatform.android)
+01:11 +155: /workspace/app/test/profile_sheet_test.dart: on /activity, the avatar opens the sheet over that tab (variant: TargetPlatform.android)
+01:12 +156: /workspace/app/test/profile_sheet_test.dart: on iOS, a swipe down with Export pushed closes the sheet (variant: TargetPlatform.iOS)
+01:12 +157: /workspace/app/test/profile_sheet_test.dart: on iOS, an edge swipe from Export returns to Profile (variant: TargetPlatform.iOS)
+01:13 +158: /workspace/app/test/profile_sheet_test.dart: on iOS, a swipe down dismisses the sheet (variant: TargetPlatform.iOS)
+01:13 +159: /workspace/app/test/profile_sheet_test.dart: on Android, shared chrome replaces the grabber and closes (variant: TargetPlatform.android)
+01:14 +160: All tests passed!

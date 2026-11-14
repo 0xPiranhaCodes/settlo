@@ -30,12 +30,13 @@ class AddExpenseScreen extends ConsumerStatefulWidget {
 class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   late String? _spaceId = widget.spaceId;
 
-  void _close() => context.canPop()
-      ? context.pop()
-      : context.go(switch (widget.spaceId) {
-          final id? => SettloRoutes.space(id),
-          null => SettloRoutes.home,
-        });
+  void _close() => popSettloTask(
+    context,
+    fallback: switch (widget.spaceId) {
+      final id? => SettloRoutes.space(id),
+      null => SettloRoutes.home,
+    },
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +113,6 @@ class _Frame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final text = Theme.of(context).textTheme;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: c.surface,
@@ -123,41 +123,10 @@ class _Frame extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: SettloScrollScaffold(
-          title: 'Add expense',
-          padding: const EdgeInsets.fromLTRB(
-            SettloSpacing.screenMargin,
-            20,
-            SettloSpacing.screenMargin,
-            26,
-          ),
+        child: SSheetScaffold(
+          title: 'New expense',
+          onClose: onClose,
           children: [
-            Row(
-              children: [
-                Transform.translate(
-                  offset: const Offset(-12, 0),
-                  child: IconButton(
-                    tooltip: 'Close',
-                    onPressed: onClose,
-                    icon: ExpenseGlyph(
-                      ExpenseGlyph.close,
-                      color: c.textPrimary,
-                      size: 22,
-                      stroke: 1.6,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'New expense',
-                    textAlign: TextAlign.center,
-                    style: text.titleSmall,
-                  ),
-                ),
-                const SizedBox(width: SettloSpacing.minTouchTarget - 12),
-              ],
-            ),
-            const SizedBox(height: SettloSpacing.x3),
             if (label case final label?) ...[
               Text(
                 label,

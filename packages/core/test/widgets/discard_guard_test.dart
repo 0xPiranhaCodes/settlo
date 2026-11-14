@@ -34,7 +34,7 @@ Widget _app(
                         amount: const Text('0'),
                         dirty: note.text.isNotEmpty,
                         saving: saving,
-                        onClose: () => Navigator.of(context).pop(),
+                        onClose: () => finishSettloSheet(context),
                         body: TextField(
                           controller: note,
                           onChanged: (_) => rebuild(() {}),

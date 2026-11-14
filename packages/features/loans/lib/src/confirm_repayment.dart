@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_loans/src/glyphs.dart';
 import 'package:settlo_loans/src/loan_detail.dart';
@@ -68,54 +67,20 @@ class _Unavailable extends StatelessWidget {
   final bool failed;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: SettloScrollScaffold(
-      title: 'Confirm repayment',
-      largeTitle: 'Confirm repayment',
-      children: [
-        _header(context),
-        const SizedBox(height: SettloSpacing.x5),
-        Text(
-          loading
-              ? 'Loading…'
-              : failed
-              ? "We couldn't load this repayment. Try again."
-              : 'This repayment is no longer available.',
-          textAlign: TextAlign.center,
-        ),
-      ],
-    ),
-  );
-}
-
-/// The header off iOS; iOS shows the shared navigation bar and glass back.
-Widget _header(BuildContext context) {
-  final c = SettloColors.of(context);
-  return MediaQuery.removePadding(
-    context: context,
-    removeTop: true,
-    child: AppBar(
-      primary: false,
-      toolbarHeight: 56,
-      leadingWidth: 44,
-      leading: Center(
-        child: IconButton(
-          tooltip: 'Back',
-          onPressed: context.pop,
-          style: IconButton.styleFrom(
-            fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-            backgroundColor: c.surface,
-            side: BorderSide(color: c.hairline),
-          ),
-          icon: LoanGlyph(LoanGlyph.back, color: c.textPrimary),
-        ),
+  Widget build(BuildContext context) => SSheetScaffold(
+    title: 'Confirm repayment',
+    onClose: () => popSettloTask(context, fallback: SettloRoutes.loans),
+    children: [
+      const SizedBox(height: SettloSpacing.x5),
+      Text(
+        loading
+            ? 'Loading…'
+            : failed
+            ? "We couldn't load this repayment. Try again."
+            : 'This repayment is no longer available.',
+        textAlign: TextAlign.center,
       ),
-      title: Text(
-        'Confirm',
-        style: SettloTypography.headline(color: c.textPrimary),
-      ),
-      centerTitle: true,
-    ),
+    ],
   );
 }
 
@@ -163,160 +128,154 @@ class _Receipt extends StatelessWidget {
         ? '${loan.counterparty} must confirm this. Only the person who did '
               'not record it can act.'
         : 'This repayment has already been answered and is read-only.';
-    return Scaffold(
-      body: SettloScrollScaffold(
-        title: 'Confirm repayment',
-        largeTitle: 'Confirm repayment',
-        children: [
-          _header(context),
-
-          SAvatar(loan.counterparty, size: 72),
+    return SSheetScaffold(
+      title: 'Confirm repayment',
+      onClose: () => popSettloTask(context, fallback: SettloRoutes.loans),
+      children: [
+        SAvatar(loan.counterparty, size: 72),
+        const SizedBox(height: SettloSpacing.x2),
+        Text(summary, style: SettloTypography.headline(color: c.textSecondary)),
+        const SizedBox(height: 4),
+        Semantics(
+          label: spokenInr(repayment.amount),
+          excludeSemantics: true,
+          child: MoneyText(repayment.amount, size: 52),
+        ),
+        const SizedBox(height: SettloSpacing.x1),
+        Text(
+          'on $paidOn · $method$referenceText',
+          textAlign: TextAlign.center,
+          style: SettloTypography.subheadline(color: c.textSecondary),
+        ),
+        const SizedBox(height: 24),
+        SCard(
+          padding: const EdgeInsets.all(SettloSpacing.screenMargin),
+          child: Column(
+            children: [
+              _Row(
+                'Loan',
+                MediaQuery.textScalerOf(context).scale(1) >= 1.3
+                    ? '${loan.counterparty}\n${formatInr(loan.principal)}'
+                    : '${loan.counterparty} · ${formatInr(loan.principal)}',
+                spoken:
+                    '${loan.counterparty}, '
+                    '${spokenInr(loan.principal)}',
+              ),
+              _Row('Instalment', switch ((
+                loan.installmentsAfter(repayment),
+                loan.installmentsTotal,
+              )) {
+                (final paid?, final total?) => '$paid of $total',
+                _ => 'Flexible',
+              }),
+              _Row(
+                'Outstanding after',
+                formatInr(after),
+                spoken: spokenInr(after),
+              ),
+              _Row('Recorded by', '$recordedBy · $paidOn', last: true),
+            ],
+          ),
+        ),
+        const SizedBox(height: SettloSpacing.x2),
+        SCard(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              LoanGlyph(
+                LoanGlyph.shieldCheck,
+                size: 20,
+                color: c.textSecondary,
+              ),
+              const SizedBox(width: SettloSpacing.x2),
+              Expanded(
+                child: Text(
+                  guidance,
+                  style: SettloTypography.subheadline(color: c.textSecondary)
+                      .copyWith(height: 1.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (overpayment) ...[
           const SizedBox(height: SettloSpacing.x2),
           Text(
-            summary,
-            style: SettloTypography.headline(color: c.textSecondary),
-          ),
-          const SizedBox(height: 4),
-          Semantics(
-            label: spokenInr(repayment.amount),
-            excludeSemantics: true,
-            child: MoneyText(repayment.amount, size: 52),
-          ),
-          const SizedBox(height: SettloSpacing.x1),
-          Text(
-            'on $paidOn · $method$referenceText',
+            'This is more than is left on the loan. Confirming '
+            'will be refused.',
             textAlign: TextAlign.center,
-            style: SettloTypography.subheadline(color: c.textSecondary),
+            style: SettloTypography.subheadline(color: c.textPrimary),
           ),
-          const SizedBox(height: 24),
-          SCard(
-            padding: const EdgeInsets.all(SettloSpacing.screenMargin),
-            child: Column(
-              children: [
-                _Row(
-                  'Loan',
-                  MediaQuery.textScalerOf(context).scale(1) >= 1.3
-                      ? '${loan.counterparty}\n${formatInr(loan.principal)}'
-                      : '${loan.counterparty} · ${formatInr(loan.principal)}',
-                  spoken:
-                      '${loan.counterparty}, '
-                      '${spokenInr(loan.principal)}',
-                ),
-                _Row('Instalment', switch ((
-                  loan.installmentsAfter(repayment),
-                  loan.installmentsTotal,
-                )) {
-                  (final paid?, final total?) => '$paid of $total',
-                  _ => 'Flexible',
-                }),
-                _Row(
-                  'Outstanding after',
-                  formatInr(after),
-                  spoken: spokenInr(after),
-                ),
-                _Row('Recorded by', '$recordedBy · $paidOn', last: true),
-              ],
+        ],
+        if (decision.error case final error?) ...[
+          const SizedBox(height: SettloSpacing.x2),
+          Text(
+            error,
+            textAlign: TextAlign.center,
+            style: SettloTypography.subheadline(color: c.error),
+          ),
+        ],
+
+        if (canAct) ...[
+          const SizedBox(height: SettloSpacing.x2),
+          SizedBox(
+            width: double.infinity,
+            child: SPrimaryButton(
+              label: decision.busy
+                  ? 'Confirming…'
+                  : loan.youLent
+                  ? 'Confirm $amount received'
+                  : 'Confirm $amount paid',
+              icon: LoanGlyph(
+                LoanGlyph.check,
+                color: c.onAction,
+                size: 18,
+                stroke: 1.9,
+              ),
+              onPressed: decision.busy || overpayment
+                  ? null
+                  : () async {
+                      if (!await decision.confirm() ||
+                          !context.mounted ||
+                          // Mounted is not enough: the user may have gone
+                          // Back (exit transition) or pushed past us.
+                          ModalRoute.of(context)?.isCurrent != true ||
+                          !(SettloSheetScope.maybeOf(context)?.isCurrent() ??
+                              true)) {
+                        return;
+                      }
+                      showSettloNotice(
+                        context,
+                        'Confirmed. ${formatInr(after)} left',
+                      );
+                      popSettloTask(
+                        context,
+                        fallback: SettloRoutes.loan(loan.id),
+                      );
+                    },
             ),
           ),
           const SizedBox(height: SettloSpacing.x2),
-          SCard(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                LoanGlyph(
-                  LoanGlyph.shieldCheck,
-                  size: 20,
-                  color: c.textSecondary,
-                ),
-                const SizedBox(width: SettloSpacing.x2),
-                Expanded(
-                  child: Text(
-                    guidance,
-                    style: SettloTypography.subheadline(color: c.textSecondary)
-                        .copyWith(height: 1.5),
-                  ),
-                ),
-              ],
+          SizedBox(
+            width: double.infinity,
+            child: SSecondaryButton(
+              label: loan.youLent ? 'Not received' : 'Not paid',
+              onPressed: decision.busy
+                  ? null
+                  : () => pushSettloSheet<void>(
+                      context,
+                      (context) => DisputeSheet(
+                        repayment: repayment,
+                        counterparty: loan.counterparty,
+                        youLent: loan.youLent,
+                        decision: decision,
+                        onClose: () => finishSettloSheet(context),
+                      ),
+                    ),
             ),
           ),
-          if (overpayment) ...[
-            const SizedBox(height: SettloSpacing.x2),
-            Text(
-              'This is more than is left on the loan. Confirming '
-              'will be refused.',
-              textAlign: TextAlign.center,
-              style: SettloTypography.subheadline(color: c.textPrimary),
-            ),
-          ],
-          if (decision.error case final error?) ...[
-            const SizedBox(height: SettloSpacing.x2),
-            Text(
-              error,
-              textAlign: TextAlign.center,
-              style: SettloTypography.subheadline(color: c.error),
-            ),
-          ],
-
-          if (canAct) ...[
-            const SizedBox(height: SettloSpacing.x2),
-            SizedBox(
-              width: double.infinity,
-              child: SPrimaryButton(
-                label: decision.busy
-                    ? 'Confirming…'
-                    : loan.youLent
-                    ? 'Confirm $amount received'
-                    : 'Confirm $amount paid',
-                icon: LoanGlyph(
-                  LoanGlyph.check,
-                  color: c.onAction,
-                  size: 18,
-                  stroke: 1.9,
-                ),
-                onPressed: decision.busy || overpayment
-                    ? null
-                    : () async {
-                        if (!await decision.confirm() ||
-                            !context.mounted ||
-                            // Mounted is not enough: the user may have gone
-                            // Back (exit transition) or pushed past us.
-                            ModalRoute.of(context)?.isCurrent != true) {
-                          return;
-                        }
-                        showSettloNotice(
-                          context,
-                          'Confirmed. ${formatInr(after)} left',
-                        );
-                        if (context.canPop()) {
-                          context.pop();
-                        } else {
-                          context.go(SettloRoutes.loan(loan.id));
-                        }
-                      },
-              ),
-            ),
-            const SizedBox(height: SettloSpacing.x2),
-            SizedBox(
-              width: double.infinity,
-              child: SSecondaryButton(
-                label: loan.youLent ? "Didn't receive this" : "Didn't pay this",
-                onPressed: decision.busy
-                    ? null
-                    : () => showSettloSheet<void>(
-                        context: context,
-                        builder: (context) => DisputeSheet(
-                          repayment: repayment,
-                          counterparty: loan.counterparty,
-                          youLent: loan.youLent,
-                          decision: decision,
-                          onClose: () => Navigator.of(context).pop(),
-                        ),
-                      ),
-              ),
-            ),
-          ],
         ],
-      ),
+      ],
     );
   }
 }
