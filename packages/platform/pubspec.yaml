@@ -22,3 +22,4 @@ dev_dependencies:
     sdk: flutter
   share_plus_platform_interface: ^7.2.0
   supabase_flutter: ^2.18.3
+  url_launcher_platform_interface: ^2.3.2
