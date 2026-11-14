@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settlo_core/theme/colors.dart';
 import 'package:settlo_core/theme/typography.dart';
@@ -9,7 +10,7 @@ import 'package:settlo_core/widgets/settlo_mark.dart';
 
 /// Flat sheet chrome; material appears only when content passes beneath it.
 class SSheetHeader extends StatelessWidget {
-  /// The former grabber options remain accepted for existing callers.
+  /// Shared sheet title and close action.
   const new({
     required this.title,
     required this.onClose,
@@ -18,7 +19,7 @@ class SSheetHeader extends StatelessWidget {
     this.titleActionLabel,
     this.scrolledUnder = false,
     this.compact = false,
-    this.showGrabber = true,
+    this.titleHeight,
     super.key,
   });
 
@@ -43,8 +44,8 @@ class SSheetHeader extends StatelessWidget {
   /// Fits legacy collapsed amount panels; new sheets use the full header.
   final bool compact;
 
-  /// Retained for source compatibility; sheet chrome has no grabber.
-  final bool showGrabber;
+  /// Title height measured by the scaffold; legacy panels measure locally.
+  final double? titleHeight;
 
   /// Standard header height; accessibility titles may grow.
   static const double extent = 64;
@@ -71,14 +72,18 @@ class SSheetHeader extends StatelessWidget {
                 builder: (context, constraints) {
                   final style = SettloTypography.title3(color: c.textPrimary)
                       .copyWith(height: 1.2);
-                  final painter = TextPainter(
-                    text: TextSpan(text: title, style: style),
-                    textDirection: Directionality.of(context),
-                    textScaler: MediaQuery.textScalerOf(context),
-                  )..layout(maxWidth: constraints.maxWidth);
+                  var measuredHeight = titleHeight;
+                  if (measuredHeight == null) {
+                    final painter = TextPainter(
+                      text: TextSpan(text: title, style: style),
+                      textDirection: Directionality.of(context),
+                      textScaler: MediaQuery.textScalerOf(context),
+                    )..layout(maxWidth: constraints.maxWidth);
+                    measuredHeight = painter.height;
+                    painter.dispose();
+                  }
                   final constrained =
-                      painter.height > constraints.maxHeight + .01;
-                  painter.dispose();
+                      measuredHeight > constraints.maxHeight + .01;
                   // Existing amount panels impose a fixed navigation height.
                   // Keep the full title until they adopt the scaffold.
                   return constrained
@@ -122,7 +127,7 @@ class SSheetHeader extends StatelessWidget {
               const SizedBox(width: 12),
               GlassAction(
                 label: 'Close',
-                symbol: 'xmark',
+                symbol: sheetCloseSymbol,
                 onPressed: onClose,
                 fallback: SPressable(
                   onTap: onClose,
@@ -244,18 +249,25 @@ class SSheetScaffold extends StatelessWidget {
                   double.infinity,
                 ),
               );
-          final height = (painter.height + 20).clamp(
+          final titleHeight = painter.height;
+          final height = (titleHeight + 20).clamp(
             SSheetHeader.extent,
             double.infinity,
           );
           painter.dispose();
+          final ios = Theme.of(context).platform == TargetPlatform.iOS;
           final scroll = CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
+            physics: ios
+                ? const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  )
+                : const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _SheetHeaderDelegate(
                   height: height,
+                  titleHeight: titleHeight,
                   title: title,
                   leading: leading,
                   onClose: onClose,
@@ -263,6 +275,8 @@ class SSheetScaffold extends StatelessWidget {
                   titleActionLabel: titleActionLabel,
                 ),
               ),
+              if (ios && onRefresh != null)
+                CupertinoSliverRefreshControl(onRefresh: onRefresh),
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(
                   16,
@@ -274,7 +288,7 @@ class SSheetScaffold extends StatelessWidget {
               ),
             ],
           );
-          return onRefresh == null
+          return onRefresh == null || ios
               ? scroll
               : RefreshIndicator(onRefresh: onRefresh!, child: scroll);
         },
@@ -286,6 +300,7 @@ class SSheetScaffold extends StatelessWidget {
 class _SheetHeaderDelegate extends SliverPersistentHeaderDelegate {
   new({
     required this.height,
+    required this.titleHeight,
     required this.title,
     required this.leading,
     required this.onClose,
@@ -293,6 +308,7 @@ class _SheetHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.titleActionLabel,
   });
   final double height;
+  final double titleHeight;
   final String title;
   final Widget? leading;
 
@@ -313,6 +329,7 @@ class _SheetHeaderDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) => SSheetHeader(
     title: title,
+    titleHeight: titleHeight,
     onClose: onClose,
     leading: leading,
     scrolledUnder: overlapsContent || shrinkOffset > 0,
@@ -322,6 +339,7 @@ class _SheetHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_SheetHeaderDelegate oldDelegate) =>
       height != oldDelegate.height ||
+      titleHeight != oldDelegate.titleHeight ||
       title != oldDelegate.title ||
       leading != oldDelegate.leading ||
       onClose != oldDelegate.onClose ||

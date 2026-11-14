@@ -298,7 +298,6 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
               title: space == null ? 'New space' : 'Members',
               onClose: () => Navigator.of(context).maybePop(),
               // Material sheets draw their own drag handle.
-              showGrabber: ios,
             ),
           ),
           Flexible(fit: ios ? FlexFit.tight : FlexFit.loose, child: form),

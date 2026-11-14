@@ -29,6 +29,9 @@ bool liquidGlass(BuildContext context) =>
 /// The `UiKitView` type `GlassButton.swift` registers.
 const glassActionViewType = 'app.settlo/glass_button';
 
+/// SF Symbol for the neutral sheet-close action.
+const sheetCloseSymbol = 'xmark';
+
 /// The per-view channel, `app.settlo/glass_button/<view id>`.
 String glassActionChannel(int id) => '$glassActionViewType/$id';
 
@@ -120,7 +123,9 @@ class _GlassActionState extends State<GlassAction> {
       'enabled': widget.onPressed != null,
       'dark': Theme.of(context).brightness == Brightness.dark,
       'foreground':
-          (widget.decorative || widget._back || widget.symbol == 'xmark'
+          (widget.decorative ||
+                      widget._back ||
+                      widget.symbol == sheetCloseSymbol
                   ? c.textPrimary
                   : c.action)
               .toARGB32(),

@@ -5,6 +5,7 @@ import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'spaces_golden_test.dart' show spacesInShell;
+import 'support/fake_activity.dart';
 import 'support/fake_spaces.dart';
 
 void main() {
@@ -18,8 +19,8 @@ void main() {
     ),
   ]) {
     for (final dark in [false, true]) {
-      for (final balances in [false, true]) {
-        testWidgets('sheet ${device.name} dark=$dark balances=$balances', (
+      for (final segment in ['expenses', 'balances', 'activity']) {
+        testWidgets('sheet ${device.name} dark=$dark segment=$segment', (
           tester,
         ) async {
           await pumpSettloGolden(
@@ -28,9 +29,12 @@ void main() {
             theme: dark ? SettloTheme.dark() : SettloTheme.light(),
             child: await spacesInShell(
               spacesList,
-              balances
-                  ? SpaceScreen(spaceId: spacesList.first.id)
-                  : SpaceExpensesScreen(spaceId: spacesList.first.id),
+              switch (segment) {
+                'balances' => SpaceScreen(spaceId: spacesList.first.id),
+                'activity' => SpaceActivityScreen(spaceId: spacesList.first.id),
+                _ => SpaceExpensesScreen(spaceId: spacesList.first.id),
+              },
+              activity: segment == 'activity' ? FakeActivityRepository() : null,
             ),
           );
           expect(find.byType(SSheetHeader), findsOneWidget);
@@ -38,7 +42,7 @@ void main() {
           await expectLater(
             find.byKey(settloGoldenSurfaceKey),
             matchesGoldenFile(
-              'goldens/sheet_space_${balances ? 'balances' : 'expenses'}_${device.name}_${dark ? 'dark' : 'light'}.png',
+              'goldens/sheet_space_${segment}_${device.name}_${dark ? 'dark' : 'light'}.png',
             ),
           );
           await tester.drag(

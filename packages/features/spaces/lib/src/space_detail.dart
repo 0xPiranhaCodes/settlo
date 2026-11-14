@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
@@ -8,10 +6,7 @@ import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_spaces/src/create_space_sheet.dart';
-import 'package:settlo_spaces/src/glyphs.dart';
-import 'package:settlo_spaces/src/space_empty.dart';
 import 'package:settlo_spaces/src/spaces_controller.dart';
-import 'package:settlo_spaces/src/text.dart';
 
 const _months = [
   'January', 'February', 'March', 'April', 'May', 'June', //
@@ -131,59 +126,60 @@ class SpaceDetailView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ledger = ref.watch(spaceLedgerProvider(space.id));
     final loaded = ledger.value;
+    final c = SettloColors.of(context);
+    Widget sheet(List<Widget> content, Future<void> Function() refresh) =>
+        SSheetScaffold(
+          title: space.name,
+          leading: SAvatar(space.name, size: 28),
+          onTitlePressed: () => showCreateSpaceSheet(context, space: space),
+          titleActionLabel: 'Members of ${space.name}',
+          onClose: () => context.pop(),
+          onRefresh: refresh,
+          children: [
+            _SheetTop(space),
+            _SheetTabs(space: space, tab: tab),
+            ...content,
+          ],
+        );
+    Future<void> refreshSpace() async {
+      ref.invalidate(spacesProvider);
+      await ref.read(spaceLedgerProvider(space.id).notifier).reload();
+    }
+
     if (tab == SpaceTab.activity) {
       return ActivityScreen(
         spaceId: space.id,
-        spaceName: space.name,
-        navTrailing: SpaceAvatars(space),
-        header: [
-          SpaceHeader(space),
-          const SizedBox(height: SettloSpacing.x3),
-          _Top(space, loaded),
-          _Tabs(space: space, tab: tab),
-        ],
+        sheetBuilder: (children, refreshActivity) => sheet(children, () async {
+          await Future.wait([refreshSpace(), refreshActivity()]);
+        }),
       );
     }
-    final c = SettloColors.of(context);
-    return SSheetScaffold(
-      title: space.name,
-      leading: SAvatar(space.name, size: 28),
-      onTitlePressed: () => showCreateSpaceSheet(context, space: space),
-      titleActionLabel: 'Members of ${space.name}',
-      onClose: () => context.pop(),
-      onRefresh: () async {
-        ref.invalidate(spacesProvider);
-        await ref.read(spaceLedgerProvider(space.id).notifier).reload();
-      },
-      children: [
-        _SheetTop(space),
-        _SheetTabs(space: space, tab: tab),
-        if (loaded == null)
-          Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: Text(
-              ledger.hasError
-                  ? "We couldn't load this space. Pull down to try again."
-                  : '',
-              style: SettloTypography.subheadline(color: c.textSecondary),
-            ),
-          )
-        else if (tab == SpaceTab.expenses)
-          _ExpenseList(space, loaded)
-        else ...[
-          SSectionLabel(
-            space.balance.value > 0 ? 'Owed to you' : 'Simplest way to settle',
+    return sheet([
+      if (loaded == null)
+        Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Text(
+            ledger.hasError
+                ? "We couldn't load this space. Pull down to try again."
+                : '',
+            style: SettloTypography.subheadline(color: c.textSecondary),
           ),
-          _SettleCard(space),
+        )
+      else if (tab == SpaceTab.expenses)
+        _ExpenseList(space, loaded)
+      else ...[
+        SSectionLabel(
+          space.balance.value > 0 ? 'Owed to you' : 'Simplest way to settle',
+        ),
+        _SettleCard(space),
+        const SizedBox(height: 8),
+        _FairnessCard(space, loaded),
+        if (loaded.categories.isNotEmpty) ...[
           const SizedBox(height: 8),
-          _FairnessCard(space, loaded),
-          if (loaded.categories.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _CategoriesCard(loaded),
-          ],
+          _CategoriesCard(loaded),
         ],
       ],
-    );
+    ], refreshSpace);
   }
 }
 
@@ -401,335 +397,6 @@ class _SheetTabs extends StatelessWidget {
                                   ]
                                 : null,
                             borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              label,
-                              maxLines: 1,
-                              style: SettloTypography.subheadline(
-                                weight: selected
-                                    ? FontWeight.w500
-                                    : FontWeight.w400,
-                                color: selected
-                                    ? c.textPrimary
-                                    : c.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// Activity keeps its existing chrome until its own migration.
-/// The hero and the space's two actions, above the segments.
-class _Top extends StatelessWidget {
-  const new(this.space, this.ledger);
-
-  final SpaceSummary space;
-  final SpaceLedger? ledger;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
-    final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
-    // Activity's screen has no space text style; the hero needs the same
-    // height there, or the segments below it move.
-    return DefaultTextStyle.merge(
-      style: const TextStyle(letterSpacing: 0, height: 1.2),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _Hero(space, ledger),
-          const SizedBox(height: SettloSpacing.x2),
-          // The canvas pads these 16, not Material's 24, so both
-          // labels fit side by side at 360.
-          Theme(
-            data: _compactButtons(Theme.of(context)),
-            child: Flex(
-              direction: largeText ? Axis.vertical : Axis.horizontal,
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: largeText
-                  ? CrossAxisAlignment.stretch
-                  : CrossAxisAlignment.center,
-              children: [
-                Flexible(
-                  fit: largeText ? FlexFit.loose : FlexFit.tight,
-                  child: SPrimaryButton(
-                    label: 'Add expense',
-                    icon: SpacesIcon(
-                      SpacesGlyph.plus,
-                      color: c.onAction,
-                      size: 18,
-                      stroke: 1.9,
-                    ),
-                    onPressed: () =>
-                        context.push(SettloRoutes.addExpenseIn(space.id)),
-                  ),
-                ),
-                SizedBox(
-                  width: SettloSpacing.x2,
-                  height: largeText ? SettloSpacing.x2 : 0,
-                ),
-                Flexible(
-                  fit: largeText ? FlexFit.loose : FlexFit.tight,
-                  child: SSecondaryButton(
-                    label: 'Settle up',
-                    onPressed: () =>
-                        context.push(SettloRoutes.settleWith(space.id)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: SettloSpacing.x3),
-        ],
-      ),
-    );
-  }
-}
-
-ThemeData _compactButtons(ThemeData theme) {
-  const padding = WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16));
-  return theme.copyWith(
-    filledButtonTheme: FilledButtonThemeData(
-      style: theme.filledButtonTheme.style?.copyWith(padding: padding),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: theme.outlinedButtonTheme.style?.copyWith(padding: padding),
-    ),
-  );
-}
-
-/// Your balance, the month's total and a sparkline of its daily spend
-/// (canvas note n11). The amount is directional; spend stays neutral.
-class _Hero extends StatelessWidget {
-  const new(this.space, this.ledger);
-
-  final SpaceSummary space;
-  final SpaceLedger? ledger;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
-    final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
-    final balance = space.balance;
-    final today = ledger?.today ?? DateTime.now();
-    final month = DateTime(today.year, today.month);
-    final daily = List.filled(today.day, 0);
-    for (final e in ledger?.expenses ?? const <SpaceExpense>[]) {
-      if (!e.isSettlement &&
-          !e.spentOn.isBefore(month) &&
-          !e.spentOn.isAfter(today)) {
-        daily[e.spentOn.day - 1] += e.amount.value;
-      }
-    }
-    final monthName = _months[month.month - 1];
-    final small = SettloTypography.caption1(color: c.textSecondary);
-    return SCard(
-      hero: true,
-      padding: const EdgeInsets.all(SettloSpacing.x3),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Flex(
-            direction: largeText ? Axis.vertical : Axis.horizontal,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: largeText
-                ? CrossAxisAlignment.start
-                : CrossAxisAlignment.end,
-            children: [
-              Flexible(
-                fit: largeText ? FlexFit.loose : FlexFit.tight,
-                child: MergeSemantics(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(switch (balance.value) {
-                        > 0 => 'YOU ARE OWED',
-                        < 0 => 'YOU OWE',
-                        _ => 'ALL SETTLED',
-                      }, style: sectionLabel(c)),
-                      const SizedBox(height: SettloSpacing.x1),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: MoneyText(
-                          // Which way is in the label; the canvas still
-                          // signs what you are owed.
-                          balance.value < 0 ? -balance : balance,
-                          signed: balance.value > 0,
-                          tone: switch (balance.value) {
-                            > 0 => MoneyTone.owedToYou,
-                            < 0 => MoneyTone.youOwe,
-                            _ => MoneyTone.settled,
-                          },
-                          size: 40,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: SettloSpacing.x2,
-                height: largeText ? SettloSpacing.x2 : 0,
-              ),
-              MergeSemantics(
-                child: Column(
-                  crossAxisAlignment: largeText
-                      ? CrossAxisAlignment.start
-                      : CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      monthName,
-                      style: SettloTypography.footnote(color: c.textSecondary),
-                    ),
-                    const SizedBox(height: 4),
-                    MoneyText(space.monthTotal, size: 17),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: SettloSpacing.x2),
-          Semantics(
-            label: 'Daily spend this month',
-            excludeSemantics: true,
-            child: CustomPaint(
-              size: const Size.fromHeight(48),
-              painter: _SparklinePainter(daily, c.textPrimary),
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Daily spend · ${monthName.substring(0, 3)}',
-                  style: small,
-                ),
-              ),
-              Text(
-                '${formatInr(Paise(daily.last))} today',
-                semanticsLabel: '${spokenInr(Paise(daily.last))} today',
-                style: small,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// [days] of spend as a line from the 1st to today, ending in a dot.
-class _SparklinePainter extends CustomPainter {
-  const new(this.days, this.color);
-
-  final List<int> days;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final top = days.reduce(math.max);
-    // The canvas draws between 12 and 36 of 48: room for the dot.
-    Offset at(int i) => Offset(
-      days.length == 1 ? size.width : size.width * i / (days.length - 1),
-      size.height * (0.75 - 0.5 * (top == 0 ? 0 : days[i] / top)),
-    );
-    final path = Path()..moveTo(at(0).dx, at(0).dy);
-    for (var i = 1; i < days.length; i++) {
-      path.lineTo(at(i).dx, at(i).dy);
-    }
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    canvas
-      ..drawPath(path, paint)
-      ..drawCircle(at(days.length - 1), 3.5, Paint()..color = color);
-  }
-
-  @override
-  bool shouldRepaint(_SparklinePainter old) =>
-      old.color != color || !_sameDays(old.days, days);
-
-  static bool _sameDays(List<int> a, List<int> b) =>
-      a.length == b.length && a.indexed.every((e) => b[e.$1] == e.$2);
-}
-
-/// Expenses, Balances and Activity. The track is drawn 40 high inside a
-/// 44pt tap band, like [SSegmentedControl].
-class _Tabs extends StatelessWidget {
-  const new({required this.space, required this.tab});
-
-  final SpaceSummary space;
-  final SpaceTab tab;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
-    final tabs = [
-      ('Expenses', SettloRoutes.space(space.id), tab == SpaceTab.expenses),
-      (
-        'Balances',
-        SettloRoutes.spaceBalances(space.id),
-        tab == SpaceTab.balances,
-      ),
-      (
-        'Activity',
-        SettloRoutes.spaceActivity(space.id),
-        tab == SpaceTab.activity,
-      ),
-    ];
-    return Stack(
-      children: [
-        Positioned.fill(
-          top: 2,
-          bottom: 2,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius: BorderRadius.circular(SettloRadius.iconTile),
-              border: Border.all(color: c.hairline),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 3),
-          child: Row(
-            children: [
-              for (final (label, route, selected) in tabs)
-                Expanded(
-                  child: SPressable(
-                    selected: selected,
-                    ringRadius: BorderRadius.circular(SettloRadius.compact),
-                    onTap: () {
-                      if (!selected) context.go(route);
-                    },
-                    child: SizedBox(
-                      height: SettloSpacing.minTouchTarget,
-                      child: Center(
-                        child: Container(
-                          height: 34,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: selected ? c.surfaceHighest : null,
-                            borderRadius: BorderRadius.circular(
-                              SettloRadius.compact,
-                            ),
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: FittedBox(
