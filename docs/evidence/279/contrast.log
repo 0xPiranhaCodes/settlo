@@ -1,0 +1,111 @@
+Resolving dependencies in `/Users/hackerearth381/orca/workspaces/settlo/audit-279`...
+Downloading packages...
+  app_links_linux 1.0.4 (1.0.5 available)
+  archive 4.6.0 (4.7.1 available)
+  built_collection 5.1.2 (6.0.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  go_router 18.1.3 (18.1.4 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.10.0 (1.11.0 available)
+  objective_c 9.6.3 (9.6.4 available)
+  qr 3.0.3 (4.0.1 available)
+  shared_preferences_android 2.5.4 (2.5.5 available)
+  shared_preferences_foundation 2.6.1 (2.6.2 available)
+  test_api 0.7.12 (0.7.15 available)
+Got dependencies in `/Users/hackerearth381/orca/workspaces/settlo/audit-279`!
+13 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /Users/hackerearth381/orca/workspaces/settlo/audit-279/packages/core/test/theme/contrast_test.dart
+00:00 +0: contrast() matches known WCAG values
+00:00 +1: dark text/background pairs textPrimary on background >= 4.5:1
+00:00 +2: dark text/background pairs textSecondary on background >= 4.5:1
+00:00 +3: dark text/background pairs textMuted on background >= 4.5:1
+00:00 +4: dark text/background pairs action on background >= 4.5:1
+00:00 +5: dark text/background pairs pending on background >= 4.5:1
+00:00 +6: dark text/background pairs error on background >= 4.5:1
+00:00 +7: dark text/background pairs brandAccent on background >= 4.5:1
+00:00 +8: dark text/background pairs money.owedToYou on background >= 4.5:1
+00:00 +9: dark text/background pairs money.youOwe on background >= 4.5:1
+00:00 +10: dark text/background pairs money.settled on background >= 4.5:1
+00:00 +11: dark text/background pairs money.neutral on background >= 4.5:1
+00:00 +12: dark text/background pairs textPrimary on surface >= 4.5:1
+00:00 +13: dark text/background pairs textSecondary on surface >= 4.5:1
+00:00 +14: dark text/background pairs textMuted on surface >= 4.5:1
+00:00 +15: dark text/background pairs action on surface >= 4.5:1
+00:00 +16: dark text/background pairs pending on surface >= 4.5:1
+00:00 +17: dark text/background pairs error on surface >= 4.5:1
+00:00 +18: dark text/background pairs brandAccent on surface >= 4.5:1
+00:00 +19: dark text/background pairs money.owedToYou on surface >= 4.5:1
+00:00 +20: dark text/background pairs money.youOwe on surface >= 4.5:1
+00:00 +21: dark text/background pairs money.settled on surface >= 4.5:1
+00:00 +22: dark text/background pairs money.neutral on surface >= 4.5:1
+00:00 +23: dark text/background pairs textPrimary on surfaceRaised >= 4.5:1
+00:00 +24: dark text/background pairs textSecondary on surfaceRaised >= 4.5:1
+00:00 +25: dark text/background pairs textMuted on surfaceRaised >= 4.5:1
+00:00 +26: dark text/background pairs action on surfaceRaised >= 4.5:1
+00:00 +27: dark text/background pairs pending on surfaceRaised >= 4.5:1
+00:00 +28: dark text/background pairs error on surfaceRaised >= 4.5:1
+00:00 +29: dark text/background pairs brandAccent on surfaceRaised >= 4.5:1
+00:00 +30: dark text/background pairs money.owedToYou on surfaceRaised >= 4.5:1
+00:00 +31: dark text/background pairs money.youOwe on surfaceRaised >= 4.5:1
+00:00 +32: dark text/background pairs money.settled on surfaceRaised >= 4.5:1
+00:00 +33: dark text/background pairs money.neutral on surfaceRaised >= 4.5:1
+00:00 +34: dark text/background pairs textPrimary on surfaceHighest >= 4.5:1
+00:00 +35: dark text/background pairs onAction on action >= 4.5:1
+00:00 +36: dark text/background pairs onNavActive on navActiveStart >= 4.5:1
+00:00 +37: dark text/background pairs onNavActive on navActiveEnd >= 4.5:1
+00:00 +38: dark text/background pairs onAction on welcomeActionTop >= 4.5:1
+00:00 +39: dark text/background pairs textPrimary on glass >= 4.5:1
+00:00 +40: dark text/background pairs textMuted on glass >= 4.5:1
+00:00 +41: dark text/background pairs control outlines clear 3:1 on inputs and cards
+00:00 +42: dark text/background pairs surfaceHighest carries primary text only
+00:00 +43: dark text/background pairs covers every text token on every content surface
+00:00 +44: light text/background pairs textPrimary on background >= 4.5:1
+00:00 +45: light text/background pairs textSecondary on background >= 4.5:1
+00:00 +46: light text/background pairs textMuted on background >= 4.5:1
+00:00 +47: light text/background pairs action on background >= 4.5:1
+00:00 +48: light text/background pairs pending on background >= 4.5:1
+00:00 +49: light text/background pairs error on background >= 4.5:1
+00:00 +50: light text/background pairs brandAccent on background >= 4.5:1
+00:00 +51: light text/background pairs money.owedToYou on background >= 4.5:1
+00:00 +52: light text/background pairs money.youOwe on background >= 4.5:1
+00:00 +53: light text/background pairs money.settled on background >= 4.5:1
+00:00 +54: light text/background pairs money.neutral on background >= 4.5:1
+00:00 +55: light text/background pairs textPrimary on surface >= 4.5:1
+00:00 +56: light text/background pairs textSecondary on surface >= 4.5:1
+00:00 +57: light text/background pairs textMuted on surface >= 4.5:1
+00:00 +58: light text/background pairs action on surface >= 4.5:1
+00:00 +59: light text/background pairs pending on surface >= 4.5:1
+00:00 +60: light text/background pairs error on surface >= 4.5:1
+00:00 +61: light text/background pairs brandAccent on surface >= 4.5:1
+00:00 +62: light text/background pairs money.owedToYou on surface >= 4.5:1
+00:00 +63: light text/background pairs money.youOwe on surface >= 4.5:1
+00:00 +64: light text/background pairs money.settled on surface >= 4.5:1
+00:00 +65: light text/background pairs money.neutral on surface >= 4.5:1
+00:00 +66: light text/background pairs textPrimary on surfaceRaised >= 4.5:1
+00:00 +67: light text/background pairs textSecondary on surfaceRaised >= 4.5:1
+00:00 +68: light text/background pairs textMuted on surfaceRaised >= 4.5:1
+00:00 +69: light text/background pairs action on surfaceRaised >= 4.5:1
+00:00 +70: light text/background pairs pending on surfaceRaised >= 4.5:1
+00:00 +71: light text/background pairs error on surfaceRaised >= 4.5:1
+00:00 +72: light text/background pairs brandAccent on surfaceRaised >= 4.5:1
+00:00 +73: light text/background pairs money.owedToYou on surfaceRaised >= 4.5:1
+00:00 +74: light text/background pairs money.youOwe on surfaceRaised >= 4.5:1
+00:00 +75: light text/background pairs money.settled on surfaceRaised >= 4.5:1
+00:00 +76: light text/background pairs money.neutral on surfaceRaised >= 4.5:1
+00:00 +77: light text/background pairs textPrimary on surfaceHighest >= 4.5:1
+00:00 +78: light text/background pairs onAction on action >= 4.5:1
+00:00 +79: light text/background pairs onNavActive on navActiveStart >= 4.5:1
+00:00 +80: light text/background pairs onNavActive on navActiveEnd >= 4.5:1
+00:00 +81: light text/background pairs onAction on welcomeActionTop >= 4.5:1
+00:00 +82: light text/background pairs textPrimary on glass >= 4.5:1
+00:00 +83: light text/background pairs textMuted on glass >= 4.5:1
+00:00 +84: light text/background pairs control outlines clear 3:1 on inputs and cards
+00:00 +85: light text/background pairs surfaceHighest carries primary text only
+00:00 +86: light text/background pairs covers every text token on every content surface
+00:00 +87: dark tokens never have a green cast
+00:00 +88: dark surface levels visibly separate without losing AA labels
+00:00 +89: dark money and pending roles follow the owner scope
+00:00 +90: light Home jade clears text and icon contrast
+00:00 +91: All tests passed!
