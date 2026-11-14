@@ -328,9 +328,9 @@ void main() {
     ]) {
       testWidgets('$label goes to $location', (tester) async {
         final router = await _pump(tester, FakeHomeRepository(data));
-        await tester.ensureVisible(find.text(label));
+        await tester.ensureVisible(find.text(label).first);
         await tester.pumpAndSettle();
-        await tester.tap(find.text(label));
+        await tester.tap(find.text(label).first);
         await tester.pumpAndSettle();
         expect(router.state.uri.toString(), location);
       });
@@ -348,17 +348,17 @@ void main() {
       });
     }
 
-    testWidgets('the S mark is the header title; no wordmark (#191)', (
+    testWidgets('Home uses a large title without the decorative mark (#278)', (
       tester,
     ) async {
       final semantics = tester.ensureSemantics();
       await _pump(tester, FakeHomeRepository(homeMain));
       expect(find.text('SABKIJEB'), findsNothing);
-      expect(find.byType(SettloMark), findsOneWidget);
+      expect(find.byType(SettloMark), findsNothing);
       expect(find.byType(UiKitView), findsNothing);
       expect(
-        tester.getSemantics(find.bySemanticsLabel('SabkiJeb')),
-        matchesSemantics(label: 'SabkiJeb', isHeader: true),
+        tester.getSemantics(find.bySemanticsLabel('Home').first),
+        matchesSemantics(label: 'Home', isHeader: true),
       );
       semantics.dispose();
     });
@@ -368,7 +368,12 @@ void main() {
     ) async {
       final router = await _pump(tester, FakeHomeRepository(homeMain));
       await _scrollToEnd(tester);
-      await tester.tap(find.text('₹25,000 · Review repayment'));
+      final detail = find.text('₹25,000 · Review repayment');
+      expect(
+        tester.widget<Text>(detail).style?.color,
+        SettloColors.of(tester.element(detail)).pending,
+      );
+      await tester.tap(detail);
       await tester.pumpAndSettle();
       expect(router.state.uri.toString(), SettloRoutes.confirmRepayment('r3'));
     });

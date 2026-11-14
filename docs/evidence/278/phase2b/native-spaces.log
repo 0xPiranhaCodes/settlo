@@ -1,0 +1,81 @@
+Resolving dependencies in `/Users/hackerearth381/orca/workspaces/settlo/chrome2b`...
+Downloading packages...
+  app_links_linux 1.0.4 (1.0.5 available)
+  archive 4.6.0 (4.7.1 available)
+  built_collection 5.1.2 (6.0.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  go_router 18.1.3 (18.1.4 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.10.0 (1.11.0 available)
+  objective_c 9.6.3 (9.6.4 available)
+  qr 3.0.3 (4.0.1 available)
+  shared_preferences_android 2.5.4 (2.5.5 available)
+  shared_preferences_foundation 2.6.1 (2.6.2 available)
+  test_api 0.7.12 (0.7.15 available)
+Got dependencies in `/Users/hackerearth381/orca/workspaces/settlo/chrome2b`!
+13 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart
+00:00 +0: selected space tab has one enabled button announcement
+00:00 +1: spacesProvider creates a space and reloads it into the list
+00:00 +2: Spaces each card is a mini balance sheet
+00:00 +3: Spaces pending member card shares a token link without an amount
+00:01 +4: Spaces a payer who left still counts in the bar and history
+00:01 +5: Spaces no Pay to someone who left: it cannot be recorded
+00:01 +6: Spaces the chips filter by kind
+00:01 +7: Spaces a card opens its space
+00:01 +8: Spaces with no spaces it offers to start one
+00:01 +9: Spaces a failed load says why, and pulling down reloads
+00:01 +10: New space create space → it appears in the list
+00:02 +11: New space uses the task-sheet layout on iOS
+00:02 +12: New space uses the task-sheet layout on android
+00:02 +13: New space a retry after a failure reuses the idempotency key
+00:02 +14: New space a reopened sheet gets a new key
+00:03 +15: New space a key reused with other details says it was saved
+00:03 +16: New space numbers must be phone numbers, once each
+00:03 +17: New space your own number is refused: 98765 43210
+00:03 +18: New space your own number is refused: +91 98765 43210
+00:03 +19: New space your own number is refused: 09876543210
+00:03 +20: New space a person without a name is shown by number
+00:03 +21: Home refreshes after a space is created creating bumps the ledger revision Home watches
+00:03 +22: Home refreshes after a space is created Home → create on Spaces → Home shows it
+00:04 +23: Space · empty says the others see expenses when they join
+00:04 +24: Space · empty a space with expenses is not empty
+00:04 +25: Space · empty Add first expense goes to /expenses/new?space=s9
+00:04 +26: Space · empty Add rent as a monthly expense goes to /expenses/new?space=s9
+00:04 +27: Space · empty Add your UPI ID so settle-ups are one tap goes to /profile
+00:04 +28: Space · empty Back returns to the list
+00:04 +29: Space with expenses expenses are grouped by month with payer, date and share
+00:04 +30: Space with expenses the tabs and actions go where they say
+00:04 +31: Space with expenses balances: who paid against a fair share, then settling
+00:05 +32: Space with expenses Remind sends a WhatsApp nudge and never opens Settle up
+00:05 +33: Space with expenses without WhatsApp, Remind offers the share sheet
+00:05 +34: Space with expenses the segments stay put when switching
+00:05 +35: Space with expenses the avatars open Members, where people can be added
+00:05 +36: Space with expenses a failed add says so and keeps the people
+00:05 +37: Space with expenses fairness deltas never use outstanding-balance colours
+00:05 +38: Space with expenses paid and fair share are read in rupees
+00:05 +39: Space with expenses only the creator or an owner sees edit and delete
+00:05 +40: Space with expenses an edit saves through update_expense with one key
+00:06 +41: Space with expenses editing a pending settle-up leaves the spend unchanged
+00:06 +42: Space with expenses the payee confirms a pending settle-up, once
+00:06 +43: Space with expenses the payee says a settle-up didn't arrive, with a reason
+00:06 +44: Space with expenses a double tap on "Yes, I received ₹300" answers once, closing only the sheet
+00:06 +45: Space with expenses a double tap on "Mark as not received" answers once, closing only the sheet
+00:06 +46: Space with expenses a split by amounts keeps its amount
+00:06 +47: Space with expenses delete asks once more, then removes it
+00:06 +48: Space with expenses on iOS, delete asks with an action sheet
+00:07 +49: Space with expenses on iOS, the space has sheet chrome and closes to Spaces
+00:07 +50: every control is at least 44x44pt Spaces meets the iOS tap target guideline
+00:07 +51: every control is at least 44x44pt Space · empty meets the iOS tap target guideline
+00:07 +52: every control is at least 44x44pt Space · expenses meets the iOS tap target guideline
+00:07 +53: every control is at least 44x44pt Space · balances meets the iOS tap target guideline
+00:07 +54: every control is at least 44x44pt New space meets the iOS tap target guideline
+00:07 +55: amounts are announced in rupees
+00:07 +56: fits 360x800 without overflow Spaces
+00:07 +57: fits 360x800 without overflow Space · empty
+00:07 +58: fits 360x800 without overflow Space · expenses
+00:07 +59: fits 360x800 without overflow Space · balances
+00:07 +60: fits 360x800 without overflow New space
+00:07 +61: All tests passed!

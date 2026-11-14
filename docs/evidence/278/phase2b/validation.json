@@ -1,0 +1,30 @@
+{
+  "linux_packages": {
+    "app": 996,
+    "packages/core": 516,
+    "packages/local": 75,
+    "packages/platform": 73,
+    "packages/features/auth": 60,
+    "packages/features/profile": 48
+  },
+  "linux_total": 1768,
+  "native_only_export": 1,
+  "native_only_share_files": 6,
+  "combined_total": 1775,
+  "line_coverage": {
+    "hit": 6162,
+    "found": 6267,
+    "percent": 98.32,
+    "main_baseline": 98.11
+  },
+  "money_coverage": {
+    "hit": 110,
+    "found": 110,
+    "percent": 100
+  },
+  "focused_linux": 269,
+  "native_focused": 245,
+  "capture_tests": 80,
+  "changed_golden_files": 49,
+  "refreshed_after_captures": 20
+}

@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +11,7 @@ import 'package:settlo_spaces/src/text.dart';
 
 /// The Spaces tab (SpacesList artboard).
 ///
-/// Each card is a mini balance sheet: your balance, and for a space with
+/// Each row is a mini balance sheet: your balance, and for a space with
 /// spending this month a stacked bar of who paid what share (canvas note
 /// n10). Members who have not joined are listed under the cards, because
 /// they are the main cause of stale balances.
@@ -48,21 +46,13 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
           if (!m.joined) (s, m),
     ];
     final c = SettloColors.of(context);
-    final media = MediaQuery.of(context);
     final ios = Theme.of(context).platform == TargetPlatform.iOS;
     return Scaffold(
       body: DefaultTextStyle.merge(
         style: const TextStyle(letterSpacing: 0, height: 1.2),
-        child: SettloScrollScaffold(
+        child: SettloTabScaffold(
           title: 'Spaces',
-          stickyHeader: false,
           onRefresh: () => ref.refresh(spacesProvider.future),
-          padding: EdgeInsets.fromLTRB(
-            SettloSpacing.screenMargin,
-            math.max(media.padding.top, 44) + 16,
-            SettloSpacing.screenMargin,
-            media.padding.bottom + SettloSpacing.x2,
-          ),
           children: [
             SettloNavigationHeader(
               title: 'Spaces',
@@ -114,13 +104,9 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
               ),
             ),
             if (ios) ...[
-              const SizedBox(height: SettloSpacing.x1),
               SSearchField(onChanged: (q) => setState(() => _query = q)),
               const SizedBox(height: SettloSpacing.x1),
-            ] else
-              // Chips are 36 drawn inside a 44 target: 4 less above and
-              // below keeps the canvas's 24 and 18.
-              const SizedBox(height: SettloSpacing.x3),
+            ],
             Row(
               children: [
                 for (final (kind, label) in const [
@@ -153,16 +139,18 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
                 style: SettloTypography.subheadline(color: c.textSecondary),
               )
             else
-              for (final (i, s) in shown.indexed) ...[
-                if (i > 0) const SizedBox(height: SettloSpacing.x2),
-                _SpaceCard(s),
-              ],
+              SGroup(
+                margin: EdgeInsets.zero,
+                children: [
+                  for (final (i, s) in shown.indexed)
+                    _SpaceCard(s, separator: i < shown.length - 1),
+                ],
+              ),
             if (pending.isNotEmpty) ...[
-              const SizedBox(height: SettloSpacing.x3),
-              Text('INVITE PENDING', style: sectionLabel(c)),
-              const SizedBox(height: SettloSpacing.x2),
+              const SizedBox(height: SettloSpacing.x1),
+              const SSectionLabel('Invite pending'),
               for (final (i, (space, member)) in pending.indexed) ...[
-                if (i > 0) const SizedBox(height: SettloSpacing.x1),
+                if (i > 0) const SizedBox(height: SettloTabScaffold.groupGap),
                 _PendingCard(space: space, member: member),
               ],
             ],
@@ -179,7 +167,7 @@ class _NoSpaces extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return SCard(
+    return _ListGroup(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -201,149 +189,90 @@ class _NoSpaces extends StatelessWidget {
 }
 
 class _SpaceCard extends StatelessWidget {
-  const new(this.space);
+  const new(this.space, {required this.separator});
+  final bool separator;
 
   final SpaceSummary space;
 
   @override
   Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
     final s = space;
-    final others = s.others;
-    final small = SettloTypography.caption1(color: c.textSecondary);
+    final c = SettloColors.of(context);
     final total = s.monthTotal.value;
     int percent(Paise part) => (part.value * 100 / total).round();
     return MergeSemantics(
-      child: SPressable(
-        ringRadius: BorderRadius.circular(SettloRadius.card),
-        onTap: () => context.go(SettloRoutes.space(s.id)),
-        child: SCard(
-          padding: const EdgeInsets.all(SettloSpacing.screenMargin),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SResponsiveRow(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SRow(
+            title: s.name,
+            subtitle: switch (s.others) {
+              [] => 'Just you',
+              [_] when s.kind == SpaceKind.friend => '1:1',
+              [_] || [_, _] => s.others.map((m) => m.name).join(', '),
+              _ => '${s.others.length + 1} people',
+            },
+            leading: SpaceKindTile(s.kind),
+            scaleLeading: true,
+            trailing: MoneyText(
+              s.balance,
+              signed: true,
+              size: 17,
+              tone: switch (s.balance.value) {
+                > 0 => MoneyTone.owedToYou,
+                < 0 => MoneyTone.youOwe,
+                _ => MoneyTone.settled,
+              },
+            ),
+            trailingSub: switch (s.balance.value) {
+              > 0 => 'owed to you',
+              < 0 => 'you owe',
+              _ when !s.hasExpenses => 'nothing yet',
+              _ => 'settled',
+            },
+            separator: false,
+            chevron: true,
+            onTap: () => context.go(SettloRoutes.space(s.id)),
+          ),
+          if (total > 0 && (s.others.isNotEmpty || s.departed.isNotEmpty))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
                 children: [
-                  SpaceKindTile(s.kind),
-                  const SizedBox(width: SettloSpacing.x2),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          s.name,
-                          maxLines:
-                              MediaQuery.textScalerOf(context).scale(1) >= 1.5
-                              ? null
-                              : 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: SettloTypography.callout(color: c.textPrimary),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          switch (others) {
-                            [] => 'Just you',
-                            [_] when s.kind == SpaceKind.friend => '1:1',
-                            [_] ||
-                            [_, _] => others.map((m) => m.name).join(', '),
-                            _ => '${others.length + 1} people',
-                          },
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                  _PaidBar(s),
+                  const SizedBox(height: 8),
+                  SResponsiveRow(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'You paid ${percent(s.you.monthPaid)}% of '
+                          '${formatInr(s.monthTotal)}',
+                          semanticsLabel:
+                              'You paid ${percent(s.you.monthPaid)}% of '
+                              '${spokenInr(s.monthTotal)}',
                           style: SettloTypography.footnote(
                             color: c.textSecondary,
-                          ).copyWith(height: 1.3),
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: SettloSpacing.x1),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      MoneyText(
-                        s.balance,
-                        signed: true,
-                        size: 16,
-                        tone: switch (s.balance.value) {
-                          > 0 => MoneyTone.owedToYou,
-                          < 0 => MoneyTone.youOwe,
-                          _ => MoneyTone.settled,
-                        },
                       ),
-                      Text(switch (s.balance.value) {
-                        > 0 => 'owed to you',
-                        < 0 => 'you owe',
-                        _ when !s.hasExpenses => 'nothing yet',
-                        _ => 'settled',
-                      }, style: small),
+                      Text(
+                        'fair share ${percent(s.yourFairShare)}%',
+                        style: SettloTypography.footnote(
+                          color: c.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
-              if (total > 0 &&
-                  (others.isNotEmpty || s.departed.isNotEmpty)) ...[
-                const SizedBox(height: 16),
-                _PaidBar(s),
-                const SizedBox(height: SettloSpacing.x1),
-                SResponsiveRow(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'You paid ${percent(s.you.monthPaid)}% of '
-                        '${formatInr(s.monthTotal)}',
-                        semanticsLabel:
-                            'You paid ${percent(s.you.monthPaid)}% of '
-                            '${spokenInr(s.monthTotal)}',
-                        style: small,
-                      ),
-                    ),
-                    Text(
-                      'fair share ${percent(s.yourFairShare)}%',
-                      style: small,
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Who paid what share of this month's spending: you first in primary
-/// text, then everyone else in the order they were added, then members
-/// who have left since.
-class _PaidBar extends StatelessWidget {
-  const new(this.space);
-
-  final SpaceSummary space;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
-    final payers = [
-      for (final m in [space.you, ...space.others, ...space.departed])
-        if (m.monthPaid.value > 0) m,
-    ];
-    return ExcludeSemantics(
-      child: Row(
-        children: [
-          for (final (i, m) in payers.indexed) ...[
-            if (i > 0) const SizedBox(width: SettloSpacing.x1),
-            Expanded(
-              flex: m.monthPaid.value,
-              child: Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  color: m.isYou ? c.brandAccent : c.surfaceHighest,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
             ),
-          ],
+          if (separator)
+            Divider(
+              height: 0.5,
+              thickness: 0.5,
+              indent: 64,
+              color: SettloColors.of(context).hairline,
+            ),
         ],
       ),
     );
@@ -441,7 +370,6 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
 
   @override
   Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
     final space = widget.space;
     final member = widget.member;
     final b = member.balance;
@@ -449,47 +377,35 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
     String detail(String amount) => b.value == 0
         ? 'Added to ${space.name} as $number'
         : '$amount in ${space.name} is recorded against $number';
-    return SPressable(
-      label:
-          "${member.name} hasn't joined yet. "
-          '${detail(spokenInr(Paise(b.value.abs())))}',
-      ringRadius: BorderRadius.circular(SettloRadius.card),
-      onTap: _busy ? null : () => _ask(detail(formatInr(Paise(b.value.abs())))),
-      child: SCard(
-        child: Row(
-          children: [
-            SAvatar(member.name, size: 36),
-            const SizedBox(width: SettloSpacing.x2),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "${member.name} hasn't joined yet",
-                    style: SettloTypography.body(color: c.textPrimary),
-                  ),
-                  Row(
-                    children: [
-                      Icon(Icons.schedule, size: 14, color: c.pending),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          detail(formatInr(Paise(b.value.abs()))),
-                          semanticsLabel: detail(
-                            spokenInr(Paise(b.value.abs())),
-                          ),
-                          style: SettloTypography.footnote(color: c.pending)
-                              .copyWith(height: 1.3),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+    return SGroup(
+      margin: EdgeInsets.zero,
+      children: [
+        SRow(
+          title: "${member.name} hasn't joined yet",
+          subtitle: detail(formatInr(Paise(b.value.abs()))),
+          subtitleSemanticsLabel: detail(spokenInr(Paise(b.value.abs()))),
+          leading: Stack(
+            children: [
+              SAvatar(member.name, size: 36),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Icon(
+                  CupertinoIcons.clock,
+                  size: 14,
+                  color: SettloColors.of(context).pending,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+          scaleLeading: true,
+          separator: false,
+          chevron: true,
+          onTap: _busy
+              ? null
+              : () => _ask(detail(formatInr(Paise(b.value.abs())))),
         ),
-      ),
+      ],
     );
   }
 }
@@ -498,3 +414,47 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
 String spaceInviteText(String inviter, String space, Uri link) =>
     'Hi, this is $inviter. I added you to $space on SabkiJeb. Nothing is '
     'shown until you verify this number. $link';
+
+class _ListGroup extends StatelessWidget {
+  const new({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => SGroup(
+    margin: EdgeInsets.zero,
+    children: [Padding(padding: const EdgeInsets.all(16), child: child)],
+  );
+}
+
+class _PaidBar extends StatelessWidget {
+  const new(this.space);
+
+  final SpaceSummary space;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final payers = [
+      for (final m in [space.you, ...space.others, ...space.departed])
+        if (m.monthPaid.value > 0) m,
+    ];
+    return ExcludeSemantics(
+      child: Row(
+        children: [
+          for (final (i, m) in payers.indexed) ...[
+            if (i > 0) const SizedBox(width: SettloSpacing.x1),
+            Expanded(
+              flex: m.monthPaid.value,
+              child: Container(
+                height: 6,
+                decoration: BoxDecoration(
+                  color: m.isYou ? c.brandAccent : c.surfaceHighest,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

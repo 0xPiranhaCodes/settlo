@@ -1,0 +1,108 @@
+Resolving dependencies in `/workspace`...
+Downloading packages...
+  app_links_linux 1.0.4 (1.0.5 available)
+  archive 4.6.0 (4.7.1 available)
+  built_collection 5.1.2 (6.0.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  go_router 18.1.3 (18.1.4 available)
+  image 4.12.0 (4.13.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.10.0 (1.11.0 available)
+  objective_c 9.6.3 (9.6.4 available)
+  qr 3.0.3 (4.0.1 available)
+  shared_preferences_android 2.5.4 (2.5.5 available)
+  shared_preferences_foundation 2.6.1 (2.6.2 available)
+  test_api 0.7.12 (0.7.15 available)
+Got dependencies in `/workspace`!
+14 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /workspace/app/test/tab_chrome_golden_test.dart
+00:00 +0: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 390x844 false
+00:02 +1: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 390x844 false
+00:03 +2: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 390x844 false
+00:03 +3: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 390x844 false
+00:04 +4: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 390x844 true
+00:04 +5: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 390x844 true
+00:05 +6: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 390x844 true
+00:05 +7: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 390x844 true
+00:05 +8: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667 false
+00:05 +9: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667 false
+00:05 +10: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667 false
+00:05 +11: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667 false
+00:05 +12: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667 true
+00:06 +13: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667 true
+00:06 +14: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667 true
+00:06 +15: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667 true
+00:06 +16: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667_text200 false
+00:06 +17: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667_text200 false
+00:06 +18: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667_text200 false
+00:06 +19: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667_text200 false
+00:06 +20: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667_text200 true
+00:06 +21: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667_text200 true
+00:07 +22: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667_text200 true
+00:07 +23: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667_text200 true
+00:07 +24: loading /workspace/app/test/home_golden_test.dart
+00:08 +24: /workspace/app/test/home_golden_test.dart: 390x844 dark home main golden
+00:11 +25: /workspace/app/test/home_golden_test.dart: 390x844 light home main golden
+00:11 +26: /workspace/app/test/home_golden_test.dart: 390x844 dark home empty golden
+00:11 +27: /workspace/app/test/home_golden_test.dart: 390x844 light home empty golden
+00:12 +28: /workspace/app/test/home_golden_test.dart: 390x844 dark home found golden
+00:12 +29: /workspace/app/test/home_golden_test.dart: 390x844 light home found golden
+00:12 +30: /workspace/app/test/home_golden_test.dart: 360x800 dark home main golden
+00:12 +31: /workspace/app/test/home_golden_test.dart: 360x800 light home main golden
+00:12 +32: /workspace/app/test/home_golden_test.dart: 360x800 dark home empty golden
+00:12 +33: /workspace/app/test/home_golden_test.dart: 360x800 light home empty golden
+00:12 +34: /workspace/app/test/home_golden_test.dart: 360x800 dark home found golden
+00:13 +35: /workspace/app/test/home_golden_test.dart: 360x800 light home found golden
+00:13 +36: /workspace/app/test/home_golden_test.dart: 390x844_text200 dark home main golden
+00:13 +37: /workspace/app/test/home_golden_test.dart: 390x844_text200 light home main golden
+00:13 +38: /workspace/app/test/home_golden_test.dart: 390x844_text200 dark home empty golden
+00:13 +39: /workspace/app/test/home_golden_test.dart: 390x844_text200 light home empty golden
+00:13 +40: /workspace/app/test/home_golden_test.dart: 390x844_text200 dark home found golden
+00:13 +41: /workspace/app/test/home_golden_test.dart: 390x844_text200 light home found golden
+00:13 +42: /workspace/app/test/home_golden_test.dart: 360x800_text200 dark home main golden
+00:14 +43: /workspace/app/test/home_golden_test.dart: 360x800_text200 light home main golden
+00:14 +44: /workspace/app/test/home_golden_test.dart: 360x800_text200 dark home empty golden
+00:14 +45: /workspace/app/test/home_golden_test.dart: 360x800_text200 light home empty golden
+00:14 +46: /workspace/app/test/home_golden_test.dart: 360x800_text200 dark home found golden
+00:14 +47: /workspace/app/test/home_golden_test.dart: 360x800_text200 light home found golden
+00:14 +48: loading /workspace/app/test/spaces_golden_test.dart
+00:15 +48: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces list golden
+00:18 +49: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces list golden
+00:18 +50: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces list golden
+00:18 +51: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces list golden
+00:18 +52: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces list golden
+00:19 +53: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces list golden
+00:19 +54: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces list golden
+00:19 +55: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces list golden
+00:19 +56: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces_list_ios golden
+00:19 +57: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces_list_ios golden
+00:20 +58: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces_list_ios golden
+00:20 +59: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces_list_ios golden
+00:20 +60: loading /workspace/app/test/loans_golden_test.dart
+00:22 +60: /workspace/app/test/loans_golden_test.dart: 390x844 dark loans list golden
+00:24 +61: /workspace/app/test/loans_golden_test.dart: 390x844 light loans list golden
+00:24 +62: /workspace/app/test/loans_golden_test.dart: 360x800 dark loans list golden
+00:24 +63: /workspace/app/test/loans_golden_test.dart: 360x800 light loans list golden
+00:25 +64: /workspace/app/test/loans_golden_test.dart: 390x844_text200 dark loans list golden
+00:25 +65: /workspace/app/test/loans_golden_test.dart: 390x844_text200 light loans list golden
+00:25 +66: /workspace/app/test/loans_golden_test.dart: 360x800_text200 dark loans list golden
+00:25 +67: /workspace/app/test/loans_golden_test.dart: 360x800_text200 light loans list golden
+00:25 +68: loading /workspace/app/test/liquid_glass_golden_test.dart
+00:26 +68: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home dark rest golden
+00:29 +69: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home dark scrolled golden
+00:29 +70: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home light rest golden
+00:29 +71: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home light scrolled golden
+00:30 +72: loading /workspace/app/test/sheet_hit_test.dart
+00:31 +72: /workspace/app/test/sheet_hit_test.dart: (setUpAll)
+00:31 +72: /workspace/app/test/sheet_hit_test.dart: create space 390x844 dark panel golden
+00:35 +73: /workspace/app/test/sheet_hit_test.dart: create space 390x844 light panel golden
+00:35 +74: /workspace/app/test/sheet_hit_test.dart: create space 360x800 dark panel golden
+00:35 +75: /workspace/app/test/sheet_hit_test.dart: create space 360x800 light panel golden
+00:36 +76: /workspace/app/test/sheet_hit_test.dart: create space 390x844_text200 dark panel golden
+00:36 +77: /workspace/app/test/sheet_hit_test.dart: create space 390x844_text200 light panel golden
+00:36 +78: /workspace/app/test/sheet_hit_test.dart: create space 360x800_text200 dark panel golden
+00:36 +79: /workspace/app/test/sheet_hit_test.dart: create space 360x800_text200 light panel golden
+00:37 +80: /workspace/app/test/sheet_hit_test.dart: (tearDownAll)
+00:37 +80: All tests passed!

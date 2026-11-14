@@ -21,6 +21,15 @@ The single rulebook for in-app UI. Values live in code: `packages/core/lib/theme
 
 **Android** uses full-height modals without a grabber for migrated space sheets; other sheets retain their existing Material presentation. It keeps `showDatePicker`, `SnackBar` (through `showSettloNotice`), and the system back gesture. Colours, type and spacing are shared with iOS.
 
+## Tab chrome
+
+Root tabs use `SettloTabScaffold`: `inset` is 16pt for content and trailing
+header actions, and `groupGap` is 32pt between groups. The 34pt bold title
+collapses to 17pt semibold. The header is flat background at rest; only content
+scrolling underneath adds 80% background fill and sigma-30 blur. Rows inside
+one `SGroup` use 0.5pt hairlines inset 64pt, after any row footer, rather than
+group gaps. Routine tab actions use primary-text colour.
+
 ## Sheets
 
 Space Expenses and Balances open above the tab navigator. Use
@@ -44,7 +53,7 @@ are explicit exceptions; existing layouts otherwise use tokens for gaps *between
 | Use | Token | Value |
 |---|---|---|
 | Existing screen margin (migrated sheet groups use 16 pt) | `screenMargin` | 20 |
-| Tab-root header → first content (search, chips or first card) | `x5` | 40 |
+| Tab-root header → first content (search, chips or first card) | `SettloTabScaffold.inset` | 16 |
 | Between sections, and after a hero card's group | `x3` | 24 |
 | Between cards in one list or section | `x2` | 16 |
 | Section label (eyebrow) → its card | `x1` | 8 |

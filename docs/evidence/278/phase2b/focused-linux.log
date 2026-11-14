@@ -1,0 +1,315 @@
+Resolving dependencies in `/workspace`...
+Downloading packages...
+  app_links_linux 1.0.4 (1.0.5 available)
+  archive 4.6.0 (4.7.1 available)
+  built_collection 5.1.2 (6.0.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  go_router 18.1.3 (18.1.4 available)
+  image 4.12.0 (4.13.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.10.0 (1.11.0 available)
+  objective_c 9.6.3 (9.6.4 available)
+  qr 3.0.3 (4.0.1 available)
+  shared_preferences_android 2.5.4 (2.5.5 available)
+  shared_preferences_foundation 2.6.1 (2.6.2 available)
+  test_api 0.7.12 (0.7.15 available)
+Got dependencies in `/workspace`!
+14 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /workspace/app/test/tab_chrome_golden_test.dart
+00:00 +0: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 390x844 false
+00:02 +1: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 390x844 false
+00:03 +2: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 390x844 false
+00:03 +3: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 390x844 false
+00:04 +4: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 390x844 true
+00:04 +5: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 390x844 true
+00:04 +6: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 390x844 true
+00:05 +7: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 390x844 true
+00:05 +8: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667 false
+00:05 +9: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667 false
+00:05 +10: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667 false
+00:05 +11: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667 false
+00:05 +12: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667 true
+00:06 +13: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667 true
+00:06 +14: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667 true
+00:06 +15: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667 true
+00:06 +16: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667_text200 false
+00:06 +17: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667_text200 false
+00:06 +18: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667_text200 false
+00:06 +19: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667_text200 false
+00:06 +20: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667_text200 true
+00:07 +21: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667_text200 true
+00:07 +22: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667_text200 true
+00:07 +23: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667_text200 true
+00:07 +24: loading /workspace/app/test/home_test.dart
+00:08 +24: /workspace/app/test/home_test.dart: homeProvider loads Home and totals balances in paise
+00:09 +25: /workspace/app/test/home_test.dart: homeProvider accepting a claim reloads it into the balances
+00:09 +26: /workspace/app/test/home_test.dart: homeProvider rejecting a claim drops it without a balance
+00:09 +27: /workspace/app/test/home_test.dart: homeProvider a refused claim call throws and leaves Home as it was
+00:09 +28: /workspace/app/test/home_test.dart: Home shows the net position, stats and both cards
+00:11 +29: /workspace/app/test/home_test.dart: Home accepting a claim moves it into the balances
+00:12 +30: /workspace/app/test/home_test.dart: Home 'This isn't me' removes the claim
+00:12 +31: /workspace/app/test/home_test.dart: Home a no-pump double tap on "Accept" answers once
+00:12 +32: /workspace/app/test/home_test.dart: Home a no-pump double tap on "This isn't me" answers once
+00:13 +33: /workspace/app/test/home_test.dart: Home signing out while "Accept" is queued says nothing
+00:13 +34: /workspace/app/test/home_test.dart: Home signing out while "This isn't me" is queued says nothing
+00:13 +35: /workspace/app/test/home_test.dart: Home a retry reuses its key; each button has its own
+00:13 +36: /workspace/app/test/home_test.dart: Home a refused claim says so and keeps the claim
+00:14 +37: /workspace/app/test/home_test.dart: Home a failed load keeps the hero in place and says why
+00:14 +38: /workspace/app/test/home_test.dart: Home pulling down reloads
+00:14 +39: /workspace/app/test/home_test.dart: Home Add expense goes to /expenses/new
+00:14 +40: /workspace/app/test/home_test.dart: Home Settle up goes to /settle
+00:14 +41: /workspace/app/test/home_test.dart: Home SEE ALL goes to /spaces
+00:14 +42: /workspace/app/test/home_test.dart: Home Flat 402 goes to /spaces/s1
+00:15 +43: /workspace/app/test/home_test.dart: Home Arjun · interest free goes to /loans/l1
+00:15 +44: /workspace/app/test/home_test.dart: Home Start a space goes to /spaces
+00:15 +45: /workspace/app/test/home_test.dart: Home Record a loan goes to /loans/new
+00:15 +46: /workspace/app/test/home_test.dart: Home Notifications goes to /activity
+00:15 +47: /workspace/app/test/home_test.dart: Home Profile goes to /profile
+00:15 +48: /workspace/app/test/home_test.dart: Home Home uses a large title without the decorative mark (#278)
+00:16 +49: /workspace/app/test/home_test.dart: Home pending repayment opens its confirmation receipt
+00:16 +50: /workspace/app/test/home_test.dart: Home a borrowed, flexible loan reads from your side
+00:16 +51: /workspace/app/test/home_test.dart: Home scheduled loan keeps direction without hue: true
+00:16 +52: /workspace/app/test/home_test.dart: Home scheduled loan keeps direction without hue: false
+00:16 +53: /workspace/app/test/home_test.dart: every control is at least 44x44pt Home meets the iOS tap target guideline
+00:17 +54: /workspace/app/test/home_test.dart: every control is at least 44x44pt Home · empty meets the iOS tap target guideline
+00:17 +55: /workspace/app/test/home_test.dart: every control is at least 44x44pt Home · ledger found meets the iOS tap target guideline
+00:17 +56: /workspace/app/test/home_test.dart: every control is at least 44x44pt header, See all and the loan row
+00:17 +57: /workspace/app/test/home_test.dart: every control is at least 44x44pt a single-line loan row still has a 44pt target
+00:17 +58: /workspace/app/test/home_test.dart: every control is at least 44x44pt claim actions
+00:17 +59: /workspace/app/test/home_test.dart: amounts are announced in rupees beside their labels
+00:17 +60: /workspace/app/test/home_test.dart: claims are announced in rupees
+00:17 +61: /workspace/app/test/home_test.dart: fits 360x800 without overflow Home
+00:17 +62: /workspace/app/test/home_test.dart: fits 360x800 without overflow Home · empty
+00:18 +63: /workspace/app/test/home_test.dart: fits 360x800 without overflow Home · ledger found
+00:18 +64: /workspace/app/test/home_test.dart: empty Home fits at 200% text scaling
+00:18 +65: /workspace/app/test/home_test.dart: populated Home fits at 200% text scaling
+00:18 +66: /workspace/app/test/home_test.dart: empty action cards expose a semantic tap action
+00:19 +67: /workspace/app/test/home_test.dart: Reduce Motion makes Home press feedback immediate
+00:19 +68: loading /workspace/app/test/spaces_test.dart
+00:20 +68: /workspace/app/test/spaces_test.dart: selected space tab has one enabled button announcement
+00:23 +69: /workspace/app/test/spaces_test.dart: spacesProvider creates a space and reloads it into the list
+00:23 +70: /workspace/app/test/spaces_test.dart: Spaces each card is a mini balance sheet
+00:24 +71: /workspace/app/test/spaces_test.dart: Spaces pending member card shares a token link without an amount
+00:24 +72: /workspace/app/test/spaces_test.dart: Spaces a payer who left still counts in the bar and history
+00:25 +73: /workspace/app/test/spaces_test.dart: Spaces no Pay to someone who left: it cannot be recorded
+00:25 +74: /workspace/app/test/spaces_test.dart: Spaces the chips filter by kind
+00:25 +75: /workspace/app/test/spaces_test.dart: Spaces a card opens its space
+00:25 +76: /workspace/app/test/spaces_test.dart: Spaces with no spaces it offers to start one
+00:26 +77: /workspace/app/test/spaces_test.dart: Spaces a failed load says why, and pulling down reloads
+00:26 +78: /workspace/app/test/spaces_test.dart: New space create space → it appears in the list
+00:27 +79: /workspace/app/test/spaces_test.dart: New space uses the task-sheet layout on iOS
+00:28 +80: /workspace/app/test/spaces_test.dart: New space uses the task-sheet layout on android
+00:28 +81: /workspace/app/test/spaces_test.dart: New space a retry after a failure reuses the idempotency key
+00:29 +82: /workspace/app/test/spaces_test.dart: New space a reopened sheet gets a new key
+00:30 +83: /workspace/app/test/spaces_test.dart: New space a key reused with other details says it was saved
+00:30 +84: /workspace/app/test/spaces_test.dart: New space numbers must be phone numbers, once each
+00:31 +85: /workspace/app/test/spaces_test.dart: New space your own number is refused: 98765 43210
+00:31 +86: /workspace/app/test/spaces_test.dart: New space your own number is refused: +91 98765 43210
+00:31 +87: /workspace/app/test/spaces_test.dart: New space your own number is refused: 09876543210
+00:31 +88: /workspace/app/test/spaces_test.dart: New space a person without a name is shown by number
+00:32 +89: /workspace/app/test/spaces_test.dart: Home refreshes after a space is created creating bumps the ledger revision Home watches
+00:32 +90: /workspace/app/test/spaces_test.dart: Home refreshes after a space is created Home → create on Spaces → Home shows it
+00:32 +91: /workspace/app/test/spaces_test.dart: Space · empty says the others see expenses when they join
+00:33 +92: /workspace/app/test/spaces_test.dart: Space · empty a space with expenses is not empty
+00:33 +93: /workspace/app/test/spaces_test.dart: Space · empty Add first expense goes to /expenses/new?space=s9
+00:33 +94: /workspace/app/test/spaces_test.dart: Space · empty Add rent as a monthly expense goes to /expenses/new?space=s9
+00:33 +95: /workspace/app/test/spaces_test.dart: Space · empty Add your UPI ID so settle-ups are one tap goes to /profile
+00:33 +96: /workspace/app/test/spaces_test.dart: Space · empty Back returns to the list
+00:33 +97: /workspace/app/test/spaces_test.dart: Space with expenses expenses are grouped by month with payer, date and share
+00:33 +98: /workspace/app/test/spaces_test.dart: Space with expenses the tabs and actions go where they say
+00:34 +99: /workspace/app/test/spaces_test.dart: Space with expenses balances: who paid against a fair share, then settling
+00:35 +100: /workspace/app/test/spaces_test.dart: Space with expenses Remind sends a WhatsApp nudge and never opens Settle up
+00:35 +101: /workspace/app/test/spaces_test.dart: Space with expenses without WhatsApp, Remind offers the share sheet
+00:35 +102: /workspace/app/test/spaces_test.dart: Space with expenses the segments stay put when switching
+00:36 +103: /workspace/app/test/spaces_test.dart: Space with expenses the avatars open Members, where people can be added
+00:36 +104: /workspace/app/test/spaces_test.dart: Space with expenses a failed add says so and keeps the people
+00:36 +105: /workspace/app/test/spaces_test.dart: Space with expenses fairness deltas never use outstanding-balance colours
+00:37 +106: /workspace/app/test/spaces_test.dart: Space with expenses paid and fair share are read in rupees
+00:37 +107: /workspace/app/test/spaces_test.dart: Space with expenses only the creator or an owner sees edit and delete
+00:37 +108: /workspace/app/test/spaces_test.dart: Space with expenses an edit saves through update_expense with one key
+00:37 +109: /workspace/app/test/spaces_test.dart: Space with expenses editing a pending settle-up leaves the spend unchanged
+00:37 +110: /workspace/app/test/spaces_test.dart: Space with expenses the payee confirms a pending settle-up, once
+00:38 +111: /workspace/app/test/spaces_test.dart: Space with expenses the payee says a settle-up didn't arrive, with a reason
+00:39 +112: /workspace/app/test/spaces_test.dart: Space with expenses a double tap on "Yes, I received ₹300" answers once, closing only the sheet
+00:39 +113: /workspace/app/test/spaces_test.dart: Space with expenses a double tap on "Mark as not received" answers once, closing only the sheet
+00:39 +114: /workspace/app/test/spaces_test.dart: Space with expenses a split by amounts keeps its amount
+00:39 +115: /workspace/app/test/spaces_test.dart: Space with expenses delete asks once more, then removes it
+00:39 +116: /workspace/app/test/spaces_test.dart: Space with expenses on iOS, delete asks with an action sheet
+00:40 +117: /workspace/app/test/spaces_test.dart: Space with expenses on iOS, the space has sheet chrome and closes to Spaces
+00:40 +118: /workspace/app/test/spaces_test.dart: every control is at least 44x44pt Spaces meets the iOS tap target guideline
+00:40 +119: /workspace/app/test/spaces_test.dart: every control is at least 44x44pt Space · empty meets the iOS tap target guideline
+00:40 +120: /workspace/app/test/spaces_test.dart: every control is at least 44x44pt Space · expenses meets the iOS tap target guideline
+00:40 +121: /workspace/app/test/spaces_test.dart: every control is at least 44x44pt Space · balances meets the iOS tap target guideline
+00:40 +122: /workspace/app/test/spaces_test.dart: every control is at least 44x44pt New space meets the iOS tap target guideline
+00:41 +123: /workspace/app/test/spaces_test.dart: amounts are announced in rupees
+00:41 +124: /workspace/app/test/spaces_test.dart: fits 360x800 without overflow Spaces
+00:41 +125: /workspace/app/test/spaces_test.dart: fits 360x800 without overflow Space · empty
+00:41 +126: /workspace/app/test/spaces_test.dart: fits 360x800 without overflow Space · expenses
+00:41 +127: /workspace/app/test/spaces_test.dart: fits 360x800 without overflow Space · balances
+00:41 +128: /workspace/app/test/spaces_test.dart: fits 360x800 without overflow New space
+00:42 +129: loading /workspace/app/test/loans_test.dart
+00:43 +129: /workspace/app/test/loans_test.dart: India date crosses midnight independently of a UTC-8 device
+00:43 +130: /workspace/app/test/loans_test.dart: ring geometry the canvas ring: r 51 in a 112 box, from twelve o'clock
+00:43 +131: /workspace/app/test/loans_test.dart: ring geometry 0.0 sweeps 0.0
+00:44 +132: /workspace/app/test/loans_test.dart: ring geometry 0.5 sweeps 3.141592653589793
+00:44 +133: /workspace/app/test/loans_test.dart: ring geometry 1.0 sweeps 6.283185307179586
+00:44 +134: /workspace/app/test/loans_test.dart: ring geometry 1.4 sweeps 6.283185307179586
+00:44 +135: /workspace/app/test/loans_test.dart: ring geometry -0.2 sweeps 0.0
+00:44 +136: /workspace/app/test/loans_test.dart: ring geometry the label rounds down, so 100% means fully repaid
+00:44 +137: /workspace/app/test/loans_test.dart: Loans tab lists loans open first, each from your side
+00:46 +138: /workspace/app/test/loans_test.dart: Loans tab scheduled loan keeps direction without hue: true
+00:46 +139: /workspace/app/test/loans_test.dart: Loans tab scheduled loan keeps direction without hue: false
+00:46 +140: /workspace/app/test/loans_test.dart: Loans tab a loan opens its detail
+00:47 +141: /workspace/app/test/loans_test.dart: Loans tab with no loans it offers to record one
+00:48 +142: /workspace/app/test/loans_test.dart: Loans tab a failed load says so
+00:48 +143: /workspace/app/test/loans_test.dart: Loan detail ring, three tiles and the history
+00:48 +144: /workspace/app/test/loans_test.dart: Loan detail record → pending → confirm: only confirmed counts
+00:49 +145: /workspace/app/test/loans_test.dart: Loan detail paid-on picker is bounded by loan start and today
+00:50 +146: /workspace/app/test/loans_test.dart: Loan detail reference trims Unicode whitespace and filters Cc/Cf
+00:50 +147: /workspace/app/test/loans_test.dart: Loan detail reference limit counts Unicode code points
+00:51 +148: /workspace/app/test/loans_test.dart: Loan detail a retried confirmation reuses its key and shows plain copy
+00:51 +149: /workspace/app/test/loans_test.dart: Loan detail dispute asks for a reason and never counts
+00:51 +150: /workspace/app/test/loans_test.dart: Loan detail more than is outstanding cannot be recorded
+00:51 +151: /workspace/app/test/loans_test.dart: Loan detail a refused repayment shows the plain reason
+00:51 +152: /workspace/app/test/loans_test.dart: Loan detail a closed loan cannot take more repayments
+00:52 +153: /workspace/app/test/loans_test.dart: Loan detail back returns to the list
+00:52 +154: /workspace/app/test/loans_test.dart: Loan detail download statement shares one PDF, even on a no-pump double tap
+00:53 +155: /workspace/app/test/loans_test.dart: New loan creating an instalment loan: notDetermined
+00:54 +156: /workspace/app/test/loans_test.dart: New loan creating an instalment loan: denied
+00:54 +157: /workspace/app/test/loans_test.dart: New loan creating an instalment loan: granted
+00:55 +158: /workspace/app/test/loans_test.dart: New loan flexible loan never asks for instalment permission
+00:55 +159: /workspace/app/test/loans_test.dart: New loan the + opens it; it creates the loan, tells them on WhatsApp and lands on it
+00:57 +160: /workspace/app/test/loans_test.dart: New loan the WhatsApp text never carries the label typed
+00:58 +161: /workspace/app/test/loans_test.dart: New loan without a profile name the greeting is fixed
+00:58 +162: /workspace/app/test/loans_test.dart: New loan borrowed with no monthly amount is flexible
+00:59 +163: /workspace/app/test/loans_test.dart: New loan a monthly amount over the principal cannot be saved
+00:59 +164: /workspace/app/test/loans_test.dart: New loan your own number or a bad one is refused
+01:00 +165: /workspace/app/test/loans_test.dart: New loan a retry after a dropped connection reuses the key
+01:00 +166: /workspace/app/test/loans_test.dart: New loan a refusal shows plain copy and stays open
+01:01 +167: /workspace/app/test/loans_test.dart: New loan without WhatsApp it says so and still shows the loan
+01:01 +168: /workspace/app/test/loans_test.dart: New loan close goes back to Loans
+01:01 +169: /workspace/app/test/loans_test.dart: New loan interest is off, with the later path shown
+01:01 +170: /workspace/app/test/loans_test.dart: New loan ends in the month of the last instalment
+01:01 +171: /workspace/app/test/loans_test.dart: Home opens New loan, and shows the loan once created
+01:02 +172: /workspace/app/test/loans_test.dart: Confirm repayment shows a spoken receipt and routes from the pending row
+01:02 +173: /workspace/app/test/loans_test.dart: Confirm repayment on iOS, back is the shared glass control
+01:03 +174: /workspace/app/test/loans_test.dart: Confirm repayment borrower copy names the lender and describes money paid
+01:04 +175: /workspace/app/test/loans_test.dart: Confirm repayment primary no-pump double tap sends once
+01:04 +176: /workspace/app/test/loans_test.dart: Confirm repayment confirming says so and pops back to the loan (#259)
+01:04 +177: /workspace/app/test/loans_test.dart: Confirm repayment a slow confirm leaves navigation alone (#277) after Back
+01:04 +178: /workspace/app/test/loans_test.dart: Confirm repayment a slow confirm leaves navigation alone (#277) after another route is pushed
+01:05 +179: /workspace/app/test/loans_test.dart: Confirm repayment overpayment warns, clamps to zero and cannot confirm
+01:05 +180: /workspace/app/test/loans_test.dart: Confirm repayment the recording party sees a read-only receipt
+01:05 +181: /workspace/app/test/loans_test.dart: Confirm repayment controls and receipt rows meet accessibility guidelines
+01:05 +182: /workspace/app/test/loans_test.dart: a double tap in one frame sends once record
+01:05 +183: /workspace/app/test/loans_test.dart: a double tap in one frame sends once confirm
+01:05 +184: /workspace/app/test/loans_test.dart: a double tap in one frame sends once create
+01:06 +185: /workspace/app/test/loans_test.dart: a double tap in one frame sends once dispute
+01:06 +186: /workspace/app/test/loans_test.dart: targets are at least 44pt Loans tab
+01:06 +187: /workspace/app/test/loans_test.dart: targets are at least 44pt Loan detail
+01:06 +188: /workspace/app/test/loans_test.dart: targets are at least 44pt new loan sheet
+01:06 +189: /workspace/app/test/loans_test.dart: targets are at least 44pt record repayment sheet
+01:07 +190: loading /workspace/app/test/activity_test.dart
+01:08 +190: /workspace/app/test/activity_test.dart: expense/reminded exposes money direction
+01:11 +191: /workspace/app/test/activity_test.dart: expense/due exposes money direction
+01:11 +192: /workspace/app/test/activity_test.dart: expense/created exposes money direction
+01:11 +193: /workspace/app/test/activity_test.dart: expense/edited exposes money direction
+01:11 +194: /workspace/app/test/activity_test.dart: expense/deleted exposes money direction
+01:11 +195: /workspace/app/test/activity_test.dart: expense/restored exposes money direction
+01:11 +196: /workspace/app/test/activity_test.dart: expense/recorded exposes money direction
+01:12 +197: /workspace/app/test/activity_test.dart: expense/confirmed exposes money direction
+01:12 +198: /workspace/app/test/activity_test.dart: expense/disputed exposes money direction
+01:12 +199: /workspace/app/test/activity_test.dart: expense/rejected exposes money direction
+01:12 +200: /workspace/app/test/activity_test.dart: expense/closed exposes money direction
+01:12 +201: /workspace/app/test/activity_test.dart: settlement/reminded exposes money direction
+01:12 +202: /workspace/app/test/activity_test.dart: settlement/due exposes money direction
+01:12 +203: /workspace/app/test/activity_test.dart: settlement/created exposes money direction
+01:12 +204: /workspace/app/test/activity_test.dart: settlement/edited exposes money direction
+01:12 +205: /workspace/app/test/activity_test.dart: settlement/deleted exposes money direction
+01:12 +206: /workspace/app/test/activity_test.dart: settlement/restored exposes money direction
+01:12 +207: /workspace/app/test/activity_test.dart: settlement/recorded exposes money direction
+01:13 +208: /workspace/app/test/activity_test.dart: settlement/confirmed exposes money direction
+01:13 +209: /workspace/app/test/activity_test.dart: settlement/disputed exposes money direction
+01:13 +210: /workspace/app/test/activity_test.dart: settlement/rejected exposes money direction
+01:13 +211: /workspace/app/test/activity_test.dart: settlement/closed exposes money direction
+01:13 +212: /workspace/app/test/activity_test.dart: loan/reminded exposes money direction
+01:13 +213: /workspace/app/test/activity_test.dart: loan/due exposes money direction
+01:13 +214: /workspace/app/test/activity_test.dart: loan/created exposes money direction
+01:13 +215: /workspace/app/test/activity_test.dart: loan/edited exposes money direction
+01:13 +216: /workspace/app/test/activity_test.dart: loan/deleted exposes money direction
+01:14 +217: /workspace/app/test/activity_test.dart: loan/restored exposes money direction
+01:14 +218: /workspace/app/test/activity_test.dart: loan/recorded exposes money direction
+01:14 +219: /workspace/app/test/activity_test.dart: loan/confirmed exposes money direction
+01:14 +220: /workspace/app/test/activity_test.dart: loan/disputed exposes money direction
+01:14 +221: /workspace/app/test/activity_test.dart: loan/rejected exposes money direction
+01:14 +222: /workspace/app/test/activity_test.dart: loan/closed exposes money direction
+01:14 +223: /workspace/app/test/activity_test.dart: repayment/reminded exposes money direction
+01:14 +224: /workspace/app/test/activity_test.dart: repayment/due exposes money direction
+01:14 +225: /workspace/app/test/activity_test.dart: repayment/created exposes money direction
+01:14 +226: /workspace/app/test/activity_test.dart: repayment/edited exposes money direction
+01:14 +227: /workspace/app/test/activity_test.dart: repayment/deleted exposes money direction
+01:15 +228: /workspace/app/test/activity_test.dart: repayment/restored exposes money direction
+01:15 +229: /workspace/app/test/activity_test.dart: repayment/recorded exposes money direction
+01:15 +230: /workspace/app/test/activity_test.dart: repayment/confirmed exposes money direction
+01:15 +231: /workspace/app/test/activity_test.dart: repayment/disputed exposes money direction
+01:15 +232: /workspace/app/test/activity_test.dart: repayment/rejected exposes money direction
+01:15 +233: /workspace/app/test/activity_test.dart: repayment/closed exposes money direction
+01:15 +234: /workspace/app/test/activity_test.dart: settlement/pending keeps direction for another actor
+01:15 +235: /workspace/app/test/activity_test.dart: settlement/confirmed keeps direction for another actor
+01:15 +236: /workspace/app/test/activity_test.dart: settlement/disputed keeps direction for another actor
+01:15 +237: /workspace/app/test/activity_test.dart: settlement/deleted keeps direction for another actor
+01:15 +238: /workspace/app/test/activity_test.dart: repayment/pending keeps direction for another actor
+01:15 +239: /workspace/app/test/activity_test.dart: repayment/confirmed keeps direction for another actor
+01:16 +240: /workspace/app/test/activity_test.dart: repayment/disputed keeps direction for another actor
+01:16 +241: /workspace/app/test/activity_test.dart: repayment/deleted keeps direction for another actor
+01:16 +242: /workspace/app/test/activity_test.dart: loan nudges have polite Activity copy
+01:16 +243: /workspace/app/test/activity_test.dart: the feed reads like the canvas, edits before and after
+01:16 +244: /workspace/app/test/activity_test.dart: only money in or out of your pocket is coloured
+01:16 +245: /workspace/app/test/activity_test.dart: 'Needs you' narrows to what waits for you
+01:17 +246: /workspace/app/test/activity_test.dart: empty: says what will show up, in both filters
+01:17 +247: /workspace/app/test/activity_test.dart: confirming a settle-up from the feed uses the space sheet, then refreshes
+01:18 +248: /workspace/app/test/activity_test.dart: Review on a repayment opens its confirmation
+01:18 +249: /workspace/app/test/activity_test.dart: link-only decline says the underlying invite remains open
+01:18 +250: /workspace/app/test/activity_test.dart: a double tap on Review in one frame opens it once
+01:18 +251: /workspace/app/test/activity_test.dart: a settle-up already answered says so
+01:19 +252: /workspace/app/test/activity_test.dart: scrolling to the end loads the next page by keyset
+01:19 +253: /workspace/app/test/activity_test.dart: pull to refresh drops the cursor and reloads from the top
+01:20 +254: /workspace/app/test/activity_test.dart: filters (#109) a space chip and Loans read the feed through the filter
+01:20 +255: /workspace/app/test/activity_test.dart: filters (#109) a filtered feed pages by keyset through the same filter
+01:21 +256: /workspace/app/test/activity_test.dart: filters (#109) a filter with nothing in it says so
+01:21 +257: /workspace/app/test/activity_test.dart: seen (#109) opening marks what is new since the last open seen
+01:21 +258: /workspace/app/test/activity_test.dart: seen (#109) a question about your edit rings for you, the editor, only
+01:21 +259: /workspace/app/test/activity_test.dart: seen (#109) with nothing new it marks nothing
+01:21 +260: /workspace/app/test/activity_test.dart: 'Question this' (#109) someone else's edit takes a short note, shown on its row
+01:22 +261: /workspace/app/test/activity_test.dart: 'Question this' (#109) a note that cannot be sent stays to try again
+01:23 +262: /workspace/app/test/activity_test.dart: 'Question this' (#109) members' notes show; your own edit cannot be questioned
+01:23 +263: All tests passed!
+Resolving dependencies in `/workspace`...
+Downloading packages...
+  app_links_linux 1.0.4 (1.0.5 available)
+  archive 4.6.0 (4.7.1 available)
+  built_collection 5.1.2 (6.0.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  go_router 18.1.3 (18.1.4 available)
+  image 4.12.0 (4.13.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.10.0 (1.11.0 available)
+  objective_c 9.6.3 (9.6.4 available)
+  qr 3.0.3 (4.0.1 available)
+  shared_preferences_android 2.5.4 (2.5.5 available)
+  shared_preferences_foundation 2.6.1 (2.6.2 available)
+  test_api 0.7.12 (0.7.15 available)
+Got dependencies in `/workspace`!
+14 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /workspace/packages/core/test/widgets/tab_chrome_test.dart
+00:00 +0: tabs share inset, collapse and material TargetPlatform.iOS 1.0
+00:04 +1: tabs share inset, collapse and material TargetPlatform.iOS 2.0
+00:06 +2: tabs share inset, collapse and material TargetPlatform.android 1.0
+00:08 +3: tabs share inset, collapse and material TargetPlatform.android 2.0
+00:10 +4: tab row avatars cap at 1.5 and amounts wrap below title
+00:10 +5: iOS tab action sends neutral foreground to native glass
+00:10 +6: All tests passed!

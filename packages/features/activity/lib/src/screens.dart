@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:math' as math;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -188,7 +188,6 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final media = MediaQuery.of(context);
     final needs = ref.watch(needsYouProvider);
     final feed = ref.watch(activityFeedProvider);
     final filter = ref.watch(activityFilterProvider);
@@ -207,16 +206,19 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
     final ios = Theme.of(context).platform == TargetPlatform.iOS;
     final muted = SettloTypography.subheadline(color: c.textSecondary);
 
-    Widget empty(String title, String body) => SCard(
-      child: Column(
+    Widget empty(String title, String body) {
+      final content = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(title, style: SettloTypography.headline(color: c.textPrimary)),
           const SizedBox(height: SettloSpacing.x1),
           Text(body, style: SettloTypography.body(color: c.textSecondary)),
         ],
-      ),
-    );
+      );
+      return widget.sheetBuilder == null
+          ? _FeedGroup(child: content)
+          : SCard(child: content);
+    }
 
     final children = <Widget>[
       if (widget.sheetBuilder == null)
@@ -226,46 +228,71 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
           trailing: SettloTabActions(onBell: null),
         ),
       if (ios) ...[
-        const SizedBox(height: SettloSpacing.x1),
+        if (widget.sheetBuilder != null)
+          const SizedBox(height: SettloSpacing.x1),
         SSearchField(onChanged: (q) => setState(() => _query = q)),
       ],
-      const SizedBox(height: SettloSpacing.x2),
+      if (ios || widget.sheetBuilder != null)
+        const SizedBox(height: SettloSpacing.x2),
       // One row, as on the canvas; it scrolls once the spaces outgrow it.
       if (widget.spaceId == null)
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Row(
-            spacing: 8,
-            children: [
-              SChip(
-                label: 'All',
-                selected: !_needsYouOnly && filter == allActivity,
-                onSelected: (_) => _show(allActivity),
-              ),
-              SChip(
-                label: pending.isEmpty
+          child: CupertinoSlidingSegmentedControl<String>(
+            proportionalWidth: true,
+            backgroundColor: c.surfaceRaised,
+            thumbColor: c.surface,
+            groupValue: _needsYouOnly
+                ? 'needs'
+                : filter.loansOnly
+                ? 'loans'
+                : filter.spaceId ?? 'all',
+            onValueChanged: (value) {
+              if (value == null) return;
+              if (value == 'needs') {
+                setState(() => _needsYouOnly = true);
+              } else {
+                _show(
+                  value == 'all'
+                      ? allActivity
+                      : (
+                          spaceId: value == 'loans' ? null : value,
+                          loansOnly: value == 'loans',
+                        ),
+                );
+              }
+            },
+            children: {
+              for (final entry in <String, String>{
+                'all': 'All',
+                'needs': pending.isEmpty
                     ? 'Needs you'
                     : 'Needs you · ${pending.length}',
-                selected: _needsYouOnly,
-                onSelected: (_) => setState(() => _needsYouOnly = true),
-              ),
-              for (final s in spaces)
-                SChip(
-                  label: s.name,
-                  selected: !_needsYouOnly && filter.spaceId == s.id,
-                  onSelected: (_) => _show((spaceId: s.id, loansOnly: false)),
+                for (final s in spaces) s.id: s.name,
+                'loans': 'Loans',
+              }.entries)
+                entry.key: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 40),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Text(
+                      entry.value,
+                      style: SettloTypography.subheadline(color: c.textPrimary),
+                    ),
+                  ),
                 ),
-              SChip(
-                label: 'Loans',
-                selected: !_needsYouOnly && filter.loansOnly,
-                onSelected: (_) => _show((spaceId: null, loansOnly: true)),
-              ),
-            ],
+            },
           ),
         ),
       const SizedBox(height: SettloSpacing.x2),
       if (pending.isNotEmpty) ...[
-        _NeedsYouCard(pending, onReview: _review),
+        if (widget.sheetBuilder == null)
+          _NeedsYouCard(pending, onReview: _review)
+        else
+          _ScopedNeedsYouCard(pending, onReview: _review),
         const SizedBox(height: 8),
       ],
       if (_needsYouOnly) ...[
@@ -300,11 +327,12 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
       else if (!ios || widget.sheetBuilder != null)
         for (final (heading, rows) in _sections(context, entries)) ...[
           heading,
-          ...rows,
+          if (widget.sheetBuilder != null)
+            ...rows
+          else
+            SGroup(margin: EdgeInsets.zero, children: rows),
         ],
     ];
-    // iOS: each day heading stays pinned under the bar while its rows
-    // scroll, as in Mail.
     final groups =
         widget.sheetBuilder == null &&
             ios &&
@@ -312,8 +340,7 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
             (entries?.isNotEmpty ?? false)
         ? _sections(context, entries!)
         : null;
-    const margin = EdgeInsets.symmetric(horizontal: SettloSpacing.screenMargin);
-
+    const margin = EdgeInsets.symmetric(horizontal: SettloTabScaffold.inset);
     Widget listenForMore(Widget child) =>
         NotificationListener<ScrollNotification>(
           onNotification: (n) {
@@ -332,25 +359,16 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
     }
     return Scaffold(
       body: listenForMore(
-        SettloScrollScaffold(
+        SettloTabScaffold(
           title: 'Activity',
-          stickyHeader: false,
+
           onRefresh: _refresh,
           controller: _scroll,
-          // With its own controller a short feed would not scroll, and
-          // so could not be pulled down to refresh.
-
-          padding: EdgeInsets.fromLTRB(
-            SettloSpacing.screenMargin,
-            math.max(media.padding.top, 44) + 16,
-            SettloSpacing.screenMargin,
-            media.padding.bottom + SettloSpacing.x2,
-          ),
           slivers: groups == null
               ? null
               : [
                   SliverPadding(
-                    padding: margin,
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     sliver: SliverList.list(
                       children: children.skip(1).toList(),
                     ),
@@ -364,18 +382,25 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
                             child: Padding(padding: margin, child: heading),
                           ),
                         ),
-                        SliverPadding(
-                          padding: margin,
-                          sliver: SliverList.list(children: rows),
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: margin,
+                            child: SGroup(
+                              margin: EdgeInsets.zero,
+                              children: rows,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   SliverToBoxAdapter(
                     child: SizedBox(
-                      height: media.padding.bottom + SettloSpacing.x2,
+                      height: MediaQuery.paddingOf(context).bottom + 16,
                     ),
                   ),
                 ],
+          // With its own controller a short feed would not scroll, and
+          // so could not be pulled down to refresh.
           children: children,
         ),
       ),
@@ -393,7 +418,6 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
     BuildContext context,
     List<ActivityEntry> entries,
   ) {
-    final c = SettloColors.of(context);
     final now = ref.watch(activityNowProvider);
     final today = DateTime(now.year, now.month, now.day);
     String heading(DateTime at) {
@@ -411,26 +435,40 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
       if (h != current) {
         current = h;
         out.add((
-          Padding(
-            padding: EdgeInsets.only(top: i == 0 ? 12 : 16, bottom: 2),
-            child: Semantics(
-              header: true,
-              child: Text(
-                h,
-                style: SettloTypography.footnote(color: c.textSecondary),
-              ),
-            ),
-          ),
+          widget.sheetBuilder == null
+              ? SSectionLabel(h)
+              : Padding(
+                  padding: EdgeInsets.only(top: i == 0 ? 12 : 16, bottom: 2),
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      h,
+                      style: SettloTypography.footnote(
+                        color: SettloColors.of(context).textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
           <Widget>[],
         ));
       }
       final last = i == entries.length - 1 || heading(entries[i + 1].at) != h;
       out.last.$2.add(
-        _EntryRow(
-          e,
-          divider: !last,
-          onQuestion: e.canQuestion ? () => unawaited(_question(e)) : null,
-        ),
+        widget.sheetBuilder == null
+            ? _EntryRow(
+                e,
+                divider: !last,
+                onQuestion: e.canQuestion
+                    ? () => unawaited(_question(e))
+                    : null,
+              )
+            : _ScopedEntryRow(
+                e,
+                divider: !last,
+                onQuestion: e.canQuestion
+                    ? () => unawaited(_question(e))
+                    : null,
+              ),
       );
     }
     return out;
@@ -447,16 +485,14 @@ class _NeedsYouCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final (i, a) in pending.indexed) ...[
-            if (i > 0) const SizedBox(height: SettloSpacing.x2),
-            _PendingRow(a, onReview: () => onReview(a)),
-          ],
+    return SGroup(
+      margin: EdgeInsets.zero,
+      children: [
+        for (final a in pending) ...[
+          _PendingRow(a, onReview: () => onReview(a)),
+          const SizedBox(height: 16),
         ],
-      ),
+      ],
     );
   }
 }
@@ -469,7 +505,6 @@ class _PendingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
     final a = answer;
     final what = a.isRepayment ? 'repayment' : 'settle-up';
     String title(String amount) => '${a.counterparty} recorded a $amount $what';
@@ -479,44 +514,33 @@ class _PendingRow extends StatelessWidget {
       _dayMonth(a.paidOn),
     ].join(' · ');
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            SAvatar(a.counterparty, size: 36),
-            const SizedBox(width: SettloSpacing.x2),
-            Expanded(
-              child: Semantics(
-                label: '${title(spokenInr(a.amount))}, $detail',
-                excludeSemantics: true,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title(formatInr(a.amount)),
-                      style: SettloTypography.body(color: c.textPrimary),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Icon(Icons.schedule, size: 14, color: c.pending),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            detail,
-                            style: SettloTypography.footnote(color: c.pending),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+        SRow(
+          title: title(formatInr(a.amount)),
+          subtitle: detail,
+          subtitleSemanticsLabel: '${title(spokenInr(a.amount))}, $detail',
+          leading: Stack(
+            children: [
+              SAvatar(a.counterparty, size: 36),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Icon(
+                  CupertinoIcons.clock,
+                  size: 14,
+                  color: SettloColors.of(context).pending,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+          scaleLeading: true,
+          separator: false,
         ),
-        const SizedBox(height: 8),
-        _ReviewPill(onTap: onReview),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _ReviewPill(onTap: onReview),
+        ),
       ],
     );
   }
@@ -544,17 +568,19 @@ class _ReviewPill extends StatelessWidget {
           widthFactor: 1,
           heightFactor: 1,
           child: Container(
-            height: 36,
+            constraints: const BoxConstraints(minHeight: 50),
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: ShapeDecoration(
-              color: c.action,
-              shape: const StadiumBorder(),
+              color: c.action.withValues(alpha: .1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
             child: Center(
               widthFactor: 1,
               child: Text(
                 'Review',
-                style: SettloTypography.subheadline(color: c.onAction),
+                style: SettloTypography.subheadline(color: c.action),
               ),
             ),
           ),
@@ -576,40 +602,27 @@ class ActivityPreview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = ref.watch(activityFeedProvider).value?.entries;
     if (entries == null || entries.isEmpty) return const SizedBox.shrink();
-    final c = SettloColors.of(context);
     final shown = entries.take(3).toList();
-    return SCard(
-      padding: const EdgeInsets.all(SettloSpacing.screenMargin),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'RECENT ACTIVITY',
-                  style: SettloTypography.footnote(
-                    letterSpacing: 0.3,
-                    color: c.textSecondary,
-                  ),
-                ),
-              ),
-              SPressable(
-                label: 'See all activity',
-                onTap: () => context.go(SettloRoutes.activity),
-                ringRadius: BorderRadius.circular(SettloRadius.pill),
-                child: const SizedBox(
-                  width: SettloSpacing.minTouchTarget,
-                  height: SettloSpacing.minTouchTarget,
-                  child: Icon(Icons.arrow_forward, size: 18),
-                ),
-              ),
-            ],
-          ),
-          for (final (i, entry) in shown.indexed)
-            _EntryRow(entry, divider: i < shown.length - 1),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            const Expanded(child: SSectionLabel('Recent activity')),
+            TextButton(
+              onPressed: () => context.go(SettloRoutes.activity),
+              child: const Text('SEE ALL'),
+            ),
+          ],
+        ),
+        SGroup(
+          margin: EdgeInsets.zero,
+          children: [
+            for (final (i, entry) in shown.indexed)
+              _EntryRow(entry, divider: i < shown.length - 1),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -626,91 +639,46 @@ class _EntryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
     final e = entry;
     final (title, detail, spoken) = _describe(e);
-    final spokenDetail = onQuestion == null ? spoken : '$spoken, Question this';
-    final small = SettloTypography.footnote(
-      color: e.status == ActivityStatus.pending ? c.pending : c.textSecondary,
-    );
-    final row = Container(
-      constraints: const BoxConstraints(
-        minHeight: SettloSpacing.minTouchTarget,
-      ),
-      padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
-      child: MergeSemantics(
-        child: SResponsiveRow(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SAvatar(switch (e.kind) {
-              ActivityKind.loan ||
-              ActivityKind.repayment => e.counterparty ?? _who(e),
-              _ => e.actor ?? _who(e),
-            }, size: 36),
-            const SizedBox(width: SettloSpacing.x2),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text.rich(
-                    title,
-                    style: SettloTypography.body(color: c.textPrimary)
-                        .copyWith(height: 1.4),
-                  ),
-                  const SizedBox(height: 3),
-                  Semantics(
-                    label: spokenDetail,
-                    excludeSemantics: true,
-                    child: Text.rich(
-                      TextSpan(
-                        text: detail,
-                        children: [
-                          if (onQuestion != null) ...[
-                            const TextSpan(text: ' · '),
-                            TextSpan(
-                              text: 'Question this',
-                              style: SettloTypography.footnote(color: c.action),
-                            ),
-                          ],
-                        ],
-                      ),
-                      style: small,
-                    ),
-                  ),
-                  for (final q in e.questions)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        '${q.byYou ? 'You' : q.name ?? 'Someone'} asked: '
-                        '“${q.note}”',
-                        style: small.copyWith(color: c.textPrimary),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (e.amount case final amount? when e.kind != ActivityKind.member)
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: MoneyText(
-                  e.toYou == false ? -amount : amount,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SRow(
+          title: title.toPlainText(),
+          subtitle: onQuestion == null ? detail : '$detail · Question this',
+          subtitleSemanticsLabel: onQuestion == null
+              ? spoken
+              : '$spoken, Question this',
+          leading: SAvatar(switch (e.kind) {
+            ActivityKind.loan ||
+            ActivityKind.repayment => e.counterparty ?? _who(e),
+            _ => e.actor ?? _who(e),
+          }, size: 36),
+          scaleLeading: true,
+          trailing: e.amount != null && e.kind != ActivityKind.member
+              ? MoneyText(
+                  e.toYou == false ? -e.amount! : e.amount!,
                   signed: e.toYou != null,
                   tone: e.tone,
-                  size: 14,
-                ),
-              ),
-          ],
+                  size: 17,
+                )
+              : null,
+          separator: divider && e.questions.isEmpty,
+          onTap: onQuestion,
         ),
-      ),
+        for (final q in e.questions)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              '${q.byYou ? 'You' : q.name ?? 'Someone'} asked: “${q.note}”',
+              style: SettloTypography.footnote(
+                color: SettloColors.of(context).textSecondary,
+              ),
+            ),
+          ),
+      ],
     );
-    return switch (onQuestion) {
-      final onTap? => SPressable(
-        onTap: onTap,
-        ringRadius: BorderRadius.circular(SettloRadius.button),
-        child: row,
-      ),
-      null => row,
-    };
   }
 }
 
@@ -911,4 +879,242 @@ String _who(ActivityEntry e) => e.byYou ? 'You' : e.actor ?? 'Someone';
     ),
   };
   return (title, detail, spoken);
+}
+
+class _FeedGroup extends StatelessWidget {
+  const new({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => SGroup(
+    margin: EdgeInsets.zero,
+    children: [Padding(padding: const EdgeInsets.all(16), child: child)],
+  );
+}
+
+// Scoped sheet activity keeps its existing presentation; #278 phase 2b
+// changes only the four tab roots.
+// Phase 2a (#283) deletes this scoped copy when the sheet adopts shared rows.
+class _ScopedNeedsYouCard extends StatelessWidget {
+  const new(this.pending, {required this.onReview});
+
+  final List<PendingAnswer> pending;
+  final ValueChanged<PendingAnswer> onReview;
+
+  @override
+  Widget build(BuildContext context) {
+    return SCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (i, a) in pending.indexed) ...[
+            if (i > 0) const SizedBox(height: SettloSpacing.x2),
+            _ScopedPendingRow(a, onReview: () => onReview(a)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// Phase 2a (#283) deletes this scoped copy when the sheet adopts shared rows.
+class _ScopedPendingRow extends StatelessWidget {
+  const new(this.answer, {required this.onReview});
+
+  final PendingAnswer answer;
+  final VoidCallback onReview;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final a = answer;
+    final what = a.isRepayment ? 'repayment' : 'settle-up';
+    String title(String amount) => '${a.counterparty} recorded a $amount $what';
+    final detail = [
+      ?a.spaceName,
+      'needs your confirmation',
+      _dayMonth(a.paidOn),
+    ].join(' · ');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            SAvatar(a.counterparty, size: 36),
+            const SizedBox(width: SettloSpacing.x2),
+            Expanded(
+              child: Semantics(
+                label: '${title(spokenInr(a.amount))}, $detail',
+                excludeSemantics: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title(formatInr(a.amount)),
+                      style: SettloTypography.body(color: c.textPrimary),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(Icons.schedule, size: 14, color: c.pending),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            detail,
+                            style: SettloTypography.footnote(color: c.pending),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        _ScopedReviewPill(onTap: onReview),
+      ],
+    );
+  }
+}
+
+/// Review: the card's primary action, 36 drawn inside a 44 target.
+// Phase 2a (#283) deletes this scoped copy when the sheet adopts shared rows.
+class _ScopedReviewPill extends StatelessWidget {
+  const new({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    return SPressable(
+      onTap: onTap,
+      ringRadius: BorderRadius.circular(SettloRadius.pill),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: SettloSpacing.minTouchTarget,
+          minWidth: SettloSpacing.minTouchTarget,
+        ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          widthFactor: 1,
+          heightFactor: 1,
+          child: Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: ShapeDecoration(
+              color: c.action,
+              shape: const StadiumBorder(),
+            ),
+            child: Center(
+              widthFactor: 1,
+              child: Text(
+                'Review',
+                style: SettloTypography.subheadline(color: c.onAction),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Phase 2a (#283) deletes this scoped copy when the sheet adopts shared rows.
+class _ScopedEntryRow extends StatelessWidget {
+  const new(this.entry, {required this.divider, this.onQuestion});
+
+  final ActivityEntry entry;
+  final bool divider;
+  final VoidCallback? onQuestion;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SettloColors.of(context);
+    final e = entry;
+    final (title, detail, spoken) = _describe(e);
+    final spokenDetail = onQuestion == null ? spoken : '$spoken, Question this';
+    final small = SettloTypography.footnote(
+      color: e.status == ActivityStatus.pending ? c.pending : c.textSecondary,
+    );
+    final row = Container(
+      constraints: const BoxConstraints(
+        minHeight: SettloSpacing.minTouchTarget,
+      ),
+      padding: const EdgeInsets.symmetric(vertical: SettloSpacing.x2),
+      child: MergeSemantics(
+        child: SResponsiveRow(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SAvatar(switch (e.kind) {
+              ActivityKind.loan ||
+              ActivityKind.repayment => e.counterparty ?? _who(e),
+              _ => e.actor ?? _who(e),
+            }, size: 36),
+            const SizedBox(width: SettloSpacing.x2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text.rich(
+                    title,
+                    style: SettloTypography.body(color: c.textPrimary)
+                        .copyWith(height: 1.4),
+                  ),
+                  const SizedBox(height: 3),
+                  Semantics(
+                    label: spokenDetail,
+                    excludeSemantics: true,
+                    child: Text.rich(
+                      TextSpan(
+                        text: detail,
+                        children: [
+                          if (onQuestion != null) ...[
+                            const TextSpan(text: ' · '),
+                            TextSpan(
+                              text: 'Question this',
+                              style: SettloTypography.footnote(color: c.action),
+                            ),
+                          ],
+                        ],
+                      ),
+                      style: small,
+                    ),
+                  ),
+                  for (final q in e.questions)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '${q.byYou ? 'You' : q.name ?? 'Someone'} asked: '
+                        '“${q.note}”',
+                        style: small.copyWith(color: c.textPrimary),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (e.amount case final amount? when e.kind != ActivityKind.member)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: MoneyText(
+                  e.toYou == false ? -amount : amount,
+                  signed: e.toYou != null,
+                  tone: e.tone,
+                  size: 14,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+    return switch (onQuestion) {
+      final onTap? => SPressable(
+        onTap: onTap,
+        ringRadius: BorderRadius.circular(SettloRadius.button),
+        child: row,
+      ),
+      null => row,
+    };
+  }
 }
