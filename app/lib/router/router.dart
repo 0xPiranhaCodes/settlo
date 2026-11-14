@@ -121,7 +121,7 @@ List<RouteBase> _routes({required bool flatChrome}) => [
       for (final route in [
         homeTabRoute(routes: [profileRoute(_rootKey, 'profile')]),
         spacesTabRouteFor(_rootKey),
-        loansTabRoute,
+        loansTabRouteFor(_rootKey),
         activityTabRoute,
       ])
         StatefulShellBranch(routes: [route]),

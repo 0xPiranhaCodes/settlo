@@ -1,0 +1,27 @@
+# Phase 2a sheet chrome evidence
+
+The comparison uses the Phase 1 starting revision `577a979` as **before**. The
+`phase2a_*.png` files capture the same fake account, dates, routes, and actions
+in both revisions using the pinned Linux Flutter renderer
+`settlo/flutter-goldens:3.47.9-amd64`.
+
+The matrix covers loan detail, profile, new expense, settle up, payment, new
+loan, confirm repayment, create space, members, resend invite, export,
+appearance, and delete account. Each has light and dark captures at 390×844,
+375×667, and 375×667 with 200% text. The test uses the iOS sheet presentation;
+native platform views are mocked, so these images do not establish native
+glass rendering or UIKit touch behavior.
+
+`app/test/phase2a_sheet_golden_test.dart` reproduces the matrix. Existing feature
+golden tests additionally cover content states and Android presentation. The
+before folder also retains the expanded existing feature captures from the
+starting revision.
+
+The core behavioral tests exercise instant reduced-motion presentation and
+dismissal on both platforms, nested navigation within a single sheet, live
+Reduce Transparency changes, and short-amount row layout. App tests exercise
+root-sheet tab isolation, return to the originating tab, dirty-form dismissal,
+confirmation races, and equal-width repayment actions with complete labels at
+200% text.
+
+Validation results and contact sheets are recorded after the final rebased run.

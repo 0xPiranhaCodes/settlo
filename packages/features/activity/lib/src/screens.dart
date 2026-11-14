@@ -156,9 +156,9 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
     if (_opening) return;
     _opening = true;
     try {
-      final sent = await showSettloSheet<bool>(
-        context: context,
-        builder: (_) => _QuestionSheet(e),
+      final sent = await pushSettloSheet<bool>(
+        context,
+        (_) => _QuestionSheet(e),
       );
       // The note is on the row now, from the server or from the queue.
       if (sent ?? false) ref.invalidate(activityFeedProvider);
@@ -173,7 +173,8 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
     if (_opening) return;
     _opening = true;
     try {
-      await context.push(
+      await pushSettloTask<void>(
+        context,
         a.isRepayment
             ? SettloRoutes.confirmRepayment(a.id)
             : SettloRoutes.confirmSettlement(a.spaceId!, a.id),
@@ -744,7 +745,7 @@ class _QuestionSheetState extends ConsumerState<_QuestionSheet> {
       await ref
           .read(activityRepositoryProvider)
           .question(widget.entry, _note.text);
-      if (mounted) Navigator.of(context).pop(true);
+      if (mounted) finishSettloSheet(context, true);
     } on Exception {
       if (mounted) {
         setState(() {
@@ -760,57 +761,46 @@ class _QuestionSheetState extends ConsumerState<_QuestionSheet> {
     final c = SettloColors.of(context);
     final e = widget.entry;
     final editor = e.actor ?? 'them';
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Question this edit',
-              style: SettloTypography.headline(color: c.textPrimary),
-            ),
-            const SizedBox(height: SettloSpacing.x1),
-            Text(
-              'Ask $editor about the change to '
-              '${e.description ?? 'this expense'}. Everyone in '
-              '${e.spaceName ?? 'the space'} sees your note here in '
-              'Activity.',
-              style: SettloTypography.subheadline(color: c.textSecondary),
-            ),
-            const SizedBox(height: 16),
-            Semantics(
-              label: 'Your question',
-              child: TextField(
-                controller: _note,
-                autofocus: true,
-                maxLength: questionMaxLength,
-                textCapitalization: TextCapitalization.sentences,
-                onChanged: (_) => setState(() => _failed = false),
-                style: SettloTypography.headline(color: c.textPrimary),
-                decoration: const InputDecoration(
-                  hintText: 'Why did this change?',
-                  counterText: '',
-                ),
-              ),
-            ),
-            if (_failed) ...[
-              const SizedBox(height: SettloSpacing.x2),
-              Text(
-                "We couldn't send that. Try again.",
-                style: SettloTypography.subheadline(color: c.textPrimary),
-              ),
-            ],
-            const SizedBox(height: 16),
-            SPrimaryButton(
-              label: _busy ? 'Sending…' : 'Send',
-              onPressed: _busy || _note.text.trim().isEmpty ? null : _send,
-            ),
-          ],
+    return SSheetScaffold(
+      title: 'Question this edit',
+      onClose: () => finishSettloSheet(context),
+      children: [
+        Text(
+          'Ask $editor about the change to '
+          '${e.description ?? 'this expense'}. Everyone in '
+          '${e.spaceName ?? 'the space'} sees your note here in '
+          'Activity.',
+          style: SettloTypography.subheadline(color: c.textSecondary),
         ),
-      ),
+        const SizedBox(height: 16),
+        Semantics(
+          label: 'Your question',
+          child: TextField(
+            controller: _note,
+            autofocus: true,
+            maxLength: questionMaxLength,
+            textCapitalization: TextCapitalization.sentences,
+            onChanged: (_) => setState(() => _failed = false),
+            style: SettloTypography.headline(color: c.textPrimary),
+            decoration: const InputDecoration(
+              hintText: 'Why did this change?',
+              counterText: '',
+            ),
+          ),
+        ),
+        if (_failed) ...[
+          const SizedBox(height: SettloSpacing.x2),
+          Text(
+            "We couldn't send that. Try again.",
+            style: SettloTypography.subheadline(color: c.textPrimary),
+          ),
+        ],
+        const SizedBox(height: 16),
+        SPrimaryButton(
+          label: _busy ? 'Sending…' : 'Send',
+          onPressed: _busy || _note.text.trim().isEmpty ? null : _send,
+        ),
+      ],
     );
   }
 }

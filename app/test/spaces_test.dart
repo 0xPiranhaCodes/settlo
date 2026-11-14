@@ -494,7 +494,7 @@ void main() {
         expect(create, findsOne);
         expect(
           tester.getSize(create).width,
-          tester.getSize(find.byType(SSheetHeader)).width,
+          tester.getSize(find.byType(SSheetHeader)).width - 32,
           reason: 'one full-width primary',
         );
         // Pinned under the form, not scrolled away with it.

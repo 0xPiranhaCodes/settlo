@@ -10,7 +10,7 @@ Future<void> showRecordRepaymentSheet(BuildContext context, Loan loan) =>
       context: context,
       builder: (context) => RecordRepaymentSheet(
         loan: loan,
-        onClose: () => Navigator.of(context).pop(),
+        onClose: () => finishSettloSheet(context),
       ),
     );
 

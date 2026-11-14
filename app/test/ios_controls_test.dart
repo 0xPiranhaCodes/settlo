@@ -114,7 +114,9 @@ void main() {
       await _tap(tester, find.bySemanticsLabel('New space'));
 
       expect(
-        ModalRoute.of(tester.element(find.text('New space').last)),
+        ModalRoute.of(
+          Navigator.of(tester.element(find.text('New space').last)).context,
+        ),
         isA<CupertinoSheetRoute<void>>(),
       );
       // The task-sheet layout (#260): grabber, ✕, one bottom button.
@@ -152,7 +154,9 @@ void main() {
       tester.semantics.tap(find.semantics.byLabel('New space'));
       await tester.pumpAndSettle();
       expect(
-        ModalRoute.of(tester.element(find.text('New space').last)),
+        ModalRoute.of(
+          Navigator.of(tester.element(find.text('New space').last)).context,
+        ),
         isA<CupertinoSheetRoute<void>>(),
       );
       semantics.dispose();
@@ -174,7 +178,9 @@ void main() {
       expect(find.text('Create space'), findsOneWidget);
       expect(find.byType(CupertinoNavigationBar), findsNothing);
       expect(
-        ModalRoute.of(tester.element(find.text('Create space'))),
+        ModalRoute.of(
+          Navigator.of(tester.element(find.text('Create space'))).context,
+        ),
         isA<ModalBottomSheetRoute<void>>(),
       );
     });

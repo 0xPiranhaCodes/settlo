@@ -11,6 +11,7 @@ import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
 import 'package:settlo_core/widgets/glass_action.dart';
 import 'package:settlo_core/widgets/glass_tab_bar.dart';
+import 'package:settlo_core/widgets/platform_page.dart';
 import 'package:settlo_core/widgets/sheet_header.dart';
 
 /// Native scrolling and keyboard dismissal for every application scroll view.
@@ -281,6 +282,26 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
     final statusTap = largeTitle == null
         ? top
         : MediaQuery.paddingOf(context).top;
+    final taskTitle =
+        TextPainter(
+          text: TextSpan(text: widget.title, style: SSheetHeader.titleStyle()),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout(
+          maxWidth:
+              (MediaQuery.sizeOf(context).width -
+                      88 -
+                      (SettloSheetScope.maybeOf(context) != null &&
+                              Navigator.of(context).canPop()
+                          ? 56
+                          : 40))
+                  .clamp(1, double.infinity),
+        );
+    final taskHeight = (taskTitle.height + 20).clamp(
+      SSheetHeader.extent,
+      double.infinity,
+    );
+    taskTitle.dispose();
     final scroll = CustomScrollView(
       key: PageStorageKey('scroll-${widget.title}'),
       primary: true,
@@ -315,7 +336,11 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
         if (widget.onSheetClose case final close?)
           SliverPersistentHeader(
             pinned: true,
-            delegate: _TaskSheetHeader(title: widget.title, onClose: close),
+            delegate: _TaskSheetHeader(
+              title: widget.title,
+              height: taskHeight,
+              onClose: close,
+            ),
           ),
         if (largeTitle == null && widget.onSheetClose == null)
           SliverPersistentHeader(
@@ -381,12 +406,13 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
 /// Part of the same viewport as the list: a header drag goes to its scroll
 /// position before the Cupertino route can move, including when pinned.
 class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
-  new({required this.title, required this.onClose});
+  new({required this.title, required this.height, required this.onClose});
+  final double height;
   final String title;
   final VoidCallback onClose;
 
   @override
-  double get minExtent => SSheetHeader.extent;
+  double get minExtent => height;
   @override
   double get maxExtent => minExtent;
 
@@ -406,7 +432,9 @@ class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(_TaskSheetHeader oldDelegate) =>
-      title != oldDelegate.title || onClose != oldDelegate.onClose;
+      height != oldDelegate.height ||
+      title != oldDelegate.title ||
+      onClose != oldDelegate.onClose;
 }
 
 class _NavigationHeader extends SliverPersistentHeaderDelegate {

@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_loans/src/confirm_repayment.dart';
@@ -6,14 +7,21 @@ import 'package:settlo_loans/src/new_loan_sheet.dart';
 import 'package:settlo_loans/src/screens.dart';
 
 /// The Loans tab, with a loan's detail under it.
-final GoRoute loansTabRoute = GoRoute(
+GoRoute loansTabRouteFor(GlobalKey<NavigatorState> rootKey) =>
+    _loansTabRoute(rootKey);
+
+/// Standalone route for feature tests.
+final GoRoute loansTabRoute = _loansTabRoute(null);
+
+GoRoute _loansTabRoute(GlobalKey<NavigatorState>? rootKey) => GoRoute(
   path: SettloRoutes.loans,
   builder: (_, _) => const LoanScreen(),
   routes: [
     GoRoute(
       path: ':loanId',
+      parentNavigatorKey: rootKey,
       // Explicit pages: go_router's default here has no iOS swipe back.
-      pageBuilder: (_, state) => SettloPage<void>(
+      pageBuilder: (_, state) => SettloRootSheetPage<void>(
         key: state.pageKey,
         child: LoanDetailScreen(loanId: state.pathParameters['loanId']!),
       ),
@@ -32,7 +40,7 @@ final List<RouteBase> loansRoutes = [
   ),
   GoRoute(
     path: SettloRoutes.confirmRepaymentPattern,
-    pageBuilder: (_, state) => SettloPage<void>(
+    pageBuilder: (_, state) => SettloRootSheetPage<void>(
       key: state.pageKey,
       child: ConfirmRepaymentScreen(
         repaymentId: state.pathParameters['repaymentId']!,

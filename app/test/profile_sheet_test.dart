@@ -273,14 +273,15 @@ void main() {
     expect(find.byType(HomeScreen), findsOne);
   }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
-  testWidgets('on Android, a drag down on the handle dismisses the sheet', (
+  testWidgets('on Android, shared chrome replaces the grabber and closes', (
     tester,
   ) async {
     final router = await _open(tester, SettloRoutes.profile);
-    final handle = tester.getCenter(
+    expect(
       find.byWidgetPredicate((w) => w.runtimeType.toString() == '_DragHandle'),
+      findsNothing,
     );
-    await tester.flingFrom(handle, const Offset(0, 600), 2000);
+    await tester.tap(find.bySemanticsLabel('Close'));
     await tester.pumpAndSettle();
 
     expect(find.byType(ProfileScreen), findsNothing);

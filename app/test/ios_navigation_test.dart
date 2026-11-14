@@ -88,12 +88,18 @@ void main() {
   for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
     final ios = platform == TargetPlatform.iOS;
     for (final (name, location, screen) in tasks) {
-      testWidgets('$name is ${ios ? 'a native sheet' : 'a page'} on '
+      testWidgets('$name is a root sheet on '
           '$platform', (tester) async {
         await _push(tester, location, platform);
 
-        final route = ModalRoute.of(tester.element(find.byType(screen)));
-        expect(route, isA<PageRoute<void>>());
+        final inner = Navigator.of(tester.element(find.byType(screen)));
+        final route = ModalRoute.of(inner.context);
+        expect(
+          route,
+          ios
+              ? isA<CupertinoSheetRoute<void>>()
+              : isA<ModalBottomSheetRoute<void>>(),
+        );
         expect(route is CupertinoSheetRoute, ios, reason: location);
         if (ios) {
           // The route leaves the gap above the sheet; no canvas 54 on top.
@@ -256,7 +262,7 @@ void main() {
 
   // go_router's default page for `builder:` routes has no iOS back gesture,
   // so pushed detail routes use SettloPage (#158).
-  for (final (name, from, to, back) in [
+  for (final (name, from, to, _) in [
     ('a space', SettloRoutes.spaces, SettloRoutes.space('s1'), 'Spaces'),
     // One destination with Expenses: back skips the other segment.
     (
@@ -291,31 +297,12 @@ void main() {
           tester.element(find.byType(SettloApp)),
         ).read(routerProvider)..go(to);
         await tester.pumpAndSettle();
-        if (back == 'Spaces') {
-          expect(find.byType(SSheetHeader), findsOne);
-          await tester.flingFrom(
-            tester.getCenter(find.text('Flat 402').first),
-            const Offset(0, 600),
-            1500,
-          );
-        } else {
-          expect(find.byType(CupertinoSliverNavigationBar), findsOne);
-          expect(
-            find.descendant(
-              of: find.byWidgetPredicate(
-                (widget) => widget is GlassAction && widget.destination == back,
-              ),
-              matching: find.text(back),
-            ),
-            findsOne,
-          );
-
-          await tester.flingFrom(
-            const Offset(2, 420),
-            const Offset(330, 0),
-            1200,
-          );
-        }
+        expect(find.byType(SSheetHeader), findsOne);
+        await tester.flingFrom(
+          tester.getCenter(find.byType(SSheetHeader)),
+          const Offset(0, 600),
+          1500,
+        );
         await tester.pumpAndSettle();
 
         expect(router.state.uri.toString(), from);

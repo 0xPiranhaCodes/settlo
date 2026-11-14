@@ -83,14 +83,14 @@ void main() {
     });
   }
 
-  testWidgets('android: the sheet has a drag handle and opens with reduced '
+  testWidgets('android: the sheet has no drag handle and opens with reduced '
       'motion', (tester) async {
     await tester.pumpWidget(_app(TargetPlatform.android, reduced: true));
     await tester.pump();
     expect(find.text('First page'), findsOneWidget);
     expect(
       find.byWidgetPredicate(
-        (w) => w is BottomSheet && (w.showDragHandle ?? false),
+        (w) => w is BottomSheet && !(w.showDragHandle ?? false),
       ),
       findsOneWidget,
     );

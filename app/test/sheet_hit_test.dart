@@ -8,8 +8,10 @@ import 'package:settlo_auth/settlo_auth.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_core/supabase/reminders.dart';
+import 'package:settlo_expenses/settlo_expenses.dart';
 import 'package:settlo_loans/settlo_loans.dart';
 import 'package:settlo_profile/settlo_profile.dart';
+import 'package:settlo_settle/settlo_settle.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
@@ -32,7 +34,7 @@ const _homeIndicator = 34.0;
 /// Pumps the app's shell at [location], as the router composes it: the
 /// tab bar floats over every tab, so a sheet left inside the shell would
 /// lie under it (#81).
-Future<void> _pump(
+Future<void> pumpTaskGolden(
   WidgetTester tester,
   GoldenDevice device,
   String location, {
@@ -57,6 +59,8 @@ Future<void> _pump(
       routes: [
         ...authRoutes,
         ...loansRoutes,
+        ...expensesRoutes,
+        ...settleRoutes,
         StatefulShellRoute.indexedStack(
           builder: (_, _, shell) => SettloShell(
             currentIndex: shell.currentIndex,
@@ -69,8 +73,8 @@ Future<void> _pump(
                 homeTabRoute(routes: [profileRoute(root, 'profile')]),
               ],
             ),
-            StatefulShellBranch(routes: [spacesTabRoute]),
-            StatefulShellBranch(routes: [loansTabRoute]),
+            StatefulShellBranch(routes: [spacesTabRouteFor(root)]),
+            StatefulShellBranch(routes: [loansTabRouteFor(root)]),
             StatefulShellBranch(routes: [activityTabRoute]),
           ],
         ),
@@ -140,7 +144,7 @@ Future<void> _raiseKeyboard(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> _tap(WidgetTester tester, Finder finder) async {
+Future<void> tapTaskControl(WidgetTester tester, Finder finder) async {
   final previousShadows = debugDisableShadows;
   debugDisableShadows = false;
   try {
@@ -211,7 +215,15 @@ void main() {
   setUpAll(() => WidgetController.hitTestWarningShouldBeFatal = true);
   tearDownAll(() => WidgetController.hitTestWarningShouldBeFatal = false);
 
-  for (final device in SettloGoldenDevices.accessible) {
+  for (final device in [
+    ...SettloGoldenDevices.accessible,
+    const GoldenDevice(name: 'se375x667', size: Size(375, 667)),
+    const GoldenDevice(
+      name: 'se375x667_text200',
+      size: Size(375, 667),
+      textScale: 2,
+    ),
+  ]) {
     for (final (themeName, theme) in [
       ('dark', SettloTheme.dark()),
       ('light', SettloTheme.light()),
@@ -248,7 +260,7 @@ void main() {
             (
               'loan dispute',
               SettloRoutes.loan('l1'),
-              find.text("Didn't get it"),
+              find.text('Not received'),
               null,
             ),
             (
@@ -267,8 +279,8 @@ void main() {
         testWidgets('$name ${device.name} $themeName panel golden', (
           tester,
         ) async {
-          await _pump(tester, device, location, theme: theme);
-          await _tap(tester, open);
+          await pumpTaskGolden(tester, device, location, theme: theme);
+          await tapTaskControl(tester, open);
           if (action != null) expect(action, findsOne, reason: 'it opened');
           expectSettloTapTargets(tester);
           expectNoMidWordBreaks(tester);
@@ -294,8 +306,8 @@ void main() {
         testWidgets('the primary action is above the tab bar: $label', (
           tester,
         ) async {
-          await _pump(tester, device, sheet.location);
-          await _tap(tester, sheet.open);
+          await pumpTaskGolden(tester, device, sheet.location);
+          await tapTaskControl(tester, sheet.open);
           if (keyboard) await _raiseKeyboard(tester);
 
           await tester.ensureVisible(sheet.action);
@@ -312,8 +324,12 @@ void main() {
   testWidgets('edit profile saves at 390x844 with the shell present', (
     tester,
   ) async {
-    await _pump(tester, SettloGoldenDevices.canvas390, SettloRoutes.profile);
-    await _tap(tester, find.text('Name and UPI ID'));
+    await pumpTaskGolden(
+      tester,
+      SettloGoldenDevices.canvas390,
+      SettloRoutes.profile,
+    );
+    await tapTaskControl(tester, find.text('Name and UPI ID'));
     await tester.enterText(find.byKey(const ValueKey('profile-name')), 'Asha');
     await _raiseKeyboard(tester);
 

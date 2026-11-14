@@ -111,8 +111,16 @@ class _SettleRoute extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final spaces = ref.watch(settleSpacesProvider);
     final media = MediaQuery.of(context);
-    void close() =>
+    void close() {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      } else if (SettloSheetScope.maybeOf(context) case final sheet?) {
+        sheet.finish(null);
+      } else {
         context.canPop() ? context.pop() : context.go(SettloRoutes.home);
+      }
+    }
+
     final list = spaces.value;
     final yours = list == null ? null : _yours(list, spaceId);
     bool isThem(_Owed o) => youPay
@@ -211,41 +219,10 @@ class _Frame extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: SettloScrollScaffold(
+        child: SSheetScaffold(
           title: 'Settle up',
-          padding: const EdgeInsets.fromLTRB(
-            SettloSpacing.screenMargin,
-            20,
-            SettloSpacing.screenMargin,
-            26,
-          ),
+          onClose: onClose,
           children: [
-            Row(
-              children: [
-                Transform.translate(
-                  offset: const Offset(-12, 0),
-                  child: IconButton(
-                    tooltip: 'Close',
-                    onPressed: onClose,
-                    icon: SizedBox.square(
-                      dimension: 24,
-                      child: CustomPaint(
-                        painter: SettleGlyph.close(c.textPrimary),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Settle up',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ),
-                const SizedBox(width: SettloSpacing.minTouchTarget - 12),
-              ],
-            ),
-            const SizedBox(height: SettloSpacing.x3),
             if (label case final label?) ...[
               Text(
                 label,
@@ -286,10 +263,11 @@ class _PaymentRow extends StatelessWidget {
     final youPay = payment.from.isYou;
     final other = youPay ? payment.to : payment.from;
     return SPressable(
-      onTap: () => context.push(
-        youPay
-            ? SettloRoutes.settlePayTo(space.id, other.id)
-            : SettloRoutes.settleWith(space.id, memberId: other.id),
+      onTap: () => pushSettloSheet<void>(
+        context,
+        (_) => youPay
+            ? SettlePayScreen(spaceId: space.id, memberId: other.id)
+            : SettleScreen(spaceId: space.id, memberId: other.id),
       ),
       ringRadius: BorderRadius.circular(SettloRadius.button),
       child: Container(

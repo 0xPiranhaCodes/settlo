@@ -4,6 +4,11 @@ import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+  private var transparencyObserver: NSObjectProtocol?
+
+  deinit {
+    if let transparencyObserver { NotificationCenter.default.removeObserver(transparencyObserver) }
+  }
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -13,6 +18,23 @@ import UserNotifications
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    let accessibility = FlutterMethodChannel(
+      name: "app.settlo/accessibility",
+      binaryMessenger: engineBridge.pluginRegistry.registrar(forPlugin: "Accessibility")!.messenger()
+    )
+    transparencyObserver = NotificationCenter.default.addObserver(
+      forName: UIAccessibility.reduceTransparencyStatusDidChangeNotification,
+      object: nil, queue: .main
+    ) { _ in
+      accessibility.invokeMethod("reduceTransparencyChanged", arguments: UIAccessibility.isReduceTransparencyEnabled)
+    }
+    accessibility.setMethodCallHandler { call, result in
+      if call.method == "reduceTransparency" {
+        result(UIAccessibility.isReduceTransparencyEnabled)
+      } else {
+        result(FlutterMethodNotImplemented)
+      }
+    }
     ReminderChannel.register(
       with: engineBridge.pluginRegistry.registrar(forPlugin: "ReminderChannel")!.messenger())
     LiveActivityChannel.register(

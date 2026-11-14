@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,106 +28,74 @@ class LoanDetailScreen extends ConsumerWidget {
     final loan = data?.loans.where((l) => l.id == loanId).firstOrNull;
     if (data == null || loan == null) return const Scaffold();
     final c = SettloColors.of(context);
-    final media = MediaQuery.of(context);
-    return Scaffold(
-      body: SettloScrollScaffold(
-        title: 'Loan',
-        largeTitle: 'Loan',
-        previousPageTitle: 'Loans',
-        trailing: StatementButton(loan, yourName: data.yourName),
-        onRefresh: () => ref.refresh(loansProvider.future),
-        padding: EdgeInsets.fromLTRB(
-          SettloSpacing.screenMargin,
-          math.max(media.padding.top, 44) + 16,
-          SettloSpacing.screenMargin,
-          media.padding.bottom + SettloSpacing.x2,
+    return SSheetScaffold(
+      title: 'Loan',
+      leading: SAvatar(loan.counterparty, size: 28),
+      onClose: () =>
+          context.canPop() ? context.pop() : context.go(SettloRoutes.loans),
+      onRefresh: () => ref.refresh(loansProvider.future),
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: StatementButton(loan, yourName: data.yourName),
         ),
-        children: [
-          Row(
-            children: [
-              IconButton(
-                tooltip: 'Back',
-                onPressed: () => context.canPop()
-                    ? context.pop()
-                    : context.go(SettloRoutes.loans),
-                style: IconButton.styleFrom(
-                  fixedSize: const Size.square(SettloSpacing.minTouchTarget),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  backgroundColor: c.surface,
-                  side: BorderSide(color: c.hairline),
-                ),
-                icon: LoanGlyph(LoanGlyph.back, color: c.textPrimary),
-              ),
-              Expanded(
-                child: Text(
-                  'Loan',
-                  textAlign: TextAlign.center,
-                  style: SettloTypography.headline(color: c.textPrimary),
-                ),
-              ),
-              StatementButton(loan, yourName: data.yourName),
-            ],
-          ),
-          const SizedBox(height: SettloSpacing.x3),
-          _Hero(loan, today: data.today),
-          if (!loan.closed) ...[
-            const SizedBox(height: SettloSpacing.x2),
-            SPrimaryButton(
-              label: 'Record repayment',
-              icon: LoanGlyph(
-                LoanGlyph.plus,
-                color: c.onAction,
-                size: 18,
-                stroke: 1.9,
-              ),
-              onPressed: () => showRecordRepaymentSheet(context, loan),
-            ),
-            const SizedBox(height: SettloSpacing.x1),
-            RemindButton(loanId: loan.id),
-          ],
-          const SizedBox(height: SettloSpacing.x3),
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            spacing: SettloSpacing.x2,
-            runSpacing: SettloSpacing.x1,
-            children: [
-              Text('REPAYMENTS', style: _label(c)),
-              Text('BOTH OF YOU SEE THIS', style: _label(c)),
-            ],
-          ),
+        _Hero(loan, today: data.today),
+        if (!loan.closed) ...[
           const SizedBox(height: SettloSpacing.x2),
-          SCard(
-            padding: const EdgeInsets.all(SettloSpacing.screenMargin),
-            child: loan.repayments.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: SettloSpacing.x2,
-                    ),
-                    child: Text(
-                      loan.youLent
-                          ? 'Nothing repaid yet. Record a repayment when '
-                                '${loan.counterparty} pays you.'
-                          : 'Nothing repaid yet. Record a repayment when '
-                                'you pay ${loan.counterparty}.',
-                      style: SettloTypography.body(color: c.textSecondary),
-                    ),
-                  )
-                : Column(
-                    children: [
-                      for (final (i, r) in loan.repayments.indexed)
-                        RepaymentRow(
-                          r,
-                          key: ValueKey(r.id),
-                          counterparty: loan.counterparty,
-                          youLent: loan.youLent,
-                          divider: i < loan.repayments.length - 1,
-                        ),
-                    ],
-                  ),
+          SPrimaryButton(
+            label: 'Record repayment',
+            icon: LoanGlyph(
+              LoanGlyph.plus,
+              color: c.onAction,
+              size: 18,
+              stroke: 1.9,
+            ),
+            onPressed: () => showRecordRepaymentSheet(context, loan),
           ),
+          const SizedBox(height: SettloSpacing.x1),
+          RemindButton(loanId: loan.id),
         ],
-      ),
+        const SizedBox(height: SettloSpacing.x3),
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          spacing: SettloSpacing.x2,
+          runSpacing: SettloSpacing.x1,
+          children: [
+            Text('REPAYMENTS', style: _label(c)),
+            Text('BOTH OF YOU SEE THIS', style: _label(c)),
+          ],
+        ),
+        const SizedBox(height: SettloSpacing.x2),
+        SCard(
+          padding: const EdgeInsets.all(SettloSpacing.screenMargin),
+          child: loan.repayments.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: SettloSpacing.x2,
+                  ),
+                  child: Text(
+                    loan.youLent
+                        ? 'Nothing repaid yet. Record a repayment when '
+                              '${loan.counterparty} pays you.'
+                        : 'Nothing repaid yet. Record a repayment when '
+                              'you pay ${loan.counterparty}.',
+                    style: SettloTypography.body(color: c.textSecondary),
+                  ),
+                )
+              : Column(
+                  children: [
+                    for (final (i, r) in loan.repayments.indexed)
+                      RepaymentRow(
+                        r,
+                        key: ValueKey(r.id),
+                        counterparty: loan.counterparty,
+                        youLent: loan.youLent,
+                        divider: i < loan.repayments.length - 1,
+                      ),
+                  ],
+                ),
+        ),
+      ],
     );
   }
 }
@@ -384,7 +350,10 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
             label: r.awaitsYou ? 'Review repayment' : null,
             child: SPressable(
               onTap: r.awaitsYou
-                  ? () => context.push(SettloRoutes.confirmRepayment(r.id))
+                  ? () => pushSettloTask<void>(
+                      context,
+                      SettloRoutes.confirmRepayment(r.id),
+                    )
                   : null,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
@@ -442,34 +411,38 @@ class _RepaymentRowState extends ConsumerState<RepaymentRow> {
             ),
           if (r.awaitsYou) ...[
             const SizedBox(height: 2),
-            Padding(
-              padding: const EdgeInsets.only(left: 56),
-              child: Wrap(
-                spacing: SettloSpacing.x1,
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _Pill(
-                    label: _decision.busy
-                        ? 'Confirming…'
-                        : widget.youLent
-                        ? 'Confirm received'
-                        : 'Confirm paid',
-                    primary: true,
-                    onTap: _decision.busy ? null : _decision.confirm,
+                  Expanded(
+                    child: _Pill(
+                      label: _decision.busy
+                          ? 'Confirming…'
+                          : widget.youLent
+                          ? 'Confirm received'
+                          : 'Confirm paid',
+                      primary: true,
+                      onTap: _decision.busy ? null : _decision.confirm,
+                    ),
                   ),
-                  _Pill(
-                    label: widget.youLent ? "Didn't get it" : "Didn't pay it",
-                    onTap: _decision.busy
-                        ? null
-                        : () => showSettloSheet<void>(
-                            context: context,
-                            builder: (context) => DisputeSheet(
-                              repayment: r,
-                              counterparty: who,
-                              youLent: widget.youLent,
-                              decision: _decision,
-                              onClose: () => Navigator.of(context).pop(),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _Pill(
+                      label: widget.youLent ? 'Not received' : 'Not paid',
+                      onTap: _decision.busy
+                          ? null
+                          : () => pushSettloSheet<void>(
+                              context,
+                              (context) => DisputeSheet(
+                                repayment: r,
+                                counterparty: who,
+                                youLent: widget.youLent,
+                                decision: _decision,
+                                onClose: () => finishSettloSheet(context),
+                              ),
                             ),
-                          ),
+                    ),
                   ),
                 ],
               ),
@@ -545,8 +518,8 @@ class _Pill extends StatelessWidget {
         widthFactor: 1,
         heightFactor: 1,
         child: Container(
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           decoration: ShapeDecoration(
             color: primary ? c.action : null,
             shape: StadiumBorder(
@@ -559,6 +532,7 @@ class _Pill extends StatelessWidget {
             widthFactor: 1,
             child: Text(
               label,
+              textAlign: TextAlign.center,
               style: SettloTypography.subheadline(
                 weight: primary ? FontWeight.w500 : FontWeight.w400,
                 color: primary ? c.onAction : c.textPrimary,
@@ -640,16 +614,11 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
     final c = SettloColors.of(context);
     final r = widget.repayment;
     final reason = _reason.text.trim();
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          SettloSpacing.screenMargin,
-          24,
-          SettloSpacing.screenMargin,
-          26,
-        ),
-        child: Column(
+    return SSheetScaffold(
+      title: 'Dispute repayment',
+      onClose: widget.onClose,
+      children: [
+        Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -716,7 +685,7 @@ class _DisputeSheetState extends ConsumerState<DisputeSheet> {
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }

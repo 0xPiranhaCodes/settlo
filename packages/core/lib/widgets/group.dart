@@ -92,6 +92,8 @@ class SRow extends StatelessWidget {
         if (subtitle != null)
           Text(
             subtitle!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: SettloTypography.subheadline(color: c.textSecondary)
                 .copyWith(height: 1.2),
           ),
@@ -99,7 +101,7 @@ class SRow extends StatelessWidget {
     );
     final accessory = Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (trailing != null)
           DefaultTextStyle(
@@ -110,11 +112,17 @@ class SRow extends StatelessWidget {
             child: trailing!,
           ),
         if (trailingSub != null)
-          Text(
-            trailingSub!,
-            semanticsLabel: trailingSubSemanticsLabel,
-            style: SettloTypography.footnote(color: c.textSecondary)
-                .copyWith(height: 1.2),
+          SizedBox(
+            width: trailing == null ? null : 0,
+            child: Text(
+              trailingSub!,
+              textAlign: TextAlign.end,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              semanticsLabel: trailingSubSemanticsLabel,
+              style: SettloTypography.footnote(color: c.textSecondary)
+                  .copyWith(height: 1.2),
+            ),
           ),
       ],
     );
@@ -154,7 +162,7 @@ class SRow extends StatelessWidget {
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.sizeOf(context).width * .5,
                     ),
-                    child: accessory,
+                    child: IntrinsicWidth(child: accessory),
                   ),
                 ],
                 if (chevron) ...[

@@ -400,40 +400,28 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
   Future<void> _ask(String detail) async {
     final c = SettloColors.of(context);
     final member = widget.member;
-    final send = await showSettloSheet<bool>(
-      context: context,
-      builder: (sheet) => SafeArea(
-        top: false,
-        minimum: const EdgeInsets.fromLTRB(
-          SettloSpacing.screenMargin,
-          SettloSpacing.x2,
-          SettloSpacing.screenMargin,
-          SettloSpacing.x3,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                "${member.name} hasn't joined yet",
-                style: SettloTypography.title3(color: c.textPrimary),
-              ),
-              const SizedBox(height: SettloSpacing.x1),
-              Text(
-                '$detail. They see the space once they open the link and '
-                'verify their number.',
-                style: SettloTypography.body(color: c.textSecondary)
-                    .copyWith(height: 1.4),
-              ),
-              const SizedBox(height: SettloSpacing.x3),
-              SPrimaryButton(
-                label: 'Resend invite on WhatsApp',
-                onPressed: () => Navigator.of(sheet).pop(true),
-              ),
-            ],
+    final send = await pushSettloSheet<bool>(
+      context,
+      (sheet) => SSheetScaffold(
+        title: 'Resend invite',
+        onClose: () => finishSettloSheet(sheet),
+        children: [
+          Text(
+            "${member.name} hasn't joined yet",
+            style: SettloTypography.title3(color: c.textPrimary),
           ),
-        ),
+          const SizedBox(height: 8),
+          Text(
+            '$detail. They see the space once they open the link and '
+            'verify their number.',
+            style: SettloTypography.body(color: c.textSecondary),
+          ),
+          const SizedBox(height: 24),
+          SPrimaryButton(
+            label: 'Resend invite on WhatsApp',
+            onPressed: () => finishSettloSheet(sheet, true),
+          ),
+        ],
       ),
     );
     if (send ?? false) await _send();

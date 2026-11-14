@@ -65,9 +65,10 @@ void main() {
       await tester.pumpAndSettle();
       unawaited(router.push(SettloRoutes.space('s1')));
       await tester.pumpAndSettle();
-      final route = ModalRoute.of(
+      final inner = Navigator.of(
         tester.element(find.byType(SpaceExpensesScreen)),
-      )!;
+      );
+      final route = ModalRoute.of(inner.context)!;
       expect(route.navigator, root.currentState);
       expect(route is CupertinoSheetRoute, platform == TargetPlatform.iOS);
       expect(find.text('Tab bar').hitTestable(), findsNothing);
@@ -75,7 +76,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(SpaceScreen), findsOneWidget);
       expect(
-        ModalRoute.of(tester.element(find.byType(SpaceScreen))),
+        ModalRoute.of(
+          Navigator.of(tester.element(find.byType(SpaceScreen))).context,
+        ),
         same(route),
       );
       final segments = tester.getCenter(find.text('Balances'));
@@ -116,7 +119,18 @@ void main() {
               : find.byType(SettleScreen),
           findsOneWidget,
         );
-        router.pop();
+        expect(ModalRoute.of(inner.context), same(route));
+        expect(
+          Navigator.of(
+            tester.element(
+              action == 'Add expense'
+                  ? find.byType(AddExpenseScreen)
+                  : find.byType(SettleScreen),
+            ),
+          ),
+          same(inner),
+        );
+        inner.pop();
         await tester.pumpAndSettle();
         expect(find.byType(SpaceActivityScreen), findsOneWidget);
       }

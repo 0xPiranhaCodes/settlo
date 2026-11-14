@@ -54,7 +54,7 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
   }
 
   void _close() =>
-      context.canPop() ? context.pop() : context.go(SettloRoutes.loans);
+      popSettloTask(context, fallback: SettloRoutes.loans);
 
   /// Picks the other person the way a space adds a member: a number,
   /// read as E.164, and an optional name.
