@@ -122,7 +122,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      final header = find.byKey(const ValueKey('task-sheet-header'));
+      final header = find.byType(SSheetHeader);
       expect(find.text('Profile'), findsOneWidget);
       expect(find.text('You'), findsNothing);
       expect(find.byKey(const ValueKey('task-sheet-grabber')), findsNothing);
@@ -140,7 +140,7 @@ void main() {
       final cards = find.byType(SCard);
       expect(
         tester.getTopLeft(cards.first).dy - tester.getBottomLeft(header).dy,
-        SettloSpacing.x3,
+        16,
       );
       for (final (label, before, after) in [
         ('PREFERENCES', 1, 2),
@@ -185,7 +185,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(scrollable.position.pixels, lessThan(oldOffset));
       expect(scrollable.position.pixels, greaterThanOrEqualTo(0));
-      // Bottom overscroll remains elastic, while a top pull is clamped.
+      // Standalone iOS content keeps elastic scrolling at both ends.
       scrollable.position.jumpTo(scrollable.position.maxScrollExtent);
       await tester.pump();
       final bottomPull = await tester.startGesture(const Offset(195, 550));
@@ -203,7 +203,7 @@ void main() {
       final topPull = await tester.startGesture(const Offset(195, 250));
       await topPull.moveBy(const Offset(0, 100));
       await tester.pump();
-      expect(scrollable.position.pixels, 0);
+      expect(scrollable.position.pixels, lessThanOrEqualTo(0));
       await topPull.up();
       await tester.pumpAndSettle();
       final profileTitle = initialTitle;
@@ -273,7 +273,7 @@ void main() {
     );
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
-    final header = find.byKey(const ValueKey('task-sheet-header'));
+    final header = find.byType(SSheetHeader);
     final top = tester.getTopLeft(header).dy;
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -250));
     await tester.pumpAndSettle();
@@ -1211,7 +1211,7 @@ void main() {
   });
 
   testWidgets('routed Profile sheet: the identity row edits, Export pushes '
-      'with its own Back, and Close and Android handle drags dismiss', (
+      'with its own Back, and Close and Android header drags dismiss', (
     tester,
   ) async {
     final root = GlobalKey<NavigatorState>();
@@ -1247,14 +1247,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       tester.widget<BottomSheet>(find.byType(BottomSheet)).showDragHandle,
-      true,
+      false,
     );
     expect(find.byKey(const ValueKey('task-sheet-grabber')), findsNothing);
 
     await tester.tap(find.text('Satheesh'));
     await tester.pumpAndSettle();
     expect(find.text('Name and UPI ID'), findsOneWidget);
-    await tester.tapAt(const Offset(20, 20));
+    await tester.tap(
+      find.byWidgetPredicate((w) => w is SPressable && w.label == 'Close'),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Name and UPI ID'), findsNothing);
 
@@ -1263,7 +1265,7 @@ void main() {
     await tester.tap(find.text('Export'));
     await tester.pumpAndSettle();
     expect(find.text('CSV and PDF'), findsOneWidget);
-    await tester.tap(find.byTooltip('Back'));
+    await tester.tap(find.bySemanticsLabel('Back'));
     await tester.pumpAndSettle();
     expect(find.text('CSV and PDF'), findsNothing);
     expect(find.byType(ProfileScreen), findsOneWidget);

@@ -1,32 +1,43 @@
-Phase 2a validation — NOT MERGE-READY
+Phase 2a validation — PASS
 
-Base: origin/main 94d56e9 (includes Phase 1 #281).
 Docker image: settlo/flutter-goldens:3.47.9-amd64.
-One container; flutter test --coverage --concurrency=1 --reporter expanded.
+One active container; all packages tested serially from this tree with
+flutter test --coverage --concurrency=1 --reporter expanded.
+No coverage exclusions; aggregation follows scripts/ci-local.sh.
 
 Package                         Passed  Failed
-app                              1148       0
-packages/core                     517       0
-packages/local                     75       0
-packages/platform                  79       0
-packages/features/auth             60       0
-packages/features/profile          36      12
-TOTAL                            1915      12
+app                               1148       0
+packages/core                      521       0
+packages/local                      75       0
+packages/platform                   79       0
+packages/features/auth              60       0
+packages/features/profile           48       0
+TOTAL                            1931       0
 
-App coverage came from the successful run at 219ba23. Only core test fixtures
-changed afterward; remaining packages were rerun and their LCOV files merged
-with the unchanged app coverage using the scripts/ci-local.sh aggregation.
-
-Merged coverage: 97.73% (6072/6213).
+Merged coverage: 98.31% (6124/6229).
 Main baseline: 98.11%.
-Coverage gate: FAILED.
-Full-suite gate: FAILED (12 profile package tests; see profile-test-failures.log).
-LCOV is retained as lcov.info for follow-up.
+Money coverage: 100.00% (110/110).
+Coverage gate: PASS.
+Full-suite gate: PASS.
 
-Additional checks: 279 final capture tests and 101 focused regressions passed.
-82 matched before/after PNG pairs; after images match the current goldens.
-Native large export: 1 passed; platform share_files: 6 passed.
-flutter analyze --no-pub: clean.
-Native iOS simulator debug build: passed.
-Host flutter pub get: restored. Validation container stopped.
-No simulator was created or booted.
+Additional Docker checks:
+- flutter analyze --no-pub: clean.
+- Profile package: 48 passed.
+- Focused app suites (profile_sheet, phase2a_sheet_golden, loans,
+  ios_navigation): 176 passed.
+- Phase 2a capture matrix: 78 passed.
+- Core golden/layout checks: 40 passed.
+Native exceptions: large export 1 passed; share_files 6 passed.
+82 evidence PNGs match their goldens byte-for-byte; seven contact sheets
+visually inspected, including light/dark SE 200% text and repayment actions.
+The native delete-account alert uses Linux test font placeholders in both
+before and after images; its labels/actions are checked by widget tests.
+
+Earlier failed profile output is retained as historical evidence in
+profile-test-failures.log. The initial capture refresh found six assertions
+using semantics finders for mocked native glass views; corrected header
+widget/geometry assertions and the full suite now pass.
+Hosted CI is separate from this local validation.
+
+Host flutter pub get: restored successfully after Docker completed.
+Validation container stopped; no simulator was created or booted.

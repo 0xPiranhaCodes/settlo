@@ -49,6 +49,7 @@ void main() {
     );
     expect(fill.color.a, 1);
     expect(find.byType(SAvatar), findsNothing);
+    expect(find.byType(SettloMark), findsNothing);
     await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
       channel.name,
       const StandardMethodCodec().encodeMethodCall(

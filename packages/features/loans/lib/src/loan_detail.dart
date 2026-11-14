@@ -29,16 +29,13 @@ class LoanDetailScreen extends ConsumerWidget {
     if (data == null || loan == null) return const Scaffold();
     final c = SettloColors.of(context);
     return SSheetScaffold(
-      title: 'Loan',
+      title: loan.counterparty,
       leading: SAvatar(loan.counterparty, size: 28),
+      trailing: StatementButton(loan, yourName: data.yourName),
       onClose: () =>
           context.canPop() ? context.pop() : context.go(SettloRoutes.loans),
       onRefresh: () => ref.refresh(loansProvider.future),
       children: [
-        Align(
-          alignment: Alignment.centerRight,
-          child: StatementButton(loan, yourName: data.yourName),
-        ),
         _Hero(loan, today: data.today),
         if (!loan.closed) ...[
           const SizedBox(height: SettloSpacing.x2),

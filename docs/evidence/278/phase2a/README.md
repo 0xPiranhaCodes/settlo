@@ -10,9 +10,10 @@ loan, confirm repayment, create space, members, resend invite, export,
 appearance, and delete account. Each has light and dark captures at 390×844,
 375×667, and 375×667 with 200% text. The test uses the iOS sheet presentation;
 native platform views are mocked, so these images do not establish native
-glass rendering or UIKit touch behavior. The old native delete-account alert
-uses a system-font fallback in the Linux renderer; its before image documents
-modal structure, not native text rendering.
+glass rendering or UIKit touch behavior. The native delete-account alert
+uses the test system-font fallback in the Linux renderer in both before and
+after images; those captures document modal structure, not readable native
+text rendering. Behavioral tests assert its real confirmation labels.
 
 `app/test/phase2a_sheet_golden_test.dart` reproduces the 78-case matrix.
 `app/test/phase2a_repayment_actions_test.dart` adds four scrolled SE captures
@@ -34,10 +35,20 @@ root-sheet tab isolation, return to the originating tab, dirty-form dismissal,
 confirmation races, and equal-width repayment actions with complete labels at
 200% text.
 
-The PR is **not merge-ready**: the Docker suite has 1,915 passes and 12
-failures in the profile package. Merged coverage is **97.73% (6072/6213)**,
-below main's **98.11%** baseline. Remaining work is to resolve those profile
-tests and restore the coverage gate.
+The full serial Docker suite passes **1931 tests**, including all **48 profile
+package tests**. Merged coverage is **98.31% (6124/6229)**, above main's **98.11%**
+baseline; money coverage is **100.00% (110/110)**. The focused app suites pass **176 tests**.
+Host native export/share checks pass **7 tests**.
 
-See [validation.txt](validation.txt) for package totals,
-[profile failure output](profile-test-failures.log), and [LCOV](lcov.info).
+The owner corrections are included: Loan uses the counterparty name and initial,
+its download action is beside Close, and task headers omit avatars and marks.
+Profile task completion returns results through the owning sheet; irreversible
+iOS account deletion retains its native alert. Appearance failures remain inline.
+
+See [validation.txt](validation.txt), [full test output](full-tests.log), and
+[LCOV](lcov.info). [The original profile failures](profile-test-failures.log)
+are retained as historical evidence.
+
+[Golden file manifest](golden-files.txt) lists the 400 golden files touched by
+this PR relative to its main base. If Phase 2b merges first, rebase and regenerate
+the overlapping sheet backdrops before merging this PR.

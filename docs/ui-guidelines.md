@@ -30,7 +30,10 @@ Space Expenses and Balances open above the tab navigator. Use
 return to the underlying tab. Nested expense and settle-up actions remain usable.
 
 `SSheetScaffold` pins `SSheetHeader`: 64pt at normal text size, a 28pt leading
-avatar or mark, a 12pt gap, and a 20pt semibold Figtree title. The close action is
+avatar or mark for identity sheets, a 12pt gap, and a 20pt semibold Figtree title.
+Task sheets (New expense, Settle up, New loan, Create space, Export) omit the
+avatar and mark. Loan detail uses the counterparty name and initial; its
+statement action sits beside Close in the header, never over the content. The close action is
 44pt, 16pt from the right, with the accessibility label “Close”. Long titles grow
 at accessibility sizes. There is no grabber or divider. The first content starts
 16pt below the header. Space detail has one 50pt primary action with a 14pt

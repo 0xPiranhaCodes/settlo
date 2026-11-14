@@ -87,6 +87,55 @@ void main() {
             );
             if (open != null) await tapTaskControl(tester, open());
             expect(tester.takeException(), isNull);
+            if (name == 'loan') {
+              final header = tester.widget<SSheetHeader>(
+                find.byType(SSheetHeader),
+              );
+              expect(header.title, 'Arjun');
+              expect(header.leading, isA<SAvatar>());
+              expect(
+                find.descendant(
+                  of: find.byType(SSheetHeader),
+                  matching: find.text('A'),
+                ),
+                findsOneWidget,
+              );
+              final download = find.byWidgetPredicate(
+                (widget) =>
+                    widget is GlassAction &&
+                    widget.label == 'Download statement',
+              );
+              expect(
+                find.descendant(
+                  of: find.byType(SSheetHeader),
+                  matching: download,
+                ),
+                findsOneWidget,
+              );
+              expect(
+                tester.getRect(download).bottom,
+                lessThanOrEqualTo(
+                  tester.getRect(find.byType(SSheetHeader)).bottom,
+                ),
+              );
+            }
+            if ([
+              'new_expense',
+              'settle',
+              'new_loan',
+              'create_space',
+              'export',
+            ].contains(name)) {
+              final header = find.byType(SSheetHeader).last;
+              expect(
+                find.descendant(of: header, matching: find.byType(SAvatar)),
+                findsNothing,
+              );
+              expect(
+                find.descendant(of: header, matching: find.byType(SettloMark)),
+                findsNothing,
+              );
+            }
             for (final element in find.byType(SSheetHeader).evaluate()) {
               final header = element.widget as SSheetHeader;
               final paragraph = tester.renderObject<RenderParagraph>(

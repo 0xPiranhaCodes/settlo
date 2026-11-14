@@ -1,0 +1,45 @@
+00:00 +0: loading /workspace/packages/core/test/widgets/components_golden_test.dart
+00:00 +0: /workspace/packages/core/test/widgets/components_golden_test.dart: (setUpAll)
+00:00 +0: /workspace/packages/core/test/widgets/components_golden_test.dart: card, dark, 390
+00:01 +1: /workspace/packages/core/test/widgets/components_golden_test.dart: buttons, dark, 390
+00:02 +2: /workspace/packages/core/test/widgets/components_golden_test.dart: chips, dark, 390
+00:02 +3: /workspace/packages/core/test/widgets/components_golden_test.dart: segmented, dark, 390
+00:02 +4: /workspace/packages/core/test/widgets/components_golden_test.dart: avatar, dark, 390
+00:02 +5: /workspace/packages/core/test/widgets/components_golden_test.dart: amount_sheet, dark, 390
+00:02 +6: /workspace/packages/core/test/widgets/components_golden_test.dart: tab_bar, dark, 390
+00:02 +7: /workspace/packages/core/test/widgets/components_golden_test.dart: card, dark, 360
+00:02 +8: /workspace/packages/core/test/widgets/components_golden_test.dart: buttons, dark, 360
+00:03 +9: /workspace/packages/core/test/widgets/components_golden_test.dart: chips, dark, 360
+00:03 +10: /workspace/packages/core/test/widgets/components_golden_test.dart: segmented, dark, 360
+00:03 +11: /workspace/packages/core/test/widgets/components_golden_test.dart: avatar, dark, 360
+00:03 +12: /workspace/packages/core/test/widgets/components_golden_test.dart: amount_sheet, dark, 360
+00:03 +13: /workspace/packages/core/test/widgets/components_golden_test.dart: tab_bar, dark, 360
+00:03 +14: /workspace/packages/core/test/widgets/components_golden_test.dart: card, light, 390
+00:03 +15: /workspace/packages/core/test/widgets/components_golden_test.dart: buttons, light, 390
+00:03 +16: /workspace/packages/core/test/widgets/components_golden_test.dart: chips, light, 390
+00:03 +17: /workspace/packages/core/test/widgets/components_golden_test.dart: segmented, light, 390
+00:03 +18: /workspace/packages/core/test/widgets/components_golden_test.dart: avatar, light, 390
+00:03 +19: /workspace/packages/core/test/widgets/components_golden_test.dart: amount_sheet, light, 390
+00:03 +20: /workspace/packages/core/test/widgets/components_golden_test.dart: tab_bar, light, 390
+00:04 +21: /workspace/packages/core/test/widgets/components_golden_test.dart: card, light, 360
+00:04 +22: /workspace/packages/core/test/widgets/components_golden_test.dart: buttons, light, 360
+00:04 +23: /workspace/packages/core/test/widgets/components_golden_test.dart: chips, light, 360
+00:04 +24: /workspace/packages/core/test/widgets/components_golden_test.dart: segmented, light, 360
+00:04 +25: /workspace/packages/core/test/widgets/components_golden_test.dart: avatar, light, 360
+00:04 +26: /workspace/packages/core/test/widgets/components_golden_test.dart: amount_sheet, light, 360
+00:04 +27: /workspace/packages/core/test/widgets/components_golden_test.dart: tab_bar, light, 360
+00:04 +28: /workspace/packages/core/test/widgets/components_golden_test.dart: (tearDownAll)
+00:04 +28: loading /workspace/packages/core/test/widgets/group_chrome_test.dart
+00:06 +28: /workspace/packages/core/test/widgets/group_chrome_test.dart: legacy frame 52.0 preserves the 44pt close target
+00:07 +29: /workspace/packages/core/test/widgets/group_chrome_test.dart: legacy frame 62.0 preserves the 44pt close target
+00:07 +30: /workspace/packages/core/test/widgets/group_chrome_test.dart: legacy frame 64.0 preserves the 44pt close target
+00:07 +31: /workspace/packages/core/test/widgets/group_chrome_test.dart: group action and section labels remain accessible
+00:08 +32: /workspace/packages/core/test/widgets/group_chrome_test.dart: pull to refresh keeps the header flat above the content
+00:08 +33: /workspace/packages/core/test/widgets/group_chrome_test.dart: routed sheet updates segments in place on TargetPlatform.iOS
+00:08 +34: /workspace/packages/core/test/widgets/group_chrome_test.dart: routed sheet updates segments in place on TargetPlatform.android
+00:08 +35: /workspace/packages/core/test/widgets/group_chrome_test.dart: imperative sheet uses root navigator on TargetPlatform.iOS
+00:09 +36: /workspace/packages/core/test/widgets/group_chrome_test.dart: imperative sheet uses root navigator on TargetPlatform.android
+00:09 +37: /workspace/packages/core/test/widgets/group_chrome_test.dart: sheet is flat at rest, blurred under scroll, and closes
+00:09 +38: /workspace/packages/core/test/widgets/group_chrome_test.dart: row geometry and wrapping at 1.0
+00:09 +39: /workspace/packages/core/test/widgets/group_chrome_test.dart: row geometry and wrapping at 2.0
+00:09 +40: All tests passed!

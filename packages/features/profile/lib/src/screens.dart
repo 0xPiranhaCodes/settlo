@@ -23,55 +23,53 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
     final data = profile.value;
-    return Scaffold(
-      body: DefaultTextStyle.merge(
-        style: const TextStyle(letterSpacing: 0, height: 1.2),
-        child: SSheetScaffold(
-          title: 'Profile',
-          leading: SAvatar(data?.name ?? '', size: 28),
-          onClose: () => Navigator.of(context, rootNavigator: true).maybePop(),
-          children: [
-            if (data != null) ...[
-              _Identity(data),
-              const SizedBox(height: SettloSpacing.x3),
-              _UpiCard(data),
-              const SizedBox(height: SettloSpacing.x3),
-              const _SectionLabel('Preferences'),
-              const SizedBox(height: SettloSpacing.x1),
-              const ReminderToggle(),
-              const SizedBox(height: SettloSpacing.x2),
-              const _QuietPreferences(),
-              const SizedBox(height: SettloSpacing.x3),
-              const _SectionLabel('Help'),
-              const SizedBox(height: SettloSpacing.x1),
-              const _HelpCard(),
-              const SizedBox(height: SettloSpacing.x3),
-              const _SectionLabel('Account'),
-              const SizedBox(height: SettloSpacing.x1),
-              _AccountCard(data),
-            ] else if (profile.hasError) ...[
-              const SizedBox(height: SettloSpacing.x5 * 2),
-              Text(
-                "We couldn't load your profile.",
-                textAlign: TextAlign.center,
-                style: SettloTypography.headline(
-                  color: SettloColors.of(context).textPrimary,
-                ),
+    return DefaultTextStyle.merge(
+      style: const TextStyle(letterSpacing: 0, height: 1.2),
+      child: SSheetScaffold(
+        title: 'Profile',
+        leading: SAvatar(data?.name ?? '', size: 28),
+        onClose: () => Navigator.of(context, rootNavigator: true).maybePop(),
+        children: [
+          if (data != null) ...[
+            _Identity(data),
+            const SizedBox(height: SettloSpacing.x3),
+            _UpiCard(data),
+            const SizedBox(height: SettloSpacing.x3),
+            const _SectionLabel('Preferences'),
+            const SizedBox(height: SettloSpacing.x1),
+            const ReminderToggle(),
+            const SizedBox(height: SettloSpacing.x2),
+            const _QuietPreferences(),
+            const SizedBox(height: SettloSpacing.x3),
+            const _SectionLabel('Help'),
+            const SizedBox(height: SettloSpacing.x1),
+            const _HelpCard(),
+            const SizedBox(height: SettloSpacing.x3),
+            const _SectionLabel('Account'),
+            const SizedBox(height: SettloSpacing.x1),
+            _AccountCard(data),
+          ] else if (profile.hasError) ...[
+            const SizedBox(height: SettloSpacing.x5 * 2),
+            Text(
+              "We couldn't load your profile.",
+              textAlign: TextAlign.center,
+              style: SettloTypography.headline(
+                color: SettloColors.of(context).textPrimary,
               ),
-              const SizedBox(height: SettloSpacing.x2),
-              Center(
-                child: SSecondaryButton(
-                  label: 'Try again',
-                  onPressed: () => ref.invalidate(profileProvider),
-                ),
+            ),
+            const SizedBox(height: SettloSpacing.x2),
+            Center(
+              child: SSecondaryButton(
+                label: 'Try again',
+                onPressed: () => ref.invalidate(profileProvider),
               ),
-            ] else
-              const Padding(
-                padding: EdgeInsets.only(top: SettloSpacing.x5 * 3),
-                child: Center(child: CircularProgressIndicator.adaptive()),
-              ),
-          ],
-        ),
+            ),
+          ] else
+            const Padding(
+              padding: EdgeInsets.only(top: SettloSpacing.x5 * 3),
+              child: Center(child: CircularProgressIndicator.adaptive()),
+            ),
+        ],
       ),
     );
   }
@@ -315,15 +313,23 @@ class _AccountCard extends ConsumerWidget {
           "share stay in the other people's records. "
           '${count > 0 ? 'Your ${_changes(count)} will be lost. ' : ''}'
           "This can't be undone.";
-      final delete = await pushSettloSheet<bool>(
-        context,
-        (_) => _LeaveSheet(
-          title: title,
-          body: body,
-          keep: 'Keep my account',
-          leave: 'Delete account',
-        ),
-      );
+      final delete = Theme.of(context).platform == TargetPlatform.iOS
+          ? await showSettloAlert(
+              context: context,
+              title: title,
+              message: body,
+              destructive: 'Delete Account',
+              cancel: 'Keep My Account',
+            )
+          : await pushSettloSheet<bool>(
+              context,
+              (_) => _LeaveSheet(
+                title: title,
+                body: body,
+                keep: 'Keep my account',
+                leave: 'Delete account',
+              ),
+            );
       if (delete != true) return;
       await profile.deleteAccount();
     } on Object {
@@ -394,7 +400,7 @@ class _LeaveSheetState extends State<_LeaveSheet> {
     _busy = true;
     // Sent in the background; nothing here waits for the network.
     if (!leave) unawaited(widget.onKeep?.call().catchError((_) {}));
-    Navigator.of(context).pop(leave);
+    finishSettloSheet(context, leave);
   }
 
   @override
@@ -402,7 +408,7 @@ class _LeaveSheetState extends State<_LeaveSheet> {
     final colors = SettloColors.of(context);
     return SSheetScaffold(
       title: widget.title,
-      onClose: () => Navigator.of(context).maybePop(),
+      onClose: () => finishSettloSheet(context),
       children: [
         SingleChildScrollView(
           child: Column(
@@ -619,7 +625,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
     final colors = SettloColors.of(context);
     return SSheetScaffold(
       title: 'Edit profile',
-      onClose: () => Navigator.of(context).maybePop(),
+      onClose: () => finishSettloSheet(context),
       children: [
         Form(
           key: _formKey,
@@ -683,7 +689,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       await ref
           .read(profileProvider.notifier)
           .save(name: _name.text, upiId: _upi.text);
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) finishSettloSheet(context);
     } on ProfileInputException catch (error) {
       if (mounted) setState(() => _serverError = error.message);
     } on Object {
@@ -701,17 +707,24 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
 Future<void> _showAppearance(BuildContext context, ThemeMode selected) =>
     pushSettloSheet<void>(context, (_) => _AppearanceSheet(selected));
 
-class _AppearanceSheet extends ConsumerWidget {
+class _AppearanceSheet extends ConsumerStatefulWidget {
   const new(this.selected);
 
   final ThemeMode selected;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AppearanceSheet> createState() => _AppearanceSheetState();
+}
+
+class _AppearanceSheetState extends ConsumerState<_AppearanceSheet> {
+  String? _error;
+
+  @override
+  Widget build(BuildContext context) {
     final colors = SettloColors.of(context);
     return SSheetScaffold(
       title: 'Appearance',
-      onClose: () => Navigator.of(context).maybePop(),
+      onClose: () => finishSettloSheet(context),
       children: [
         Column(
           mainAxisSize: MainAxisSize.min,
@@ -723,12 +736,12 @@ class _AppearanceSheet extends ConsumerWidget {
                 onTap: () async {
                   try {
                     await ref.read(themeModeProvider.notifier).setMode(mode);
-                    if (context.mounted) Navigator.of(context).pop();
+                    if (context.mounted) finishSettloSheet(context);
                   } on Object {
                     if (!context.mounted) return;
-                    showSettloNotice(
-                      context,
-                      "We couldn't change your appearance. Try again.",
+                    setState(
+                      () => _error =
+                          "We couldn't change your appearance. Try again.",
                     );
                   }
                 },
@@ -736,12 +749,20 @@ class _AppearanceSheet extends ConsumerWidget {
                   minTileHeight: SettloSpacing.x6 + SettloSpacing.half,
                   contentPadding: EdgeInsets.zero,
                   title: Text(_themeLabel(mode)),
-                  trailing: mode == selected
+                  trailing: mode == widget.selected
                       ? ProfileIcon(
                           ProfileGlyph.check,
                           color: colors.textPrimary,
                         )
                       : null,
+                ),
+              ),
+            if (_error != null)
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  _error!,
+                  style: SettloTypography.body(color: colors.error),
                 ),
               ),
           ],

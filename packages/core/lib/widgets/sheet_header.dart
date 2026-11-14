@@ -9,7 +9,6 @@ import 'package:settlo_core/theme/typography.dart';
 import 'package:settlo_core/widgets/glass_action.dart';
 import 'package:settlo_core/widgets/platform_page.dart';
 import 'package:settlo_core/widgets/pressable.dart';
-import 'package:settlo_core/widgets/settlo_mark.dart';
 
 /// Flat sheet chrome; material appears only when content passes beneath it.
 class SSheetHeader extends StatefulWidget {
@@ -18,6 +17,7 @@ class SSheetHeader extends StatefulWidget {
     required this.title,
     required this.onClose,
     this.leading,
+    this.trailing,
     this.onBack,
     this.onTitlePressed,
     this.titleActionLabel,
@@ -33,8 +33,11 @@ class SSheetHeader extends StatefulWidget {
   /// Close action.
   final VoidCallback onClose;
 
-  /// A 28pt avatar or mark; task sheets keep the supplied brand mark.
+  /// A 28pt avatar or mark for identity sheets; task sheets omit it.
   final Widget? leading;
+
+  /// Optional header action before Close.
+  final Widget? trailing;
 
   /// Pops a nested step inside the same sheet.
   final VoidCallback? onBack;
@@ -143,13 +146,8 @@ class _SSheetHeaderState extends State<SSheetHeader>
           if (back != null) ...[
             GlassAction.back(onPressed: back),
             const SizedBox(width: 12),
-          ] else ...[
-            SizedBox.square(
-              dimension: 28,
-              child:
-                  widget.leading ??
-                  const SettloMark(size: 28, semanticsLabel: null),
-            ),
+          ] else if (widget.leading != null) ...[
+            SizedBox.square(dimension: 28, child: widget.leading),
             const SizedBox(width: 12),
           ],
           Expanded(
@@ -212,6 +210,10 @@ class _SSheetHeaderState extends State<SSheetHeader>
                         child: titleRow,
                       ),
               ),
+              if (widget.trailing != null) ...[
+                const SizedBox(width: 12),
+                widget.trailing!,
+              ],
               const SizedBox(width: 12),
               GlassAction(
                 label: 'Close',
@@ -305,6 +307,7 @@ class SSheetScaffold extends StatelessWidget {
     required this.onClose,
     required this.children,
     this.leading,
+    this.trailing,
     this.onTitlePressed,
     this.titleActionLabel,
     this.onRefresh,
@@ -317,8 +320,11 @@ class SSheetScaffold extends StatelessWidget {
   /// Close action.
   final VoidCallback onClose;
 
-  /// Optional avatar replacing the brand mark.
+  /// Optional avatar for identity sheets.
   final Widget? leading;
+
+  /// Optional header action before Close.
+  final Widget? trailing;
 
   /// Optional action on the avatar and title, such as opening Members.
   final VoidCallback? onTitlePressed;
@@ -347,10 +353,11 @@ class SSheetScaffold extends StatelessWidget {
                 maxWidth:
                     (constraints.maxWidth -
                             88 -
+                            (trailing == null ? 0 : 56) -
                             (SettloSheetScope.maybeOf(context) != null &&
                                     Navigator.of(context).canPop()
                                 ? 56
-                                : 40))
+                                : (leading == null ? 0 : 40)))
                         .clamp(1, double.infinity),
               );
           final titleHeight = painter.height;
@@ -374,6 +381,7 @@ class SSheetScaffold extends StatelessWidget {
                   titleHeight: titleHeight,
                   title: title,
                   leading: leading,
+                  trailing: trailing,
                   onClose: onClose,
                   onTitlePressed: onTitlePressed,
                   titleActionLabel: titleActionLabel,
@@ -407,6 +415,7 @@ class _SheetHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.titleHeight,
     required this.title,
     required this.leading,
+    required this.trailing,
     required this.onClose,
     required this.onTitlePressed,
     required this.titleActionLabel,
@@ -415,6 +424,9 @@ class _SheetHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double titleHeight;
   final String title;
   final Widget? leading;
+
+  /// Optional header action before Close.
+  final Widget? trailing;
 
   /// Optional action on the avatar and title, such as opening Members.
   final VoidCallback? onTitlePressed;
@@ -436,6 +448,7 @@ class _SheetHeaderDelegate extends SliverPersistentHeaderDelegate {
     titleHeight: titleHeight,
     onClose: onClose,
     leading: leading,
+    trailing: trailing,
     scrolledUnder: overlapsContent || shrinkOffset > 0,
     onTitlePressed: onTitlePressed,
     titleActionLabel: titleActionLabel,
@@ -446,6 +459,7 @@ class _SheetHeaderDelegate extends SliverPersistentHeaderDelegate {
       titleHeight != oldDelegate.titleHeight ||
       title != oldDelegate.title ||
       leading != oldDelegate.leading ||
+      trailing != oldDelegate.trailing ||
       onClose != oldDelegate.onClose ||
       onTitlePressed != oldDelegate.onTitlePressed ||
       titleActionLabel != oldDelegate.titleActionLabel;

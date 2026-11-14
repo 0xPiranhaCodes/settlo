@@ -294,7 +294,7 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
                       (SettloSheetScope.maybeOf(context) != null &&
                               Navigator.of(context).canPop()
                           ? 56
-                          : 40))
+                          : 0))
                   .clamp(1, double.infinity),
         );
     final taskHeight = (taskTitle.height + 20).clamp(
