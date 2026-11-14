@@ -88,6 +88,27 @@ Rect _visible(WidgetTester tester, Element view) {
 
 void main() {
   tearDown(() => iosMajorVersion = 0);
+  testWidgets('sheet close sends xmark, neutral tint and Close to UIKit', (
+    tester,
+  ) async {
+    iosMajorVersion = 26;
+    final host = _FakeGlass(tester);
+    var closed = false;
+    await tester.pumpWidget(
+      _app(
+        TargetPlatform.iOS,
+        SSheetHeader(title: 'Flat 402', onClose: () => closed = true),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final state = host.created.values.single;
+    expect(state['symbol'], 'xmark');
+    expect(state['label'], 'Close');
+    expect(state['foreground'], SettloColors.dark.textPrimary.toARGB32());
+    expect(tester.getSize(find.byType(UiKitView)), const Size(44, 44));
+    await host.tap(host.created.keys.single);
+    expect(closed, isTrue);
+  });
 
   group('before iOS 26 and on Android', () {
     for (final (platform, major) in [

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settlo/native_tab_bar.dart';
 import 'package:settlo/shell.dart';
+import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_core/settlo_core.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
@@ -17,9 +18,14 @@ Future<Widget> spacesInShell(
   List<SpaceSummary> spaces,
   Widget screen, {
   Map<String, SpaceLedger>? ledgers,
+  ActivityRepository? activity,
 }) async {
   final container = ProviderContainer(
     overrides: [
+      if (activity != null) ...[
+        activityRepositoryProvider.overrideWithValue(activity),
+        activityNowProvider.overrideWithValue(DateTime(2026, 11, 9, 18)),
+      ],
       spacesRepositoryProvider.overrideWithValue(FakeSpacesRepository(spaces)),
       spaceLedgerRepositoryProvider.overrideWithValue(
         FakeSpaceLedgerRepository(ledgers),
@@ -33,7 +39,12 @@ Future<Widget> spacesInShell(
   }
   return UncontrolledProviderScope(
     container: container,
-    child: SettloShell(currentIndex: 1, onTabSelected: (_) {}, child: screen),
+    child:
+        screen is SpaceScreen ||
+            screen is SpaceActivityScreen ||
+            (screen is SpaceExpensesScreen && spaces.any((s) => s.hasExpenses))
+        ? screen
+        : SettloShell(currentIndex: 1, onTabSelected: (_) {}, child: screen),
   );
 }
 

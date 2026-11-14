@@ -6,12 +6,19 @@ import 'package:settlo_spaces/src/screens.dart';
 import 'package:settlo_spaces/src/spaces_list.dart';
 
 /// The Spaces tab, with a space's expenses and balances under it.
-final GoRoute spacesTabRoute = GoRoute(
+GoRoute spacesTabRouteFor(GlobalKey<NavigatorState> rootKey) =>
+    _spacesTabRoute(rootKey);
+
+/// Standalone route for feature tests.
+final GoRoute spacesTabRoute = _spacesTabRoute(null);
+
+GoRoute _spacesTabRoute(GlobalKey<NavigatorState>? rootKey) => GoRoute(
   path: SettloRoutes.spaces,
   builder: (_, _) => const SpacesListScreen(),
   routes: [
     GoRoute(
       path: ':spaceId',
+      parentNavigatorKey: rootKey,
       pageBuilder: (_, state) => _spacePage(
         state,
         SpaceExpensesScreen(spaceId: state.pathParameters['spaceId']!),
@@ -19,6 +26,7 @@ final GoRoute spacesTabRoute = GoRoute(
     ),
     GoRoute(
       path: ':spaceId/activity',
+      parentNavigatorKey: rootKey,
       pageBuilder: (_, state) => _spacePage(
         state,
         SpaceActivityScreen(spaceId: state.pathParameters['spaceId']!),
@@ -28,6 +36,7 @@ final GoRoute spacesTabRoute = GoRoute(
     // destination, so Back from either returns to Spaces.
     GoRoute(
       path: ':spaceId/balances',
+      parentNavigatorKey: rootKey,
       pageBuilder: (_, state) => _spacePage(
         state,
         SpaceScreen(spaceId: state.pathParameters['spaceId']!),
@@ -54,7 +63,8 @@ final List<RouteBase> spacesRoutes = [
 /// A space's page. Explicit pages: go_router's default has no iOS swipe
 /// back. All segments share its key, so switching updates it in place
 /// instead of pushing.
-Page<void> _spacePage(GoRouterState state, Widget child) => SettloPage<void>(
-  key: ValueKey('space ${state.pathParameters['spaceId']}'),
-  child: child,
-);
+Page<void> _spacePage(GoRouterState state, Widget child) =>
+    SettloRootSheetPage<void>(
+      key: ValueKey('space ${state.pathParameters['spaceId']}'),
+      child: child,
+    );

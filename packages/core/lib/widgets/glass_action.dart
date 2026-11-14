@@ -29,6 +29,9 @@ bool liquidGlass(BuildContext context) =>
 /// The `UiKitView` type `GlassButton.swift` registers.
 const glassActionViewType = 'app.settlo/glass_button';
 
+/// SF Symbol for the neutral sheet-close action.
+const sheetCloseSymbol = 'xmark';
+
 /// The per-view channel, `app.settlo/glass_button/<view id>`.
 String glassActionChannel(int id) => '$glassActionViewType/$id';
 
@@ -75,7 +78,7 @@ class GlassAction extends StatefulWidget {
   /// Today's Flutter button, for earlier iOS and Android.
   final Widget? fallback;
 
-  /// The SF Symbol drawn, such as `bell`.
+  /// The SF Symbol drawn, such as `bell` or the neutral sheet-close `xmark`.
   final String? symbol;
 
   /// Text drawn instead of a symbol, such as an initial.
@@ -120,7 +123,11 @@ class _GlassActionState extends State<GlassAction> {
       'enabled': widget.onPressed != null,
       'dark': Theme.of(context).brightness == Brightness.dark,
       'foreground':
-          (widget.decorative || widget._back ? c.textPrimary : c.action)
+          (widget.decorative ||
+                      widget._back ||
+                      widget.symbol == sheetCloseSymbol
+                  ? c.textPrimary
+                  : c.action)
               .toARGB32(),
       // Inverted like a selected chip, never gold, as in SBell.
       'badgeColor': c.action.toARGB32(),

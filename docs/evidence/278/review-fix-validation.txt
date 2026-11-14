@@ -1,0 +1,56 @@
+PR #281 review fix validation (2026-11-14)
+Reviewed base: 577a979fa9436c75f20a0c7fd379383d7a6a0311
+
+Activity now shares the Expenses/Balances root sheet, header and segment row.
+Restored #260 segment-position assertions on iOS and Android; route tests
+also verify identical route identity, hidden tab bar, nested actions and Close.
+Removed the obsolete Activity-only space hero, tabs and sparkline (333 net
+lines removed from space_detail.dart), dead showGrabber plumbing, duplicated
+scaffold title measurement, and the xmark magic string. iOS sheets now use
+CupertinoSliverRefreshControl; Android retains RefreshIndicator.
+
+Final checks:
+flutter analyze --no-pub: no issues found (Linux, final production source)
+Focused host app tests: 30 passed
+Focused Linux app tests: 48 passed (including 18 sheet chrome goldens)
+Six new Activity goldens generated and visually inspected at 390x844,
+375x667 and 375x667 at 200% text, each in light and dark.
+No existing golden baselines changed.
+Dart formatting and git diff --check: passed
+
+Full suite: one Docker container, packages and tests serially
+Image: settlo/flutter-goldens:3.47.9-amd64
+Image ID: sha256:b3642f4dfa8b40a1e4b9cb91d47f01bca277fc26172fadfa409fbcb726574211
+Core (Linux): 510 passed
+App (Linux): 972 passed
+Local (Linux): 75 passed
+Platform except share_files (Linux): 73 passed
+Auth (Linux): 60 passed
+Profile (Linux): 48 passed
+Large export (native macOS): 1 passed
+Platform share_files (native macOS): 6 passed
+Total: 1745 passed
+
+Each Linux test-bearing workspace member ran:
+flutter test --no-pub --concurrency=1 --coverage --reporter expanded
+with all *_test.dart files except large_export_test.dart and share_files_test.dart.
+The native exceptions ran with --coverage and separate native-large.info /
+native-share.info files, after restoring host paths with flutter pub get.
+
+Traces merged: 8 (workspace-relative source path and line, summing hits)
+Total coverage: 6051/6149 = 98.41% (origin/main baseline 98.11%)
+Money coverage: 110/110 = 100.00% (80% minimum)
+Host flutter pub get after Docker: passed
+Task Docker container stopped and removed.
+
+Earlier full app pass: 964 passed, eight Question-edit overlay goldens failed.
+Visual inspection traced these to inadvertently restoring global Activity's
+default sticky header during cleanup. Restored stickyHeader:false and reran
+the complete app suite: all 972 passed against unchanged existing baselines.
+Core had already passed on unchanged core source; remaining packages followed
+the successful full app rerun in the same container, without parallel tests.
+Existing 200% Activity chip off-screen tap warnings remained non-fatal.
+
+Follow-up: explicitly align Android root-sheet modalBarrierColor, shape and
+clipBehavior with the navigator-sheet M3 configuration; unchanged in this fix.
+Hosted CI is separate from these local results; see PR checks for the pushed head.

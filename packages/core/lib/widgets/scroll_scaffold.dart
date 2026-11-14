@@ -315,11 +315,7 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
         if (widget.onSheetClose case final close?)
           SliverPersistentHeader(
             pinned: true,
-            delegate: _TaskSheetHeader(
-              title: widget.title,
-              onClose: close,
-              showGrabber: ios,
-            ),
+            delegate: _TaskSheetHeader(title: widget.title, onClose: close),
           ),
         if (largeTitle == null && widget.onSheetClose == null)
           SliverPersistentHeader(
@@ -385,15 +381,12 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
 /// Part of the same viewport as the list: a header drag goes to its scroll
 /// position before the Cupertino route can move, including when pinned.
 class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
-  new({required this.title, required this.onClose, required this.showGrabber});
+  new({required this.title, required this.onClose});
   final String title;
   final VoidCallback onClose;
-  final bool showGrabber;
 
   @override
-  double get minExtent =>
-      (showGrabber ? SSheetHeader.extent : SettloSpacing.minTouchTarget) +
-      2 * SSheetHeader.frameInset;
+  double get minExtent => SSheetHeader.extent;
   @override
   double get maxExtent => minExtent;
 
@@ -403,36 +396,17 @@ class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    final c = SettloColors.of(context);
-    return DecoratedBox(
+    return SSheetHeader(
       key: const ValueKey('task-sheet-header'),
-      decoration: BoxDecoration(
-        color: overlapsContent || shrinkOffset > 0 ? c.surface : c.background,
-        border: overlapsContent || shrinkOffset > 0
-            ? Border(bottom: BorderSide(color: c.hairline))
-            : null,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: SettloSpacing.screenMargin + SSheetHeader.frameInset,
-          vertical: SSheetHeader.frameInset,
-        ),
-        child: Center(
-          child: SSheetHeader(
-            title: title,
-            onClose: onClose,
-            showGrabber: showGrabber,
-          ),
-        ),
-      ),
+      title: title,
+      onClose: onClose,
+      scrolledUnder: overlapsContent || shrinkOffset > 0,
     );
   }
 
   @override
   bool shouldRebuild(_TaskSheetHeader oldDelegate) =>
-      title != oldDelegate.title ||
-      onClose != oldDelegate.onClose ||
-      showGrabber != oldDelegate.showGrabber;
+      title != oldDelegate.title || onClose != oldDelegate.onClose;
 }
 
 class _NavigationHeader extends SliverPersistentHeaderDelegate {

@@ -119,7 +119,7 @@ void main() {
       );
       // The task-sheet layout (#260): grabber, ✕, one bottom button.
       expect(find.text('Cancel'), findsNothing);
-      expect(find.byKey(const ValueKey('task-sheet-grabber')), findsOneWidget);
+      expect(find.byKey(const ValueKey('task-sheet-grabber')), findsNothing);
       final create = find.widgetWithText(FilledButton, 'Create space');
       expect(tester.widget<FilledButton>(create).onPressed, isNull);
 
@@ -158,9 +158,7 @@ void main() {
       semantics.dispose();
     });
 
-    testWidgets('iOS: an untouched Create space closes on ✕', (
-      tester,
-    ) async {
+    testWidgets('iOS: an untouched Create space closes on ✕', (tester) async {
       await _pump(tester, SettloRoutes.spaces, _ios);
       await _tap(tester, find.bySemanticsLabel('New space'));
       await _tap(tester, find.bySemanticsLabel('Close'));

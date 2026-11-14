@@ -109,10 +109,10 @@ void main() {
       ),
     );
     await _settle(tester);
-    expect(find.text('2 PAYMENTS'), findsOne);
+    expect(find.widgetWithText(TextButton, 'Pay'), findsNWidgets(2));
 
     for (final (amount, payee, left) in [
-      ('₹11.68', 'Charu', '1 PAYMENT'),
+      ('₹11.68', 'Charu', 1),
       ('₹6.65', 'Asha', null),
     ]) {
       await tester.tap(find.widgetWithText(TextButton, 'Pay').first);
@@ -126,7 +126,9 @@ void main() {
       // its payee (#78) and is not offered again.
       expect(find.text('Yes, I paid'), findsNothing);
       expect(find.text('Waiting for $payee to confirm'), findsOne);
-      if (left != null) expect(find.text(left), findsOne);
+      if (left != null) {
+        expect(find.widgetWithText(TextButton, 'Pay'), findsNWidgets(left));
+      }
     }
     expect(find.widgetWithText(TextButton, 'Pay'), findsNothing);
     expect(
@@ -165,6 +167,6 @@ void main() {
     // The hero, drawn on the Expenses tab only, agrees.
     await tester.tap(find.text('Expenses'));
     await tester.pumpAndSettle();
-    expect(find.text('ALL SETTLED'), findsOne);
+    expect(find.text('All settled'), findsOne);
   });
 }

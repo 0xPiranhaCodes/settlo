@@ -249,7 +249,8 @@ class _SAmountSheetState extends State<SAmountSheet> {
                 key: const ValueKey('amount-sheet-scroll'),
                 title: title,
                 statusInset: 0,
-                expandedHeight: SSheetHeader.extent + SettloSpacing.x3,
+                // The navigation delegate reserves 24pt below its header.
+                expandedHeight: SSheetHeader.extent + 24,
                 compactHeader: titleRow,
                 slivers: [
                   SliverFillRemaining(hasScrollBody: false, child: content),

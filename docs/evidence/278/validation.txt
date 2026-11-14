@@ -1,0 +1,36 @@
+Phase 1 issue #278 validation
+Base: 6a928eb1b177598c1cf1cecd4ebfae40cfa2e324
+Docker: settlo/flutter-goldens:3.47.9-amd64
+Image: sha256:b3642f4dfa8b40a1e4b9cb91d47f01bca277fc26172fadfa409fbcb726574211
+
+Final runs (no --update-goldens):
+Core (Linux): 510 passed
+App (Linux): 966 passed
+Local (Linux): 75 passed
+Platform except share_files (Linux): 73 passed
+Auth (Linux): 60 passed
+Profile (Linux): 48 passed
+Large export (native): 1 passed
+Platform share_files (native): 6 passed
+Total: 1739 passed
+
+Traces merged: 8
+Total coverage: 6043/6142 = 98.39% (main baseline 98.11%)
+Money coverage: 110/110 = 100.00%
+
+flutter analyze --no-pub: no issues found
+Host flutter pub get after Docker: passed
+
+Linux command in each test-bearing workspace member:
+flutter test --no-pub --concurrency=2 --coverage --reporter expanded $(find test -name '*_test.dart' ! -name large_export_test.dart ! -name share_files_test.dart)
+
+Native exceptions, as requested:
+cd packages/core && flutter test --no-pub --coverage --coverage-path coverage/native-large.info test/export/large_export_test.dart
+cd packages/platform && flutter test --no-pub --coverage --coverage-path coverage/native-share.info test/share_files_test.dart
+
+Coverage merged by workspace-relative source path and line number, summing hits from Linux and native LCOV; baseline is .github/coverage-baseline.txt.
+Money coverage retains the existing 80% gate.
+
+Earlier iterations exposed stale page/header assertions and a legacy 62pt partial-collapse clipping the Close target to 42pt; both were fixed before these final runs.
+An initial concurrent Docker attempt was interrupted by host disk pressure; it is not counted as passing validation.
+UIKit channel tests use a fake host, not a physical-device UI run. Hosted checks are reported separately in the PR handoff.

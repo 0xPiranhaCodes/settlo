@@ -6,7 +6,6 @@ import 'package:settlo/router/router.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_activity/settlo_activity.dart';
 import 'package:settlo_core/settlo_core.dart';
-import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
 
 import 'support/fake_activity.dart';
@@ -39,7 +38,7 @@ void main() {
       expectSpaceAvatars(tester);
       // The segments never move under the finger (#260).
       final segments = tester.getCenter(find.text('Balances'));
-      await tester.tap(find.text('Activity').first);
+      await tester.tap(find.text('Activity').hitTestable().first);
       await tester.pumpAndSettle();
       expect(router.state.uri.path, '/spaces/s1/activity');
       expect(tester.getCenter(find.text('Balances')), segments);
@@ -56,7 +55,13 @@ void main() {
       expect(find.text('Kabir settled with you'), findsNothing);
       expect(find.text('Arjun repaid · you confirmed'), findsNothing);
       expect(find.text('Arjun recorded a ₹25,000 repayment'), findsNothing);
-      expect(find.text('All'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(SSheetScaffold),
+          matching: find.text('All'),
+        ),
+        findsNothing,
+      );
       expect(activity.calls, contains('feed 30 null s1'));
       expect(activity.calls, isNot(contains('markSeen')));
       expect(container.read(activityFilterProvider), allActivity);
@@ -66,9 +71,10 @@ void main() {
       expect(router.state.uri.path, '/spaces/s1/balances');
       expect(tester.getCenter(find.text('Balances')), segments);
       expectSpaceAvatars(tester);
-      await tester.tap(find.text('Activity').first);
+      await tester.tap(find.text('Activity').hitTestable().first);
       await tester.pumpAndSettle();
       expect(router.state.uri.path, '/spaces/s1/activity');
+      expect(tester.getCenter(find.text('Balances')), segments);
       expectSpaceAvatars(tester);
       router.pop();
       await tester.pumpAndSettle();
@@ -115,7 +121,13 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('All'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(SSheetScaffold),
+          matching: find.text('All'),
+        ),
+        findsNothing,
+      );
       expect(activity.calls, contains('feed 30 null s1'));
       expect(activity.calls, isNot(contains('markSeen')));
       expect(container.read(activityFilterProvider), allActivity);
@@ -128,14 +140,6 @@ void main() {
 }
 
 void expectSpaceAvatars(WidgetTester tester) {
-  final scaffold = tester.widget<SettloScrollScaffold>(
-    find.byType(SettloScrollScaffold).last,
-  );
-  expect(scaffold.trailing, isA<SpaceAvatars>());
-  expect((scaffold.trailing! as SpaceAvatars).space.id, 's1');
-  if (Theme.of(tester.element(find.byType(SettloScrollScaffold).last))
-          .platform ==
-      TargetPlatform.iOS) {
-    expect(find.byWidget(scaffold.trailing!), findsOneWidget);
-  }
+  expect(find.byType(SSheetScaffold), findsOneWidget);
+  expect(find.bySemanticsLabel('Members of Flat 402'), findsOneWidget);
 }

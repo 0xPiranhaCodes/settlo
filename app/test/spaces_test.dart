@@ -11,7 +11,6 @@ import 'package:settlo/main.dart';
 import 'package:settlo/shell.dart';
 import 'package:settlo_balances/settlo_balances.dart';
 import 'package:settlo_core/settlo_core.dart';
-import 'package:settlo_core/widgets/sheet_header.dart';
 import 'package:settlo_platform/settlo_platform.dart';
 import 'package:settlo_spaces/settlo_spaces.dart';
 import 'package:settlo_test_support/golden.dart';
@@ -489,10 +488,7 @@ void main() {
         await _openSheet(tester);
 
         expect(find.byType(SSheetHeader), findsOne);
-        expect(
-          find.byKey(const ValueKey('task-sheet-grabber')),
-          platform == TargetPlatform.iOS ? findsOne : findsNothing,
-        );
+        expect(find.byKey(const ValueKey('task-sheet-grabber')), findsNothing);
         expect(find.text('Cancel'), findsNothing);
         final create = find.widgetWithText(FilledButton, 'Create space');
         expect(create, findsOne);
@@ -764,21 +760,16 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('expenses are grouped by day under the month', (tester) async {
+    testWidgets('expenses are grouped by month with payer, date and share', (
+      tester,
+    ) async {
       await pumpSpace(tester);
-
-      expect(find.text('YOU ARE OWED'), findsOne);
-      expect(find.text('November'), findsOne);
-      expect(find.text('Daily spend · Nov'), findsOne);
-      expect(find.text('₹4,140 today'), findsOne);
-      expect(find.text('Today'), findsOne);
-      expect(find.text('Yesterday'), findsOne);
-      expect(find.text('you paid · split 3 ways'), findsWidgets);
-      expect(find.text('Priya paid · split 3 ways'), findsWidgets);
+      expect(find.text('You are owed'), findsOne);
+      expect(find.textContaining('NOVEMBER ·'), findsOne);
+      expect(find.textContaining('you paid · Today'), findsWidgets);
+      expect(find.textContaining('Priya paid · Today'), findsWidgets);
+      expect(find.textContaining('your share'), findsWidgets);
       await _scrollToEnd(tester);
-      for (final day in ['Thu 5 Nov', 'Mon 2 Nov', 'Sun 1 Nov']) {
-        expect(find.text(day), findsOne, reason: day);
-      }
       expect(find.text('Milk · Nov'), findsOne);
     });
 
@@ -810,8 +801,8 @@ void main() {
     ) async {
       final (router, _) = await pumpSpace(tester, balances: true);
 
-      expect(find.text('WHO PAID VS FAIR SHARE · NOV'), findsOne);
-      expect(find.text('₹6,150 EACH'), findsOne);
+      expect(find.text('OWED TO YOU'), findsOne);
+      expect(find.text('WHO PAID VS FAIR SHARE · ₹6,150 EACH'), findsOne);
       expect(
         [
           for (final bar in tester.widgetList<FairShareBar>(
@@ -838,7 +829,7 @@ void main() {
       expect(find.text('+₹2,850'), findsOne);
       expect(find.text('−₹2,100'), findsOne);
       await _scrollTo(tester, find.text('Rahul pays you'));
-      expect(find.text('2 PAYMENTS'), findsOne);
+
       expect(find.text('Priya pays you'), findsOne);
       await _scrollToEnd(tester);
       expect(find.text('BY CATEGORY · NOV'), findsOne);
@@ -916,7 +907,7 @@ void main() {
       await tester.tap(find.text('Balances'));
       await tester.pumpAndSettle();
       expect(at(), expenses);
-      expect(find.text('YOU ARE OWED'), findsOne);
+      expect(find.text('You are owed'), findsOne);
       await tester.tap(find.text('Expenses'));
       await tester.pumpAndSettle();
       expect(at(), expenses);
@@ -1088,7 +1079,7 @@ void main() {
         ledger: ledger,
       );
       expect(find.text('settle-up · waiting for Priya to confirm'), findsOne);
-      expect(find.text('₹4,140 today'), findsOne, reason: 'not spending');
+      expect(find.text('NOVEMBER · ₹18,450'), findsOne, reason: 'not spending');
 
       await openExpense(tester, 'You paid Priya back');
       await tester.enterText(find.byType(TextField).last, 'Paid back in cash');
@@ -1103,7 +1094,11 @@ void main() {
       expect(find.text('settle-up · waiting for Priya to confirm'), findsOne);
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 2000));
       await tester.pumpAndSettle();
-      expect(find.text('₹4,140 today'), findsOne, reason: 'still not spending');
+      expect(
+        find.text('NOVEMBER · ₹18,450'),
+        findsOne,
+        reason: 'still not spending',
+      );
     });
 
     testWidgets('the payee confirms a pending settle-up, once', (tester) async {
@@ -1250,20 +1245,13 @@ void main() {
       expect(find.text('Electricity'), findsNothing);
     });
 
-    testWidgets('on iOS, the space has a large title and back to Spaces', (
+    testWidgets('on iOS, the space has sheet chrome and closes to Spaces', (
       tester,
     ) async {
       final (router, _) = await pumpSpace(tester, platform: TargetPlatform.iOS);
-
-      expect(find.byType(CupertinoSliverNavigationBar), findsOne);
-      final back = find.byWidgetPredicate(
-        (widget) => widget is GlassAction && widget.destination == 'Spaces',
-      );
-      expect(
-        find.descendant(of: back, matching: find.text('Spaces')),
-        findsOne,
-      );
-      await tester.tap(back);
+      expect(find.byType(SSheetHeader), findsOne);
+      expect(find.byType(CupertinoSliverNavigationBar), findsNothing);
+      await tester.tap(find.bySemanticsLabel('Close'));
       await tester.pumpAndSettle();
       expect(router.state.uri.toString(), SettloRoutes.spaces);
     });

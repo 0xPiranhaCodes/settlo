@@ -272,7 +272,7 @@ void main() {
       'Loans',
     ),
   ]) {
-    testWidgets('on iOS, edge swipe back from $name in the app router', (
+    testWidgets('on iOS, native dismissal from $name in the app router', (
       tester,
     ) async {
       await loadSettloFonts();
@@ -291,22 +291,31 @@ void main() {
           tester.element(find.byType(SettloApp)),
         ).read(routerProvider)..go(to);
         await tester.pumpAndSettle();
-        expect(find.byType(CupertinoSliverNavigationBar), findsOne);
-        expect(
-          find.descendant(
-            of: find.byWidgetPredicate(
-              (widget) => widget is GlassAction && widget.destination == back,
+        if (back == 'Spaces') {
+          expect(find.byType(SSheetHeader), findsOne);
+          await tester.flingFrom(
+            tester.getCenter(find.text('Flat 402').first),
+            const Offset(0, 600),
+            1500,
+          );
+        } else {
+          expect(find.byType(CupertinoSliverNavigationBar), findsOne);
+          expect(
+            find.descendant(
+              of: find.byWidgetPredicate(
+                (widget) => widget is GlassAction && widget.destination == back,
+              ),
+              matching: find.text(back),
             ),
-            matching: find.text(back),
-          ),
-          findsOne,
-        );
+            findsOne,
+          );
 
-        await tester.flingFrom(
-          const Offset(2, 420),
-          const Offset(330, 0),
-          1200,
-        );
+          await tester.flingFrom(
+            const Offset(2, 420),
+            const Offset(330, 0),
+            1200,
+          );
+        }
         await tester.pumpAndSettle();
 
         expect(router.state.uri.toString(), from);
@@ -341,7 +350,7 @@ void main() {
       expect(router.state.uri.toString(), SettloRoutes.spaceBalances('s1'));
       expect(find.byType(SpaceScreen), findsOne);
 
-      await tester.tap(find.bySemanticsLabel('Back to Spaces'));
+      await tester.tap(find.bySemanticsLabel('Close'));
       await tester.pumpAndSettle();
       expect(router.state.uri.toString(), SettloRoutes.spaces);
     } finally {

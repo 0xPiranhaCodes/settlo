@@ -125,9 +125,10 @@ void main() {
       final header = find.byKey(const ValueKey('task-sheet-header'));
       expect(find.text('Profile'), findsOneWidget);
       expect(find.text('You'), findsNothing);
-      expect(find.byKey(const ValueKey('task-sheet-grabber')), findsOneWidget);
-      expect(find.byType(GlassAction), findsNothing);
-      expect(tester.getCenter(find.text('Profile')).dx, 201);
+      expect(find.byKey(const ValueKey('task-sheet-grabber')), findsNothing);
+      expect(find.byType(GlassAction), findsOneWidget);
+      expect(tester.getTopLeft(find.text('Profile')).dx, 56);
+      expect(tester.getSize(header).height, 64);
       final close = find.byWidgetPredicate(
         (widget) => widget is SPressable && widget.label == 'Close',
       );
@@ -135,7 +136,7 @@ void main() {
         tester.getSize(close),
         const Size.square(SettloSpacing.minTouchTarget),
       );
-      expect(tester.getCenter(close).dx, lessThan(195));
+      expect(tester.getTopRight(close).dx, 390 - 16);
       final cards = find.byType(SCard);
       expect(
         tester.getTopLeft(cards.first).dy - tester.getBottomLeft(header).dy,
@@ -168,14 +169,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -250));
       await tester.pumpAndSettle();
-      final decoration =
-          tester.widget<DecoratedBox>(header).decoration as BoxDecoration;
-      final context = tester.element(header);
-      expect(decoration.color, SettloColors.of(context).surface);
-      expect(
-        decoration.border,
-        Border(bottom: BorderSide(color: SettloColors.of(context).hairline)),
+      expect(tester.widget<SSheetHeader>(header).scrolledUnder, isTrue);
+      final filter = find.descendant(
+        of: header,
+        matching: find.byType(BackdropFilter),
       );
+      expect(tester.widget<BackdropFilter>(filter).enabled, isTrue);
       final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
       final oldOffset = scrollable.position.pixels;
       // A drag on the pinned title scrolls the same position as the content.
@@ -228,8 +227,11 @@ void main() {
       await tester.pumpAndSettle();
       final amountTitle = tester.getCenter(find.text('Add expense'));
       final amountClose = tester.getCenter(close);
-      expect(profileTitle, amountTitle);
-      expect(profileClose, amountClose);
+      final amountHeader = tester.getRect(find.byType(SSheetHeader));
+      expect(amountTitle.dy - amountHeader.top, profileTitle.dy);
+      expect(amountClose.dy - amountHeader.top, profileClose.dy);
+      expect(amountHeader.right - tester.getTopRight(close).dx, 16);
+      expect(tester.getSize(close), const Size.square(44));
       expect(profileFont, 20);
       expect(
         profileFont,

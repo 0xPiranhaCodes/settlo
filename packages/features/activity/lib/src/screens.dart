@@ -19,6 +19,12 @@ String _dayMonth(DateTime d) {
   return '${l.day} ${_months[l.month - 1]}';
 }
 
+/// Wraps a scoped activity feed in its destination's shared sheet chrome.
+typedef ActivitySheetBuilder = Widget Function(
+  List<Widget> children,
+  Future<void> Function() onRefresh,
+);
+
 /// The Activity tab (canvas Activity, note n30): what waits for your
 /// confirmation on top, then everything that happened in your spaces and
 /// loans, edits with their before and after values. 'Needs you' narrows
@@ -32,34 +38,17 @@ String _dayMonth(DateTime d) {
 /// its row.
 class ActivityScreen extends StatelessWidget {
   /// The global Activity tab, or a fixed space feed with its own header.
-  const new({
-    this.spaceId,
-    this.header,
-    this.spaceName,
-    this.navTrailing,
-    super.key,
-  });
+  const new({this.spaceId, this.sheetBuilder, super.key});
 
   /// A fixed space filter, isolated from the global tab's selection.
   final String? spaceId;
 
-  /// The space header and segment control when shown inside a space.
-  final List<Widget>? header;
-
-  /// Trailing navigation content shared with the other space segments.
-  final Widget? navTrailing;
-
-  /// The space's navigation title.
-  final String? spaceName;
+  /// Builds a shared sheet around the feed, retaining refresh and pagination.
+  final ActivitySheetBuilder? sheetBuilder;
 
   @override
   Widget build(BuildContext context) {
-    final view = _ActivityView(
-      spaceId: spaceId,
-      header: header,
-      spaceName: spaceName,
-      navTrailing: navTrailing,
-    );
+    final view = _ActivityView(spaceId: spaceId, sheetBuilder: sheetBuilder);
     if (spaceId == null) return view;
     return ProviderScope(
       key: ValueKey(spaceId),
@@ -78,12 +67,10 @@ class ActivityScreen extends StatelessWidget {
 
 class _ActivityView extends ConsumerStatefulWidget {
   /// The Activity screen.
-  const new({this.spaceId, this.header, this.spaceName, this.navTrailing});
+  const new({this.spaceId, this.sheetBuilder});
 
   final String? spaceId;
-  final List<Widget>? header;
-  final String? spaceName;
-  final Widget? navTrailing;
+  final ActivitySheetBuilder? sheetBuilder;
 
   @override
   ConsumerState<_ActivityView> createState() => _ActivityScreenState();
@@ -232,8 +219,7 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
     );
 
     final children = <Widget>[
-      ...?widget.header,
-      if (widget.header == null)
+      if (widget.sheetBuilder == null)
         const SettloNavigationHeader(
           title: 'Activity',
           // No bell: this screen is the notifications list (#197).
@@ -311,7 +297,7 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
               : 'Expenses, settle-ups and repayments in your spaces and '
                     'loans show up here, edits included.',
         )
-      else if (!ios)
+      else if (!ios || widget.sheetBuilder != null)
         for (final (heading, rows) in _sections(context, entries)) ...[
           heading,
           ...rows,
@@ -319,28 +305,36 @@ class _ActivityScreenState extends ConsumerState<_ActivityView> {
     ];
     // iOS: each day heading stays pinned under the bar while its rows
     // scroll, as in Mail.
-    final groups = ios && !_needsYouOnly && (entries?.isNotEmpty ?? false)
+    final groups =
+        widget.sheetBuilder == null &&
+            ios &&
+            !_needsYouOnly &&
+            (entries?.isNotEmpty ?? false)
         ? _sections(context, entries!)
         : null;
     const margin = EdgeInsets.symmetric(horizontal: SettloSpacing.screenMargin);
 
+    Widget listenForMore(Widget child) =>
+        NotificationListener<ScrollNotification>(
+          onNotification: (n) {
+            // The chips scroll sideways; only the feed's end loads more.
+            if (!_needsYouOnly &&
+                n.metrics.axis == Axis.vertical &&
+                n.metrics.extentAfter < 600) {
+              unawaited(ref.read(activityFeedProvider.notifier).loadMore());
+            }
+            return false;
+          },
+          child: child,
+        );
+    if (widget.sheetBuilder case final builder?) {
+      return listenForMore(builder(children, _refresh));
+    }
     return Scaffold(
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (n) {
-          // The chips scroll sideways; only the feed's end loads more.
-          if (!_needsYouOnly &&
-              n.metrics.axis == Axis.vertical &&
-              n.metrics.extentAfter < 600) {
-            unawaited(ref.read(activityFeedProvider.notifier).loadMore());
-          }
-          return false;
-        },
-        child: SettloScrollScaffold(
-          title: widget.spaceId == null ? 'Activity' : 'Space',
-          largeTitle: widget.spaceName,
-          trailing: widget.navTrailing,
-          previousPageTitle: widget.spaceId == null ? null : 'Spaces',
-          stickyHeader: widget.spaceId != null,
+      body: listenForMore(
+        SettloScrollScaffold(
+          title: 'Activity',
+          stickyHeader: false,
           onRefresh: _refresh,
           controller: _scroll,
           // With its own controller a short feed would not scroll, and
