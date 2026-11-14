@@ -1,0 +1,1507 @@
+Testing app
+00:00 +0: loading /workspace/app/test/activity_golden_test.dart
+00:00 +0: /workspace/app/test/activity_golden_test.dart: 390x844 dark activity golden
+00:05 +1: /workspace/app/test/activity_golden_test.dart: 390x844 light activity golden
+00:05 +2: /workspace/app/test/activity_golden_test.dart: 390x844 new_dark activity golden
+00:06 +3: /workspace/app/test/activity_golden_test.dart: 390x844 new_light activity golden
+00:07 +4: /workspace/app/test/activity_golden_test.dart: 360x800 dark activity golden
+00:07 +5: /workspace/app/test/activity_golden_test.dart: 360x800 light activity golden
+00:07 +6: /workspace/app/test/activity_golden_test.dart: 360x800 new_dark activity golden
+00:08 +7: /workspace/app/test/activity_golden_test.dart: 360x800 new_light activity golden
+00:08 +8: /workspace/app/test/activity_golden_test.dart: 390x844_text200 dark activity golden
+00:09 +9: /workspace/app/test/activity_golden_test.dart: 390x844_text200 light activity golden
+00:09 +10: /workspace/app/test/activity_golden_test.dart: 390x844_text200 new_dark activity golden
+
+Warning: A call to tap() with finder "Found 1 widget with text "Flat 402": [
+  Text("Flat 402", inherit: true, color: Color(alpha: 1.0000, red: 0.9686, green: 0.9490, blue: 0.9098, colorSpace: ColorSpace.sRGB), family: packages/settlo_core/Figtree, size: 15.0, weight: 400, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(390.4, 166.5)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+Indeed, Offset(390.4, 166.5) is outside the bounds of the root of the render tree, Size(390.0, 844.0).
+The finder corresponds to this RenderBox: RenderParagraph#e4c19 relayoutBoundary=up30
+The hit test result at that offset is: HitTestResult(HitTestEntry<HitTestTarget>#dabb8(_ReusableRenderView#162fa), HitTestEntry<HitTestTarget>#f005d(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///workspace/app/test/activity_golden_test.dart:88:54)
+#4      pumpSettloGolden (package:settlo_test_support/golden.dart:143:16)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///workspace/app/test/activity_golden_test.dart:83:9)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:09 +11: /workspace/app/test/activity_golden_test.dart: 390x844_text200 new_light activity golden
+
+Warning: A call to tap() with finder "Found 1 widget with text "Flat 402": [
+  Text("Flat 402", inherit: true, color: Color(alpha: 1.0000, red: 0.0941, green: 0.1529, blue: 0.1216, colorSpace: ColorSpace.sRGB), family: packages/settlo_core/Figtree, size: 15.0, weight: 400, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(390.4, 166.5)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+Indeed, Offset(390.4, 166.5) is outside the bounds of the root of the render tree, Size(390.0, 844.0).
+The finder corresponds to this RenderBox: RenderParagraph#64aa3 relayoutBoundary=up30
+The hit test result at that offset is: HitTestResult(HitTestEntry<HitTestTarget>#688d3(_ReusableRenderView#162fa), HitTestEntry<HitTestTarget>#7c431(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///workspace/app/test/activity_golden_test.dart:88:54)
+#4      pumpSettloGolden (package:settlo_test_support/golden.dart:143:16)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///workspace/app/test/activity_golden_test.dart:83:9)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:10 +12: /workspace/app/test/activity_golden_test.dart: 360x800_text200 dark activity golden
+00:10 +13: /workspace/app/test/activity_golden_test.dart: 360x800_text200 light activity golden
+00:10 +14: /workspace/app/test/activity_golden_test.dart: 360x800_text200 new_dark activity golden
+
+Warning: A call to tap() with finder "Found 1 widget with text "Flat 402": [
+  Text("Flat 402", inherit: true, color: Color(alpha: 1.0000, red: 0.9686, green: 0.9490, blue: 0.9098, colorSpace: ColorSpace.sRGB), family: packages/settlo_core/Figtree, size: 15.0, weight: 400, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(390.4, 166.5)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+Indeed, Offset(390.4, 166.5) is outside the bounds of the root of the render tree, Size(360.0, 800.0).
+The finder corresponds to this RenderBox: RenderParagraph#a4ae5 relayoutBoundary=up30
+The hit test result at that offset is: HitTestResult(HitTestEntry<HitTestTarget>#ff252(_ReusableRenderView#162fa), HitTestEntry<HitTestTarget>#e36d1(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///workspace/app/test/activity_golden_test.dart:88:54)
+#4      pumpSettloGolden (package:settlo_test_support/golden.dart:143:16)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///workspace/app/test/activity_golden_test.dart:83:9)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:11 +15: /workspace/app/test/activity_golden_test.dart: 360x800_text200 new_light activity golden
+
+Warning: A call to tap() with finder "Found 1 widget with text "Flat 402": [
+  Text("Flat 402", inherit: true, color: Color(alpha: 1.0000, red: 0.0941, green: 0.1529, blue: 0.1216, colorSpace: ColorSpace.sRGB), family: packages/settlo_core/Figtree, size: 15.0, weight: 400, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(390.4, 166.5)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+Indeed, Offset(390.4, 166.5) is outside the bounds of the root of the render tree, Size(360.0, 800.0).
+The finder corresponds to this RenderBox: RenderParagraph#029d9 relayoutBoundary=up30
+The hit test result at that offset is: HitTestResult(HitTestEntry<HitTestTarget>#6a997(_ReusableRenderView#162fa), HitTestEntry<HitTestTarget>#a12fd(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///workspace/app/test/activity_golden_test.dart:88:54)
+#4      pumpSettloGolden (package:settlo_test_support/golden.dart:143:16)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///workspace/app/test/activity_golden_test.dart:83:9)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:15 +16: loading /workspace/app/test/activity_test.dart
+00:18 +16: /workspace/app/test/activity_test.dart: expense/reminded exposes money direction
+00:23 +17: /workspace/app/test/activity_test.dart: expense/due exposes money direction
+00:24 +18: /workspace/app/test/activity_test.dart: expense/created exposes money direction
+00:24 +19: /workspace/app/test/activity_test.dart: expense/edited exposes money direction
+00:24 +20: /workspace/app/test/activity_test.dart: expense/deleted exposes money direction
+00:24 +21: /workspace/app/test/activity_test.dart: expense/restored exposes money direction
+00:24 +22: /workspace/app/test/activity_test.dart: expense/recorded exposes money direction
+00:24 +23: /workspace/app/test/activity_test.dart: expense/confirmed exposes money direction
+00:24 +24: /workspace/app/test/activity_test.dart: expense/disputed exposes money direction
+00:25 +25: /workspace/app/test/activity_test.dart: expense/rejected exposes money direction
+00:25 +26: /workspace/app/test/activity_test.dart: expense/closed exposes money direction
+00:25 +27: /workspace/app/test/activity_test.dart: settlement/reminded exposes money direction
+00:25 +28: /workspace/app/test/activity_test.dart: settlement/due exposes money direction
+00:25 +29: /workspace/app/test/activity_test.dart: settlement/created exposes money direction
+00:25 +30: /workspace/app/test/activity_test.dart: settlement/edited exposes money direction
+00:25 +31: /workspace/app/test/activity_test.dart: settlement/deleted exposes money direction
+00:25 +32: /workspace/app/test/activity_test.dart: settlement/restored exposes money direction
+00:26 +33: /workspace/app/test/activity_test.dart: settlement/recorded exposes money direction
+00:26 +34: /workspace/app/test/activity_test.dart: settlement/confirmed exposes money direction
+00:26 +35: /workspace/app/test/activity_test.dart: settlement/disputed exposes money direction
+00:26 +36: /workspace/app/test/activity_test.dart: settlement/rejected exposes money direction
+00:26 +37: /workspace/app/test/activity_test.dart: settlement/closed exposes money direction
+00:26 +38: /workspace/app/test/activity_test.dart: loan/reminded exposes money direction
+00:26 +39: /workspace/app/test/activity_test.dart: loan/due exposes money direction
+00:26 +40: /workspace/app/test/activity_test.dart: loan/created exposes money direction
+00:26 +41: /workspace/app/test/activity_test.dart: loan/edited exposes money direction
+00:27 +42: /workspace/app/test/activity_test.dart: loan/deleted exposes money direction
+00:27 +43: /workspace/app/test/activity_test.dart: loan/restored exposes money direction
+00:27 +44: /workspace/app/test/activity_test.dart: loan/recorded exposes money direction
+00:27 +45: /workspace/app/test/activity_test.dart: loan/confirmed exposes money direction
+00:27 +46: /workspace/app/test/activity_test.dart: loan/disputed exposes money direction
+00:27 +47: /workspace/app/test/activity_test.dart: loan/rejected exposes money direction
+00:27 +48: /workspace/app/test/activity_test.dart: loan/closed exposes money direction
+00:27 +49: /workspace/app/test/activity_test.dart: repayment/reminded exposes money direction
+00:27 +50: /workspace/app/test/activity_test.dart: repayment/due exposes money direction
+00:28 +51: /workspace/app/test/activity_test.dart: repayment/created exposes money direction
+00:28 +52: /workspace/app/test/activity_test.dart: repayment/edited exposes money direction
+00:28 +53: /workspace/app/test/activity_test.dart: repayment/deleted exposes money direction
+00:28 +54: /workspace/app/test/activity_test.dart: repayment/restored exposes money direction
+00:28 +55: /workspace/app/test/activity_test.dart: repayment/recorded exposes money direction
+00:28 +56: /workspace/app/test/activity_test.dart: repayment/confirmed exposes money direction
+00:28 +57: /workspace/app/test/activity_test.dart: repayment/disputed exposes money direction
+00:28 +58: /workspace/app/test/activity_test.dart: repayment/rejected exposes money direction
+00:28 +59: /workspace/app/test/activity_test.dart: repayment/closed exposes money direction
+00:29 +60: /workspace/app/test/activity_test.dart: settlement/pending keeps direction for another actor
+00:29 +61: /workspace/app/test/activity_test.dart: settlement/confirmed keeps direction for another actor
+00:29 +62: /workspace/app/test/activity_test.dart: settlement/disputed keeps direction for another actor
+00:29 +63: /workspace/app/test/activity_test.dart: settlement/deleted keeps direction for another actor
+00:29 +64: /workspace/app/test/activity_test.dart: repayment/pending keeps direction for another actor
+00:29 +65: /workspace/app/test/activity_test.dart: repayment/confirmed keeps direction for another actor
+00:29 +66: /workspace/app/test/activity_test.dart: repayment/disputed keeps direction for another actor
+00:29 +67: /workspace/app/test/activity_test.dart: repayment/deleted keeps direction for another actor
+00:29 +68: /workspace/app/test/activity_test.dart: loan nudges have polite Activity copy
+00:29 +69: /workspace/app/test/activity_test.dart: the feed reads like the canvas, edits before and after
+00:30 +70: /workspace/app/test/activity_test.dart: only money in or out of your pocket is coloured
+00:30 +71: /workspace/app/test/activity_test.dart: 'Needs you' narrows to what waits for you
+00:31 +72: /workspace/app/test/activity_test.dart: empty: says what will show up, in both filters
+00:31 +73: /workspace/app/test/activity_test.dart: confirming a settle-up from the feed uses the space sheet, then refreshes
+00:32 +74: /workspace/app/test/activity_test.dart: Review on a repayment opens its confirmation
+00:33 +75: /workspace/app/test/activity_test.dart: link-only decline says the underlying invite remains open
+00:33 +76: /workspace/app/test/activity_test.dart: a double tap on Review in one frame opens it once
+00:33 +77: /workspace/app/test/activity_test.dart: a settle-up already answered says so
+00:33 +78: /workspace/app/test/activity_test.dart: scrolling to the end loads the next page by keyset
+00:34 +79: /workspace/app/test/activity_test.dart: pull to refresh drops the cursor and reloads from the top
+00:35 +80: /workspace/app/test/activity_test.dart: filters (#109) a space chip and Loans read the feed through the filter
+00:35 +81: /workspace/app/test/activity_test.dart: filters (#109) a filtered feed pages by keyset through the same filter
+00:36 +82: /workspace/app/test/activity_test.dart: filters (#109) a filter with nothing in it says so
+00:37 +83: /workspace/app/test/activity_test.dart: seen (#109) opening marks what is new since the last open seen
+00:37 +84: /workspace/app/test/activity_test.dart: seen (#109) a question about your edit rings for you, the editor, only
+00:37 +85: /workspace/app/test/activity_test.dart: seen (#109) with nothing new it marks nothing
+00:37 +86: /workspace/app/test/activity_test.dart: 'Question this' (#109) someone else's edit takes a short note, shown on its row
+00:38 +87: /workspace/app/test/activity_test.dart: 'Question this' (#109) a note that cannot be sent stays to try again
+00:39 +88: /workspace/app/test/activity_test.dart: 'Question this' (#109) members' notes show; your own edit cannot be questioned
+00:41 +89: loading /workspace/app/test/add_expense_golden_test.dart
+00:43 +89: /workspace/app/test/add_expense_golden_test.dart: 390x844 dark add expense golden
+00:48 +90: /workspace/app/test/add_expense_golden_test.dart: 390x844 light add expense golden
+00:49 +91: /workspace/app/test/add_expense_golden_test.dart: 360x800 dark add expense golden
+00:49 +92: /workspace/app/test/add_expense_golden_test.dart: 360x800 light add expense golden
+00:50 +93: /workspace/app/test/add_expense_golden_test.dart: 390x844_text200 dark add expense golden
+00:50 +94: /workspace/app/test/add_expense_golden_test.dart: 390x844_text200 light add expense golden
+00:51 +95: /workspace/app/test/add_expense_golden_test.dart: 360x800_text200 dark add expense golden
+00:52 +96: /workspace/app/test/add_expense_golden_test.dart: 360x800_text200 light add expense golden
+00:52 +97: /workspace/app/test/add_expense_golden_test.dart: se375x667 dark add expense golden
+00:52 +98: /workspace/app/test/add_expense_golden_test.dart: se375x667 light add expense golden
+00:53 +99: /workspace/app/test/add_expense_golden_test.dart: se375x667_text200 dark add expense golden
+00:53 +100: /workspace/app/test/add_expense_golden_test.dart: se375x667_text200 light add expense golden
+00:53 +101: /workspace/app/test/add_expense_golden_test.dart: 390x844 dark add expense_ios golden
+00:54 +102: /workspace/app/test/add_expense_golden_test.dart: 390x844 light add expense_ios golden
+00:54 +103: /workspace/app/test/add_expense_golden_test.dart: 360x800 dark add expense_ios golden
+00:55 +104: /workspace/app/test/add_expense_golden_test.dart: 360x800 light add expense_ios golden
+00:57 +105: loading /workspace/app/test/add_expense_test.dart
+01:00 +105: /workspace/app/test/add_expense_test.dart: opens on the space: you paid, split equally
+01:05 +106: /workspace/app/test/add_expense_test.dart: equal odd paise go to the payer
+01:07 +107: /workspace/app/test/add_expense_test.dart: equal only the people ticked share it
+01:07 +108: /workspace/app/test/add_expense_test.dart: equal nobody ticked cannot be saved
+01:08 +109: /workspace/app/test/add_expense_test.dart: exact: live remainder, then saves the typed amounts
+01:10 +110: /workspace/app/test/add_expense_test.dart: percent: must make 100%; a tied paisa goes to the payer
+01:11 +111: /workspace/app/test/add_expense_test.dart: shares: in proportion; a tied paisa goes to the payer
+01:11 +112: /workspace/app/test/add_expense_test.dart: multiple payers must add up to the amount
+01:12 +113: /workspace/app/test/add_expense_test.dart: saving a retry after a failure reuses the idempotency key
+01:13 +114: /workspace/app/test/add_expense_test.dart: saving a new sheet gets a new key
+01:15 +115: /workspace/app/test/add_expense_test.dart: saving IdempotencyConflict is explained in plain words
+01:15 +116: /workspace/app/test/add_expense_test.dart: saving ExpenseRejected is explained in plain words
+01:16 +117: /workspace/app/test/add_expense_test.dart: Close goes back without saving
+01:16 +118: /workspace/app/test/add_expense_test.dart: from Home asks which space when there are several
+01:17 +119: /workspace/app/test/add_expense_test.dart: from Home goes straight to your only space
+01:17 +120: /workspace/app/test/add_expense_test.dart: from Home without a space, offers to start one
+01:17 +121: /workspace/app/test/add_expense_test.dart: Save and selected controls use the brand hue in every split mode
+01:18 +122: /workspace/app/test/add_expense_test.dart: amounts are announced in rupees
+01:19 +123: /workspace/app/test/add_expense_test.dart: every control is at least 44x44pt Equally
+01:20 +124: /workspace/app/test/add_expense_test.dart: every control is at least 44x44pt Exact
+01:20 +125: /workspace/app/test/add_expense_test.dart: every control is at least 44x44pt %
+01:21 +126: /workspace/app/test/add_expense_test.dart: every control is at least 44x44pt Shares
+01:21 +127: /workspace/app/test/add_expense_test.dart: every control is at least 44x44pt Multiple payers
+01:21 +128: /workspace/app/test/add_expense_test.dart: fits 360x800 without overflow Equally
+01:22 +129: /workspace/app/test/add_expense_test.dart: fits 360x800 without overflow Exact
+01:23 +130: /workspace/app/test/add_expense_test.dart: fits 360x800 without overflow %
+01:24 +131: /workspace/app/test/add_expense_test.dart: fits 360x800 without overflow Shares
+01:27 +132: loading /workspace/app/test/app_test.dart
+01:29 +132: /workspace/app/test/app_test.dart: boots signed out to Welcome, without the tab bar
+01:32 +133: /workspace/app/test/app_test.dart: boots signed in to Home, with the tab bar
+01:33 +134: /workspace/app/test/app_test.dart: signing in and out re-runs the guard
+01:35 +135: /workspace/app/test/app_test.dart: the bell counts what is new until Activity is opened, on every open (#109)
+01:36 +136: /workspace/app/test/app_test.dart: tabs switch branches and keep each branch stack
+01:37 +137: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /welcome
+01:37 +138: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /welcome/phone
+01:37 +139: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /join/t1
+01:38 +140: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /home
+01:38 +141: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /home/profile
+01:38 +142: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /spaces
+01:38 +143: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /spaces/s1
+01:39 +144: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /spaces/s1/balances
+01:40 +145: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /loans
+01:40 +146: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /loans/l1
+01:40 +147: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /loans/new
+01:41 +148: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /loans/repayments/r1
+01:41 +149: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /activity
+01:41 +150: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /expenses/new
+01:41 +151: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /settle
+01:41 +152: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow /settle/pay
+01:42 +153: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow OTP without a sent code goes back to Phone
+01:42 +154: /workspace/app/test/app_test.dart: every route builds at 360x800 without overflow Splash is reachable only on the way in
+01:43 +155: /workspace/app/test/app_test.dart: main refuses to start without Supabase settings
+01:44 +156: loading /workspace/app/test/auth_golden_test.dart
+01:46 +156: /workspace/app/test/auth_golden_test.dart: 390x844 dark welcome golden
+01:48 +157: /workspace/app/test/auth_golden_test.dart: 390x844 dark phone golden
+01:49 +158: /workspace/app/test/auth_golden_test.dart: 390x844 dark otp golden
+01:49 +159: /workspace/app/test/auth_golden_test.dart: 390x844 light welcome golden
+01:49 +160: /workspace/app/test/auth_golden_test.dart: 390x844 light phone golden
+01:49 +161: /workspace/app/test/auth_golden_test.dart: 390x844 light otp golden
+01:49 +162: /workspace/app/test/auth_golden_test.dart: 360x800 dark welcome golden
+01:49 +163: /workspace/app/test/auth_golden_test.dart: 360x800 dark phone golden
+01:50 +164: /workspace/app/test/auth_golden_test.dart: 360x800 dark otp golden
+01:50 +165: /workspace/app/test/auth_golden_test.dart: 360x800 light welcome golden
+01:50 +166: /workspace/app/test/auth_golden_test.dart: 360x800 light phone golden
+01:50 +167: /workspace/app/test/auth_golden_test.dart: 360x800 light otp golden
+01:50 +168: /workspace/app/test/auth_golden_test.dart: 390x844_text200 dark welcome golden
+01:50 +169: /workspace/app/test/auth_golden_test.dart: 390x844_text200 dark phone golden
+01:50 +170: /workspace/app/test/auth_golden_test.dart: 390x844_text200 dark otp golden
+01:51 +171: /workspace/app/test/auth_golden_test.dart: 390x844_text200 light welcome golden
+01:51 +172: /workspace/app/test/auth_golden_test.dart: 390x844_text200 light phone golden
+01:51 +173: /workspace/app/test/auth_golden_test.dart: 390x844_text200 light otp golden
+01:51 +174: /workspace/app/test/auth_golden_test.dart: 360x800_text200 dark welcome golden
+01:51 +175: /workspace/app/test/auth_golden_test.dart: 360x800_text200 dark phone golden
+01:51 +176: /workspace/app/test/auth_golden_test.dart: 360x800_text200 dark otp golden
+01:51 +177: /workspace/app/test/auth_golden_test.dart: 360x800_text200 light welcome golden
+01:51 +178: /workspace/app/test/auth_golden_test.dart: 360x800_text200 light phone golden
+01:51 +179: /workspace/app/test/auth_golden_test.dart: 360x800_text200 light otp golden
+01:52 +180: /workspace/app/test/auth_golden_test.dart: 390x844 dark welcome pressed golden
+01:53 +181: loading /workspace/app/test/auth_layout_test.dart
+01:54 +181: /workspace/app/test/auth_layout_test.dart: Welcome fits 360x800 without overflow
+01:57 +182: /workspace/app/test/auth_layout_test.dart: Welcome scrolls instead of overflowing above a keyboard
+01:57 +183: /workspace/app/test/auth_layout_test.dart: Phone fits 360x800 without overflow
+01:57 +184: /workspace/app/test/auth_layout_test.dart: Phone scrolls instead of overflowing above a keyboard
+01:57 +185: /workspace/app/test/auth_layout_test.dart: Phone with an error fits 360x800 without overflow
+01:58 +186: /workspace/app/test/auth_layout_test.dart: Phone with an error scrolls instead of overflowing above a keyboard
+01:58 +187: /workspace/app/test/auth_layout_test.dart: OTP fits 360x800 without overflow
+01:58 +188: /workspace/app/test/auth_layout_test.dart: OTP scrolls instead of overflowing above a keyboard
+01:58 +189: /workspace/app/test/auth_layout_test.dart: OTP with an error fits 360x800 without overflow
+01:58 +190: /workspace/app/test/auth_layout_test.dart: OTP with an error scrolls instead of overflowing above a keyboard
+01:59 +191: /workspace/app/test/auth_layout_test.dart: Welcome keeps mock weights and two headline lines 360x800
+01:59 +192: /workspace/app/test/auth_layout_test.dart: Welcome keeps mock weights and two headline lines 390x844
+01:59 +193: /workspace/app/test/auth_layout_test.dart: the Welcome subtitle grows for the platform type ramp at 390
+01:59 +194: /workspace/app/test/auth_layout_test.dart: the primary action stays on screen at 360x800
+01:59 +195: /workspace/app/test/auth_layout_test.dart: Welcome scrolls without overflow at 200% text scaling
+02:01 +196: loading /workspace/app/test/date_picker_test.dart
+02:02 +196: /workspace/app/test/date_picker_test.dart: expense date wheel is readable dark
+02:05 +197: /workspace/app/test/date_picker_test.dart: repayment date wheel is readable dark
+02:06 +198: /workspace/app/test/date_picker_test.dart: loan date wheel is readable dark
+02:07 +199: /workspace/app/test/date_picker_test.dart: expense date wheel is readable light
+02:07 +200: /workspace/app/test/date_picker_test.dart: repayment date wheel is readable light
+02:08 +201: /workspace/app/test/date_picker_test.dart: loan date wheel is readable light
+02:09 +202: loading /workspace/app/test/fair_share_bar_test.dart
+02:11 +202: /workspace/app/test/fair_share_bar_test.dart: m1: the bar is what they paid, the tick their share
+02:12 +203: /workspace/app/test/fair_share_bar_test.dart: m2: the bar is what they paid, the tick their share
+02:12 +204: /workspace/app/test/fair_share_bar_test.dart: m3: the bar is what they paid, the tick their share
+02:12 +205: /workspace/app/test/fair_share_bar_test.dart: the tick is primary text in dark, never gold
+02:12 +206: /workspace/app/test/fair_share_bar_test.dart: the tick is primary text in light, never gold
+02:12 +207: /workspace/app/test/fair_share_bar_test.dart: it reads paid against fair share in rupees
+02:14 +208: loading /workspace/app/test/glass_back_golden_test.dart
+02:16 +208: /workspace/app/test/glass_back_golden_test.dart: 390x844 glass back light
+02:19 +209: /workspace/app/test/glass_back_golden_test.dart: 390x844 glass back dark
+02:19 +210: /workspace/app/test/glass_back_golden_test.dart: 360x800 glass back light
+02:19 +211: /workspace/app/test/glass_back_golden_test.dart: 360x800 glass back dark
+02:19 +212: /workspace/app/test/glass_back_golden_test.dart: 390x844_text200 glass back light
+02:19 +213: /workspace/app/test/glass_back_golden_test.dart: 390x844_text200 glass back dark
+02:19 +214: /workspace/app/test/glass_back_golden_test.dart: 360x800_text200 glass back light
+02:19 +215: /workspace/app/test/glass_back_golden_test.dart: 360x800_text200 glass back dark
+02:21 +216: loading /workspace/app/test/glass_golden_test.dart
+02:22 +216: /workspace/app/test/glass_golden_test.dart: glass scrolled 390x844 dark false
+02:25 +217: /workspace/app/test/glass_golden_test.dart: glass scrolled 390x844 dark true
+02:25 +218: /workspace/app/test/glass_golden_test.dart: glass scrolled 390x844 light false
+02:25 +219: /workspace/app/test/glass_golden_test.dart: glass scrolled 390x844 light true
+02:25 +220: /workspace/app/test/glass_golden_test.dart: glass scrolled 360x800 dark false
+02:25 +221: /workspace/app/test/glass_golden_test.dart: glass scrolled 360x800 dark true
+02:26 +222: /workspace/app/test/glass_golden_test.dart: glass scrolled 360x800 light false
+02:26 +223: /workspace/app/test/glass_golden_test.dart: glass scrolled 360x800 light true
+02:26 +224: /workspace/app/test/glass_golden_test.dart: glass scrolled 390x844_text200 dark false
+02:26 +225: /workspace/app/test/glass_golden_test.dart: glass scrolled 390x844_text200 dark true
+02:26 +226: /workspace/app/test/glass_golden_test.dart: glass scrolled 390x844_text200 light false
+02:26 +227: /workspace/app/test/glass_golden_test.dart: glass scrolled 390x844_text200 light true
+02:26 +228: /workspace/app/test/glass_golden_test.dart: glass scrolled 360x800_text200 dark false
+02:27 +229: /workspace/app/test/glass_golden_test.dart: glass scrolled 360x800_text200 dark true
+02:27 +230: /workspace/app/test/glass_golden_test.dart: glass scrolled 360x800_text200 light false
+02:27 +231: /workspace/app/test/glass_golden_test.dart: glass scrolled 360x800_text200 light true
+02:29 +232: loading /workspace/app/test/golden_harness_sample_test.dart
+02:30 +232: /workspace/app/test/golden_harness_sample_test.dart: 390x844 dark sample golden
+02:32 +233: /workspace/app/test/golden_harness_sample_test.dart: 390x844 light sample golden
+02:32 +234: /workspace/app/test/golden_harness_sample_test.dart: 360x800 dark sample golden
+02:33 +235: /workspace/app/test/golden_harness_sample_test.dart: 360x800 light sample golden
+02:34 +236: loading /workspace/app/test/hit_target_audit_test.dart
+02:35 +236: /workspace/app/test/hit_target_audit_test.dart: tree audit rejects small raw controls, accepts shared controls
+02:38 +237: loading /workspace/app/test/home_golden_test.dart
+02:40 +237: /workspace/app/test/home_golden_test.dart: 390x844 dark home main golden
+02:43 +238: /workspace/app/test/home_golden_test.dart: 390x844 light home main golden
+02:44 +239: /workspace/app/test/home_golden_test.dart: 390x844 dark home empty golden
+02:44 +240: /workspace/app/test/home_golden_test.dart: 390x844 light home empty golden
+02:44 +241: /workspace/app/test/home_golden_test.dart: 390x844 dark home found golden
+02:44 +242: /workspace/app/test/home_golden_test.dart: 390x844 light home found golden
+02:44 +243: /workspace/app/test/home_golden_test.dart: 360x800 dark home main golden
+02:44 +244: /workspace/app/test/home_golden_test.dart: 360x800 light home main golden
+02:45 +245: /workspace/app/test/home_golden_test.dart: 360x800 dark home empty golden
+02:45 +246: /workspace/app/test/home_golden_test.dart: 360x800 light home empty golden
+02:45 +247: /workspace/app/test/home_golden_test.dart: 360x800 dark home found golden
+02:46 +248: /workspace/app/test/home_golden_test.dart: 360x800 light home found golden
+02:46 +249: /workspace/app/test/home_golden_test.dart: 390x844_text200 dark home main golden
+02:46 +250: /workspace/app/test/home_golden_test.dart: 390x844_text200 light home main golden
+02:46 +251: /workspace/app/test/home_golden_test.dart: 390x844_text200 dark home empty golden
+02:46 +252: /workspace/app/test/home_golden_test.dart: 390x844_text200 light home empty golden
+02:46 +253: /workspace/app/test/home_golden_test.dart: 390x844_text200 dark home found golden
+02:47 +254: /workspace/app/test/home_golden_test.dart: 390x844_text200 light home found golden
+02:47 +255: /workspace/app/test/home_golden_test.dart: 360x800_text200 dark home main golden
+02:47 +256: /workspace/app/test/home_golden_test.dart: 360x800_text200 light home main golden
+02:47 +257: /workspace/app/test/home_golden_test.dart: 360x800_text200 dark home empty golden
+02:47 +258: /workspace/app/test/home_golden_test.dart: 360x800_text200 light home empty golden
+02:47 +259: /workspace/app/test/home_golden_test.dart: 360x800_text200 dark home found golden
+02:47 +260: /workspace/app/test/home_golden_test.dart: 360x800_text200 light home found golden
+02:47 +261: /workspace/app/test/home_golden_test.dart: owner mock beside empty Home at 390x844
+02:49 +262: loading /workspace/app/test/home_test.dart
+02:51 +262: /workspace/app/test/home_test.dart: homeProvider loads Home and totals balances in paise
+02:51 +263: /workspace/app/test/home_test.dart: homeProvider accepting a claim reloads it into the balances
+02:51 +264: /workspace/app/test/home_test.dart: homeProvider rejecting a claim drops it without a balance
+02:51 +265: /workspace/app/test/home_test.dart: homeProvider a refused claim call throws and leaves Home as it was
+02:51 +266: /workspace/app/test/home_test.dart: Home shows the net position, stats and both cards
+02:54 +267: /workspace/app/test/home_test.dart: Home accepting a claim moves it into the balances
+02:54 +268: /workspace/app/test/home_test.dart: Home 'This isn't me' removes the claim
+02:55 +269: /workspace/app/test/home_test.dart: Home a no-pump double tap on "Accept" answers once
+02:55 +270: /workspace/app/test/home_test.dart: Home a no-pump double tap on "This isn't me" answers once
+02:55 +271: /workspace/app/test/home_test.dart: Home signing out while "Accept" is queued says nothing
+02:56 +272: /workspace/app/test/home_test.dart: Home signing out while "This isn't me" is queued says nothing
+02:56 +273: /workspace/app/test/home_test.dart: Home a retry reuses its key; each button has its own
+02:56 +274: /workspace/app/test/home_test.dart: Home a refused claim says so and keeps the claim
+02:56 +275: /workspace/app/test/home_test.dart: Home a failed load keeps the hero in place and says why
+02:56 +276: /workspace/app/test/home_test.dart: Home pulling down reloads
+02:56 +277: /workspace/app/test/home_test.dart: Home Add expense goes to /expenses/new
+02:57 +278: /workspace/app/test/home_test.dart: Home Settle up goes to /settle
+02:57 +279: /workspace/app/test/home_test.dart: Home SEE ALL goes to /spaces
+02:57 +280: /workspace/app/test/home_test.dart: Home Flat 402 goes to /spaces/s1
+02:57 +281: /workspace/app/test/home_test.dart: Home Arjun · interest free goes to /loans/l1
+02:57 +282: /workspace/app/test/home_test.dart: Home Start a space goes to /spaces
+02:57 +283: /workspace/app/test/home_test.dart: Home Record a loan goes to /loans/new
+02:58 +284: /workspace/app/test/home_test.dart: Home Notifications goes to /activity
+02:58 +285: /workspace/app/test/home_test.dart: Home Profile goes to /profile
+02:58 +286: /workspace/app/test/home_test.dart: Home the S mark is the header title; no wordmark (#191)
+02:58 +287: /workspace/app/test/home_test.dart: Home pending repayment opens its confirmation receipt
+02:59 +288: /workspace/app/test/home_test.dart: Home a borrowed, flexible loan reads from your side
+02:59 +289: /workspace/app/test/home_test.dart: Home scheduled loan keeps direction without hue: true
+02:59 +290: /workspace/app/test/home_test.dart: Home scheduled loan keeps direction without hue: false
+02:59 +291: /workspace/app/test/home_test.dart: every control is at least 44x44pt Home meets the iOS tap target guideline
+02:59 +292: /workspace/app/test/home_test.dart: every control is at least 44x44pt Home · empty meets the iOS tap target guideline
+02:59 +293: /workspace/app/test/home_test.dart: every control is at least 44x44pt Home · ledger found meets the iOS tap target guideline
+02:59 +294: /workspace/app/test/home_test.dart: every control is at least 44x44pt header, See all and the loan row
+02:59 +295: /workspace/app/test/home_test.dart: every control is at least 44x44pt a single-line loan row still has a 44pt target
+02:59 +296: /workspace/app/test/home_test.dart: every control is at least 44x44pt claim actions
+02:59 +297: /workspace/app/test/home_test.dart: amounts are announced in rupees beside their labels
+03:00 +298: /workspace/app/test/home_test.dart: claims are announced in rupees
+03:00 +299: /workspace/app/test/home_test.dart: fits 360x800 without overflow Home
+03:00 +300: /workspace/app/test/home_test.dart: fits 360x800 without overflow Home · empty
+03:00 +301: /workspace/app/test/home_test.dart: fits 360x800 without overflow Home · ledger found
+03:00 +302: /workspace/app/test/home_test.dart: empty Home fits at 200% text scaling
+03:00 +303: /workspace/app/test/home_test.dart: populated Home fits at 200% text scaling
+03:00 +304: /workspace/app/test/home_test.dart: empty action cards expose a semantic tap action
+03:00 +305: /workspace/app/test/home_test.dart: Reduce Motion makes Home press feedback immediate
+03:02 +306: loading /workspace/app/test/in_shell_tabs_test.dart
+03:03 +306: /workspace/app/test/in_shell_tabs_test.dart: root sheet blocks every tab until closed: /spaces/s1 (variant: TargetPlatform.iOS)
+03:08 +307: /workspace/app/test/in_shell_tabs_test.dart: root sheet blocks every tab until closed: /spaces/s1/balances (variant: TargetPlatform.iOS)
+03:09 +308: /workspace/app/test/in_shell_tabs_test.dart: root sheet blocks every tab until closed: /loans/l1 (variant: TargetPlatform.iOS)
+03:10 +309: /workspace/app/test/in_shell_tabs_test.dart: loan sheet returns to /home (variant: TargetPlatform.iOS)
+03:10 +310: /workspace/app/test/in_shell_tabs_test.dart: loan sheet returns to /spaces (variant: TargetPlatform.iOS)
+03:11 +311: /workspace/app/test/in_shell_tabs_test.dart: loan sheet returns to /activity (variant: TargetPlatform.iOS)
+03:12 +312: /workspace/app/test/in_shell_tabs_test.dart: on iOS, a dialog over Profile keeps the bar from UIKit (variant: TargetPlatform.iOS)
+03:14 +313: loading /workspace/app/test/ios_controls_test.dart
+03:15 +313: /workspace/app/test/ios_controls_test.dart: Spaces list iOS: search filters the spaces by name
+03:18 +314: /workspace/app/test/ios_controls_test.dart: Spaces list Android: no search, and the circled + stays
+03:19 +315: /workspace/app/test/ios_controls_test.dart: Spaces list iOS: Create space is a page sheet with ✕ and Create space
+03:21 +316: /workspace/app/test/ios_controls_test.dart: Spaces list iOS: VoiceOver can activate New space
+03:21 +317: /workspace/app/test/ios_controls_test.dart: Spaces list iOS: an untouched Create space closes on ✕
+03:21 +318: /workspace/app/test/ios_controls_test.dart: Spaces list Android: Create space keeps its Material sheet
+03:22 +319: /workspace/app/test/ios_controls_test.dart: Activity iOS: search filters the feed
+03:23 +320: /workspace/app/test/ios_controls_test.dart: Activity iOS: day headings are pinned slivers
+03:23 +321: /workspace/app/test/ios_controls_test.dart: Activity Android: no search field or pinned headings
+03:23 +322: /workspace/app/test/ios_controls_test.dart: Add expense iOS: split rows use a trailing checkmark
+03:23 +323: /workspace/app/test/ios_controls_test.dart: Add expense iOS: VoiceOver can toggle a split row and open the date
+03:23 +324: /workspace/app/test/ios_controls_test.dart: Add expense iOS: the date opens a Cupertino wheel
+03:24 +325: /workspace/app/test/ios_controls_test.dart: Add expense Android: checkboxes and the Material calendar stay
+03:24 +326: /workspace/app/test/ios_controls_test.dart: New loan iOS: segmented direction, switch, wheel pickers
+03:25 +327: /workspace/app/test/ios_controls_test.dart: New loan iOS: VoiceOver can pick a direction and open both wheels
+03:26 +328: /workspace/app/test/ios_controls_test.dart: New loan Android: Material switch and dropdown stay
+03:27 +329: loading /workspace/app/test/ios_navigation_test.dart
+03:29 +329: /workspace/app/test/ios_navigation_test.dart: Add expense is a root sheet on TargetPlatform.iOS
+03:32 +330: /workspace/app/test/ios_navigation_test.dart: Settle up is a root sheet on TargetPlatform.iOS
+03:32 +331: /workspace/app/test/ios_navigation_test.dart: New loan is a root sheet on TargetPlatform.iOS
+03:33 +332: /workspace/app/test/ios_navigation_test.dart: Confirm settlement is a root sheet on TargetPlatform.iOS
+03:33 +333: /workspace/app/test/ios_navigation_test.dart: Add expense is a root sheet on TargetPlatform.android
+03:33 +334: /workspace/app/test/ios_navigation_test.dart: Settle up is a root sheet on TargetPlatform.android
+03:33 +335: /workspace/app/test/ios_navigation_test.dart: New loan is a root sheet on TargetPlatform.android
+03:34 +336: /workspace/app/test/ios_navigation_test.dart: Confirm settlement is a root sheet on TargetPlatform.android
+03:34 +337: /workspace/app/test/ios_navigation_test.dart: on iOS, Add expense drags down from its title to dismiss
+03:34 +338: /workspace/app/test/ios_navigation_test.dart: on iOS, a dirty Add expense asks before a drag discards it
+03:36 +339: /workspace/app/test/ios_navigation_test.dart: on iOS, a date-only New loan edit asks, drag=false
+03:36 +340: /workspace/app/test/ios_navigation_test.dart: on iOS, a date-only New loan edit asks, drag=true
+03:37 +341: /workspace/app/test/ios_navigation_test.dart: on Android, Add expense keeps its own drag to close
+03:37 +342: /workspace/app/test/ios_navigation_test.dart: on iOS, native dismissal from a space in the app router
+03:39 +343: /workspace/app/test/ios_navigation_test.dart: on iOS, native dismissal from Balances in the app router
+03:40 +344: /workspace/app/test/ios_navigation_test.dart: on iOS, native dismissal from a loan in the app router
+03:40 +345: /workspace/app/test/ios_navigation_test.dart: on iOS, Back from Balances reached by its segment goes to Spaces
+03:43 +346: loading /workspace/app/test/join_golden_test.dart
+03:44 +346: /workspace/app/test/join_golden_test.dart: 390x844 dark Join golden
+03:46 +347: /workspace/app/test/join_golden_test.dart: 390x844 light Join golden
+03:46 +348: /workspace/app/test/join_golden_test.dart: 360x800 dark Join golden
+03:46 +349: /workspace/app/test/join_golden_test.dart: 360x800 light Join golden
+03:47 +350: /workspace/app/test/join_golden_test.dart: 390x844_text200 dark Join golden
+03:47 +351: /workspace/app/test/join_golden_test.dart: 390x844_text200 light Join golden
+03:47 +352: /workspace/app/test/join_golden_test.dart: 360x800_text200 dark Join golden
+03:47 +353: /workspace/app/test/join_golden_test.dart: 360x800_text200 light Join golden
+03:48 +354: loading /workspace/app/test/join_test.dart
+03:50 +354: /workspace/app/test/join_test.dart: acceptance event only for new scheduled loan (false)
+03:50 +355: /workspace/app/test/join_test.dart: acceptance event only for new scheduled loan (true)
+03:50 +356: /workspace/app/test/join_test.dart: account switch during the pre-acceptance snapshot fences redemption
+03:50 +357: /workspace/app/test/join_test.dart: failed redemption and sign-out never publish acceptance
+03:50 +358: /workspace/app/test/join_test.dart: accepted instalment loan permission notDetermined signedIn=false
+03:54 +359: /workspace/app/test/join_test.dart: accepted instalment loan permission notDetermined signedIn=true
+03:55 +360: /workspace/app/test/join_test.dart: accepted instalment loan permission denied signedIn=false
+03:55 +361: /workspace/app/test/join_test.dart: accepted instalment loan permission denied signedIn=true
+03:56 +362: /workspace/app/test/join_test.dart: accepted instalment loan permission granted signedIn=false
+03:57 +363: /workspace/app/test/join_test.dart: accepted instalment loan permission granted signedIn=true
+03:57 +364: /workspace/app/test/join_test.dart: shows only Join trust copy before verification
+03:57 +365: /workspace/app/test/join_test.dart: This isn't me records decline and exits
+03:57 +366: /workspace/app/test/join_test.dart: primary action ignores a no-pump double tap
+03:58 +367: /workspace/app/test/join_test.dart: custom-scheme invite routes on cold and warm delivery
+03:58 +368: /workspace/app/test/join_test.dart: a second warm link rebuilds Join before acting on it
+03:58 +369: /workspace/app/test/join_test.dart: an in-flight Join success stays safe after a token rebuild
+03:58 +370: /workspace/app/test/join_test.dart: wrong phone after OTP is visible on signed-in Home
+03:58 +371: /workspace/app/test/join_test.dart: successful delayed OTP redeem clears the remembered invite
+03:59 +372: /workspace/app/test/join_test.dart: a late redeem result is dropped after another user signs in
+03:59 +373: /workspace/app/test/join_test.dart: a retained rate-limit invite is not tried by another user
+04:00 +374: /workspace/app/test/join_test.dart: router exception recovery returns signed out to Welcome
+04:01 +375: /workspace/app/test/join_test.dart: normalizes only the supported custom-scheme shape
+04:02 +376: loading /workspace/app/test/liquid_glass_golden_test.dart
+04:03 +376: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home dark rest golden
+04:06 +377: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home dark scrolled golden
+04:06 +378: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home light rest golden
+04:06 +379: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home light scrolled golden
+04:07 +380: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space dark rest golden
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/ios26_space_dark_rest.png": Pixel test failed, 1.64%, 5412px diff detected.
+Failure feedback can be found at /workspace/app/test/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///workspace/app/test/liquid_glass_golden_test.dart:76:11)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+04:07 +380 -1: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space dark rest golden [E]
+  Test failed. See exception logs above.
+  The test description was: ios26 space dark rest golden
+
+04:07 +380 -1: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space dark scrolled golden
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/ios26_space_dark_scrolled.png": Pixel test failed, 1.80%, 5935px diff detected.
+Failure feedback can be found at /workspace/app/test/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///workspace/app/test/liquid_glass_golden_test.dart:76:11)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+04:08 +380 -2: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space dark scrolled golden [E]
+  Test failed. See exception logs above.
+  The test description was: ios26 space dark scrolled golden
+
+04:08 +380 -2: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space light rest golden
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/ios26_space_light_rest.png": Pixel test failed, 1.64%, 5413px diff detected.
+Failure feedback can be found at /workspace/app/test/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///workspace/app/test/liquid_glass_golden_test.dart:76:11)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+04:08 +380 -3: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space light rest golden [E]
+  Test failed. See exception logs above.
+  The test description was: ios26 space light rest golden
+
+04:09 +380 -3: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space light scrolled golden
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown while running async test code:
+Golden "goldens/ios26_space_light_scrolled.png": Pixel test failed, 1.80%, 5936px diff detected.
+Failure feedback can be found at /workspace/app/test/failures
+
+When the exception was thrown, this was the stack:
+#0      LocalFileComparator.compare (package:flutter_test/src/_goldens_io.dart:108:5)
+<asynchronous suspension>
+#1      MatchesGoldenFile.matchAsync.<anonymous closure> (package:flutter_test/src/_matchers_io.dart:124:32)
+<asynchronous suspension>
+<asynchronous suspension>
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+<asynchronous suspension>
+#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///workspace/app/test/liquid_glass_golden_test.dart:76:11)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+04:09 +380 -4: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space light scrolled golden [E]
+  Test failed. See exception logs above.
+  The test description was: ios26 space light scrolled golden
+
+04:10 +380 -4: loading /workspace/app/test/live_activity_sync_test.dart
+04:12 +380 -4: /workspace/app/test/live_activity_sync_test.dart: shows the settle-up awaiting you, ends when it resolves
+04:12 +381 -4: /workspace/app/test/live_activity_sync_test.dart: re-reads when the app comes back, since there is no push
+04:12 +382 -4: /workspace/app/test/live_activity_sync_test.dart: ends on sign-out
+04:12 +383 -4: /workspace/app/test/live_activity_sync_test.dart: another user signing in ends the last one's activity
+04:12 +384 -4: /workspace/app/test/live_activity_sync_test.dart: asks to notify on Activity with a settle-up, once
+04:14 +385 -4: /workspace/app/test/live_activity_sync_test.dart: does not ask when only a repayment waits
+04:16 +386 -4: loading /workspace/app/test/loans_golden_test.dart
+04:17 +386 -4: /workspace/app/test/loans_golden_test.dart: 390x844 dark loans list golden
+04:20 +387 -4: /workspace/app/test/loans_golden_test.dart: 390x844 light loans list golden
+04:20 +388 -4: /workspace/app/test/loans_golden_test.dart: 360x800 dark loans list golden
+04:20 +389 -4: /workspace/app/test/loans_golden_test.dart: 360x800 light loans list golden
+04:20 +390 -4: /workspace/app/test/loans_golden_test.dart: 390x844_text200 dark loans list golden
+04:20 +391 -4: /workspace/app/test/loans_golden_test.dart: 390x844_text200 light loans list golden
+04:20 +392 -4: /workspace/app/test/loans_golden_test.dart: 360x800_text200 dark loans list golden
+04:21 +393 -4: /workspace/app/test/loans_golden_test.dart: 360x800_text200 light loans list golden
+04:21 +394 -4: /workspace/app/test/loans_golden_test.dart: se375x667 dark loans list golden
+04:21 +395 -4: /workspace/app/test/loans_golden_test.dart: se375x667 light loans list golden
+04:21 +396 -4: /workspace/app/test/loans_golden_test.dart: se375x667_text200 dark loans list golden
+04:21 +397 -4: /workspace/app/test/loans_golden_test.dart: se375x667_text200 light loans list golden
+04:21 +398 -4: /workspace/app/test/loans_golden_test.dart: 390x844 dark loans detail golden
+04:22 +399 -4: /workspace/app/test/loans_golden_test.dart: 390x844 light loans detail golden
+04:22 +400 -4: /workspace/app/test/loans_golden_test.dart: 360x800 dark loans detail golden
+04:22 +401 -4: /workspace/app/test/loans_golden_test.dart: 360x800 light loans detail golden
+04:22 +402 -4: /workspace/app/test/loans_golden_test.dart: 390x844_text200 dark loans detail golden
+04:23 +403 -4: /workspace/app/test/loans_golden_test.dart: 390x844_text200 light loans detail golden
+04:23 +404 -4: /workspace/app/test/loans_golden_test.dart: 360x800_text200 dark loans detail golden
+04:23 +405 -4: /workspace/app/test/loans_golden_test.dart: 360x800_text200 light loans detail golden
+04:23 +406 -4: /workspace/app/test/loans_golden_test.dart: se375x667 dark loans detail golden
+04:23 +407 -4: /workspace/app/test/loans_golden_test.dart: se375x667 light loans detail golden
+04:23 +408 -4: /workspace/app/test/loans_golden_test.dart: se375x667_text200 dark loans detail golden
+04:23 +409 -4: /workspace/app/test/loans_golden_test.dart: se375x667_text200 light loans detail golden
+04:23 +410 -4: /workspace/app/test/loans_golden_test.dart: 390x844 dark confirm repayment golden
+04:23 +411 -4: /workspace/app/test/loans_golden_test.dart: 390x844 light confirm repayment golden
+04:24 +412 -4: /workspace/app/test/loans_golden_test.dart: 360x800 dark confirm repayment golden
+04:24 +413 -4: /workspace/app/test/loans_golden_test.dart: 360x800 light confirm repayment golden
+04:24 +414 -4: /workspace/app/test/loans_golden_test.dart: 390x844_text200 dark confirm repayment golden
+04:24 +415 -4: /workspace/app/test/loans_golden_test.dart: 390x844_text200 light confirm repayment golden
+04:24 +416 -4: /workspace/app/test/loans_golden_test.dart: 360x800_text200 dark confirm repayment golden
+04:24 +417 -4: /workspace/app/test/loans_golden_test.dart: 360x800_text200 light confirm repayment golden
+04:24 +418 -4: /workspace/app/test/loans_golden_test.dart: se375x667 dark confirm repayment golden
+04:25 +419 -4: /workspace/app/test/loans_golden_test.dart: se375x667 light confirm repayment golden
+04:25 +420 -4: /workspace/app/test/loans_golden_test.dart: se375x667_text200 dark confirm repayment golden
+04:25 +421 -4: /workspace/app/test/loans_golden_test.dart: se375x667_text200 light confirm repayment golden
+04:26 +422 -4: loading /workspace/app/test/loans_test.dart
+04:28 +422 -4: /workspace/app/test/loans_test.dart: India date crosses midnight independently of a UTC-8 device
+04:28 +423 -4: /workspace/app/test/loans_test.dart: ring geometry the canvas ring: r 51 in a 112 box, from twelve o'clock
+04:28 +424 -4: /workspace/app/test/loans_test.dart: ring geometry 0.0 sweeps 0.0
+04:28 +425 -4: /workspace/app/test/loans_test.dart: ring geometry 0.5 sweeps 3.141592653589793
+04:28 +426 -4: /workspace/app/test/loans_test.dart: ring geometry 1.0 sweeps 6.283185307179586
+04:28 +427 -4: /workspace/app/test/loans_test.dart: ring geometry 1.4 sweeps 6.283185307179586
+04:28 +428 -4: /workspace/app/test/loans_test.dart: ring geometry -0.2 sweeps 0.0
+04:28 +429 -4: /workspace/app/test/loans_test.dart: ring geometry the label rounds down, so 100% means fully repaid
+04:28 +430 -4: /workspace/app/test/loans_test.dart: Loans tab lists loans open first, each from your side
+04:30 +431 -4: /workspace/app/test/loans_test.dart: Loans tab scheduled loan keeps direction without hue: true
+04:30 +432 -4: /workspace/app/test/loans_test.dart: Loans tab scheduled loan keeps direction without hue: false
+04:30 +433 -4: /workspace/app/test/loans_test.dart: Loans tab a loan opens its detail
+04:31 +434 -4: /workspace/app/test/loans_test.dart: Loans tab with no loans it offers to record one
+04:32 +435 -4: /workspace/app/test/loans_test.dart: Loans tab a failed load says so
+04:32 +436 -4: /workspace/app/test/loans_test.dart: Loan detail ring, three tiles and the history
+04:33 +437 -4: /workspace/app/test/loans_test.dart: Loan detail record → pending → confirm: only confirmed counts
+04:33 +438 -4: /workspace/app/test/loans_test.dart: Loan detail paid-on picker is bounded by loan start and today
+04:34 +439 -4: /workspace/app/test/loans_test.dart: Loan detail reference trims Unicode whitespace and filters Cc/Cf
+04:35 +440 -4: /workspace/app/test/loans_test.dart: Loan detail reference limit counts Unicode code points
+04:35 +441 -4: /workspace/app/test/loans_test.dart: Loan detail a retried confirmation reuses its key and shows plain copy
+04:36 +442 -4: /workspace/app/test/loans_test.dart: Loan detail dispute asks for a reason and never counts
+04:36 +443 -4: /workspace/app/test/loans_test.dart: Loan detail more than is outstanding cannot be recorded
+04:36 +444 -4: /workspace/app/test/loans_test.dart: Loan detail a refused repayment shows the plain reason
+04:36 +445 -4: /workspace/app/test/loans_test.dart: Loan detail a closed loan cannot take more repayments
+04:36 +446 -4: /workspace/app/test/loans_test.dart: Loan detail back returns to the list
+04:37 +447 -4: /workspace/app/test/loans_test.dart: Loan detail download statement shares one PDF, even on a no-pump double tap
+04:38 +448 -4: /workspace/app/test/loans_test.dart: New loan creating an instalment loan: notDetermined
+04:40 +449 -4: /workspace/app/test/loans_test.dart: New loan creating an instalment loan: denied
+04:40 +450 -4: /workspace/app/test/loans_test.dart: New loan creating an instalment loan: granted
+04:41 +451 -4: /workspace/app/test/loans_test.dart: New loan flexible loan never asks for instalment permission
+04:41 +452 -4: /workspace/app/test/loans_test.dart: New loan the + opens it; it creates the loan, tells them on WhatsApp and lands on it
+04:42 +453 -4: /workspace/app/test/loans_test.dart: New loan the WhatsApp text never carries the label typed
+04:44 +454 -4: /workspace/app/test/loans_test.dart: New loan without a profile name the greeting is fixed
+04:44 +455 -4: /workspace/app/test/loans_test.dart: New loan borrowed with no monthly amount is flexible
+04:45 +456 -4: /workspace/app/test/loans_test.dart: New loan a monthly amount over the principal cannot be saved
+04:45 +457 -4: /workspace/app/test/loans_test.dart: New loan your own number or a bad one is refused
+04:46 +458 -4: /workspace/app/test/loans_test.dart: New loan a retry after a dropped connection reuses the key
+04:46 +459 -4: /workspace/app/test/loans_test.dart: New loan a refusal shows plain copy and stays open
+04:46 +460 -4: /workspace/app/test/loans_test.dart: New loan without WhatsApp it says so and still shows the loan
+04:47 +461 -4: /workspace/app/test/loans_test.dart: New loan close goes back to Loans
+04:47 +462 -4: /workspace/app/test/loans_test.dart: New loan interest is off, with the later path shown
+04:47 +463 -4: /workspace/app/test/loans_test.dart: New loan ends in the month of the last instalment
+04:47 +464 -4: /workspace/app/test/loans_test.dart: Home opens New loan, and shows the loan once created
+
+Warning: A call to tap() with finder "Found 1 widget with text "Home": [
+  Text("Home", debugLabel: ((englishLike labelSmall 2021).merge(((whiteMountainView labelSmall).apply).merge(unknown))).copyWith, inherit: false, color: Color(alpha: 1.0000, red: 0.9686, green: 0.9490, blue: 0.9098, colorSpace: ColorSpace.sRGB), family: packages/settlo_core/Figtree, size: 11.0, weight: 500, letterSpacing: 0.5, baseline: alphabetic, height: 1.1x, leadingDistribution: even, decoration: Color(alpha: 1.0000, red: 0.9686, green: 0.9490, blue: 0.9098, colorSpace: ColorSpace.sRGB) TextDecoration.none, textAlign: center, maxLines: 1, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(71.3, 800.5)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#a8f97 relayoutBoundary=up3
+The hit test result at that offset is: HitTestResult(RenderPointerListener#021a6@Offset(71.3, 800.5), RenderSemanticsGestureHandler#de306@Offset(71.3, 800.5), RenderPointerListener#0182a@Offset(71.3, 800.5), _RenderScrollSemantics#dd7fb@Offset(71.3, 800.5), RenderClipRect#c5a2e@Offset(71.3, 800.5), RenderStack#4f741@Offset(71.3, 800.5), _RenderLayoutBuilder#5edc6@Offset(71.3, 800.5), RenderPadding#3d0b9@Offset(71.3, 800.5), RenderCustomMultiChildLayoutBox#7a8cf@Offset(71.3, 800.5), _RenderInkFeatures#18a5c@Offset(71.3, 800.5), RenderPhysicalModel#bca0e@Offset(71.3, 800.5), RenderSemanticsAnnotations#4f445@Offset(71.3, 800.5), RenderRepaintBoundary#d24cd@Offset(71.3, 800.5), RenderIgnorePointer#64826@Offset(71.3, 800.5), RenderAnimatedOpacity#7bcbf@Offset(71.3, 800.5), RenderAnimatedOpacity#0aa63@Offset(71.3, 800.5), _RenderColoredBox#733ed@Offset(71.3, 800.5), RenderAnimatedOpacity#7e3e3@Offset(71.3, 800.5), RenderIgnorePointer#d021d@Offset(71.3, 800.5), RenderAnimatedOpacity#cf9f2@Offset(71.3, 800.5), RenderRepaintBoundary#4cb35@Offset(71.3, 800.5), RenderSemanticsAnnotations#39aae@Offset(71.3, 800.5), RenderOffstage#4ace7@Offset(71.3, 800.5), RenderSemanticsAnnotations#8cdb1@Offset(71.3, 800.5), _RenderTheater#572d2@Offset(71.3, 800.5), RenderAbsorbPointer#a463c@Offset(71.3, 800.5), RenderPointerListener#35703@Offset(71.3, 800.5), RenderConstrainedBox#33570@Offset(71.3, 800.5), RenderPadding#3db0e@Offset(71.3, 800.5), _RenderInkFeatures#1a512@Offset(71.3, 800.5), RenderCustomPaint#4e745@Offset(71.3, 800.5), RenderPhysicalShape#ad9f6@Offset(71.3, 800.5), RenderConstrainedBox#bb7ef@Offset(71.3, 800.5), RenderPositionedBox#511d8@Offset(71.3, 800.5), RenderPointerListener#b365c@Offset(71.3, 800.5), _RenderBottomSheetLayoutWithSizeListener#7323d@Offset(71.3, 800.5), RenderClipRect#1d126@Offset(71.3, 800.5), RenderSemanticsAnnotations#e7d75@Offset(71.3, 800.5), RenderPadding#3b459@Offset(71.3, 800.5), RenderPadding#b8970@Offset(71.3, 800.5), RenderSemanticsAnnotations#a10ce@Offset(71.3, 800.5), RenderRepaintBoundary#240b1@Offset(71.3, 800.5), RenderIgnorePointer#4fe90@Offset(71.3, 800.5), RenderRepaintBoundary#72227@Offset(71.3, 800.5), RenderSemanticsAnnotations#5a156@Offset(71.3, 800.5), RenderOffstage#463d8@Offset(71.3, 800.5), RenderSemanticsAnnotations#91e55@Offset(71.3, 800.5), _RenderTheater#e4e12@Offset(71.3, 800.5), RenderAbsorbPointer#e2c82@Offset(71.3, 800.5), RenderPointerListener#0b9cf@Offset(71.3, 800.5), RenderAnnotatedRegion<SystemUiOverlayStyle>#edd73@Offset(71.3, 800.5), RenderSemanticsAnnotations#79cbf@Offset(71.3, 800.5), RenderSemanticsAnnotations#270ba@Offset(71.3, 800.5), RenderSemanticsAnnotations#c0471@Offset(71.3, 800.5), RenderTapRegionSurface#77f50@Offset(71.3, 800.5), RenderSemanticsAnnotations#2ed85@Offset(71.3, 800.5), RenderSemanticsAnnotations#9fddd@Offset(71.3, 800.5), HitTestEntry<HitTestTarget>#325ba(_ReusableRenderView#03b9b), HitTestEntry<HitTestTarget>#f08fa(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      _tap (file:///workspace/app/test/loans_test.dart:98:16)
+<asynchronous suspension>
+#4      main.<anonymous closure> (file:///workspace/app/test/loans_test.dart:818:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#7      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+04:49 +465 -4: /workspace/app/test/loans_test.dart: Confirm repayment shows a spoken receipt and routes from the pending row
+04:49 +466 -4: /workspace/app/test/loans_test.dart: Confirm repayment on iOS, back is the shared glass control
+04:49 +467 -4: /workspace/app/test/loans_test.dart: Confirm repayment borrower copy names the lender and describes money paid
+04:49 +468 -4: /workspace/app/test/loans_test.dart: Confirm repayment primary no-pump double tap sends once
+04:50 +469 -4: /workspace/app/test/loans_test.dart: Confirm repayment confirming says so and pops back to the loan (#259)
+04:50 +470 -4: /workspace/app/test/loans_test.dart: Confirm repayment a slow confirm leaves navigation alone (#277) after Back
+04:50 +471 -4: /workspace/app/test/loans_test.dart: Confirm repayment a slow confirm leaves navigation alone (#277) after another route is pushed
+04:50 +472 -4: /workspace/app/test/loans_test.dart: Confirm repayment overpayment warns, clamps to zero and cannot confirm
+04:50 +473 -4: /workspace/app/test/loans_test.dart: Confirm repayment the recording party sees a read-only receipt
+04:50 +474 -4: /workspace/app/test/loans_test.dart: Confirm repayment controls and receipt rows meet accessibility guidelines
+04:50 +475 -4: /workspace/app/test/loans_test.dart: a double tap in one frame sends once record
+04:51 +476 -4: /workspace/app/test/loans_test.dart: a double tap in one frame sends once confirm
+04:51 +477 -4: /workspace/app/test/loans_test.dart: a double tap in one frame sends once create
+04:51 +478 -4: /workspace/app/test/loans_test.dart: a double tap in one frame sends once dispute
+04:52 +479 -4: /workspace/app/test/loans_test.dart: targets are at least 44pt Loans tab
+04:52 +480 -4: /workspace/app/test/loans_test.dart: targets are at least 44pt Loan detail
+04:52 +481 -4: /workspace/app/test/loans_test.dart: targets are at least 44pt new loan sheet
+04:53 +482 -4: /workspace/app/test/loans_test.dart: targets are at least 44pt record repayment sheet
+04:54 +483 -4: loading /workspace/app/test/native_tab_bar_test.dart
+04:55 +483 -4: /workspace/app/test/native_tab_bar_test.dart: iOS shows the system tab bar, not the Flutter glass bar
+04:57 +484 -4: /workspace/app/test/native_tab_bar_test.dart: a native tap goes to the router, which confirms it
+04:57 +485 -4: /workspace/app/test/native_tab_bar_test.dart: a router change (back, deep link) moves the native bar
+04:57 +486 -4: /workspace/app/test/native_tab_bar_test.dart: the app theme, not the system, sets the bar appearance
+04:57 +487 -4: /workspace/app/test/native_tab_bar_test.dart: a refused tap snaps the native bar back without a rebuild
+04:57 +488 -4: /workspace/app/test/native_tab_bar_test.dart: drags outside a tab reach the back swipe and the scroll
+04:58 +489 -4: /workspace/app/test/native_tab_bar_test.dart: the last row clears the reported bar on Size(375.0, 667.0)
+04:58 +490 -4: /workspace/app/test/native_tab_bar_test.dart: the last row clears the reported bar on Size(390.0, 844.0)
+04:59 +491 -4: loading /workspace/app/test/new_loan_golden_test.dart
+05:00 +491 -4: /workspace/app/test/new_loan_golden_test.dart: 390x844 dark new loan golden
+05:04 +492 -4: /workspace/app/test/new_loan_golden_test.dart: 390x844 light new loan golden
+05:05 +493 -4: /workspace/app/test/new_loan_golden_test.dart: 360x800 dark new loan golden
+05:05 +494 -4: /workspace/app/test/new_loan_golden_test.dart: 360x800 light new loan golden
+05:06 +495 -4: /workspace/app/test/new_loan_golden_test.dart: 390x844_text200 dark new loan golden
+05:06 +496 -4: /workspace/app/test/new_loan_golden_test.dart: 390x844_text200 light new loan golden
+05:06 +497 -4: /workspace/app/test/new_loan_golden_test.dart: 360x800_text200 dark new loan golden
+05:07 +498 -4: /workspace/app/test/new_loan_golden_test.dart: 360x800_text200 light new loan golden
+05:07 +499 -4: /workspace/app/test/new_loan_golden_test.dart: se375x667 dark new loan golden
+05:08 +500 -4: /workspace/app/test/new_loan_golden_test.dart: se375x667 light new loan golden
+05:09 +501 -4: /workspace/app/test/new_loan_golden_test.dart: se375x667_text200 dark new loan golden
+
+Warning: A call to tap() with finder "Found 1 widget with text "Add person": [
+  Text("Add person", maxLines: 1, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery, _ScrollableScope]),
+]" derived an Offset (Offset(176.5, 699.8)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+Indeed, Offset(176.5, 699.8) is outside the bounds of the root of the render tree, Size(375.0, 667.0).
+The finder corresponds to this RenderBox: RenderParagraph#1caf8 relayoutBoundary=up19
+The hit test result at that offset is: HitTestResult(HitTestEntry<HitTestTarget>#72c7d(_ReusableRenderView#2ac4c), HitTestEntry<HitTestTarget>#79442(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///workspace/app/test/new_loan_golden_test.dart:66:28)
+<asynchronous suspension>
+#4      pumpSettloGolden (package:settlo_test_support/golden.dart:143:5)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///workspace/app/test/new_loan_golden_test.dart:40:11)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+05:09 +502 -4: /workspace/app/test/new_loan_golden_test.dart: se375x667_text200 light new loan golden
+
+Warning: A call to tap() with finder "Found 1 widget with text "Add person": [
+  Text("Add person", maxLines: 1, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery, _ScrollableScope]),
+]" derived an Offset (Offset(176.5, 699.8)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+Indeed, Offset(176.5, 699.8) is outside the bounds of the root of the render tree, Size(375.0, 667.0).
+The finder corresponds to this RenderBox: RenderParagraph#078d6 relayoutBoundary=up19
+The hit test result at that offset is: HitTestResult(HitTestEntry<HitTestTarget>#3a471(_ReusableRenderView#2ac4c), HitTestEntry<HitTestTarget>#80c97(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///workspace/app/test/new_loan_golden_test.dart:66:28)
+<asynchronous suspension>
+#4      pumpSettloGolden (package:settlo_test_support/golden.dart:143:5)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///workspace/app/test/new_loan_golden_test.dart:40:11)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+05:09 +503 -4: /workspace/app/test/new_loan_golden_test.dart: 390x844 dark new loan_ios golden
+05:10 +504 -4: /workspace/app/test/new_loan_golden_test.dart: 390x844 light new loan_ios golden
+05:11 +505 -4: /workspace/app/test/new_loan_golden_test.dart: 360x800 dark new loan_ios golden
+05:11 +506 -4: /workspace/app/test/new_loan_golden_test.dart: 360x800 light new loan_ios golden
+05:13 +507 -4: loading /workspace/app/test/phase2a_repayment_actions_test.dart
+05:14 +507 -4: /workspace/app/test/phase2a_repayment_actions_test.dart: repayment actions use equal full-width targets at 1.0 dark=false
+05:17 +508 -4: /workspace/app/test/phase2a_repayment_actions_test.dart: repayment actions use equal full-width targets at 1.0 dark=true
+05:18 +509 -4: /workspace/app/test/phase2a_repayment_actions_test.dart: repayment actions use equal full-width targets at 2.0 dark=false
+05:18 +510 -4: /workspace/app/test/phase2a_repayment_actions_test.dart: repayment actions use equal full-width targets at 2.0 dark=true
+05:20 +511 -4: loading /workspace/app/test/phase2a_sheet_golden_test.dart
+05:21 +511 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan 390x844 dark=false
+05:25 +512 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile 390x844 dark=false
+05:26 +513 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense 390x844 dark=false
+05:26 +514 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle 390x844 dark=false
+05:26 +515 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment 390x844 dark=false
+05:26 +516 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan 390x844 dark=false
+05:27 +517 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment 390x844 dark=false
+05:28 +518 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space 390x844 dark=false
+05:28 +519 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members 390x844 dark=false
+05:29 +520 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite 390x844 dark=false
+05:29 +521 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export 390x844 dark=false
+05:30 +522 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance 390x844 dark=false
+05:30 +523 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account 390x844 dark=false
+05:31 +524 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan 390x844 dark=true
+05:31 +525 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile 390x844 dark=true
+05:31 +526 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense 390x844 dark=true
+05:31 +527 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle 390x844 dark=true
+05:31 +528 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment 390x844 dark=true
+05:31 +529 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan 390x844 dark=true
+05:32 +530 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment 390x844 dark=true
+05:32 +531 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space 390x844 dark=true
+05:32 +532 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members 390x844 dark=true
+05:33 +533 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite 390x844 dark=true
+05:33 +534 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export 390x844 dark=true
+05:33 +535 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance 390x844 dark=true
+05:34 +536 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account 390x844 dark=true
+05:34 +537 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan se375x667 dark=false
+05:34 +538 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile se375x667 dark=false
+05:34 +539 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense se375x667 dark=false
+05:34 +540 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle se375x667 dark=false
+05:34 +541 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment se375x667 dark=false
+05:34 +542 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan se375x667 dark=false
+05:35 +543 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment se375x667 dark=false
+05:35 +544 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space se375x667 dark=false
+05:35 +545 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members se375x667 dark=false
+05:36 +546 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite se375x667 dark=false
+05:36 +547 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export se375x667 dark=false
+05:36 +548 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance se375x667 dark=false
+05:36 +549 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account se375x667 dark=false
+05:37 +550 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan se375x667 dark=true
+05:37 +551 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile se375x667 dark=true
+05:37 +552 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense se375x667 dark=true
+05:37 +553 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle se375x667 dark=true
+05:37 +554 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment se375x667 dark=true
+05:38 +555 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan se375x667 dark=true
+05:38 +556 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment se375x667 dark=true
+05:38 +557 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space se375x667 dark=true
+05:38 +558 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members se375x667 dark=true
+05:39 +559 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite se375x667 dark=true
+05:39 +560 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export se375x667 dark=true
+05:39 +561 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance se375x667 dark=true
+05:39 +562 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account se375x667 dark=true
+05:39 +563 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan se375x667_text200 dark=false
+05:39 +564 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile se375x667_text200 dark=false
+05:40 +565 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense se375x667_text200 dark=false
+05:40 +566 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle se375x667_text200 dark=false
+05:40 +567 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment se375x667_text200 dark=false
+05:40 +568 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan se375x667_text200 dark=false
+05:40 +569 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment se375x667_text200 dark=false
+05:40 +570 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space se375x667_text200 dark=false
+05:41 +571 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members se375x667_text200 dark=false
+05:41 +572 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite se375x667_text200 dark=false
+05:41 +573 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export se375x667_text200 dark=false
+05:41 +574 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance se375x667_text200 dark=false
+05:42 +575 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account se375x667_text200 dark=false
+05:42 +576 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a loan se375x667_text200 dark=true
+05:42 +577 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a profile se375x667_text200 dark=true
+05:42 +578 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_expense se375x667_text200 dark=true
+05:42 +579 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a settle se375x667_text200 dark=true
+05:42 +580 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a payment se375x667_text200 dark=true
+05:42 +581 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a new_loan se375x667_text200 dark=true
+05:43 +582 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a confirm_repayment se375x667_text200 dark=true
+05:43 +583 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a create_space se375x667_text200 dark=true
+05:43 +584 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a members se375x667_text200 dark=true
+05:43 +585 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a resend_invite se375x667_text200 dark=true
+05:44 +586 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a export se375x667_text200 dark=true
+05:44 +587 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a appearance se375x667_text200 dark=true
+05:44 +588 -4: /workspace/app/test/phase2a_sheet_golden_test.dart: phase2a delete_account se375x667_text200 dark=true
+05:46 +589 -4: loading /workspace/app/test/profile_golden_test.dart
+05:47 +589 -4: /workspace/app/test/profile_golden_test.dart: profile_390x844_dark golden
+05:50 +590 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_390x844_dark golden
+05:51 +591 -4: /workspace/app/test/profile_golden_test.dart: profile_390x844_light golden
+05:51 +592 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_390x844_light golden
+05:52 +593 -4: /workspace/app/test/profile_golden_test.dart: profile_360x800_dark golden
+05:52 +594 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_360x800_dark golden
+05:52 +595 -4: /workspace/app/test/profile_golden_test.dart: profile_360x800_light golden
+05:52 +596 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_360x800_light golden
+05:52 +597 -4: /workspace/app/test/profile_golden_test.dart: profile_390x844_text200_dark golden
+05:53 +598 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_390x844_text200_dark golden
+05:53 +599 -4: /workspace/app/test/profile_golden_test.dart: profile_390x844_text200_light golden
+05:54 +600 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_390x844_text200_light golden
+05:54 +601 -4: /workspace/app/test/profile_golden_test.dart: profile_360x800_text200_dark golden
+05:54 +602 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_360x800_text200_dark golden
+05:54 +603 -4: /workspace/app/test/profile_golden_test.dart: profile_360x800_text200_light golden
+05:54 +604 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_360x800_text200_light golden
+05:54 +605 -4: /workspace/app/test/profile_golden_test.dart: profile_se375x667_dark golden
+05:55 +606 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_se375x667_dark golden
+05:55 +607 -4: /workspace/app/test/profile_golden_test.dart: profile_se375x667_light golden
+05:55 +608 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_se375x667_light golden
+05:55 +609 -4: /workspace/app/test/profile_golden_test.dart: profile_se375x667_text200_dark golden
+05:56 +610 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_se375x667_text200_dark golden
+05:56 +611 -4: /workspace/app/test/profile_golden_test.dart: profile_se375x667_text200_light golden
+05:56 +612 -4: /workspace/app/test/profile_golden_test.dart: profile_scrolled_se375x667_text200_light golden
+05:56 +613 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_390x844_dark golden
+05:57 +614 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_390x844_dark golden
+05:58 +615 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_390x844_light golden
+05:58 +616 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_390x844_light golden
+05:58 +617 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_360x800_dark golden
+05:58 +618 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_360x800_dark golden
+05:58 +619 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_360x800_light golden
+05:58 +620 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_360x800_light golden
+05:59 +621 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_390x844_text200_dark golden
+05:59 +622 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_390x844_text200_dark golden
+05:59 +623 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_390x844_text200_light golden
+05:59 +624 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_390x844_text200_light golden
+06:00 +625 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_360x800_text200_dark golden
+06:00 +626 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_360x800_text200_dark golden
+06:01 +627 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_360x800_text200_light golden
+06:01 +628 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_360x800_text200_light golden
+06:01 +629 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_se375x667_dark golden
+06:01 +630 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_se375x667_dark golden
+06:01 +631 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_se375x667_light golden
+06:01 +632 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_se375x667_light golden
+06:02 +633 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_se375x667_text200_dark golden
+06:02 +634 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_se375x667_text200_dark golden
+06:02 +635 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_se375x667_text200_light golden
+06:02 +636 -4: /workspace/app/test/profile_golden_test.dart: profile_ios_scrolled_se375x667_text200_light golden
+06:03 +637 -4: loading /workspace/app/test/profile_sheet_test.dart
+06:05 +637 -4: /workspace/app/test/profile_sheet_test.dart: a deep link opens Profile as a sheet over Home (variant: TargetPlatform.iOS)
+06:08 +638 -4: /workspace/app/test/profile_sheet_test.dart: Close dismisses the sheet once, back to Home (variant: TargetPlatform.iOS)
+06:10 +639 -4: /workspace/app/test/profile_sheet_test.dart: Export pushes inside the sheet, and Back returns to it (variant: TargetPlatform.iOS)
+06:10 +640 -4: /workspace/app/test/profile_sheet_test.dart: the other tabs keep their place under the sheet (variant: TargetPlatform.iOS)
+06:12 +641 -4: /workspace/app/test/profile_sheet_test.dart: pushed from another tab, the sheet stays over that tab (variant: TargetPlatform.iOS)
+06:13 +642 -4: /workspace/app/test/profile_sheet_test.dart: on /spaces, the avatar opens the sheet over that tab (variant: TargetPlatform.iOS)
+06:14 +643 -4: /workspace/app/test/profile_sheet_test.dart: on /loans, the avatar opens the sheet over that tab (variant: TargetPlatform.iOS)
+06:15 +644 -4: /workspace/app/test/profile_sheet_test.dart: on /activity, the avatar opens the sheet over that tab (variant: TargetPlatform.iOS)
+06:16 +645 -4: /workspace/app/test/profile_sheet_test.dart: a deep link opens Profile as a sheet over Home (variant: TargetPlatform.android)
+06:17 +646 -4: /workspace/app/test/profile_sheet_test.dart: Close dismisses the sheet once, back to Home (variant: TargetPlatform.android)
+06:17 +647 -4: /workspace/app/test/profile_sheet_test.dart: Export pushes inside the sheet, and Back returns to it (variant: TargetPlatform.android)
+06:17 +648 -4: /workspace/app/test/profile_sheet_test.dart: the other tabs keep their place under the sheet (variant: TargetPlatform.android)
+06:18 +649 -4: /workspace/app/test/profile_sheet_test.dart: pushed from another tab, the sheet stays over that tab (variant: TargetPlatform.android)
+06:19 +650 -4: /workspace/app/test/profile_sheet_test.dart: on /spaces, the avatar opens the sheet over that tab (variant: TargetPlatform.android)
+06:19 +651 -4: /workspace/app/test/profile_sheet_test.dart: on /loans, the avatar opens the sheet over that tab (variant: TargetPlatform.android)
+06:20 +652 -4: /workspace/app/test/profile_sheet_test.dart: on /activity, the avatar opens the sheet over that tab (variant: TargetPlatform.android)
+06:20 +653 -4: /workspace/app/test/profile_sheet_test.dart: on iOS, a swipe down with Export pushed closes the sheet (variant: TargetPlatform.iOS)
+06:21 +654 -4: /workspace/app/test/profile_sheet_test.dart: on iOS, an edge swipe from Export returns to Profile (variant: TargetPlatform.iOS)
+06:21 +655 -4: /workspace/app/test/profile_sheet_test.dart: on iOS, a swipe down dismisses the sheet (variant: TargetPlatform.iOS)
+06:21 +656 -4: /workspace/app/test/profile_sheet_test.dart: on Android, shared chrome replaces the grabber and closes (variant: TargetPlatform.android)
+06:23 +657 -4: loading /workspace/app/test/reminders_test.dart
+06:24 +657 -4: /workspace/app/test/reminders_test.dart: Remind sends without asking for permission: notDetermined
+06:26 +658 -4: /workspace/app/test/reminders_test.dart: Remind sends without asking for permission: granted
+06:27 +659 -4: /workspace/app/test/reminders_test.dart: Remind sends without asking for permission: denied
+06:27 +660 -4: /workspace/app/test/reminders_test.dart: enabled, sending guard, sent and restored cooldown
+06:27 +661 -4: /workspace/app/test/reminders_test.dart: received nudge and losing send never claim you sent it
+06:27 +662 -4: /workspace/app/test/reminders_test.dart: unavailable loan disables Remind with no retry instruction
+06:27 +663 -4: /workspace/app/test/reminders_test.dart: other server errors remain retryable
+06:27 +664 -4: /workspace/app/test/reminders_test.dart: send failure is retryable
+06:27 +665 -4: /workspace/app/test/reminders_test.dart: toggle persists and a failed write preserves its value
+06:27 +666 -4: /workspace/app/test/reminders_test.dart: failed reads show retryable copy for button and preference
+06:29 +667 -4: loading /workspace/app/test/router/redirect_test.dart
+06:30 +667 -4: /workspace/app/test/router/redirect_test.dart: signed out sign-in steps and invite links stay put
+06:30 +668 -4: /workspace/app/test/router/redirect_test.dart: signed out everything else goes to Welcome
+06:30 +669 -4: /workspace/app/test/router/redirect_test.dart: signed in Splash and sign-in steps go to Home
+06:30 +670 -4: /workspace/app/test/router/redirect_test.dart: signed in app screens and invite links stay put
+06:31 +671 -4: loading /workspace/app/test/scroll_chrome_test.dart
+06:32 +671 -4: /workspace/app/test/scroll_chrome_test.dart: native physics and refresh control on TargetPlatform.iOS
+06:34 +672 -4: /workspace/app/test/scroll_chrome_test.dart: native physics and refresh control on TargetPlatform.android
+06:34 +673 -4: /workspace/app/test/scroll_chrome_test.dart: header pins, collapses and gains glass only when scrolled
+06:35 +674 -4: /workspace/app/test/scroll_chrome_test.dart: active tab scrolls first, then returns to root; switching keeps position
+06:35 +675 -4: /workspace/app/test/scroll_chrome_test.dart: iOS status area uses its primary controller to scroll to top
+06:35 +676 -4: /workspace/app/test/scroll_chrome_test.dart: refresh and tab switching issue light haptics
+06:35 +677 -4: /workspace/app/test/scroll_chrome_test.dart: large-text navigation uses semantic icons and a long-press tooltip
+06:36 +678 -4: /workspace/app/test/scroll_chrome_test.dart: amount sheet dismisses from its shared header
+06:36 +679 -4: /workspace/app/test/scroll_chrome_test.dart: native iOS page supports edge-swipe back
+06:36 +680 -4: /workspace/app/test/scroll_chrome_test.dart: native iOS MaterialPage swipes back reduced=false
+06:36 +681 -4: /workspace/app/test/scroll_chrome_test.dart: native iOS MaterialPage swipes back reduced=true
+06:37 +682 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844 dark false golden
+06:37 +683 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844 dark true golden
+06:37 +684 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844 light false golden
+06:37 +685 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844 light true golden
+06:37 +686 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800 dark false golden
+06:37 +687 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800 dark true golden
+06:38 +688 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800 light false golden
+06:38 +689 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800 light true golden
+06:38 +690 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844_text200 dark false golden
+06:38 +691 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844_text200 dark true golden
+06:38 +692 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844_text200 light false golden
+06:38 +693 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844_text200 light true golden
+06:39 +694 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800_text200 dark false golden
+06:39 +695 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800_text200 dark true golden
+06:39 +696 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800_text200 light false golden
+06:39 +697 -4: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800_text200 light true golden
+06:40 +698 -4: loading /workspace/app/test/settle_golden_test.dart
+06:41 +698 -4: /workspace/app/test/settle_golden_test.dart: 390x844 dark settle golden
+06:44 +699 -4: /workspace/app/test/settle_golden_test.dart: 390x844 light settle golden
+06:44 +700 -4: /workspace/app/test/settle_golden_test.dart: 360x800 dark settle golden
+06:44 +701 -4: /workspace/app/test/settle_golden_test.dart: 360x800 light settle golden
+06:44 +702 -4: /workspace/app/test/settle_golden_test.dart: 390x844_text200 dark settle golden
+06:44 +703 -4: /workspace/app/test/settle_golden_test.dart: 390x844_text200 light settle golden
+06:44 +704 -4: /workspace/app/test/settle_golden_test.dart: 360x800_text200 dark settle golden
+06:45 +705 -4: /workspace/app/test/settle_golden_test.dart: 360x800_text200 light settle golden
+06:45 +706 -4: /workspace/app/test/settle_golden_test.dart: se375x667 dark settle golden
+06:45 +707 -4: /workspace/app/test/settle_golden_test.dart: se375x667 light settle golden
+06:45 +708 -4: /workspace/app/test/settle_golden_test.dart: se375x667_text200 dark settle golden
+06:45 +709 -4: /workspace/app/test/settle_golden_test.dart: se375x667_text200 light settle golden
+06:45 +710 -4: /workspace/app/test/settle_golden_test.dart: 390x844 dark settle_pay golden
+06:45 +711 -4: /workspace/app/test/settle_golden_test.dart: 390x844 light settle_pay golden
+06:45 +712 -4: /workspace/app/test/settle_golden_test.dart: 360x800 dark settle_pay golden
+06:45 +713 -4: /workspace/app/test/settle_golden_test.dart: 360x800 light settle_pay golden
+06:45 +714 -4: /workspace/app/test/settle_golden_test.dart: 390x844_text200 dark settle_pay golden
+06:45 +715 -4: /workspace/app/test/settle_golden_test.dart: 390x844_text200 light settle_pay golden
+06:45 +716 -4: /workspace/app/test/settle_golden_test.dart: 360x800_text200 dark settle_pay golden
+06:45 +717 -4: /workspace/app/test/settle_golden_test.dart: 360x800_text200 light settle_pay golden
+06:46 +718 -4: /workspace/app/test/settle_golden_test.dart: se375x667 dark settle_pay golden
+06:46 +719 -4: /workspace/app/test/settle_golden_test.dart: se375x667 light settle_pay golden
+06:46 +720 -4: /workspace/app/test/settle_golden_test.dart: se375x667_text200 dark settle_pay golden
+06:46 +721 -4: /workspace/app/test/settle_golden_test.dart: se375x667_text200 light settle_pay golden
+06:47 +722 -4: loading /workspace/app/test/settle_refresh_test.dart
+06:49 +722 -4: /workspace/app/test/settle_refresh_test.dart: settle-ups wait for the payee on the open Space › Balances
+06:55 +723 -4: loading /workspace/app/test/settle_test.dart
+06:56 +723 -4: /workspace/app/test/settle_test.dart: settle up: both payments, then zero once Kabir confirms
+06:59 +724 -4: /workspace/app/test/settle_test.dart: paid: the row waits for the payee; disputed: Pay returns
+07:00 +725 -4: /workspace/app/test/settle_test.dart: a double tap on Yes, I paid records once
+07:00 +726 -4: /workspace/app/test/settle_test.dart: someone who left is never offered as payer or payee
+07:00 +727 -4: /workspace/app/test/settle_test.dart: no UPI app: a plain message and nothing recorded
+07:00 +728 -4: /workspace/app/test/settle_test.dart: the UPI app Android: always through the OS chooser
+07:01 +729 -4: /workspace/app/test/settle_test.dart: the UPI app iOS: opens upi:// directly, no chooser
+07:01 +730 -4: /workspace/app/test/settle_test.dart: payee without a UPI ID: plain message, record cash instead
+07:01 +731 -4: /workspace/app/test/settle_test.dart: request on WhatsApp names your UPI ID and records nothing
+07:01 +732 -4: /workspace/app/test/settle_test.dart: without your UPI ID the request side offers cash
+07:01 +733 -4: /workspace/app/test/settle_test.dart: settled with them already
+07:01 +734 -4: /workspace/app/test/settle_test.dart: targets are at least 44pt and amounts are read in rupees
+07:03 +735 -4: loading /workspace/app/test/sheet_hit_test.dart
+07:04 +735 -4: /workspace/app/test/sheet_hit_test.dart: (setUpAll)
+07:04 +735 -4: /workspace/app/test/sheet_hit_test.dart: edit profile 390x844 dark panel golden
+07:09 +736 -4: /workspace/app/test/sheet_hit_test.dart: appearance 390x844 dark panel golden
+07:09 +737 -4: /workspace/app/test/sheet_hit_test.dart: create space 390x844 dark panel golden
+07:10 +738 -4: /workspace/app/test/sheet_hit_test.dart: edit expense 390x844 dark panel golden
+07:10 +739 -4: /workspace/app/test/sheet_hit_test.dart: export 390x844 dark panel golden
+07:11 +740 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent 390x844 dark panel golden
+07:12 +741 -4: /workspace/app/test/sheet_hit_test.dart: country picker 390x844 dark panel golden
+07:12 +742 -4: /workspace/app/test/sheet_hit_test.dart: question edit 390x844 dark panel golden
+07:12 +743 -4: /workspace/app/test/sheet_hit_test.dart: record repayment 390x844 dark panel golden
+07:13 +744 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute 390x844 dark panel golden
+07:14 +745 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 390x844 dark panel golden
+07:14 +746 -4: /workspace/app/test/sheet_hit_test.dart: delete account 390x844 dark panel golden
+07:15 +747 -4: /workspace/app/test/sheet_hit_test.dart: edit profile 390x844 light panel golden
+07:15 +748 -4: /workspace/app/test/sheet_hit_test.dart: appearance 390x844 light panel golden
+07:15 +749 -4: /workspace/app/test/sheet_hit_test.dart: create space 390x844 light panel golden
+07:16 +750 -4: /workspace/app/test/sheet_hit_test.dart: edit expense 390x844 light panel golden
+07:16 +751 -4: /workspace/app/test/sheet_hit_test.dart: export 390x844 light panel golden
+07:16 +752 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent 390x844 light panel golden
+07:16 +753 -4: /workspace/app/test/sheet_hit_test.dart: country picker 390x844 light panel golden
+07:17 +754 -4: /workspace/app/test/sheet_hit_test.dart: question edit 390x844 light panel golden
+07:17 +755 -4: /workspace/app/test/sheet_hit_test.dart: record repayment 390x844 light panel golden
+07:18 +756 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute 390x844 light panel golden
+07:18 +757 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 390x844 light panel golden
+07:18 +758 -4: /workspace/app/test/sheet_hit_test.dart: delete account 390x844 light panel golden
+07:19 +759 -4: /workspace/app/test/sheet_hit_test.dart: edit profile 360x800 dark panel golden
+07:19 +760 -4: /workspace/app/test/sheet_hit_test.dart: appearance 360x800 dark panel golden
+07:19 +761 -4: /workspace/app/test/sheet_hit_test.dart: create space 360x800 dark panel golden
+07:19 +762 -4: /workspace/app/test/sheet_hit_test.dart: edit expense 360x800 dark panel golden
+07:20 +763 -4: /workspace/app/test/sheet_hit_test.dart: export 360x800 dark panel golden
+07:20 +764 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent 360x800 dark panel golden
+07:21 +765 -4: /workspace/app/test/sheet_hit_test.dart: country picker 360x800 dark panel golden
+07:21 +766 -4: /workspace/app/test/sheet_hit_test.dart: question edit 360x800 dark panel golden
+07:21 +767 -4: /workspace/app/test/sheet_hit_test.dart: record repayment 360x800 dark panel golden
+07:21 +768 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute 360x800 dark panel golden
+07:22 +769 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 360x800 dark panel golden
+07:22 +770 -4: /workspace/app/test/sheet_hit_test.dart: delete account 360x800 dark panel golden
+07:22 +771 -4: /workspace/app/test/sheet_hit_test.dart: edit profile 360x800 light panel golden
+07:22 +772 -4: /workspace/app/test/sheet_hit_test.dart: appearance 360x800 light panel golden
+07:22 +773 -4: /workspace/app/test/sheet_hit_test.dart: create space 360x800 light panel golden
+07:22 +774 -4: /workspace/app/test/sheet_hit_test.dart: edit expense 360x800 light panel golden
+07:23 +775 -4: /workspace/app/test/sheet_hit_test.dart: export 360x800 light panel golden
+07:24 +776 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent 360x800 light panel golden
+07:24 +777 -4: /workspace/app/test/sheet_hit_test.dart: country picker 360x800 light panel golden
+07:24 +778 -4: /workspace/app/test/sheet_hit_test.dart: question edit 360x800 light panel golden
+07:24 +779 -4: /workspace/app/test/sheet_hit_test.dart: record repayment 360x800 light panel golden
+07:24 +780 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute 360x800 light panel golden
+07:25 +781 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 360x800 light panel golden
+07:25 +782 -4: /workspace/app/test/sheet_hit_test.dart: delete account 360x800 light panel golden
+07:25 +783 -4: /workspace/app/test/sheet_hit_test.dart: edit profile 390x844_text200 dark panel golden
+07:25 +784 -4: /workspace/app/test/sheet_hit_test.dart: appearance 390x844_text200 dark panel golden
+07:26 +785 -4: /workspace/app/test/sheet_hit_test.dart: create space 390x844_text200 dark panel golden
+07:26 +786 -4: /workspace/app/test/sheet_hit_test.dart: edit expense 390x844_text200 dark panel golden
+07:26 +787 -4: /workspace/app/test/sheet_hit_test.dart: export 390x844_text200 dark panel golden
+07:26 +788 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent 390x844_text200 dark panel golden
+07:27 +789 -4: /workspace/app/test/sheet_hit_test.dart: country picker 390x844_text200 dark panel golden
+07:27 +790 -4: /workspace/app/test/sheet_hit_test.dart: question edit 390x844_text200 dark panel golden
+07:27 +791 -4: /workspace/app/test/sheet_hit_test.dart: record repayment 390x844_text200 dark panel golden
+07:28 +792 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute 390x844_text200 dark panel golden
+07:28 +793 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 390x844_text200 dark panel golden
+07:29 +794 -4: /workspace/app/test/sheet_hit_test.dart: delete account 390x844_text200 dark panel golden
+07:29 +795 -4: /workspace/app/test/sheet_hit_test.dart: edit profile 390x844_text200 light panel golden
+07:29 +796 -4: /workspace/app/test/sheet_hit_test.dart: appearance 390x844_text200 light panel golden
+07:30 +797 -4: /workspace/app/test/sheet_hit_test.dart: create space 390x844_text200 light panel golden
+07:30 +798 -4: /workspace/app/test/sheet_hit_test.dart: edit expense 390x844_text200 light panel golden
+07:30 +799 -4: /workspace/app/test/sheet_hit_test.dart: export 390x844_text200 light panel golden
+07:30 +800 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent 390x844_text200 light panel golden
+07:30 +801 -4: /workspace/app/test/sheet_hit_test.dart: country picker 390x844_text200 light panel golden
+07:30 +802 -4: /workspace/app/test/sheet_hit_test.dart: question edit 390x844_text200 light panel golden
+07:31 +803 -4: /workspace/app/test/sheet_hit_test.dart: record repayment 390x844_text200 light panel golden
+07:31 +804 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute 390x844_text200 light panel golden
+07:31 +805 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 390x844_text200 light panel golden
+07:31 +806 -4: /workspace/app/test/sheet_hit_test.dart: delete account 390x844_text200 light panel golden
+07:31 +807 -4: /workspace/app/test/sheet_hit_test.dart: edit profile 360x800_text200 dark panel golden
+07:32 +808 -4: /workspace/app/test/sheet_hit_test.dart: appearance 360x800_text200 dark panel golden
+07:32 +809 -4: /workspace/app/test/sheet_hit_test.dart: create space 360x800_text200 dark panel golden
+07:32 +810 -4: /workspace/app/test/sheet_hit_test.dart: edit expense 360x800_text200 dark panel golden
+07:32 +811 -4: /workspace/app/test/sheet_hit_test.dart: export 360x800_text200 dark panel golden
+07:33 +812 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent 360x800_text200 dark panel golden
+07:33 +813 -4: /workspace/app/test/sheet_hit_test.dart: country picker 360x800_text200 dark panel golden
+07:33 +814 -4: /workspace/app/test/sheet_hit_test.dart: question edit 360x800_text200 dark panel golden
+07:34 +815 -4: /workspace/app/test/sheet_hit_test.dart: record repayment 360x800_text200 dark panel golden
+07:34 +816 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute 360x800_text200 dark panel golden
+07:34 +817 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 360x800_text200 dark panel golden
+07:34 +818 -4: /workspace/app/test/sheet_hit_test.dart: delete account 360x800_text200 dark panel golden
+07:34 +819 -4: /workspace/app/test/sheet_hit_test.dart: edit profile 360x800_text200 light panel golden
+07:35 +820 -4: /workspace/app/test/sheet_hit_test.dart: appearance 360x800_text200 light panel golden
+07:35 +821 -4: /workspace/app/test/sheet_hit_test.dart: create space 360x800_text200 light panel golden
+07:35 +822 -4: /workspace/app/test/sheet_hit_test.dart: edit expense 360x800_text200 light panel golden
+07:35 +823 -4: /workspace/app/test/sheet_hit_test.dart: export 360x800_text200 light panel golden
+07:35 +824 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent 360x800_text200 light panel golden
+07:35 +825 -4: /workspace/app/test/sheet_hit_test.dart: country picker 360x800_text200 light panel golden
+07:35 +826 -4: /workspace/app/test/sheet_hit_test.dart: question edit 360x800_text200 light panel golden
+07:36 +827 -4: /workspace/app/test/sheet_hit_test.dart: record repayment 360x800_text200 light panel golden
+07:36 +828 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute 360x800_text200 light panel golden
+07:36 +829 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 360x800_text200 light panel golden
+07:36 +830 -4: /workspace/app/test/sheet_hit_test.dart: delete account 360x800_text200 light panel golden
+07:37 +831 -4: /workspace/app/test/sheet_hit_test.dart: edit profile se375x667 dark panel golden
+07:37 +832 -4: /workspace/app/test/sheet_hit_test.dart: appearance se375x667 dark panel golden
+07:37 +833 -4: /workspace/app/test/sheet_hit_test.dart: create space se375x667 dark panel golden
+07:38 +834 -4: /workspace/app/test/sheet_hit_test.dart: edit expense se375x667 dark panel golden
+07:38 +835 -4: /workspace/app/test/sheet_hit_test.dart: export se375x667 dark panel golden
+07:38 +836 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent se375x667 dark panel golden
+07:38 +837 -4: /workspace/app/test/sheet_hit_test.dart: country picker se375x667 dark panel golden
+07:38 +838 -4: /workspace/app/test/sheet_hit_test.dart: question edit se375x667 dark panel golden
+07:38 +839 -4: /workspace/app/test/sheet_hit_test.dart: record repayment se375x667 dark panel golden
+07:39 +840 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute se375x667 dark panel golden
+07:39 +841 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute se375x667 dark panel golden
+07:39 +842 -4: /workspace/app/test/sheet_hit_test.dart: delete account se375x667 dark panel golden
+07:39 +843 -4: /workspace/app/test/sheet_hit_test.dart: edit profile se375x667 light panel golden
+07:39 +844 -4: /workspace/app/test/sheet_hit_test.dart: appearance se375x667 light panel golden
+07:39 +845 -4: /workspace/app/test/sheet_hit_test.dart: create space se375x667 light panel golden
+07:40 +846 -4: /workspace/app/test/sheet_hit_test.dart: edit expense se375x667 light panel golden
+07:40 +847 -4: /workspace/app/test/sheet_hit_test.dart: export se375x667 light panel golden
+07:40 +848 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent se375x667 light panel golden
+07:40 +849 -4: /workspace/app/test/sheet_hit_test.dart: country picker se375x667 light panel golden
+07:41 +850 -4: /workspace/app/test/sheet_hit_test.dart: question edit se375x667 light panel golden
+07:41 +851 -4: /workspace/app/test/sheet_hit_test.dart: record repayment se375x667 light panel golden
+07:41 +852 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute se375x667 light panel golden
+07:41 +853 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute se375x667 light panel golden
+07:42 +854 -4: /workspace/app/test/sheet_hit_test.dart: delete account se375x667 light panel golden
+07:42 +855 -4: /workspace/app/test/sheet_hit_test.dart: edit profile se375x667_text200 dark panel golden
+07:43 +856 -4: /workspace/app/test/sheet_hit_test.dart: appearance se375x667_text200 dark panel golden
+07:43 +857 -4: /workspace/app/test/sheet_hit_test.dart: create space se375x667_text200 dark panel golden
+07:43 +858 -4: /workspace/app/test/sheet_hit_test.dart: edit expense se375x667_text200 dark panel golden
+07:43 +859 -4: /workspace/app/test/sheet_hit_test.dart: export se375x667_text200 dark panel golden
+07:43 +860 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent se375x667_text200 dark panel golden
+07:44 +861 -4: /workspace/app/test/sheet_hit_test.dart: country picker se375x667_text200 dark panel golden
+07:44 +862 -4: /workspace/app/test/sheet_hit_test.dart: question edit se375x667_text200 dark panel golden
+07:45 +863 -4: /workspace/app/test/sheet_hit_test.dart: record repayment se375x667_text200 dark panel golden
+07:45 +864 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute se375x667_text200 dark panel golden
+07:45 +865 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute se375x667_text200 dark panel golden
+07:45 +866 -4: /workspace/app/test/sheet_hit_test.dart: delete account se375x667_text200 dark panel golden
+07:45 +867 -4: /workspace/app/test/sheet_hit_test.dart: edit profile se375x667_text200 light panel golden
+07:46 +868 -4: /workspace/app/test/sheet_hit_test.dart: appearance se375x667_text200 light panel golden
+07:46 +869 -4: /workspace/app/test/sheet_hit_test.dart: create space se375x667_text200 light panel golden
+07:46 +870 -4: /workspace/app/test/sheet_hit_test.dart: edit expense se375x667_text200 light panel golden
+07:46 +871 -4: /workspace/app/test/sheet_hit_test.dart: export se375x667_text200 light panel golden
+07:46 +872 -4: /workspace/app/test/sheet_hit_test.dart: sign out unsent se375x667_text200 light panel golden
+07:46 +873 -4: /workspace/app/test/sheet_hit_test.dart: country picker se375x667_text200 light panel golden
+07:46 +874 -4: /workspace/app/test/sheet_hit_test.dart: question edit se375x667_text200 light panel golden
+07:47 +875 -4: /workspace/app/test/sheet_hit_test.dart: record repayment se375x667_text200 light panel golden
+07:47 +876 -4: /workspace/app/test/sheet_hit_test.dart: loan dispute se375x667_text200 light panel golden
+07:47 +877 -4: /workspace/app/test/sheet_hit_test.dart: confirmation dispute se375x667_text200 light panel golden
+07:47 +878 -4: /workspace/app/test/sheet_hit_test.dart: delete account se375x667_text200 light panel golden
+07:47 +879 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit profile, 390x844, no keyboard
+07:48 +880 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit profile, 390x844, keyboard up
+07:48 +881 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: appearance, 390x844, no keyboard
+07:48 +882 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: appearance, 390x844, keyboard up
+07:48 +883 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: create space, 390x844, no keyboard
+07:49 +884 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: create space, 390x844, keyboard up
+07:49 +885 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit expense, 390x844, no keyboard
+07:50 +886 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit expense, 390x844, keyboard up
+07:50 +887 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit profile, 360x800, no keyboard
+07:50 +888 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit profile, 360x800, keyboard up
+07:50 +889 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: appearance, 360x800, no keyboard
+07:50 +890 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: appearance, 360x800, keyboard up
+07:50 +891 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: create space, 360x800, no keyboard
+07:51 +892 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: create space, 360x800, keyboard up
+07:51 +893 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit expense, 360x800, no keyboard
+07:51 +894 -4: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit expense, 360x800, keyboard up
+07:51 +895 -4: /workspace/app/test/sheet_hit_test.dart: edit profile saves at 390x844 with the shell present
+07:51 +896 -4: /workspace/app/test/sheet_hit_test.dart: (tearDownAll)
+07:53 +896 -4: loading /workspace/app/test/shell_inset_test.dart
+07:55 +896 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 390x844, device inset 0.0
+07:56 +897 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 390x844, device inset 0.0
+07:57 +898 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 390x844, device inset 34.0
+07:57 +899 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 390x844, device inset 34.0
+07:57 +900 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 390x844, device inset 48.0
+07:57 +901 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 390x844, device inset 48.0
+07:57 +902 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 360x800, device inset 0.0
+07:57 +903 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 360x800, device inset 0.0
+07:58 +904 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 360x800, device inset 34.0
+07:58 +905 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 360x800, device inset 34.0
+07:58 +906 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 360x800, device inset 48.0
+07:58 +907 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 360x800, device inset 48.0
+07:58 +908 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 390x844_text200, device inset 0.0
+07:58 +909 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 390x844_text200, device inset 0.0
+07:58 +910 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 390x844_text200, device inset 34.0
+07:58 +911 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 390x844_text200, device inset 34.0
+07:58 +912 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 390x844_text200, device inset 48.0
+07:58 +913 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 390x844_text200, device inset 48.0
+07:58 +914 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 360x800_text200, device inset 0.0
+07:58 +915 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 360x800_text200, device inset 0.0
+07:58 +916 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 360x800_text200, device inset 34.0
+07:58 +917 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 360x800_text200, device inset 34.0
+07:58 +918 -4: /workspace/app/test/shell_inset_test.dart: fixed content in a SafeArea clears the tab bar, 360x800_text200, device inset 48.0
+07:58 +919 -4: /workspace/app/test/shell_inset_test.dart: a scrolled-to-end list clears the tab bar, 360x800_text200, device inset 48.0
+07:59 +920 -4: loading /workspace/app/test/sign_in_flow_test.dart
+08:01 +920 -4: /workspace/app/test/sign_in_flow_test.dart: Welcome to Home through Phone and OTP
+08:07 +921 -4: loading /workspace/app/test/space_activity_test.dart
+08:08 +921 -4: /workspace/app/test/space_activity_test.dart: Activity segment keeps the space route and filters all rows (variant: TargetPlatform.android)
+08:13 +922 -4: /workspace/app/test/space_activity_test.dart: Activity segment keeps the space route and filters all rows (variant: TargetPlatform.iOS)
+08:16 +923 -4: /workspace/app/test/space_activity_test.dart: empty space activity keeps its scoped empty state (variant: TargetPlatform.android)
+08:16 +924 -4: /workspace/app/test/space_activity_test.dart: empty space activity keeps its scoped empty state (variant: TargetPlatform.iOS)
+08:18 +925 -4: loading /workspace/app/test/spaces_golden_test.dart
+08:19 +925 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces list golden
+08:21 +926 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces list golden
+08:22 +927 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces empty golden
+08:22 +928 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces empty golden
+08:22 +929 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces expenses golden
+08:22 +930 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces expenses golden
+08:22 +931 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces balances golden
+08:23 +932 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces balances golden
+08:23 +933 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces list golden
+08:23 +934 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces list golden
+08:23 +935 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces empty golden
+08:24 +936 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces empty golden
+08:24 +937 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces expenses golden
+08:24 +938 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces expenses golden
+08:24 +939 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces balances golden
+08:24 +940 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces balances golden
+08:24 +941 -4: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces list golden
+08:24 +942 -4: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces list golden
+08:24 +943 -4: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces empty golden
+08:24 +944 -4: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces empty golden
+08:25 +945 -4: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces expenses golden
+08:25 +946 -4: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces expenses golden
+08:25 +947 -4: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces balances golden
+08:25 +948 -4: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces balances golden
+08:25 +949 -4: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces list golden
+08:25 +950 -4: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces list golden
+08:25 +951 -4: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces empty golden
+08:25 +952 -4: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces empty golden
+08:25 +953 -4: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces expenses golden
+08:25 +954 -4: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces expenses golden
+08:25 +955 -4: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces balances golden
+08:26 +956 -4: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces balances golden
+08:26 +957 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces_expenses_ios golden
+08:26 +958 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces_expenses_ios golden
+08:26 +959 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces_expenses_ios golden
+08:26 +960 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces_expenses_ios golden
+08:26 +961 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces_list_ios golden
+08:26 +962 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces_list_ios golden
+08:27 +963 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces_list_ios golden
+08:27 +964 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces_list_ios golden
+08:27 +965 -4: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces settle-ups golden
+08:27 +966 -4: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces settle-ups golden
+08:27 +967 -4: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces settle-ups golden
+08:28 +968 -4: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces settle-ups golden
+08:29 +969 -4: loading /workspace/app/test/space_sheet_chrome_golden_test.dart
+08:31 +969 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=false segment=expenses
+08:33 +970 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=false segment=balances
+08:34 +971 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=false segment=activity
+08:34 +972 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=true segment=expenses
+08:34 +973 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=true segment=balances
+08:34 +974 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet 390x844 dark=true segment=activity
+08:34 +975 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=false segment=expenses
+08:35 +976 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=false segment=balances
+08:35 +977 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=false segment=activity
+08:35 +978 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=true segment=expenses
+08:36 +979 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=true segment=balances
+08:36 +980 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667 dark=true segment=activity
+08:36 +981 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=false segment=expenses
+08:36 +982 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=false segment=balances
+08:36 +983 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=false segment=activity
+08:36 +984 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=true segment=expenses
+08:36 +985 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=true segment=balances
+08:37 +986 -4: /workspace/app/test/space_sheet_chrome_golden_test.dart: sheet se375x667_text200 dark=true segment=activity
+08:38 +987 -4: loading /workspace/app/test/space_sheet_route_test.dart
+08:39 +987 -4: /workspace/app/test/space_sheet_route_test.dart: space segments and actions stay above tabs on TargetPlatform.iOS
+08:44 +988 -4: /workspace/app/test/space_sheet_route_test.dart: space segments and actions stay above tabs on TargetPlatform.android
+08:47 +989 -4: loading /workspace/app/test/spaces_test.dart
+08:49 +989 -4: /workspace/app/test/spaces_test.dart: selected space tab has one enabled button announcement
+08:52 +990 -4: /workspace/app/test/spaces_test.dart: spacesProvider creates a space and reloads it into the list
+08:52 +991 -4: /workspace/app/test/spaces_test.dart: Spaces each card is a mini balance sheet
+08:52 +992 -4: /workspace/app/test/spaces_test.dart: Spaces pending member card shares a token link without an amount
+08:52 +993 -4: /workspace/app/test/spaces_test.dart: Spaces a payer who left still counts in the bar and history
+08:53 +994 -4: /workspace/app/test/spaces_test.dart: Spaces no Pay to someone who left: it cannot be recorded
+08:53 +995 -4: /workspace/app/test/spaces_test.dart: Spaces the chips filter by kind
+08:54 +996 -4: /workspace/app/test/spaces_test.dart: Spaces a card opens its space
+08:54 +997 -4: /workspace/app/test/spaces_test.dart: Spaces with no spaces it offers to start one
+08:54 +998 -4: /workspace/app/test/spaces_test.dart: Spaces a failed load says why, and pulling down reloads
+08:55 +999 -4: /workspace/app/test/spaces_test.dart: New space create space → it appears in the list
+08:56 +1000 -4: /workspace/app/test/spaces_test.dart: New space uses the task-sheet layout on iOS
+08:57 +1001 -4: /workspace/app/test/spaces_test.dart: New space uses the task-sheet layout on android
+08:57 +1002 -4: /workspace/app/test/spaces_test.dart: New space a retry after a failure reuses the idempotency key
+08:58 +1003 -4: /workspace/app/test/spaces_test.dart: New space a reopened sheet gets a new key
+08:59 +1004 -4: /workspace/app/test/spaces_test.dart: New space a key reused with other details says it was saved
+08:59 +1005 -4: /workspace/app/test/spaces_test.dart: New space numbers must be phone numbers, once each
+08:59 +1006 -4: /workspace/app/test/spaces_test.dart: New space your own number is refused: 98765 43210
+08:59 +1007 -4: /workspace/app/test/spaces_test.dart: New space your own number is refused: +91 98765 43210
+09:00 +1008 -4: /workspace/app/test/spaces_test.dart: New space your own number is refused: 09876543210
+09:00 +1009 -4: /workspace/app/test/spaces_test.dart: New space a person without a name is shown by number
+09:01 +1010 -4: /workspace/app/test/spaces_test.dart: Home refreshes after a space is created creating bumps the ledger revision Home watches
+09:01 +1011 -4: /workspace/app/test/spaces_test.dart: Home refreshes after a space is created Home → create on Spaces → Home shows it
+09:02 +1012 -4: /workspace/app/test/spaces_test.dart: Space · empty says the others see expenses when they join
+09:02 +1013 -4: /workspace/app/test/spaces_test.dart: Space · empty a space with expenses is not empty
+09:02 +1014 -4: /workspace/app/test/spaces_test.dart: Space · empty Add first expense goes to /expenses/new?space=s9
+09:02 +1015 -4: /workspace/app/test/spaces_test.dart: Space · empty Add rent as a monthly expense goes to /expenses/new?space=s9
+09:02 +1016 -4: /workspace/app/test/spaces_test.dart: Space · empty Add your UPI ID so settle-ups are one tap goes to /profile
+09:03 +1017 -4: /workspace/app/test/spaces_test.dart: Space · empty Back returns to the list
+09:03 +1018 -4: /workspace/app/test/spaces_test.dart: Space with expenses expenses are grouped by month with payer, date and share
+09:03 +1019 -4: /workspace/app/test/spaces_test.dart: Space with expenses the tabs and actions go where they say
+09:05 +1020 -4: /workspace/app/test/spaces_test.dart: Space with expenses balances: who paid against a fair share, then settling
+09:05 +1021 -4: /workspace/app/test/spaces_test.dart: Space with expenses Remind sends a WhatsApp nudge and never opens Settle up
+09:05 +1022 -4: /workspace/app/test/spaces_test.dart: Space with expenses without WhatsApp, Remind offers the share sheet
+09:06 +1023 -4: /workspace/app/test/spaces_test.dart: Space with expenses the segments stay put when switching
+09:06 +1024 -4: /workspace/app/test/spaces_test.dart: Space with expenses the avatars open Members, where people can be added
+09:07 +1025 -4: /workspace/app/test/spaces_test.dart: Space with expenses a failed add says so and keeps the people
+09:08 +1026 -4: /workspace/app/test/spaces_test.dart: Space with expenses fairness deltas never use outstanding-balance colours
+09:09 +1027 -4: /workspace/app/test/spaces_test.dart: Space with expenses paid and fair share are read in rupees
+09:09 +1028 -4: /workspace/app/test/spaces_test.dart: Space with expenses only the creator or an owner sees edit and delete
+09:09 +1029 -4: /workspace/app/test/spaces_test.dart: Space with expenses an edit saves through update_expense with one key
+09:10 +1030 -4: /workspace/app/test/spaces_test.dart: Space with expenses editing a pending settle-up leaves the spend unchanged
+09:11 +1031 -4: /workspace/app/test/spaces_test.dart: Space with expenses the payee confirms a pending settle-up, once
+09:12 +1032 -4: /workspace/app/test/spaces_test.dart: Space with expenses the payee says a settle-up didn't arrive, with a reason
+09:13 +1033 -4: /workspace/app/test/spaces_test.dart: Space with expenses a double tap on "Yes, I received ₹300" answers once, closing only the sheet
+09:13 +1034 -4: /workspace/app/test/spaces_test.dart: Space with expenses a double tap on "Mark as not received" answers once, closing only the sheet
+09:14 +1035 -4: /workspace/app/test/spaces_test.dart: Space with expenses a split by amounts keeps its amount
+09:14 +1036 -4: /workspace/app/test/spaces_test.dart: Space with expenses delete asks once more, then removes it
+09:15 +1037 -4: /workspace/app/test/spaces_test.dart: Space with expenses on iOS, delete asks with an action sheet
+09:15 +1038 -4: /workspace/app/test/spaces_test.dart: Space with expenses on iOS, the space has sheet chrome and closes to Spaces
+09:16 +1039 -4: /workspace/app/test/spaces_test.dart: every control is at least 44x44pt Spaces meets the iOS tap target guideline
+09:16 +1040 -4: /workspace/app/test/spaces_test.dart: every control is at least 44x44pt Space · empty meets the iOS tap target guideline
+09:16 +1041 -4: /workspace/app/test/spaces_test.dart: every control is at least 44x44pt Space · expenses meets the iOS tap target guideline
+09:16 +1042 -4: /workspace/app/test/spaces_test.dart: every control is at least 44x44pt Space · balances meets the iOS tap target guideline
+09:17 +1043 -4: /workspace/app/test/spaces_test.dart: every control is at least 44x44pt New space meets the iOS tap target guideline
+09:17 +1044 -4: /workspace/app/test/spaces_test.dart: amounts are announced in rupees
+09:17 +1045 -4: /workspace/app/test/spaces_test.dart: fits 360x800 without overflow Spaces
+09:17 +1046 -4: /workspace/app/test/spaces_test.dart: fits 360x800 without overflow Space · empty
+09:17 +1047 -4: /workspace/app/test/spaces_test.dart: fits 360x800 without overflow Space · expenses
+09:18 +1048 -4: /workspace/app/test/spaces_test.dart: fits 360x800 without overflow Space · balances
+09:19 +1049 -4: /workspace/app/test/spaces_test.dart: fits 360x800 without overflow New space
+09:22 +1050 -4: loading /workspace/app/test/statement_name_image_test.dart
+09:23 +1050 -4: /workspace/app/test/statement_name_image_test.dart: a Devanagari name is shaped by Flutter and embedded in the PDF as an image
+09:25 +1051 -4: /workspace/app/test/statement_name_image_test.dart: an Urdu name is drawn right to left
+09:25 +1052 -4: /workspace/app/test/statement_name_image_test.dart: every script gets an image with a 10pt size and baseline
+09:26 +1053 -4: loading /workspace/app/test/status_bar_test.dart
+09:29 +1053 -4: /workspace/app/test/status_bar_test.dart: closing a sheet restores the light status bar (#259)
+09:35 +1054 -4: /workspace/app/test/status_bar_test.dart: closing a sheet restores the dark status bar (#259)
+09:38 +1055 -4: loading /workspace/app/test/text_reflow_test.dart
+09:41 +1055 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 360.0-1.0 TargetPlatform.iOS
+09:45 +1056 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 360.0-1.0 TargetPlatform.iOS
+09:45 +1057 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 360.0-1.0 TargetPlatform.iOS
+09:46 +1058 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 360.0-1.0 TargetPlatform.iOS
+09:47 +1059 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 360.0-1.0 TargetPlatform.iOS
+09:48 +1060 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 360.0-1.0 TargetPlatform.iOS
+09:48 +1061 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 360.0-1.0 TargetPlatform.android
+09:49 +1062 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 360.0-1.0 TargetPlatform.android
+09:49 +1063 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 360.0-1.0 TargetPlatform.android
+09:49 +1064 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 360.0-1.0 TargetPlatform.android
+09:49 +1065 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 360.0-1.0 TargetPlatform.android
+09:49 +1066 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 360.0-1.0 TargetPlatform.android
+09:49 +1067 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 360.0-2.0 TargetPlatform.iOS
+09:50 +1068 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 360.0-2.0 TargetPlatform.iOS
+09:50 +1069 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 360.0-2.0 TargetPlatform.iOS
+09:50 +1070 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 360.0-2.0 TargetPlatform.iOS
+09:50 +1071 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 360.0-2.0 TargetPlatform.iOS
+09:50 +1072 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 360.0-2.0 TargetPlatform.iOS
+09:51 +1073 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 360.0-2.0 TargetPlatform.android
+09:51 +1074 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 360.0-2.0 TargetPlatform.android
+09:51 +1075 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 360.0-2.0 TargetPlatform.android
+09:52 +1076 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 360.0-2.0 TargetPlatform.android
+09:52 +1077 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 360.0-2.0 TargetPlatform.android
+09:52 +1078 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 360.0-2.0 TargetPlatform.android
+09:52 +1079 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 390.0-1.0 TargetPlatform.iOS
+09:52 +1080 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 390.0-1.0 TargetPlatform.iOS
+09:53 +1081 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 390.0-1.0 TargetPlatform.iOS
+09:53 +1082 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 390.0-1.0 TargetPlatform.iOS
+09:53 +1083 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 390.0-1.0 TargetPlatform.iOS
+09:53 +1084 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 390.0-1.0 TargetPlatform.iOS
+09:53 +1085 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 390.0-1.0 TargetPlatform.android
+09:53 +1086 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 390.0-1.0 TargetPlatform.android
+09:53 +1087 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 390.0-1.0 TargetPlatform.android
+09:53 +1088 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 390.0-1.0 TargetPlatform.android
+09:54 +1089 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 390.0-1.0 TargetPlatform.android
+09:54 +1090 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 390.0-1.0 TargetPlatform.android
+09:54 +1091 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 390.0-2.0 TargetPlatform.iOS
+09:54 +1092 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 390.0-2.0 TargetPlatform.iOS
+09:54 +1093 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 390.0-2.0 TargetPlatform.iOS
+09:54 +1094 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 390.0-2.0 TargetPlatform.iOS
+09:54 +1095 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 390.0-2.0 TargetPlatform.iOS
+09:54 +1096 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 390.0-2.0 TargetPlatform.iOS
+09:55 +1097 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 390.0-2.0 TargetPlatform.android
+09:55 +1098 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 390.0-2.0 TargetPlatform.android
+09:55 +1099 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 390.0-2.0 TargetPlatform.android
+09:55 +1100 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 390.0-2.0 TargetPlatform.android
+09:55 +1101 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 390.0-2.0 TargetPlatform.android
+09:55 +1102 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 390.0-2.0 TargetPlatform.android
+09:55 +1103 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 375.0-1.0 TargetPlatform.iOS
+09:55 +1104 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 375.0-1.0 TargetPlatform.iOS
+09:55 +1105 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 375.0-1.0 TargetPlatform.iOS
+09:56 +1106 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 375.0-1.0 TargetPlatform.iOS
+09:56 +1107 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 375.0-1.0 TargetPlatform.iOS
+09:56 +1108 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 375.0-1.0 TargetPlatform.iOS
+09:56 +1109 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 375.0-1.0 TargetPlatform.android
+09:56 +1110 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 375.0-1.0 TargetPlatform.android
+09:56 +1111 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 375.0-1.0 TargetPlatform.android
+09:56 +1112 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 375.0-1.0 TargetPlatform.android
+09:56 +1113 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 375.0-1.0 TargetPlatform.android
+09:57 +1114 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 375.0-1.0 TargetPlatform.android
+09:57 +1115 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 375.0-2.0 TargetPlatform.iOS
+09:58 +1116 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 375.0-2.0 TargetPlatform.iOS
+09:58 +1117 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 375.0-2.0 TargetPlatform.iOS
+09:58 +1118 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 375.0-2.0 TargetPlatform.iOS
+09:58 +1119 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 375.0-2.0 TargetPlatform.iOS
+09:58 +1120 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 375.0-2.0 TargetPlatform.iOS
+09:59 +1121 -4: /workspace/app/test/text_reflow_test.dart: Welcome layout and content reachable 375.0-2.0 TargetPlatform.android
+09:59 +1122 -4: /workspace/app/test/text_reflow_test.dart: Segments reflow and select 375.0-2.0 TargetPlatform.android
+09:59 +1123 -4: /workspace/app/test/text_reflow_test.dart: detail wraps complete text 375.0-2.0 TargetPlatform.android
+09:59 +1124 -4: /workspace/app/test/text_reflow_test.dart: list wraps complete text 375.0-2.0 TargetPlatform.android
+09:59 +1125 -4: /workspace/app/test/text_reflow_test.dart: new wraps complete text 375.0-2.0 TargetPlatform.android
+09:59 +1126 -4: /workspace/app/test/text_reflow_test.dart: profile wraps complete text 375.0-2.0 TargetPlatform.android
+10:01 +1127 -4: loading /workspace/app/test/theme_mode_test.dart
+10:04 +1127 -4: /workspace/app/test/theme_mode_test.dart: boots dark when the system is dark
+10:08 +1128 -4: /workspace/app/test/theme_mode_test.dart: explicit system setting follows dark
+10:09 +1129 -4: /workspace/app/test/theme_mode_test.dart: boots dark when the system is light
+10:09 +1130 -4: /workspace/app/test/theme_mode_test.dart: explicit system setting follows light
+10:09 +1131 -4: /workspace/app/test/theme_mode_test.dart: stays dark while the saved preference loads
+10:09 +1132 -4: /workspace/app/test/theme_mode_test.dart: dark overrides the system
+10:09 +1133 -4: /workspace/app/test/theme_mode_test.dart: light overrides the system
+10:12 +1134 -4: loading /workspace/app/test/typography_contract_test.dart
+10:14 +1134 -4: /workspace/app/test/typography_contract_test.dart: app and feature code use named type roles, never raw sizes
+10:14 +1135 -4: /workspace/app/test/typography_contract_test.dart: core raw sizing is limited to named roles, PDF and derived symbols
+10:14 +1136 -4: /workspace/app/test/typography_contract_test.dart: named roles map to the platform ramp
+10:14 +1137 -4: /workspace/app/test/typography_contract_test.dart: word audit rejects a word broken over two lines
+10:16 +1138 -4: /workspace/app/test/typography_contract_test.dart: minimum type audit rejects 11pt outside navigation
+10:19 +1139 -4: loading /workspace/app/test/upi_test.dart
+10:21 +1139 -4: /workspace/app/test/upi_test.dart: upiAmount is rupees with exactly two decimals from integer paise
+10:21 +1140 -4: /workspace/app/test/upi_test.dart: upiAmount refuses zero and negative amounts
+10:21 +1141 -4: /workspace/app/test/upi_test.dart: upiPayUri prefills payee, name, amount, INR and note in order
+10:21 +1142 -4: /workspace/app/test/upi_test.dart: upiPayUri encodes spaces as %20 and & so names cannot add fields
+10:21 +1143 -4: /workspace/app/test/upi_test.dart: upiPayUri the largest amount keeps its paise
+10:24 +1144 -4: Some tests failed.
+
+Failing tests:
+  /workspace/app/test/liquid_glass_golden_test.dart: ios26 space dark rest golden
+  /workspace/app/test/liquid_glass_golden_test.dart: ios26 space dark scrolled golden
+  /workspace/app/test/liquid_glass_golden_test.dart: ios26 space light rest golden
+  /workspace/app/test/liquid_glass_golden_test.dart: ios26 space light scrolled golden

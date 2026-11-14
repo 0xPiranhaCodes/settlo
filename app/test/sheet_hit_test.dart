@@ -280,7 +280,7 @@ void main() {
             (
               'confirmation dispute',
               SettloRoutes.confirmRepayment('r3'),
-              find.text("Didn't receive this"),
+              find.text('Not received'),
               null,
             ),
             (

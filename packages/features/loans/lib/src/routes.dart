@@ -20,7 +20,7 @@ GoRoute _loansTabRoute(GlobalKey<NavigatorState>? rootKey) => GoRoute(
     GoRoute(
       path: ':loanId',
       parentNavigatorKey: rootKey,
-      // Explicit pages: go_router's default here has no iOS swipe back.
+      // Root sheet keeps the tab bar behind the loan detail.
       pageBuilder: (_, state) => SettloRootSheetPage<void>(
         key: state.pageKey,
         child: LoanDetailScreen(loanId: state.pathParameters['loanId']!),
@@ -30,7 +30,7 @@ GoRoute _loansTabRoute(GlobalKey<NavigatorState>? rootKey) => GoRoute(
 );
 
 /// New loan, a sheet over whatever opened it (Loans or Home), and
-/// repayment confirmation, full screen over the tabs. They are matched
+/// repayment confirmation, a root sheet for direct links. They are matched
 /// before the tab's `:loanId`.
 final List<RouteBase> loansRoutes = [
   GoRoute(

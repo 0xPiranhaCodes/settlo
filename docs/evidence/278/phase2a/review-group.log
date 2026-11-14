@@ -1,0 +1,18 @@
+00:00 +0: loading /workspace/packages/core/test/widgets/group_chrome_test.dart
+00:00 +0: short amount preserves full share at 320.0 / 1.0
+00:01 +1: short amount preserves full share at 320.0 / 2.0
+00:01 +2: short amount preserves full share at 375.0 / 1.0
+00:01 +3: short amount preserves full share at 375.0 / 2.0
+00:01 +4: legacy frame 52.0 preserves the 44pt close target
+00:01 +5: legacy frame 62.0 preserves the 44pt close target
+00:01 +6: legacy frame 64.0 preserves the 44pt close target
+00:02 +7: group action and section labels remain accessible
+00:02 +8: pull to refresh keeps the header flat above the content
+00:02 +9: routed sheet updates segments in place on TargetPlatform.iOS
+00:02 +10: routed sheet updates segments in place on TargetPlatform.android
+00:02 +11: imperative sheet uses root navigator on TargetPlatform.iOS
+00:03 +12: imperative sheet uses root navigator on TargetPlatform.android
+00:03 +13: sheet is flat at rest, blurred under scroll, and closes
+00:03 +14: row geometry and wrapping at 1.0
+00:03 +15: row geometry and wrapping at 2.0
+00:03 +16: All tests passed!

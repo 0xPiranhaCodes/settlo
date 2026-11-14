@@ -11,7 +11,6 @@ import 'package:settlo_core/theme/tokens.dart';
 import 'package:settlo_core/theme/typography.dart';
 import 'package:settlo_core/widgets/glass_action.dart';
 import 'package:settlo_core/widgets/glass_tab_bar.dart';
-import 'package:settlo_core/widgets/platform_page.dart';
 import 'package:settlo_core/widgets/sheet_header.dart';
 
 /// Native scrolling and keyboard dismissal for every application scroll view.
@@ -282,26 +281,11 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
     final statusTap = largeTitle == null
         ? top
         : MediaQuery.paddingOf(context).top;
-    final taskTitle =
-        TextPainter(
-          text: TextSpan(text: widget.title, style: SSheetHeader.titleStyle()),
-          textDirection: Directionality.of(context),
-          textScaler: MediaQuery.textScalerOf(context),
-        )..layout(
-          maxWidth:
-              (MediaQuery.sizeOf(context).width -
-                      88 -
-                      (SettloSheetScope.maybeOf(context) != null &&
-                              Navigator.of(context).canPop()
-                          ? 56
-                          : 0))
-                  .clamp(1, double.infinity),
+    final taskHeight =
+        (SSheetHeader.measureTitleHeight(context, widget.title) + 20).clamp(
+          SSheetHeader.extent,
+          double.infinity,
         );
-    final taskHeight = (taskTitle.height + 20).clamp(
-      SSheetHeader.extent,
-      double.infinity,
-    );
-    taskTitle.dispose();
     final scroll = CustomScrollView(
       key: PageStorageKey('scroll-${widget.title}'),
       primary: true,

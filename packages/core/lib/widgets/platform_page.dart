@@ -52,10 +52,7 @@ class SettloSheetPage<T> extends SettloPage<T> {
 /// Material bottom sheet with the shared chrome.
 class SettloNavigatorSheetPage<T> extends SettloPage<T> {
   /// Keeps the router's page identity and state restoration intact.
-  const new({required super.child, this.showDragHandle = false, super.key});
-
-  /// Optional native handle for callers without shared sheet chrome.
-  final bool showDragHandle;
+  const new({required super.child, super.key});
 
   @override
   Route<T> createRoute(BuildContext context) {
@@ -66,7 +63,7 @@ class SettloNavigatorSheetPage<T> extends SettloPage<T> {
         settings: this,
         isScrollControlled: true,
         useSafeArea: true,
-        showDragHandle: showDragHandle,
+        showDragHandle: false,
         backgroundColor: c.background,
         modalBarrierColor: c.background.withValues(alpha: 0.6),
         barrierLabel: MaterialLocalizations.of(context).scrimLabel,
@@ -186,13 +183,7 @@ class SettloSheetScope extends InheritedWidget {
 }
 
 /// Router counterpart of [pushSettloSheet], placed on the root navigator.
-class SettloRootSheetPage<T> extends SettloPage<T> {
-  /// Preserves the router identity while the sheet's content changes.
-  const new({required super.child, super.key});
-  @override
-  Route<T> createRoute(BuildContext context) =>
-      _rootSheetRoute<T>(context, _child, settings: this);
-}
+typedef SettloRootSheetPage<T> = SettloSheetPage<T>;
 
 Route<T> _rootSheetRoute<T>(
   BuildContext context,
@@ -267,13 +258,16 @@ class _SheetNavigator extends StatefulWidget {
 class _SheetNavigatorState extends State<_SheetNavigator> {
   final _navigator = GlobalKey<NavigatorState>();
 
+  void _finish(Object? result) => Navigator.of(context).pop(result);
+  bool _isCurrent() => ModalRoute.of(context)?.isCurrent ?? false;
+
   @override
   Widget build(BuildContext context) => NavigatorPopHandler<Object?>(
     // Back pops a pushed page first; on the first page, the sheet.
     onPopWithResult: (_) => _navigator.currentState?.maybePop(),
     child: SettloSheetScope(
-      finish: (result) => Navigator.of(context).pop(result),
-      isCurrent: () => ModalRoute.of(context)?.isCurrent ?? false,
+      finish: _finish,
+      isCurrent: _isCurrent,
       child: Navigator(
         key: _navigator,
         onGenerateInitialRoutes: (_, _) => [

@@ -259,7 +259,7 @@ class _Receipt extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: SSecondaryButton(
-              label: loan.youLent ? "Didn't receive this" : "Didn't pay this",
+              label: loan.youLent ? 'Not received' : 'Not paid',
               onPressed: decision.busy
                   ? null
                   : () => pushSettloSheet<void>(

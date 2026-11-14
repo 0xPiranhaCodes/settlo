@@ -842,7 +842,7 @@ void main() {
         findsOne,
       );
       await tester.scrollUntilVisible(
-        find.text("Didn't receive this"),
+        find.text('Not received'),
         100,
         scrollable: find
             .byWidgetPredicate(
@@ -852,7 +852,7 @@ void main() {
             )
             .first,
       );
-      expect(find.text("Didn't receive this"), findsOne);
+      expect(find.text('Not received'), findsOne);
       expect(find.textContaining('Confirming is final'), findsOne);
       semantics.dispose();
     });
@@ -908,7 +908,7 @@ void main() {
         findsOne,
       );
       await tester.scrollUntilVisible(
-        find.text("Didn't pay this"),
+        find.text('Not paid'),
         100,
         scrollable: find
             .byWidgetPredicate(
@@ -918,10 +918,10 @@ void main() {
             )
             .first,
       );
-      expect(find.text("Didn't pay this"), findsOne);
+      expect(find.text('Not paid'), findsOne);
       expect(find.textContaining(' says he '), findsNothing);
 
-      await _tap(tester, find.text("Didn't pay this"));
+      await _tap(tester, find.text('Not paid'));
       expect(find.text("Didn't pay ₹5,000 to Meera?"), findsOne);
       expect(find.widgetWithText(FilledButton, 'Mark as not paid'), findsOne);
     });
@@ -1078,7 +1078,7 @@ void main() {
         findsOne,
       );
       expect(find.byType(FilledButton), findsNothing);
-      expect(find.text("Didn't receive this"), findsNothing);
+      expect(find.text('Not received'), findsNothing);
     });
 
     testWidgets('controls and receipt rows meet accessibility guidelines', (

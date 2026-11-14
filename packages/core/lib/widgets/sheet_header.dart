@@ -65,8 +65,33 @@ class SSheetHeader extends StatefulWidget {
       SettloTypography.title3(color: color)
           .copyWith(height: 1.2, letterSpacing: -.5);
 
-  /// Inset retained for existing amount-sheet frames.
-  static const double frameInset = 1;
+  /// Measures the title using either its laid-out width or the full header.
+  static double measureTitleHeight(
+    BuildContext context,
+    String title, {
+    double? titleWidth,
+    double? headerWidth,
+    bool leading = false,
+    bool trailing = false,
+  }) {
+    final hasBack =
+        SettloSheetScope.maybeOf(context) != null &&
+        Navigator.of(context).canPop();
+    final width =
+        titleWidth ??
+        (headerWidth ?? MediaQuery.sizeOf(context).width) -
+            88 -
+            (trailing ? 56 : 0) -
+            (hasBack ? 56 : (leading ? 40 : 0));
+    final painter = TextPainter(
+      text: TextSpan(text: title, style: titleStyle()),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout(maxWidth: width.clamp(1, double.infinity));
+    final height = painter.height;
+    painter.dispose();
+    return height;
+  }
 
   @override
   State<SSheetHeader> createState() => _SSheetHeaderState();
@@ -156,16 +181,13 @@ class _SSheetHeaderState extends State<SSheetHeader>
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final style = SSheetHeader.titleStyle(color: c.textPrimary);
-                  var measuredHeight = widget.titleHeight;
-                  if (measuredHeight == null) {
-                    final painter = TextPainter(
-                      text: TextSpan(text: widget.title, style: style),
-                      textDirection: Directionality.of(context),
-                      textScaler: MediaQuery.textScalerOf(context),
-                    )..layout(maxWidth: constraints.maxWidth);
-                    measuredHeight = painter.height;
-                    painter.dispose();
-                  }
+                  final measuredHeight =
+                      widget.titleHeight ??
+                      SSheetHeader.measureTitleHeight(
+                        context,
+                        widget.title,
+                        titleWidth: constraints.maxWidth,
+                      );
                   final constrained =
                       measuredHeight > constraints.maxHeight + .01;
                   // Existing amount panels impose a fixed navigation height.
@@ -344,28 +366,17 @@ class SSheetScaffold extends StatelessWidget {
       bottom: false,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final painter =
-              TextPainter(
-                text: TextSpan(text: title, style: SSheetHeader.titleStyle()),
-                textDirection: Directionality.of(context),
-                textScaler: MediaQuery.textScalerOf(context),
-              )..layout(
-                maxWidth:
-                    (constraints.maxWidth -
-                            88 -
-                            (trailing == null ? 0 : 56) -
-                            (SettloSheetScope.maybeOf(context) != null &&
-                                    Navigator.of(context).canPop()
-                                ? 56
-                                : (leading == null ? 0 : 40)))
-                        .clamp(1, double.infinity),
-              );
-          final titleHeight = painter.height;
+          final titleHeight = SSheetHeader.measureTitleHeight(
+            context,
+            title,
+            headerWidth: constraints.maxWidth,
+            leading: leading != null,
+            trailing: trailing != null,
+          );
           final height = (titleHeight + 20).clamp(
             SSheetHeader.extent,
             double.infinity,
           );
-          painter.dispose();
           final ios = Theme.of(context).platform == TargetPlatform.iOS;
           final scroll = CustomScrollView(
             physics: ios
