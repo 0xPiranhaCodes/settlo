@@ -1,0 +1,1 @@
+ReduceTransparency=0 ReduceMotion=0 IncreaseContrast=1

@@ -1,0 +1,3 @@
+01772457-16CE-49DD-9504-50BA8F8A148D: deleted; absent from simctl list devices
+782D61AF-F435-46DB-9C40-FFE0011C1C29: deleted; absent from simctl list devices
+No other simulator was shut down, erased or deleted.
