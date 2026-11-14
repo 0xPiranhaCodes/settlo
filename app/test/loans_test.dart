@@ -232,7 +232,7 @@ void main() {
       await _pump(tester, location: SettloRoutes.loan('l1'));
 
       expect(_said('32 percent repaid'), findsOne);
-      expect(find.text(' · since Mar 2026'), findsOne);
+      expect(find.text('since Mar 2026'), findsOne);
       for (final text in [
         'monthly · 5th',
         '5 Dec',
@@ -556,7 +556,7 @@ void main() {
         findsOne,
       );
       expect(find.text('5th'), findsOne);
-      expect(find.text('Mar 2026'), findsOne);
+      expect(find.text("Mar '26"), findsOne);
 
       await _tap(tester, create());
       final key = loans.calls.single.split(' ').last;

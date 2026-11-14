@@ -137,20 +137,10 @@ class _LoanCard extends StatelessWidget {
                     children: [
                       Text(
                         '${loan.counterparty} · interest free',
-                        maxLines:
-                            MediaQuery.textScalerOf(context).scale(1) >= 1.3
-                            ? 2
-                            : 1,
-                        overflow: TextOverflow.ellipsis,
                         style: SettloTypography.headline(color: c.textPrimary),
                       ),
                       Text(
                         _detail,
-                        maxLines:
-                            MediaQuery.textScalerOf(context).scale(1) >= 1.3
-                            ? 2
-                            : 1,
-                        overflow: TextOverflow.ellipsis,
                         style: SettloTypography.subheadline(
                           color: c.textSecondary,
                         ),

@@ -401,7 +401,9 @@ class _NewLoanState extends ConsumerState<NewLoanSheet> {
                     child: _Labelled(
                       label: 'STARTS',
                       child: _PickerField(
-                        value: monthYear(_start),
+                        value:
+                            "${monthYear(_start).split(' ').first} "
+                            "'${_start.year.toString().substring(2)}",
                         semanticLabel:
                             'Starts ${dayMonth(_start)} ${_start.year}',
                         onTap: _pickStart,
@@ -562,9 +564,6 @@ class _PickerField extends StatelessWidget {
       ),
       child: Text(
         value,
-        maxLines: 1,
-        softWrap: false,
-        overflow: TextOverflow.fade,
         style: SettloTypography.headline(
           color: onTap == null
               ? SettloColors.of(context).textMuted

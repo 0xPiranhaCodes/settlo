@@ -163,39 +163,21 @@ class _Hero extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SResponsiveRow(
-                      threshold: 1.3,
+                    Row(
                       children: [
                         ExcludeSemantics(
                           child: SAvatar(loan.counterparty, size: 24),
                         ),
                         const SizedBox(width: SettloSpacing.x1),
-                        Flexible(
+                        Expanded(
                           child: Text(
                             loan.counterparty,
-                            maxLines:
-                                MediaQuery.textScalerOf(context).scale(1) >= 1.3
-                                ? 2
-                                : 1,
-                            overflow: TextOverflow.ellipsis,
                             style: SettloTypography.body(color: c.textPrimary),
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            MediaQuery.textScalerOf(context).scale(1) >= 1.3
-                                ? 'since ${monthYear(loan.startOn)}'
-                                : ' · since ${monthYear(loan.startOn)}',
-                            maxLines:
-                                MediaQuery.textScalerOf(context).scale(1) >= 1.3
-                                ? 2
-                                : 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: small,
                           ),
                         ),
                       ],
                     ),
+                    Text('since ${monthYear(loan.startOn)}', style: small),
                     const SizedBox(height: SettloSpacing.x2),
                     Text(
                       loan.youLent ? 'Outstanding' : 'You owe',

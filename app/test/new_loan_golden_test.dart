@@ -50,7 +50,7 @@ void main() {
             act: (tester) async {
               final fields = find.byType(TextField);
               await tester.enterText(fields.at(0), '10,00,000');
-              await tester.enterText(fields.at(1), '98200 11223');
+              await tester.enterText(fields.at(1), '90000 00011');
               await tester.enterText(fields.at(2), 'Arjun Mehta');
               await tester.ensureVisible(find.text('Add person'));
               await tester.tap(find.text('Add person'));
@@ -64,6 +64,21 @@ void main() {
               await tester.pumpAndSettle();
             },
           );
+
+          if (ios && device.textScale == 1) {
+            final starts = find.ancestor(
+              of: find.text("Mar '26"),
+              matching: find.byType(InputDecorator),
+            );
+            final dueDay = find.ancestor(
+              of: find.text('5th'),
+              matching: find.byType(InputDecorator),
+            );
+            expect(
+              tester.getSize(starts).height,
+              tester.getSize(dueDay).height,
+            );
+          }
 
           await expectLater(
             find.byKey(settloGoldenSurfaceKey),
