@@ -277,7 +277,7 @@ class _CreateSpaceSheetState extends ConsumerState<CreateSpaceSheet> {
     final n = _members.length;
     // Shared sheet chrome and form, with the primary action pinned below.
     final sheet = Material(
-      type: MaterialType.transparency,
+      color: c.background,
       child: Column(
         children: [
           SSheetHeader(

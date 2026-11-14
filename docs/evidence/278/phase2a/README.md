@@ -10,12 +10,12 @@ loan, confirm repayment, create space, members, resend invite, export,
 appearance, and delete account. Each has light and dark captures at 390×844,
 375×667, and 375×667 with 200% text. The test uses the iOS sheet presentation;
 native platform views are mocked, so these images do not establish native
-glass rendering or UIKit touch behavior.
+glass rendering or UIKit touch behavior. The old native delete-account alert
+uses a system-font fallback in the Linux renderer; its before image documents
+modal structure, not native text rendering.
 
 `app/test/phase2a_sheet_golden_test.dart` reproduces the matrix. Existing feature
-golden tests additionally cover content states and Android presentation. The
-before folder also retains the expanded existing feature captures from the
-starting revision.
+golden tests additionally cover content states and Android presentation.
 
 The core behavioral tests exercise instant reduced-motion presentation and
 dismissal on both platforms, nested navigation within a single sheet, live

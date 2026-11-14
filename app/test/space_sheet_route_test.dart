@@ -86,7 +86,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(SpaceActivityScreen), findsOneWidget);
       expect(
-        ModalRoute.of(tester.element(find.byType(SpaceActivityScreen))),
+        ModalRoute.of(
+          Navigator.of(tester.element(find.byType(SpaceActivityScreen)))
+              .context,
+        ),
         same(route),
       );
       expect(tester.getCenter(find.text('Balances')), segments);

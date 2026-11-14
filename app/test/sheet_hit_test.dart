@@ -130,6 +130,7 @@ Future<void> pumpTaskGolden(
       ),
     );
     await tester.pumpAndSettle();
+    await _settleTaskImages(tester);
   } finally {
     debugDisableShadows = previousShadows;
   }
@@ -176,9 +177,22 @@ Future<void> tapTaskControl(WidgetTester tester, Finder finder) async {
     }
     await tester.tap(finder);
     await tester.pumpAndSettle();
+    await _settleTaskImages(tester);
   } finally {
     debugDisableShadows = previousShadows;
   }
+}
+
+// A newly opened sheet can introduce the brand mark after its route animation
+// settles; wait for decoding rather than relying on a previous test's cache.
+Future<void> _settleTaskImages(WidgetTester tester) async {
+  final context = tester.element(find.byKey(settloGoldenSurfaceKey));
+  await tester.runAsync(() async {
+    for (final image in tester.widgetList<Image>(find.byType(Image))) {
+      await precacheImage(image.image, context);
+    }
+  });
+  await tester.pumpAndSettle();
 }
 
 /// Each sheet: where it opens, how, and its primary action.

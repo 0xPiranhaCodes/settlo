@@ -509,35 +509,26 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    final pill = ConstrainedBox(
+    final pill = Container(
+      width: double.infinity,
       constraints: const BoxConstraints(
         minHeight: SettloSpacing.minTouchTarget,
         minWidth: SettloSpacing.minTouchTarget,
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      decoration: ShapeDecoration(
+        color: primary ? c.action : null,
+        shape: StadiumBorder(
+          side: primary ? BorderSide.none : BorderSide(color: c.buttonBorder),
+        ),
+      ),
       child: Center(
-        widthFactor: 1,
-        heightFactor: 1,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 44),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          decoration: ShapeDecoration(
-            color: primary ? c.action : null,
-            shape: StadiumBorder(
-              side: primary
-                  ? BorderSide.none
-                  : BorderSide(color: c.buttonBorder),
-            ),
-          ),
-          child: Center(
-            widthFactor: 1,
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: SettloTypography.subheadline(
-                weight: primary ? FontWeight.w500 : FontWeight.w400,
-                color: primary ? c.onAction : c.textPrimary,
-              ),
-            ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: SettloTypography.subheadline(
+            weight: primary ? FontWeight.w500 : FontWeight.w400,
+            color: primary ? c.onAction : c.textPrimary,
           ),
         ),
       ),

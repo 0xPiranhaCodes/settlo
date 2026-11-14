@@ -285,8 +285,6 @@ class _PaymentRow extends StatelessWidget {
                 children: [
                   Text(
                     youPay ? 'You pay ${other.name}' : '${other.name} pays you',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: SettloTypography.headline(color: c.textPrimary),
                   ),
                   Text(
@@ -337,8 +335,6 @@ class _WaitingRow extends StatelessWidget {
                 children: [
                   Text(
                     'Waiting for ${payment.to.name} to confirm',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: SettloTypography.headline(color: c.textPrimary),
                   ),
                   Text(
