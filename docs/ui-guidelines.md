@@ -9,7 +9,7 @@ The single rulebook for in-app UI. Values live in code: `packages/core/lib/theme
 - **Destructive actions:** system red appears only inside native Cupertino alerts and action sheets. The theme error colour (`error`) is the destructive colour everywhere else. Irreversible choices ask with `showSettloAlert`. A two-tap "tap again" confirm is not a substitute.
 - **Icons:** `cupertino_icons` for system actions only: back, share, more, add, delete and checkmark. Settlo glyphs are for brand concepts and tab icons ([cupertino-icons ADR](decisions/2026-11-11-cupertino-icons.md)).
 - **Sheets:**
-  - A full task (Add expense, Settle up, New loan, Create space) is a full-height `SettloSheetPage` / `showSettloPageSheet`. It has a grabber, ✕ at the top left, a centred title and one primary button at the bottom.
+  - A full task (Add expense, Settle up, New loan, Create space) is a full-height `SettloSheetPage` / `showSettloPageSheet`. Its shared header follows the sheet chrome below; forms retain one primary button at the bottom.
   - A small confirmation is a content-sized `showSettloSheet`.
   - A sheet with unsaved input holds a drag-down and asks before discarding.
 - **Tint:** every tint, switch and selection uses a Settlo token, never system blue.
@@ -19,15 +19,31 @@ The single rulebook for in-app UI. Values live in code: `packages/core/lib/theme
 - **Status bar:** every root screen declares its overlay style for the current brightness (`AnnotatedRegion<SystemUiOverlayStyle>`), so a closing sheet can't leave white icons on cream.
 - **Back:** use one back control on pushed screens: chevron plus the previous screen's name. #252 makes it liquid glass.
 
-**Android** keeps Material behaviour: Material sheets with a drag handle, `showDatePicker`, `SnackBar` (through `showSettloNotice`), and the system back gesture. Colours, type and spacing are shared with iOS.
+**Android** uses full-height modals without a grabber for migrated space sheets; other sheets retain their existing Material presentation. It keeps `showDatePicker`, `SnackBar` (through `showSettloNotice`), and the system back gesture. Colours, type and spacing are shared with iOS.
+
+## Sheets
+
+Space Expenses and Balances open above the tab navigator. Use
+`pushSettloSheet(context, builder)` for imperative presentation, or a
+`SettloRootSheetPage` on the root navigator for a routed destination. iOS uses
+`CupertinoSheetRoute`; other platforms use a full-height modal. Close and Back
+return to the underlying tab. Nested expense and settle-up actions remain usable.
+
+`SSheetScaffold` pins `SSheetHeader`: 64pt at normal text size, a 28pt leading
+avatar or mark, a 12pt gap, and a 20pt semibold Figtree title. The close action is
+44pt, 16pt from the right, with the accessibility label “Close”. Long titles grow
+at accessibility sizes. There is no grabber or divider. The first content starts
+16pt below the header. Space detail has one 50pt primary action with a 14pt
+radius, a tinted secondary, and an inset segmented control.
 
 ## Spacing
 
-The 8 pt grid from `SettloSpacing`. Every gap *between* siblings is a token. A literal is allowed only for an optical nudge inside one component (2 pt, or `half` 4), with a one-line comment.
+The 8 pt grid from `SettloSpacing`. The measured sheet/row dimensions in #278
+are explicit exceptions; existing layouts otherwise use tokens for gaps *between* siblings. A literal is allowed only for an optical nudge inside one component (2 pt, or `half` 4), with a one-line comment.
 
 | Use | Token | Value |
 |---|---|---|
-| Screen margin, left and right, on every screen and sheet | `screenMargin` | 20 |
+| Existing screen margin (migrated sheet groups use 16 pt) | `screenMargin` | 20 |
 | Tab-root header → first content (search, chips or first card) | `x5` | 40 |
 | Between sections, and after a hero card's group | `x3` | 24 |
 | Between cards in one list or section | `x2` | 16 |
@@ -45,11 +61,24 @@ The 8 pt grid from `SettloSpacing`. Every gap *between* siblings is a token. A l
 
 Buttons in a pair split the width equally. A single secondary under a full-width primary is also full width, not content-hugging.
 
+Use `SGroup` for clipped surface groups: radius `SettloRadius.group` (26pt), 16pt
+side margins, no border or shadow, and 32pt between groups. A parent supplying
+those margins passes `EdgeInsets.zero` to the group.
+
+`SRow` has a 44pt minimum height (46pt with subtitle), 16pt horizontal padding,
+a 36pt avatar, and a 12pt gap. Titles use 17pt regular, subtitles 15pt secondary,
+amounts 17pt medium, and trailing subtitles 13pt. Rows grow with Dynamic Type;
+at accessibility sizes amounts move below the title. Separators are 0.5pt and
+start at the text inset; the final row omits its separator. Chevrons are 16pt.
+`SSectionLabel` is uppercase 13pt medium with 0.5pt tracking, secondary colour,
+16pt left inset, 24pt above, and 8pt below.
+
 ## Radius, motion and elevation
 
 - **Radius (`SettloRadius`):**
   - `cardHero` 28: the one hero card per screen, and sheet tops.
-  - `card` 24: list cards.
+  - `group` 26: clipped inset groups, without borders or shadows.
+  - `card` 24: existing list cards pending migration.
   - `button` 16: buttons.
   - `iconTile` 14: 40 pt icon tiles.
   - `compact` 12: nested controls (segments, inputs on a card).
@@ -93,11 +122,17 @@ Tokens come from `SettloColors.of(context)`. The palette is the owner's Settle C
 
 Liquid glass is chrome, never content:
 
-- **Allowed:** the floating tab bar (native `UITabBar` on iOS, `SGlassTabBar` elsewhere), header glass actions (`GlassAction`: bell, profile, add, statement) the non-interactive Home mark (`GlassAction`), and, once #252 lands, the back control.
+- **Allowed:** the floating tab bar (native `UITabBar` on iOS, `SGlassTabBar` elsewhere), header glass actions (`GlassAction`: bell, profile, add, statement, sheet close) the non-interactive Home mark (`GlassAction`), and the back control.
 - **Never:** behind amounts, cards, list rows or sheet content.
 - **Fallbacks:** on iOS before 26 and on Android, `GlassAction` uses its supplied Flutter button/widget fallback; the glass tab bar uses `glassFallback`. Low-end Android uses the flat bar (ADR 0013).
 - **Theme:** in dark mode, glass is neutral grey (#248).
 - **Layout:** glass must not cover content's last row. Reserve the bar's reported height, including any floating margin on home-button iPhones (#258).
+
+Sheet headers are visually flat at rest. Only while content scrolls underneath
+does the header use an 80% sheet-background fill and blur sigma 30, with no
+border. `GlassAction(symbol: 'xmark')` uses the existing native iOS 26 UIButton
+glass host at 44pt; earlier iOS and other platforms retain the Flutter close
+button. Glass belongs to chrome, never behind content or amounts.
 
 ## Accessibility
 

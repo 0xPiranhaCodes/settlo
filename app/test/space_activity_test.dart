@@ -37,12 +37,11 @@ void main() {
       final router = container.read(routerProvider)..go('/spaces/s1');
       await tester.pumpAndSettle();
       expectSpaceAvatars(tester);
-      // The segments never move under the finger (#260).
+      // Expenses and Balances share the new sheet geometry (#278).
       final segments = tester.getCenter(find.text('Balances'));
-      await tester.tap(find.text('Activity').first);
+      await tester.tap(find.text('Activity').hitTestable().first);
       await tester.pumpAndSettle();
       expect(router.state.uri.path, '/spaces/s1/activity');
-      expect(tester.getCenter(find.text('Balances')), segments);
       expectSpaceAvatars(tester);
       expect(
         tester.widget<SettloShell>(find.byType(SettloShell)).currentIndex,
@@ -66,7 +65,7 @@ void main() {
       expect(router.state.uri.path, '/spaces/s1/balances');
       expect(tester.getCenter(find.text('Balances')), segments);
       expectSpaceAvatars(tester);
-      await tester.tap(find.text('Activity').first);
+      await tester.tap(find.text('Activity').hitTestable().first);
       await tester.pumpAndSettle();
       expect(router.state.uri.path, '/spaces/s1/activity');
       expectSpaceAvatars(tester);
@@ -128,6 +127,11 @@ void main() {
 }
 
 void expectSpaceAvatars(WidgetTester tester) {
+  if (find.byType(SSheetScaffold).evaluate().isNotEmpty) {
+    expect(find.bySemanticsLabel('Members of Flat 402'), findsOneWidget);
+    return;
+  }
+
   final scaffold = tester.widget<SettloScrollScaffold>(
     find.byType(SettloScrollScaffold).last,
   );

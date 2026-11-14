@@ -53,6 +53,9 @@ abstract final class SettloMotion {
 
 /// Corner radii.
 abstract final class SettloRadius {
+  /// Inset grouped surfaces.
+  static const double group = 26;
+
   /// Compact nested controls.
   static const double compact = 12;
 

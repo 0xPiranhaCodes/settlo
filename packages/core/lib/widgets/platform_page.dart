@@ -107,6 +107,50 @@ class SettloNavigatorSheetPage<T> extends SettloPage<T> {
   }
 }
 
+/// A full-height root sheet with platform stacking and no tab bar.
+Future<T?> pushSettloSheet<T>(BuildContext context, WidgetBuilder builder) =>
+    Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push(_rootSheetRoute<T>(context, builder));
+
+/// Router counterpart of [pushSettloSheet], placed on the root navigator.
+class SettloRootSheetPage<T> extends SettloPage<T> {
+  /// Preserves the router identity while the sheet's content changes.
+  const new({required super.child, super.key});
+  @override
+  Route<T> createRoute(BuildContext context) =>
+      _rootSheetRoute<T>(context, _child, settings: this);
+}
+
+Route<T> _rootSheetRoute<T>(
+  BuildContext context,
+  WidgetBuilder builder, {
+  RouteSettings? settings,
+}) {
+  final reduced = MediaQuery.disableAnimationsOf(context);
+  if (Theme.of(context).platform == TargetPlatform.iOS) {
+    return _SheetRoute<T>(
+      settings: settings,
+      reduced: reduced,
+      scrollableBuilder: (context, controller) => PrimaryScrollController(
+        controller: controller,
+        child: Builder(builder: builder),
+      ),
+    );
+  }
+  return ModalBottomSheetRoute<T>(
+    settings: settings,
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: false,
+    backgroundColor: SettloColors.of(context).background,
+    barrierLabel: MaterialLocalizations.of(context).scrimLabel,
+    sheetAnimationStyle: reduced ? AnimationStyle.noAnimation : null,
+    builder: (context) => SizedBox.expand(child: builder(context)),
+  );
+}
+
 /// A page pushed inside a [SettloNavigatorSheetPage], with the platform's
 /// transition and back gesture.
 Route<T> settloPageRoute<T>(BuildContext context, WidgetBuilder builder) {

@@ -76,13 +76,19 @@ void main() {
     testWidgets('Close dismisses the sheet once, back to Home', (tester) async {
       final router = await _open(tester, SettloRoutes.profile);
       await tester.tap(
-        find.byWidgetPredicate(
-          (widget) => widget is SPressable && widget.label == 'Close',
+        find.descendant(
+          of: find.byType(ProfileScreen),
+          matching: find.byWidgetPredicate(
+            (widget) => widget is SPressable && widget.label == 'Close',
+          ),
         ),
       );
       await tester.tap(
-        find.byWidgetPredicate(
-          (widget) => widget is SPressable && widget.label == 'Close',
+        find.descendant(
+          of: find.byType(ProfileScreen),
+          matching: find.byWidgetPredicate(
+            (widget) => widget is SPressable && widget.label == 'Close',
+          ),
         ),
         warnIfMissed: false,
       );
@@ -132,8 +138,11 @@ void main() {
       router.go(SettloRoutes.profile);
       await tester.pumpAndSettle();
       await tester.tap(
-        find.byWidgetPredicate(
-          (widget) => widget is SPressable && widget.label == 'Close',
+        find.descendant(
+          of: find.byType(ProfileScreen),
+          matching: find.byWidgetPredicate(
+            (widget) => widget is SPressable && widget.label == 'Close',
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -143,7 +152,7 @@ void main() {
           .widget<StatefulNavigationShell>(find.byType(StatefulNavigationShell))
           .goBranch(1);
       await tester.pumpAndSettle();
-      expect(router.state.matchedLocation, SettloRoutes.space('s1'));
+      expect(router.state.matchedLocation, SettloRoutes.spaces);
     }, variant: variant);
 
     testWidgets('pushed from another tab, the sheet stays over that tab', (
@@ -159,8 +168,11 @@ void main() {
       expect(_sheet(tester), isA<ModalRoute<void>>());
       expect(shell().currentIndex, 1, reason: 'Spaces stays selected');
       await tester.tap(
-        find.byWidgetPredicate(
-          (widget) => widget is SPressable && widget.label == 'Close',
+        find.descendant(
+          of: find.byType(ProfileScreen),
+          matching: find.byWidgetPredicate(
+            (widget) => widget is SPressable && widget.label == 'Close',
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -173,7 +185,7 @@ void main() {
       expect(router.state.matchedLocation, SettloRoutes.home);
       shell().goBranch(1);
       await tester.pumpAndSettle();
-      expect(router.state.matchedLocation, SettloRoutes.space('s1'));
+      expect(router.state.matchedLocation, SettloRoutes.spaces);
     }, variant: variant);
 
     for (final (index, tab) in [
@@ -184,9 +196,8 @@ void main() {
       testWidgets('on $tab, the avatar opens the sheet over that tab', (
         tester,
       ) async {
-        // Another tab's place, checked after the sheet closes: a space
-        // pushed on Spaces, or Home when the avatar is Spaces' own.
-        final kept = index == 1 ? SettloRoutes.home : SettloRoutes.space('s1');
+        // Another tab's root remains selected after this sheet closes.
+        final kept = index == 1 ? SettloRoutes.home : SettloRoutes.spaces;
         final router = await _open(tester, kept);
         StatefulNavigationShell shell() => tester.widget(
           find.byType(StatefulNavigationShell, skipOffstage: false),

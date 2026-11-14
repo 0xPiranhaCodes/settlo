@@ -391,9 +391,7 @@ class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
   final bool showGrabber;
 
   @override
-  double get minExtent =>
-      (showGrabber ? SSheetHeader.extent : SettloSpacing.minTouchTarget) +
-      2 * SSheetHeader.frameInset;
+  double get minExtent => SSheetHeader.extent;
   @override
   double get maxExtent => minExtent;
 
@@ -403,28 +401,11 @@ class _TaskSheetHeader extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    final c = SettloColors.of(context);
-    return DecoratedBox(
+    return SSheetHeader(
       key: const ValueKey('task-sheet-header'),
-      decoration: BoxDecoration(
-        color: overlapsContent || shrinkOffset > 0 ? c.surface : c.background,
-        border: overlapsContent || shrinkOffset > 0
-            ? Border(bottom: BorderSide(color: c.hairline))
-            : null,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: SettloSpacing.screenMargin + SSheetHeader.frameInset,
-          vertical: SSheetHeader.frameInset,
-        ),
-        child: Center(
-          child: SSheetHeader(
-            title: title,
-            onClose: onClose,
-            showGrabber: showGrabber,
-          ),
-        ),
-      ),
+      title: title,
+      onClose: onClose,
+      scrolledUnder: overlapsContent || shrinkOffset > 0,
     );
   }
 

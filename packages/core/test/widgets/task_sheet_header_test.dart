@@ -26,14 +26,11 @@ void main() {
       );
 
       final header = find.byKey(const ValueKey('task-sheet-header'));
-      final height = platform == TargetPlatform.iOS ? 86.0 : 46.0;
+      const height = 64.0;
       expect(tester.getSize(header).height, height);
       expect(find.text('Edit profile'), findsOneWidget);
       expect(find.text('First sheet content'), findsOneWidget);
-      expect(
-        find.byKey(const ValueKey('task-sheet-grabber')),
-        platform == TargetPlatform.iOS ? findsOneWidget : findsNothing,
-      );
+      expect(find.byKey(const ValueKey('task-sheet-grabber')), findsNothing);
       final top = tester.getTopLeft(header).dy;
       expect(closes, 0);
 

@@ -13,7 +13,7 @@ import 'support/fake_home.dart';
 import 'support/fake_session.dart';
 
 /// Screens pushed inside the shell, so the tab bar stays over them (#174).
-const _pushed = {'/spaces/s1': 1, '/spaces/s1/balances': 1, '/loans/l1': 2};
+const _pushed = {'/loans/l1': 2};
 const _roots = ['/home', '/spaces', '/loans', '/activity'];
 
 /// The native bar's platform view id; it grows from test to test.
@@ -74,6 +74,22 @@ Future<void> _nativeTap(WidgetTester tester, int index) async {
 
 void main() {
   final ios = TargetPlatformVariant.only(TargetPlatform.iOS);
+  for (final location in ['/spaces/s1', '/spaces/s1/balances']) {
+    testWidgets('space sheet blocks every tab until closed: $location', (
+      tester,
+    ) async {
+      final router = await _open(tester, location);
+      for (var i = 0; i < 4; i++) {
+        expect(_reachesUiKit(tester, _tab(tester, i)), isFalse);
+      }
+      await tester.tap(find.bySemanticsLabel('Close'));
+      await tester.pumpAndSettle();
+      expect(router.state.matchedLocation, '/spaces');
+      for (var i = 0; i < 4; i++) {
+        expect(_reachesUiKit(tester, _tab(tester, i)), isTrue);
+      }
+    }, variant: ios);
+  }
 
   for (final MapEntry(key: location, value: owner) in _pushed.entries) {
     testWidgets('on iOS, every tab is tappable from $location', (tester) async {

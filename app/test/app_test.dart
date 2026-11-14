@@ -125,21 +125,39 @@ void main() {
     await tester.pumpWidget(fakeSessionApp(fakeSession));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Spaces'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(SGlassTabBar),
+        matching: find.text('Spaces'),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.byType(SpacesListScreen), findsOneWidget);
 
     await _go(tester, SettloRoutes.space('s1'));
+    expect(find.text('Loans').hitTestable(), findsNothing);
+    await tester.tap(find.bySemanticsLabel('Close'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Loans'));
     await tester.pumpAndSettle();
     expect(find.byType(LoanScreen), findsOneWidget);
 
-    await tester.tap(find.text('Spaces'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(SGlassTabBar),
+        matching: find.text('Spaces'),
+      ),
+    );
     await tester.pumpAndSettle();
-    expect(_router(tester).state.uri.path, SettloRoutes.space('s1'));
+    expect(_router(tester).state.uri.path, SettloRoutes.spaces);
 
     // Tapping the selected tab returns to its root.
-    await tester.tap(find.text('Spaces'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(SGlassTabBar),
+        matching: find.text('Spaces'),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(_router(tester).state.uri.path, SettloRoutes.spaces);
 

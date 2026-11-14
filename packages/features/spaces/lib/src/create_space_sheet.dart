@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo_core/settlo_core.dart';
-import 'package:settlo_core/widgets/sheet_header.dart';
 import 'package:settlo_spaces/src/glyphs.dart';
 import 'package:settlo_spaces/src/spaces_controller.dart';
 import 'package:settlo_spaces/src/text.dart';

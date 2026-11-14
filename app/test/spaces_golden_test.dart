@@ -33,7 +33,11 @@ Future<Widget> spacesInShell(
   }
   return UncontrolledProviderScope(
     container: container,
-    child: SettloShell(currentIndex: 1, onTabSelected: (_) {}, child: screen),
+    child:
+        screen is SpaceScreen ||
+            (screen is SpaceExpensesScreen && spaces.any((s) => s.hasExpenses))
+        ? screen
+        : SettloShell(currentIndex: 1, onTabSelected: (_) {}, child: screen),
   );
 }
 
