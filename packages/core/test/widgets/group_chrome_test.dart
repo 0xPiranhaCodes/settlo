@@ -151,7 +151,7 @@ void main() {
                     context,
                     (context) => SSheetScaffold(
                       title: 'Sheet',
-                      onClose: () => Navigator.pop(context),
+                      onClose: () => finishSettloSheet(context),
                       children: const [Text('Body')],
                     ),
                   ),

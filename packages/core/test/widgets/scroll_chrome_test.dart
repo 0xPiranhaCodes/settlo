@@ -143,9 +143,7 @@ void main() {
     },
   );
 
-  testWidgets('amount panel follows its grabber and flings to dismiss', (
-    tester,
-  ) async {
+  testWidgets('amount sheet dismisses from its shared header', (tester) async {
     var dismissed = 0;
     await tester.pumpWidget(
       MaterialApp(
@@ -165,10 +163,8 @@ void main() {
     await gesture.moveBy(const Offset(0, 40));
     await gesture.moveBy(const Offset(0, 40));
     await tester.pump();
-    final panel = tester.widget<AnimatedContainer>(
-      find.byType(AnimatedContainer).first,
-    );
-    expect(panel.transform!.getTranslation().y, greaterThan(0));
+    expect(find.byType(SSheetHeader), findsOneWidget);
+    expect(dismissed, 0);
     await gesture.moveBy(const Offset(0, 100));
     await gesture.up();
     await tester.pumpAndSettle();
@@ -545,6 +541,7 @@ void main() {
         ),
       ),
     );
+    final restingHeader = tester.getRect(find.byType(SSheetHeader));
     final gesture = await tester.startGesture(const Offset(180, 12));
     await gesture.moveBy(const Offset(0, 30));
     await gesture.moveBy(const Offset(0, 30));
@@ -552,14 +549,7 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
     expect(closed, 0);
-    expect(
-      tester
-          .widget<AnimatedContainer>(find.byType(AnimatedContainer).first)
-          .transform!
-          .getTranslation()
-          .y,
-      0,
-    );
+    expect(tester.getRect(find.byType(SSheetHeader)), restingHeader);
   });
 
   testWidgets('explicit header gap preserves the first content spacer', (
