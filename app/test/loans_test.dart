@@ -953,6 +953,47 @@ void main() {
       );
     });
 
+    group('a slow confirm leaves navigation alone (#277)', () {
+      Future<({GoRouter router, Completer<void> hold})> pending(
+        WidgetTester tester,
+      ) async {
+        final (:router, :loans) = await _pump(
+          tester,
+          location: SettloRoutes.loan('l1'),
+        );
+        await _tap(tester, find.text('awaiting you'));
+        final hold = loans.hold = Completer<void>();
+        await tester.tap(
+          find.widgetWithText(FilledButton, 'Confirm ₹25,000 received'),
+        );
+        await tester.pump();
+        return (router: router, hold: hold);
+      }
+
+      testWidgets('after Back', (tester) async {
+        final (:router, :hold) = await pending(tester);
+        router.pop();
+        await tester.pump();
+        // The receipt is still mounted, mid exit transition.
+        hold.complete();
+        await tester.pumpAndSettle();
+
+        expect(router.state.uri.toString(), SettloRoutes.loan('l1'));
+        expect(find.text('Confirmed. ₹6,50,000 left'), findsNothing);
+      });
+
+      testWidgets('after another route is pushed', (tester) async {
+        final (:router, :hold) = await pending(tester);
+        unawaited(router.push(SettloRoutes.loan('l2')));
+        await tester.pumpAndSettle();
+        hold.complete();
+        await tester.pumpAndSettle();
+
+        expect(router.state.uri.toString(), SettloRoutes.loan('l2'));
+        expect(find.text('Confirmed. ₹6,50,000 left'), findsNothing);
+      });
+    });
+
     testWidgets('overpayment warns, clamps to zero and cannot confirm', (
       tester,
     ) async {
