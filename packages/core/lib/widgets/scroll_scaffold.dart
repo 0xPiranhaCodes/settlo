@@ -83,11 +83,15 @@ class SettloScrollScaffold extends StatefulWidget {
     this.trailing,
     this.stickyHeader = true,
     this.onSheetClose,
+    this.tabRoot = false,
     super.key,
   });
 
   /// Compact navigation title, also used as the scroll-position identity.
   final String title;
+
+  /// Uses the shared large-title tab chrome.
+  final bool tabRoot;
 
   /// Expanded header first, then page content; task sheets supply only content.
   final List<Widget> children;
@@ -317,7 +321,21 @@ class _SettloScrollScaffoldState extends State<SettloScrollScaffold> {
             pinned: true,
             delegate: _TaskSheetHeader(title: widget.title, onClose: close),
           ),
-        if (largeTitle == null && widget.onSheetClose == null)
+        if (widget.tabRoot)
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _TabHeader(
+              top: top,
+              title: widget.title,
+              actions: header is SettloNavigationHeader
+                  ? header.trailing
+                  : header,
+              scale: MediaQuery.textScalerOf(context).scale(34) / 34,
+            ),
+          ),
+        if (!widget.tabRoot &&
+            largeTitle == null &&
+            widget.onSheetClose == null)
           SliverPersistentHeader(
             pinned: true,
             delegate: _NavigationHeader(
@@ -820,4 +838,173 @@ class _TopClampedScrollPhysics extends BouncingScrollPhysics {
     }
     return 0;
   }
+}
+
+/// Shared tab spacing and large-title behavior, independent of sheet chrome.
+class SettloTabScaffold extends StatelessWidget {
+  /// The first child supplies header actions; the rest is scroll content.
+  const new({
+    required this.title,
+    required this.children,
+    this.onRefresh,
+    this.controller,
+    this.slivers,
+    super.key,
+  });
+
+  /// Tab name.
+  final String title;
+
+  /// Header followed by content.
+  final List<Widget> children;
+
+  /// Pull to refresh.
+  final Future<void> Function()? onRefresh;
+
+  /// Optional pagination controller.
+  final ScrollController? controller;
+
+  /// Optional grouped slivers with pinned section labels.
+  final List<Widget>? slivers;
+
+  /// Shared content inset and title gap.
+  static const double inset = 16;
+
+  /// Space between independent groups.
+  static const double groupGap = 32;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final c = SettloColors.of(context);
+    const shape = WidgetStatePropertyAll<OutlinedBorder>(
+      RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(14)),
+      ),
+    );
+    return Theme(
+      data: theme.copyWith(
+        filledButtonTheme: FilledButtonThemeData(
+          style: (theme.filledButtonTheme.style ?? const ButtonStyle())
+              .copyWith(shape: shape),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: (theme.outlinedButtonTheme.style ?? const ButtonStyle())
+              .copyWith(
+                shape: shape,
+                side: const WidgetStatePropertyAll(BorderSide.none),
+                backgroundColor: WidgetStatePropertyAll(
+                  c.action.withValues(alpha: .1),
+                ),
+              ),
+        ),
+      ),
+      child: NeutralGlassActions(
+        child: SettloScrollScaffold(
+          title: title,
+          tabRoot: true,
+          slivers: slivers,
+          controller: controller,
+          onRefresh: onRefresh,
+          headerGap: inset,
+          padding: EdgeInsets.fromLTRB(
+            inset,
+            0,
+            inset,
+            MediaQuery.paddingOf(context).bottom + inset,
+          ),
+          children: children,
+        ),
+      ),
+    );
+  }
+}
+
+class _TabHeader extends SliverPersistentHeaderDelegate {
+  new({
+    required this.top,
+    required this.title,
+    required this.actions,
+    required this.scale,
+  });
+  final double top;
+  final String title;
+  final Widget? actions;
+  final double scale;
+  @override
+  double get minExtent => top + 56;
+  @override
+  double get maxExtent => minExtent + 34 * scale * 1.2 + 8;
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final c = SettloColors.of(context);
+    final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+    final scrolled = overlapsContent || shrinkOffset > maxExtent - minExtent;
+    return ClipRect(
+      child: BackdropFilter(
+        enabled: scrolled && !MediaQuery.highContrastOf(context),
+        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        child: ColoredBox(
+          key: const ValueKey('tab-header-material'),
+          color: scrolled && !MediaQuery.highContrastOf(context)
+              ? c.background.withValues(alpha: .8)
+              : c.background,
+          child: Stack(
+            children: [
+              Positioned(
+                top: top,
+                left: 16,
+                right: 16,
+                height: 56,
+                child: Row(
+                  children: [
+                    const Expanded(child: SizedBox.shrink()),
+                    ?actions,
+                  ],
+                ),
+              ),
+              // Shrink before entering the action band; the shallow arc keeps
+              // accessibility titles clear of the trailing controls throughout.
+              Positioned(
+                left: 16,
+                right: 16,
+                top:
+                    top +
+                    56 * (1 - progress) +
+                    (56 - 17 * scale * 1.2) / 2 * progress +
+                    28 * progress * (1 - progress),
+                child: IgnorePointer(
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      title,
+                      style: TextStyle.lerp(
+                        SettloTypography.largeTitle(
+                          color: c.textPrimary,
+                          weight: FontWeight.w700,
+                        ).copyWith(height: 1.2),
+                        SettloTypography.headline(color: c.textPrimary)
+                            .copyWith(height: 1.2),
+                        Curves.easeOut.transform(progress),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_TabHeader oldDelegate) =>
+      top != oldDelegate.top ||
+      title != oldDelegate.title ||
+      actions != oldDelegate.actions ||
+      scale != oldDelegate.scale;
 }

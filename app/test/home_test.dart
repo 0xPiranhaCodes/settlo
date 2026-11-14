@@ -348,17 +348,17 @@ void main() {
       });
     }
 
-    testWidgets('the S mark is the header title; no wordmark (#191)', (
+    testWidgets('Home uses a large title without the decorative mark (#278)', (
       tester,
     ) async {
       final semantics = tester.ensureSemantics();
       await _pump(tester, FakeHomeRepository(homeMain));
       expect(find.text('SABKIJEB'), findsNothing);
-      expect(find.byType(SettloMark), findsOneWidget);
+      expect(find.byType(SettloMark), findsNothing);
       expect(find.byType(UiKitView), findsNothing);
       expect(
-        tester.getSemantics(find.bySemanticsLabel('SabkiJeb')),
-        matchesSemantics(label: 'SabkiJeb', isHeader: true),
+        tester.getSemantics(find.bySemanticsLabel('Home').first),
+        matchesSemantics(label: 'Home', isHeader: true),
       );
       semantics.dispose();
     });

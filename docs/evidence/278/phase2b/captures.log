@@ -1,0 +1,314 @@
+00:00 +0: loading /workspace/packages/core/test/widgets/tab_chrome_test.dart
+00:00 +0: tabs share inset, collapse and material TargetPlatform.iOS 1.0
+00:07 +1: tabs share inset, collapse and material TargetPlatform.iOS 2.0
+00:10 +2: tabs share inset, collapse and material TargetPlatform.android 1.0
+00:13 +3: tabs share inset, collapse and material TargetPlatform.android 2.0
+00:16 +4: tab row avatars cap at 1.5 and amounts wrap below title
+00:16 +5: iOS tab action sends neutral foreground to native glass
+00:16 +6: All tests passed!
+00:00 +0: loading /workspace/app/test/text_reflow_test.dart
+00:00 +0: list wraps complete text 360.0-1.0 TargetPlatform.iOS
+00:03 +1: list wraps complete text 360.0-1.0 TargetPlatform.android
+00:03 +2: list wraps complete text 360.0-2.0 TargetPlatform.iOS
+00:03 +3: list wraps complete text 360.0-2.0 TargetPlatform.android
+00:03 +4: list wraps complete text 390.0-1.0 TargetPlatform.iOS
+00:03 +5: list wraps complete text 390.0-1.0 TargetPlatform.android
+00:04 +6: list wraps complete text 390.0-2.0 TargetPlatform.iOS
+00:04 +7: list wraps complete text 390.0-2.0 TargetPlatform.android
+00:04 +8: list wraps complete text 375.0-1.0 TargetPlatform.iOS
+00:04 +9: list wraps complete text 375.0-1.0 TargetPlatform.android
+00:04 +10: list wraps complete text 375.0-2.0 TargetPlatform.iOS
+00:04 +11: list wraps complete text 375.0-2.0 TargetPlatform.android
+00:04 +12: All tests passed!
+00:00 +0: loading /workspace/app/test/home_golden_test.dart
+00:00 +0: /workspace/app/test/home_golden_test.dart: 390x844 dark home main golden
+00:04 +1: /workspace/app/test/home_golden_test.dart: 390x844 light home main golden
+00:05 +2: /workspace/app/test/home_golden_test.dart: 390x844 dark home empty golden
+00:05 +3: /workspace/app/test/home_golden_test.dart: 390x844 light home empty golden
+00:05 +4: /workspace/app/test/home_golden_test.dart: 390x844 dark home found golden
+00:05 +5: /workspace/app/test/home_golden_test.dart: 390x844 light home found golden
+00:06 +6: /workspace/app/test/home_golden_test.dart: 360x800 dark home main golden
+00:06 +7: /workspace/app/test/home_golden_test.dart: 360x800 light home main golden
+00:06 +8: /workspace/app/test/home_golden_test.dart: 360x800 dark home empty golden
+00:06 +9: /workspace/app/test/home_golden_test.dart: 360x800 light home empty golden
+00:06 +10: /workspace/app/test/home_golden_test.dart: 360x800 dark home found golden
+00:07 +11: /workspace/app/test/home_golden_test.dart: 360x800 light home found golden
+00:07 +12: /workspace/app/test/home_golden_test.dart: 390x844_text200 dark home main golden
+00:07 +13: /workspace/app/test/home_golden_test.dart: 390x844_text200 light home main golden
+00:07 +14: /workspace/app/test/home_golden_test.dart: 390x844_text200 dark home empty golden
+00:07 +15: /workspace/app/test/home_golden_test.dart: 390x844_text200 light home empty golden
+00:07 +16: /workspace/app/test/home_golden_test.dart: 390x844_text200 dark home found golden
+00:08 +17: /workspace/app/test/home_golden_test.dart: 390x844_text200 light home found golden
+00:08 +18: /workspace/app/test/home_golden_test.dart: 360x800_text200 dark home main golden
+00:08 +19: /workspace/app/test/home_golden_test.dart: 360x800_text200 light home main golden
+00:08 +20: /workspace/app/test/home_golden_test.dart: 360x800_text200 dark home empty golden
+00:08 +21: /workspace/app/test/home_golden_test.dart: 360x800_text200 light home empty golden
+00:08 +22: /workspace/app/test/home_golden_test.dart: 360x800_text200 dark home found golden
+00:09 +23: /workspace/app/test/home_golden_test.dart: 360x800_text200 light home found golden
+00:09 +24: /workspace/app/test/home_golden_test.dart: owner mock beside empty Home at 390x844
+00:10 +25: loading /workspace/app/test/spaces_golden_test.dart
+00:12 +25: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces list golden
+00:17 +26: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces list golden
+00:17 +27: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces empty golden
+00:17 +28: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces empty golden
+00:18 +29: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces expenses golden
+00:18 +30: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces expenses golden
+00:18 +31: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces balances golden
+00:18 +32: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces balances golden
+00:18 +33: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces list golden
+00:19 +34: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces list golden
+00:19 +35: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces empty golden
+00:19 +36: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces empty golden
+00:19 +37: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces expenses golden
+00:19 +38: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces expenses golden
+00:20 +39: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces balances golden
+00:20 +40: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces balances golden
+00:20 +41: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces list golden
+00:20 +42: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces list golden
+00:21 +43: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces empty golden
+00:21 +44: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces empty golden
+00:21 +45: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces expenses golden
+00:22 +46: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces expenses golden
+00:22 +47: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces balances golden
+00:22 +48: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 light spaces balances golden
+00:22 +49: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces list golden
+00:22 +50: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces list golden
+00:23 +51: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces empty golden
+00:23 +52: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces empty golden
+00:23 +53: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces expenses golden
+00:23 +54: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces expenses golden
+00:23 +55: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces balances golden
+00:23 +56: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 light spaces balances golden
+00:24 +57: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces_expenses_ios golden
+00:24 +58: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces_expenses_ios golden
+00:24 +59: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces_expenses_ios golden
+00:24 +60: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces_expenses_ios golden
+00:24 +61: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces_list_ios golden
+00:25 +62: /workspace/app/test/spaces_golden_test.dart: 390x844 light spaces_list_ios golden
+00:26 +63: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces_list_ios golden
+00:26 +64: /workspace/app/test/spaces_golden_test.dart: 360x800 light spaces_list_ios golden
+00:27 +65: /workspace/app/test/spaces_golden_test.dart: 390x844 dark spaces settle-ups golden
+00:27 +66: /workspace/app/test/spaces_golden_test.dart: 360x800 dark spaces settle-ups golden
+00:27 +67: /workspace/app/test/spaces_golden_test.dart: 390x844_text200 dark spaces settle-ups golden
+00:27 +68: /workspace/app/test/spaces_golden_test.dart: 360x800_text200 dark spaces settle-ups golden
+00:27 +69: loading /workspace/app/test/loans_golden_test.dart
+00:30 +69: /workspace/app/test/loans_golden_test.dart: 390x844 dark loans list golden
+00:33 +70: /workspace/app/test/loans_golden_test.dart: 390x844 light loans list golden
+00:33 +71: /workspace/app/test/loans_golden_test.dart: 360x800 dark loans list golden
+00:33 +72: /workspace/app/test/loans_golden_test.dart: 360x800 light loans list golden
+00:33 +73: /workspace/app/test/loans_golden_test.dart: 390x844_text200 dark loans list golden
+00:33 +74: /workspace/app/test/loans_golden_test.dart: 390x844_text200 light loans list golden
+00:34 +75: /workspace/app/test/loans_golden_test.dart: 360x800_text200 dark loans list golden
+00:34 +76: /workspace/app/test/loans_golden_test.dart: 360x800_text200 light loans list golden
+00:34 +77: /workspace/app/test/loans_golden_test.dart: 390x844 dark loans detail golden
+00:34 +78: /workspace/app/test/loans_golden_test.dart: 390x844 light loans detail golden
+00:34 +79: /workspace/app/test/loans_golden_test.dart: 360x800 dark loans detail golden
+00:34 +80: /workspace/app/test/loans_golden_test.dart: 360x800 light loans detail golden
+00:35 +81: /workspace/app/test/loans_golden_test.dart: 390x844_text200 dark loans detail golden
+00:35 +82: /workspace/app/test/loans_golden_test.dart: 390x844_text200 light loans detail golden
+00:35 +83: /workspace/app/test/loans_golden_test.dart: 360x800_text200 dark loans detail golden
+00:35 +84: /workspace/app/test/loans_golden_test.dart: 360x800_text200 light loans detail golden
+00:35 +85: /workspace/app/test/loans_golden_test.dart: 390x844 dark confirm repayment golden
+00:35 +86: /workspace/app/test/loans_golden_test.dart: 390x844 light confirm repayment golden
+00:35 +87: /workspace/app/test/loans_golden_test.dart: 360x800 dark confirm repayment golden
+00:35 +88: /workspace/app/test/loans_golden_test.dart: 360x800 light confirm repayment golden
+00:35 +89: /workspace/app/test/loans_golden_test.dart: 390x844_text200 dark confirm repayment golden
+00:36 +90: /workspace/app/test/loans_golden_test.dart: 390x844_text200 light confirm repayment golden
+00:36 +91: /workspace/app/test/loans_golden_test.dart: 360x800_text200 dark confirm repayment golden
+00:36 +92: /workspace/app/test/loans_golden_test.dart: 360x800_text200 light confirm repayment golden
+00:36 +93: loading /workspace/app/test/activity_golden_test.dart
+00:37 +93: /workspace/app/test/activity_golden_test.dart: 390x844 dark activity golden
+00:40 +94: /workspace/app/test/activity_golden_test.dart: 390x844 light activity golden
+00:41 +95: /workspace/app/test/activity_golden_test.dart: 390x844 new_dark activity golden
+00:42 +96: /workspace/app/test/activity_golden_test.dart: 390x844 new_light activity golden
+00:42 +97: /workspace/app/test/activity_golden_test.dart: 360x800 dark activity golden
+00:42 +98: /workspace/app/test/activity_golden_test.dart: 360x800 light activity golden
+00:42 +99: /workspace/app/test/activity_golden_test.dart: 360x800 new_dark activity golden
+00:42 +100: /workspace/app/test/activity_golden_test.dart: 360x800 new_light activity golden
+00:43 +101: /workspace/app/test/activity_golden_test.dart: 390x844_text200 dark activity golden
+00:43 +102: /workspace/app/test/activity_golden_test.dart: 390x844_text200 light activity golden
+00:43 +103: /workspace/app/test/activity_golden_test.dart: 390x844_text200 new_dark activity golden
+00:43 +104: /workspace/app/test/activity_golden_test.dart: 390x844_text200 new_light activity golden
+00:43 +105: /workspace/app/test/activity_golden_test.dart: 360x800_text200 dark activity golden
+00:43 +106: /workspace/app/test/activity_golden_test.dart: 360x800_text200 light activity golden
+00:43 +107: /workspace/app/test/activity_golden_test.dart: 360x800_text200 new_dark activity golden
+00:44 +108: /workspace/app/test/activity_golden_test.dart: 360x800_text200 new_light activity golden
+00:44 +109: loading /workspace/app/test/tab_chrome_golden_test.dart
+00:45 +109: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 390x844 false
+00:48 +110: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 390x844 false
+00:49 +111: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 390x844 false
+00:49 +112: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 390x844 false
+00:50 +113: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 390x844 true
+00:50 +114: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 390x844 true
+00:50 +115: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 390x844 true
+00:50 +116: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 390x844 true
+00:50 +117: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667 false
+00:51 +118: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667 false
+00:51 +119: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667 false
+00:51 +120: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667 false
+00:51 +121: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667 true
+00:51 +122: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667 true
+00:51 +123: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667 true
+00:51 +124: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667 true
+00:52 +125: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667_text200 false
+00:52 +126: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667_text200 false
+00:52 +127: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667_text200 false
+00:52 +128: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667_text200 false
+00:52 +129: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome home 375x667_text200 true
+00:52 +130: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome spaces 375x667_text200 true
+00:52 +131: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome loans 375x667_text200 true
+00:52 +132: /workspace/app/test/tab_chrome_golden_test.dart: tab chrome activity 375x667_text200 true
+00:52 +133: loading /workspace/app/test/scroll_chrome_test.dart
+00:54 +133: /workspace/app/test/scroll_chrome_test.dart: native physics and refresh control on TargetPlatform.iOS
+00:55 +134: /workspace/app/test/scroll_chrome_test.dart: native physics and refresh control on TargetPlatform.android
+00:55 +135: /workspace/app/test/scroll_chrome_test.dart: header pins, collapses and gains glass only when scrolled
+00:56 +136: /workspace/app/test/scroll_chrome_test.dart: active tab scrolls first, then returns to root; switching keeps position
+00:57 +137: /workspace/app/test/scroll_chrome_test.dart: iOS status area uses its primary controller to scroll to top
+00:57 +138: /workspace/app/test/scroll_chrome_test.dart: refresh and tab switching issue light haptics
+00:57 +139: /workspace/app/test/scroll_chrome_test.dart: large-text navigation uses semantic icons and a long-press tooltip
+00:57 +140: /workspace/app/test/scroll_chrome_test.dart: amount panel follows its grabber and flings to dismiss
+00:57 +141: /workspace/app/test/scroll_chrome_test.dart: native iOS page supports edge-swipe back
+00:58 +142: /workspace/app/test/scroll_chrome_test.dart: native iOS MaterialPage swipes back reduced=false
+00:58 +143: /workspace/app/test/scroll_chrome_test.dart: native iOS MaterialPage swipes back reduced=true
+00:58 +144: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844 dark false golden
+00:58 +145: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844 dark true golden
+00:58 +146: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844 light false golden
+00:58 +147: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844 light true golden
+00:58 +148: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800 dark false golden
+00:58 +149: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800 dark true golden
+00:59 +150: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800 light false golden
+00:59 +151: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800 light true golden
+00:59 +152: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844_text200 dark false golden
+00:59 +153: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844_text200 dark true golden
+00:59 +154: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844_text200 light false golden
+01:00 +155: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 390x844_text200 light true golden
+01:00 +156: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800_text200 dark false golden
+01:00 +157: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800_text200 dark true golden
+01:00 +158: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800_text200 light false golden
+01:00 +159: /workspace/app/test/scroll_chrome_test.dart: scroll chrome 360x800_text200 light true golden
+01:00 +160: loading /workspace/app/test/liquid_glass_golden_test.dart
+01:01 +160: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home dark rest golden
+01:04 +161: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home dark scrolled golden
+01:05 +162: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home light rest golden
+01:05 +163: /workspace/app/test/liquid_glass_golden_test.dart: ios26 home light scrolled golden
+01:05 +164: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space dark rest golden
+01:05 +165: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space dark scrolled golden
+01:06 +166: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space light rest golden
+01:06 +167: /workspace/app/test/liquid_glass_golden_test.dart: ios26 space light scrolled golden
+01:06 +168: loading /workspace/app/test/sheet_hit_test.dart
+01:08 +168: /workspace/app/test/sheet_hit_test.dart: (setUpAll)
+01:08 +168: /workspace/app/test/sheet_hit_test.dart: edit profile 390x844 dark panel golden
+01:13 +169: /workspace/app/test/sheet_hit_test.dart: appearance 390x844 dark panel golden
+01:14 +170: /workspace/app/test/sheet_hit_test.dart: create space 390x844 dark panel golden
+01:14 +171: /workspace/app/test/sheet_hit_test.dart: edit expense 390x844 dark panel golden
+01:15 +172: /workspace/app/test/sheet_hit_test.dart: export 390x844 dark panel golden
+01:16 +173: /workspace/app/test/sheet_hit_test.dart: sign out unsent 390x844 dark panel golden
+01:17 +174: /workspace/app/test/sheet_hit_test.dart: country picker 390x844 dark panel golden
+01:17 +175: /workspace/app/test/sheet_hit_test.dart: question edit 390x844 dark panel golden
+01:18 +176: /workspace/app/test/sheet_hit_test.dart: record repayment 390x844 dark panel golden
+01:18 +177: /workspace/app/test/sheet_hit_test.dart: loan dispute 390x844 dark panel golden
+01:19 +178: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 390x844 dark panel golden
+01:19 +179: /workspace/app/test/sheet_hit_test.dart: delete account 390x844 dark panel golden
+01:20 +180: /workspace/app/test/sheet_hit_test.dart: edit profile 390x844 light panel golden
+01:21 +181: /workspace/app/test/sheet_hit_test.dart: appearance 390x844 light panel golden
+01:21 +182: /workspace/app/test/sheet_hit_test.dart: create space 390x844 light panel golden
+01:21 +183: /workspace/app/test/sheet_hit_test.dart: edit expense 390x844 light panel golden
+01:22 +184: /workspace/app/test/sheet_hit_test.dart: export 390x844 light panel golden
+01:22 +185: /workspace/app/test/sheet_hit_test.dart: sign out unsent 390x844 light panel golden
+01:23 +186: /workspace/app/test/sheet_hit_test.dart: country picker 390x844 light panel golden
+01:23 +187: /workspace/app/test/sheet_hit_test.dart: question edit 390x844 light panel golden
+01:23 +188: /workspace/app/test/sheet_hit_test.dart: record repayment 390x844 light panel golden
+01:23 +189: /workspace/app/test/sheet_hit_test.dart: loan dispute 390x844 light panel golden
+01:24 +190: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 390x844 light panel golden
+01:24 +191: /workspace/app/test/sheet_hit_test.dart: delete account 390x844 light panel golden
+01:25 +192: /workspace/app/test/sheet_hit_test.dart: edit profile 360x800 dark panel golden
+01:25 +193: /workspace/app/test/sheet_hit_test.dart: appearance 360x800 dark panel golden
+01:25 +194: /workspace/app/test/sheet_hit_test.dart: create space 360x800 dark panel golden
+01:26 +195: /workspace/app/test/sheet_hit_test.dart: edit expense 360x800 dark panel golden
+01:26 +196: /workspace/app/test/sheet_hit_test.dart: export 360x800 dark panel golden
+01:26 +197: /workspace/app/test/sheet_hit_test.dart: sign out unsent 360x800 dark panel golden
+01:26 +198: /workspace/app/test/sheet_hit_test.dart: country picker 360x800 dark panel golden
+01:27 +199: /workspace/app/test/sheet_hit_test.dart: question edit 360x800 dark panel golden
+01:27 +200: /workspace/app/test/sheet_hit_test.dart: record repayment 360x800 dark panel golden
+01:27 +201: /workspace/app/test/sheet_hit_test.dart: loan dispute 360x800 dark panel golden
+01:27 +202: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 360x800 dark panel golden
+01:28 +203: /workspace/app/test/sheet_hit_test.dart: delete account 360x800 dark panel golden
+01:28 +204: /workspace/app/test/sheet_hit_test.dart: edit profile 360x800 light panel golden
+01:29 +205: /workspace/app/test/sheet_hit_test.dart: appearance 360x800 light panel golden
+01:29 +206: /workspace/app/test/sheet_hit_test.dart: create space 360x800 light panel golden
+01:29 +207: /workspace/app/test/sheet_hit_test.dart: edit expense 360x800 light panel golden
+01:30 +208: /workspace/app/test/sheet_hit_test.dart: export 360x800 light panel golden
+01:30 +209: /workspace/app/test/sheet_hit_test.dart: sign out unsent 360x800 light panel golden
+01:30 +210: /workspace/app/test/sheet_hit_test.dart: country picker 360x800 light panel golden
+01:30 +211: /workspace/app/test/sheet_hit_test.dart: question edit 360x800 light panel golden
+01:31 +212: /workspace/app/test/sheet_hit_test.dart: record repayment 360x800 light panel golden
+01:31 +213: /workspace/app/test/sheet_hit_test.dart: loan dispute 360x800 light panel golden
+01:31 +214: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 360x800 light panel golden
+01:31 +215: /workspace/app/test/sheet_hit_test.dart: delete account 360x800 light panel golden
+01:31 +216: /workspace/app/test/sheet_hit_test.dart: edit profile 390x844_text200 dark panel golden
+01:32 +217: /workspace/app/test/sheet_hit_test.dart: appearance 390x844_text200 dark panel golden
+01:32 +218: /workspace/app/test/sheet_hit_test.dart: create space 390x844_text200 dark panel golden
+01:32 +219: /workspace/app/test/sheet_hit_test.dart: edit expense 390x844_text200 dark panel golden
+01:33 +220: /workspace/app/test/sheet_hit_test.dart: export 390x844_text200 dark panel golden
+01:33 +221: /workspace/app/test/sheet_hit_test.dart: sign out unsent 390x844_text200 dark panel golden
+01:33 +222: /workspace/app/test/sheet_hit_test.dart: country picker 390x844_text200 dark panel golden
+01:33 +223: /workspace/app/test/sheet_hit_test.dart: question edit 390x844_text200 dark panel golden
+01:34 +224: /workspace/app/test/sheet_hit_test.dart: record repayment 390x844_text200 dark panel golden
+01:34 +225: /workspace/app/test/sheet_hit_test.dart: loan dispute 390x844_text200 dark panel golden
+01:34 +226: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 390x844_text200 dark panel golden
+01:34 +227: /workspace/app/test/sheet_hit_test.dart: delete account 390x844_text200 dark panel golden
+01:34 +228: /workspace/app/test/sheet_hit_test.dart: edit profile 390x844_text200 light panel golden
+01:35 +229: /workspace/app/test/sheet_hit_test.dart: appearance 390x844_text200 light panel golden
+01:35 +230: /workspace/app/test/sheet_hit_test.dart: create space 390x844_text200 light panel golden
+01:35 +231: /workspace/app/test/sheet_hit_test.dart: edit expense 390x844_text200 light panel golden
+01:35 +232: /workspace/app/test/sheet_hit_test.dart: export 390x844_text200 light panel golden
+01:36 +233: /workspace/app/test/sheet_hit_test.dart: sign out unsent 390x844_text200 light panel golden
+01:36 +234: /workspace/app/test/sheet_hit_test.dart: country picker 390x844_text200 light panel golden
+01:36 +235: /workspace/app/test/sheet_hit_test.dart: question edit 390x844_text200 light panel golden
+01:36 +236: /workspace/app/test/sheet_hit_test.dart: record repayment 390x844_text200 light panel golden
+01:36 +237: /workspace/app/test/sheet_hit_test.dart: loan dispute 390x844_text200 light panel golden
+01:37 +238: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 390x844_text200 light panel golden
+01:37 +239: /workspace/app/test/sheet_hit_test.dart: delete account 390x844_text200 light panel golden
+01:38 +240: /workspace/app/test/sheet_hit_test.dart: edit profile 360x800_text200 dark panel golden
+01:38 +241: /workspace/app/test/sheet_hit_test.dart: appearance 360x800_text200 dark panel golden
+01:38 +242: /workspace/app/test/sheet_hit_test.dart: create space 360x800_text200 dark panel golden
+01:38 +243: /workspace/app/test/sheet_hit_test.dart: edit expense 360x800_text200 dark panel golden
+01:39 +244: /workspace/app/test/sheet_hit_test.dart: export 360x800_text200 dark panel golden
+01:39 +245: /workspace/app/test/sheet_hit_test.dart: sign out unsent 360x800_text200 dark panel golden
+01:39 +246: /workspace/app/test/sheet_hit_test.dart: country picker 360x800_text200 dark panel golden
+01:39 +247: /workspace/app/test/sheet_hit_test.dart: question edit 360x800_text200 dark panel golden
+01:39 +248: /workspace/app/test/sheet_hit_test.dart: record repayment 360x800_text200 dark panel golden
+01:40 +249: /workspace/app/test/sheet_hit_test.dart: loan dispute 360x800_text200 dark panel golden
+01:41 +250: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 360x800_text200 dark panel golden
+01:41 +251: /workspace/app/test/sheet_hit_test.dart: delete account 360x800_text200 dark panel golden
+01:41 +252: /workspace/app/test/sheet_hit_test.dart: edit profile 360x800_text200 light panel golden
+01:42 +253: /workspace/app/test/sheet_hit_test.dart: appearance 360x800_text200 light panel golden
+01:42 +254: /workspace/app/test/sheet_hit_test.dart: create space 360x800_text200 light panel golden
+01:42 +255: /workspace/app/test/sheet_hit_test.dart: edit expense 360x800_text200 light panel golden
+01:42 +256: /workspace/app/test/sheet_hit_test.dart: export 360x800_text200 light panel golden
+01:42 +257: /workspace/app/test/sheet_hit_test.dart: sign out unsent 360x800_text200 light panel golden
+01:43 +258: /workspace/app/test/sheet_hit_test.dart: country picker 360x800_text200 light panel golden
+01:43 +259: /workspace/app/test/sheet_hit_test.dart: question edit 360x800_text200 light panel golden
+01:44 +260: /workspace/app/test/sheet_hit_test.dart: record repayment 360x800_text200 light panel golden
+01:44 +261: /workspace/app/test/sheet_hit_test.dart: loan dispute 360x800_text200 light panel golden
+01:45 +262: /workspace/app/test/sheet_hit_test.dart: confirmation dispute 360x800_text200 light panel golden
+01:45 +263: /workspace/app/test/sheet_hit_test.dart: delete account 360x800_text200 light panel golden
+01:45 +264: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit profile, 390x844, no keyboard
+01:46 +265: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit profile, 390x844, keyboard up
+01:46 +266: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: appearance, 390x844, no keyboard
+01:46 +267: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: appearance, 390x844, keyboard up
+01:47 +268: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: create space, 390x844, no keyboard
+01:47 +269: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: create space, 390x844, keyboard up
+01:47 +270: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit expense, 390x844, no keyboard
+01:47 +271: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit expense, 390x844, keyboard up
+01:47 +272: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit profile, 360x800, no keyboard
+01:48 +273: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit profile, 360x800, keyboard up
+01:48 +274: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: appearance, 360x800, no keyboard
+01:48 +275: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: appearance, 360x800, keyboard up
+01:48 +276: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: create space, 360x800, no keyboard
+01:48 +277: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: create space, 360x800, keyboard up
+01:48 +278: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit expense, 360x800, no keyboard
+01:49 +279: /workspace/app/test/sheet_hit_test.dart: the primary action is above the tab bar: edit expense, 360x800, keyboard up
+01:50 +280: /workspace/app/test/sheet_hit_test.dart: edit profile saves at 390x844 with the shell present
+01:50 +281: /workspace/app/test/sheet_hit_test.dart: (tearDownAll)
+01:50 +281: All tests passed!

@@ -85,7 +85,11 @@ void main() {
           device: device,
           theme: theme,
           act: (tester) async {
-            if (name.startsWith('new')) await tester.tap(find.text('Flat 402'));
+            if (name.startsWith('new')) {
+              await tester.ensureVisible(find.text('Flat 402'));
+              await tester.pumpAndSettle();
+              await tester.tap(find.text('Flat 402'));
+            }
           },
           child: UncontrolledProviderScope(
             container: container,

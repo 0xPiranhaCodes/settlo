@@ -201,7 +201,7 @@ void main() {
 
     testWidgets('iOS: day headings are pinned slivers', (tester) async {
       await _pump(tester, SettloRoutes.activity, _ios);
-      for (final heading in ['Today', 'This week']) {
+      for (final heading in ['TODAY', 'THIS WEEK']) {
         expect(
           find.ancestor(
             of: find.text(heading),

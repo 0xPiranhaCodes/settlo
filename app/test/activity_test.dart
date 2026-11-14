@@ -196,8 +196,8 @@ void main() {
 
     expect(find.text('Arjun recorded a ₹25,000 repayment'), findsOneWidget);
     expect(find.text('needs your confirmation · 5 Oct'), findsOneWidget);
-    expect(find.text('Today'), findsOneWidget);
-    expect(find.text('This week'), findsOneWidget);
+    expect(find.text('TODAY'), findsOneWidget);
+    expect(find.text('THIS WEEK'), findsOneWidget);
     expect(find.text('Priya added Electricity'), findsOneWidget);
     expect(find.text('You added Groceries'), findsOneWidget);
     expect(find.text('Arjun repaid · you confirmed'), findsOneWidget);
@@ -251,8 +251,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Priya added Electricity'), findsNothing);
-    expect(find.text('Today'), findsNothing);
+    expect(find.text('TODAY'), findsNothing);
 
+    await tester.ensureVisible(find.text('All'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('All'));
     await tester.pumpAndSettle();
     expect(find.text('Priya added Electricity'), findsOneWidget);
@@ -471,6 +473,8 @@ void main() {
       List<String> feeds() =>
           activity.calls.where((c) => c.startsWith('feed')).toList();
 
+      await tester.ensureVisible(find.text('Flat 402'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Flat 402'));
       await tester.pumpAndSettle();
       expect(feeds().last, 'feed 30 null s1');
@@ -481,6 +485,8 @@ void main() {
       expect(find.text('Arjun recorded a ₹25,000 repayment'), findsOneWidget);
 
       await tester.ensureVisible(find.text('Loans'));
+      await tester.ensureVisible(find.text('Loans'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Loans'));
       await tester.pumpAndSettle();
       expect(feeds().last, 'feed 30 null loans');
@@ -488,6 +494,8 @@ void main() {
       expect(find.text('Priya added Electricity'), findsNothing);
 
       await tester.ensureVisible(find.text('All'));
+      await tester.ensureVisible(find.text('All'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('All'));
       await tester.pumpAndSettle();
       expect(feeds().last, 'feed 30 null');
@@ -516,6 +524,8 @@ void main() {
       ];
       final activity = FakeActivityRepository(entries: entries, pending: []);
       await _pump(tester, activity);
+      await tester.ensureVisible(find.text('Flat 402'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Flat 402'));
       await tester.pumpAndSettle();
       activity.calls.clear();
@@ -541,6 +551,8 @@ void main() {
       );
 
       await tester.ensureVisible(find.text('Loans'));
+      await tester.ensureVisible(find.text('Loans'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Loans'));
       await tester.pumpAndSettle();
       expect(find.text('Nothing here yet'), findsOneWidget);
@@ -550,6 +562,8 @@ void main() {
       );
 
       await tester.ensureVisible(find.text('Goa trip'));
+      await tester.ensureVisible(find.text('Goa trip'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Goa trip'));
       await tester.pumpAndSettle();
       expect(

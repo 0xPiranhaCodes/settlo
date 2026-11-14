@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:math' as math;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,41 +23,26 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final home = ref.watch(homeProvider);
     final data = home.value;
-    final media = MediaQuery.of(context);
-    const gap = SizedBox(height: SettloSpacing.x3);
+    const gap = SizedBox(height: SettloTabScaffold.groupGap);
     // The canvas sets letter spacing and line height only where it means
     // to; elsewhere they are 0 and CSS `normal` (1.2 for Figtree).
-    final c = SettloColors.of(context);
     return Scaffold(
       body: Stack(
         children: [
-          Positioned.fill(
-            child: ExcludeSemantics(
-              child: CustomPaint(
-                painter: WelcomeBackgroundPainter(
-                  background: c.background,
-                  gold: c.brandAccent,
-                  highlight: c.brandAccent,
-                  placement: SettloArcPlacement.home,
-                ),
-              ),
-            ),
-          ),
           DefaultTextStyle.merge(
             style: const TextStyle(letterSpacing: 0, height: 1.2),
-            child: SettloScrollScaffold(
-              title: 'SABKIJEB',
-              stickyHeader: false,
+            child: SettloTabScaffold(
+              title: 'Home',
+
               onRefresh: () => _refresh(ref),
-              padding: EdgeInsets.fromLTRB(
-                SettloSpacing.screenMargin,
-                math.max(media.padding.top, 44) + 16,
-                SettloSpacing.screenMargin,
-                media.padding.bottom + SettloSpacing.x2,
-              ),
               children: [
-                _Header(data?.name),
-                // The shared header already reserves the mock's 24px gap.
+                SettloNavigationHeader(
+                  title: 'Home',
+                  trailing: SettloTabActions(
+                    name: data?.name,
+                    onBell: () => context.go(SettloRoutes.activity),
+                  ),
+                ),
                 ...switch (data) {
                   null => [
                     _NetCard.muted(
@@ -82,7 +67,7 @@ class HomeScreen extends ConsumerWidget {
                           "phone number — they don't need the app yet.",
                       route: SettloRoutes.spaces,
                     ),
-                    SizedBox(height: SettloSpacing.x3),
+                    SizedBox(height: SettloTabScaffold.groupGap),
                     _JobTile(
                       icon: _LoanIcon(),
                       title: 'Record a loan',
@@ -112,15 +97,15 @@ class HomeScreen extends ConsumerWidget {
 
   static List<Widget> _balances(HomeData data) => [
     if (data.spaces.isNotEmpty) ...[
-      const SizedBox(height: SettloSpacing.x4),
+      const SizedBox(height: SettloSpacing.x1),
       _SpacesCard(data.spaces),
     ],
     if (data.loans.isNotEmpty) ...[
-      const SizedBox(height: SettloSpacing.x3),
+      const SizedBox(height: SettloSpacing.x1),
       _LoansCard(data.loans),
     ],
     if (!data.isEmpty) ...[
-      const SizedBox(height: SettloSpacing.x3),
+      const SizedBox(height: SettloSpacing.x1),
       const ActivityPreview(),
     ],
   ];
@@ -152,47 +137,11 @@ String _groupPhone(String e164) => e164.startsWith('+91') && e164.length == 13
     ? '+91 ${e164.substring(3, 8)} ${e164.substring(8)}'
     : e164;
 
-class _Header extends StatelessWidget {
-  const new(this.name);
-
-  final String? name;
-
-  @override
-  Widget build(BuildContext context) {
-    // The owner's logo is the header title: in a glass circle on iOS 26,
-    // as supplied elsewhere, and no wordmark (#191, #203).
-    final lockup = GlassAction(
-      label: 'SabkiJeb',
-      asset: settloMarkAsset,
-      decorative: true,
-      onPressed: null,
-      fallback: Semantics(
-        header: true,
-        label: 'SabkiJeb',
-        excludeSemantics: true,
-        child: const SettloMark(semanticsLabel: null, size: 30),
-      ),
-    );
-    return Row(
-      children: [
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: FittedBox(fit: BoxFit.scaleDown, child: lockup),
-          ),
-        ),
-        const SizedBox(width: SettloSpacing.x2),
-        SettloTabActions(
-          name: name,
-          onBell: () => context.go(SettloRoutes.activity),
-        ),
-      ],
-    );
-  }
-}
-
-TextStyle _label(SettloColors c) =>
-    SettloTypography.footnote(letterSpacing: 0.3, color: c.textSecondary);
+TextStyle _label(SettloColors c) => SettloTypography.footnote(
+  letterSpacing: 0.5,
+  weight: FontWeight.w500,
+  color: c.textSecondary,
+);
 
 TextStyle _caption(SettloColors c) =>
     SettloTypography.subheadline(color: c.textSecondary);
@@ -242,11 +191,11 @@ class _NetCard extends StatelessWidget {
     if (data == null) {
       caption = this.caption!;
       amount = blank
-          ? const MoneyText.blank(size: 46)
+          ? const MoneyText.blank(size: 34)
           : MoneyText(
               Paise.zero,
               tone: whiteZero ? MoneyTone.neutral : MoneyTone.settled,
-              size: 46,
+              size: 34,
               color: whiteZero ? c.textPrimary : null,
             );
     } else {
@@ -259,7 +208,7 @@ class _NetCard extends StatelessWidget {
           : 'all settled across $where';
       amount = MoneyText(
         data.net,
-        size: 46,
+        size: 34,
         signed: true,
         tone: switch (net) {
           > 0 => MoneyTone.owedToYou,
@@ -268,193 +217,63 @@ class _NetCard extends StatelessWidget {
         },
       );
     }
-    return Theme(
-      data: Theme.of(context),
-      child: SCard(
-        hero: true,
-        padding: EdgeInsets.zero,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: ExcludeSemantics(
-                child: CustomPaint(
-                  painter: _NetArcPainter(
-                    gold: c.welcomeAction,
-                    surface: c.surface,
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(SettloSpacing.x3),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: _label(c)),
-                  const SizedBox(height: SettloSpacing.x1),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: amount,
-                  ),
-                  if (caption.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(caption, style: _caption(c)),
-                  ],
-                  if (data != null) ...[
-                    const SizedBox(height: 22),
-                    Divider(height: 1, thickness: 1, color: c.hairline),
-                    const SizedBox(height: 18),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _Stat(
-                            'You are owed',
-                            data.owed,
-                            data.owed.value > 0
-                                ? MoneyTone.owedToYou
-                                : MoneyTone.settled,
-                          ),
-                        ),
-                        const SizedBox(width: SettloSpacing.x1),
-                        Expanded(
-                          child: _Stat(
-                            'You owe',
-                            data.owe,
-                            data.owe.value > 0
-                                ? MoneyTone.youOwe
-                                : MoneyTone.settled,
-                          ),
-                        ),
-                        const SizedBox(width: SettloSpacing.x1),
-                        Expanded(
-                          child: _Stat(
-                            '${_months[data.month.month - 1]} spend',
-                            data.monthSpend,
-                            MoneyTone.neutral,
-                            end: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Stat extends StatelessWidget {
-  const new(this.label, this.amount, this.tone, {this.end = false});
-
-  final String label;
-  final Paise amount;
-  final MoneyTone tone;
-  final bool end;
-
-  @override
-  Widget build(BuildContext context) => MergeSemantics(
-    child: Column(
-      crossAxisAlignment: end
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
+    return SGroup(
+      margin: EdgeInsets.zero,
       children: [
-        Text(
-          label,
-          style: SettloTypography.footnote(
-            color: SettloColors.of(context).textSecondary,
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: MergeSemantics(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: _label(c)),
+                const SizedBox(height: 8),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: amount,
+                ),
+                if (caption.isNotEmpty) Text(caption, style: _caption(c)),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 2),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: end ? Alignment.centerRight : Alignment.centerLeft,
-          child: MoneyText(amount, tone: tone, size: 17),
-        ),
+        if (data != null)
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: SResponsiveRow(
+              children: [
+                for (final stat in [
+                  ('You are owed', data.owed, MoneyTone.owedToYou),
+                  ('You owe', data.owe, MoneyTone.youOwe),
+                  (
+                    '${_months[data.month.month - 1]} spend',
+                    data.monthSpend,
+                    MoneyTone.neutral,
+                  ),
+                ])
+                  Expanded(
+                    child: MergeSemantics(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            stat.$1,
+                            style: SettloTypography.footnote(
+                              color: c.textSecondary,
+                            ),
+                          ),
+                          MoneyText(stat.$2, size: 17, tone: stat.$3),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
       ],
-    ),
-  );
-}
-
-/// The clipped gold corner treatment from the owner's net-position card.
-class _NetArcPainter extends CustomPainter {
-  const new({required this.gold, required this.surface});
-
-  final Color gold;
-  final Color surface;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final glow = Paint()
-      ..shader = RadialGradient(
-        center: const Alignment(0.98, -0.94),
-        radius: 0.72,
-        colors: [
-          gold.withValues(alpha: 0.04),
-          gold.withValues(alpha: 0.02),
-          surface.withValues(alpha: 0),
-        ],
-        stops: const [0, 0.36, 1],
-      ).createShader(Offset.zero & size);
-    canvas.drawRect(Offset.zero & size, glow);
-
-    final arc = Path()
-      ..moveTo(size.width * 0.58, -2)
-      ..quadraticBezierTo(
-        size.width * 0.91,
-        size.height * 0.19,
-        size.width + 6,
-        size.height * 0.78,
-      );
-    canvas
-      ..drawPath(
-        arc,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 26
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18)
-          ..color = gold.withValues(alpha: 0.1),
-      )
-      ..drawPath(
-        arc,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 4
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3)
-          ..color = gold.withValues(alpha: 0.18),
-      )
-      ..drawPath(
-        arc,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.2
-          ..color = gold,
-      );
-    final lower = Path()
-      ..moveTo(size.width * 0.79, size.height + 3)
-      ..quadraticBezierTo(
-        size.width * 0.91,
-        size.height * 0.83,
-        size.width + 4,
-        size.height * 0.82,
-      );
-    canvas.drawPath(
-      lower,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..color = gold.withValues(alpha: 0.85),
     );
   }
-
-  @override
-  bool shouldRepaint(_NetArcPainter oldDelegate) =>
-      oldDelegate.gold != gold || oldDelegate.surface != surface;
 }
 
 class _Actions extends StatelessWidget {
@@ -468,13 +287,13 @@ class _Actions extends StatelessWidget {
           icon: HomeIcon(
             HomeGlyph.plus,
             color: SettloColors.of(context).onAction,
-            size: 18,
+            size: 18 * MediaQuery.textScalerOf(context).scale(1).clamp(1, 1.5),
             stroke: 1.9,
           ),
           onPressed: () => context.push(SettloRoutes.addExpense),
         ),
       ),
-      const SizedBox(width: 10),
+      const SizedBox(width: SettloSpacing.x2),
       Expanded(
         child: SSecondaryButton(
           label: 'Settle up',
@@ -501,41 +320,17 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
-    final card = SCard(
-      padding: const EdgeInsets.all(SettloSpacing.screenMargin),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(title, style: _label(c)),
-          const SizedBox(height: 10),
-          ...children,
-        ],
-      ),
-    );
-    final action = this.action;
-    if (action == null) return card;
-    final (label, route) = action;
-    // The link is drawn where the canvas puts it (19 from the top, 21 from
-    // the right, counting the 1px edge) inside a 44pt-tall target that
-    // covers the card's corner, so the larger target moves nothing.
-    return Stack(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        card,
-        Positioned(
-          top: 0,
-          right: 0,
-          child: SPressable(
-            onTap: () => context.go(route),
-            child: Container(
-              constraints: const BoxConstraints(
-                minHeight: SettloSpacing.minTouchTarget,
-              ),
-              padding: const EdgeInsets.fromLTRB(12, 19, 21, 0),
-              child: Text(label, style: _label(c)),
-            ),
-          ),
+        Row(
+          children: [
+            Expanded(child: SSectionLabel(title)),
+            if (action case final a?)
+              TextButton(onPressed: () => context.go(a.$2), child: Text(a.$1)),
+          ],
         ),
+        SGroup(margin: EdgeInsets.zero, children: children),
       ],
     );
   }
@@ -569,51 +364,15 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
-    final trailing = this.trailing;
-    return MergeSemantics(
-      child: SPressable(
-        onTap: onTap,
-        child: Container(
-          constraints: const BoxConstraints(
-            minHeight: SettloSpacing.minTouchTarget,
-          ),
-          padding: padding,
-          child: SResponsiveRow(
-            children: [
-              leading,
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: MediaQuery.textScalerOf(context).scale(1) >= 1.5
-                          ? null
-                          : 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: SettloTypography.headline(color: c.textPrimary),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      detail,
-                      semanticsLabel: detailSpoken,
-                      style: SettloTypography.footnote(
-                        color: detailColor ?? c.textSecondary,
-                      ).copyWith(height: 1.3),
-                    ),
-                  ],
-                ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: SettloSpacing.x1),
-                trailing,
-              ],
-            ],
-          ),
-        ),
-      ),
+    return SRow(
+      title: title,
+      subtitle: detail,
+      subtitleSemanticsLabel: detailSpoken,
+      leading: leading,
+      scaleLeading: true,
+      trailing: trailing,
+      separator: divider,
+      onTap: onTap,
     );
   }
 }
@@ -712,7 +471,7 @@ class _LoansCard extends StatelessWidget {
       bottom: 20,
       children: [
         for (final (i, l) in loans.indexed) ...[
-          if (i > 0) const SizedBox(height: SettloSpacing.x3),
+          if (i > 0) const SizedBox(height: SettloTabScaffold.groupGap),
           _Row(
             padding: EdgeInsets.zero,
             leading: SAvatar(l.counterparty),
@@ -734,7 +493,7 @@ class _LoansCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               leading: SizedBox(
                 width: 44,
-                child: Icon(Icons.schedule, color: c.pending),
+                child: Icon(CupertinoIcons.clock, color: c.pending),
               ),
               title: '${l.counterparty} says they paid',
               detail: '${formatInr(amount)} · Review repayment',
@@ -796,89 +555,24 @@ class _JobTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = SettloColors.of(context);
-    return _HomePressable(
-      label: title,
-      onTap: () => context.push(route),
-      child: SCard(
-        padding: const EdgeInsets.all(SettloSpacing.screenMargin),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.4;
-            final copy = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: c.brandAccent.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(SettloRadius.button),
-                  ),
-                  child: icon,
-                ),
-                const SizedBox(height: SettloSpacing.x2),
-                Text(
-                  title,
-                  style: SettloTypography.title3(
-                    letterSpacing: -0.3,
-                    color: c.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(body, style: _caption(c).copyWith(height: 1.45)),
-              ],
-            );
-            final arrow = Container(
-              width: SettloHomeMetrics.arrowButton,
-              height: SettloHomeMetrics.arrowButton,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: c.brandAccent.withValues(alpha: 0.22),
-                shape: BoxShape.circle,
-              ),
-              child: HomeIcon(
-                HomeGlyph.arrow,
-                color: c.brandAccent,
-                size: 22,
-                stroke: 2,
-              ),
-            );
-            if (largeText) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  copy,
-                  const SizedBox(height: SettloSpacing.x3),
-                  Align(alignment: Alignment.centerRight, child: arrow),
-                ],
-              );
-            }
-            return Row(
-              children: [
-                Expanded(child: copy),
-                const SizedBox(width: 12),
-                arrow,
-              ],
-            );
-          },
+    return SGroup(
+      margin: EdgeInsets.zero,
+      children: [
+        SPressable(
+          label: title,
+          onTap: () => context.push(route),
+          child: SRow(
+            title: title,
+            subtitle: body,
+            leading: icon,
+            scaleLeading: true,
+            separator: false,
+            chevron: true,
+          ),
         ),
-      ),
+      ],
     );
   }
-}
-
-class _HomePressable extends StatelessWidget {
-  const new({required this.label, required this.onTap, required this.child});
-
-  final String label;
-  final VoidCallback onTap;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) =>
-      SPressable(label: label, onTap: onTap, child: child);
 }
 
 /// A text-only action with a target of at least 44x44pt.
@@ -919,59 +613,22 @@ class _ClaimsCard extends StatelessWidget {
       claims.where((x) => x.kind == ClaimKind.spaceMember).length,
       claims.where((x) => x.kind == ClaimKind.loan).length,
     );
-    return SCard(
-      hero: true,
-      padding: const EdgeInsets.all(SettloSpacing.x3),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // A tick is status, so it is neutral, never gold.
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: c.surfaceHighest,
-                  borderRadius: BorderRadius.circular(SettloRadius.iconTile),
-                ),
-                child: HomeIcon(
-                  HomeGlyph.check,
-                  color: c.textPrimary,
-                  stroke: 2.2,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Your ledger was waiting',
-                      style: SettloTypography.callout(
-                        letterSpacing: -0.2,
-                        color: c.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: SettloSpacing.half),
-                    Text(
-                      'Friends recorded $what against '
-                      '${_groupPhone(data.phone)} before you joined. Review '
-                      'them — nothing is confirmed until you say so.',
-                      style: _caption(c).copyWith(height: 1.5),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: SettloSpacing.x3),
-          for (final (i, claim) in claims.indexed)
-            _ClaimRow(claim, divider: i < claims.length - 1),
-        ],
-      ),
+    return SGroup(
+      margin: EdgeInsets.zero,
+      children: [
+        SRow(
+          title: 'Your ledger was waiting',
+          subtitle:
+              'Friends recorded $what against ${_groupPhone(data.phone)} '
+              'before you joined. Review '
+              'them — nothing is confirmed until you say so.',
+          leading: HomeIcon(HomeGlyph.check, color: c.textPrimary, stroke: 2.2),
+          scaleLeading: true,
+          separator: false,
+        ),
+        for (final (i, claim) in claims.indexed)
+          _ClaimRow(claim, divider: i < claims.length - 1),
+      ],
     );
   }
 }
@@ -1035,55 +692,41 @@ class _ClaimRowState extends ConsumerState<_ClaimRow> {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return Container(
-      padding: const EdgeInsets.only(top: 14, bottom: SettloSpacing.half),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SAvatar(claim.recordedBy, size: 36),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  claim.kind == ClaimKind.loan
-                      ? 'Loan with ${claim.title}'
-                      : claim.title,
-                  style: SettloTypography.headline(color: c.textPrimary),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  _says(formatInr),
-                  semanticsLabel: _says(spokenInr),
-                  style: SettloTypography.footnote(color: c.textSecondary)
-                      .copyWith(height: 1.3),
-                ),
-                Wrap(
-                  spacing: SettloSpacing.x2,
-                  runSpacing: SettloSpacing.half,
-                  children: [
-                    _TextAction(
-                      'Accept',
-                      color: c.action,
-                      onTap: () => _settle(
-                        (h) => h.accept(claim, idempotencyKey: _acceptKey),
-                      ),
-                    ),
-                    _TextAction(
-                      "This isn't me",
-                      color: c.textSecondary,
-                      onTap: () => _settle(
-                        (h) => h.reject(claim, idempotencyKey: _rejectKey),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SRow(
+          title: claim.kind == ClaimKind.loan
+              ? 'Loan with ${claim.title}'
+              : claim.title,
+          subtitle: _says(formatInr),
+          subtitleSemanticsLabel: _says(spokenInr),
+          leading: SAvatar(claim.recordedBy, size: 36),
+          scaleLeading: true,
+          separator: false,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Wrap(
+            spacing: SettloSpacing.x2,
+            runSpacing: SettloSpacing.half,
+            children: [
+              _TextAction(
+                'Accept',
+                color: c.action,
+                onTap: () =>
+                    _settle((h) => h.accept(claim, idempotencyKey: _acceptKey)),
+              ),
+              _TextAction(
+                "This isn't me",
+                color: c.textSecondary,
+                onTap: () =>
+                    _settle((h) => h.reject(claim, idempotencyKey: _rejectKey)),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -1094,12 +737,15 @@ class _Note extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
-    return SCard(
-      padding: const EdgeInsets.all(SettloSpacing.screenMargin),
+    return _OverviewGroup(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          HomeIcon(HomeGlyph.shield, color: c.textSecondary),
+          HomeIcon(
+            HomeGlyph.shield,
+            color: c.textSecondary,
+            size: 22 * MediaQuery.textScalerOf(context).scale(1).clamp(1, 1.5),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -1113,4 +759,14 @@ class _Note extends StatelessWidget {
       ),
     );
   }
+}
+
+class _OverviewGroup extends StatelessWidget {
+  const new({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => SGroup(
+    margin: EdgeInsets.zero,
+    children: [Padding(padding: const EdgeInsets.all(16), child: child)],
+  );
 }

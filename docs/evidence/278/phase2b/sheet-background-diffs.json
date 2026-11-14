@@ -1,0 +1,170 @@
+{
+  "sheet_create_space_360x800_dark.png": {
+    "changed_bounds": [
+      17,
+      50,
+      344,
+      157
+    ],
+    "size": [
+      360,
+      800
+    ]
+  },
+  "sheet_create_space_360x800_light.png": {
+    "changed_bounds": [
+      17,
+      50,
+      344,
+      157
+    ],
+    "size": [
+      360,
+      800
+    ]
+  },
+  "sheet_create_space_360x800_text200_dark.png": {
+    "changed_bounds": [
+      0,
+      0,
+      360,
+      27
+    ],
+    "size": [
+      360,
+      800
+    ]
+  },
+  "sheet_create_space_390x844_dark.png": {
+    "changed_bounds": [
+      15,
+      50,
+      374,
+      202
+    ],
+    "size": [
+      390,
+      844
+    ]
+  },
+  "sheet_create_space_390x844_light.png": {
+    "changed_bounds": [
+      15,
+      50,
+      374,
+      202
+    ],
+    "size": [
+      390,
+      844
+    ]
+  },
+  "sheet_create_space_390x844_text200_dark.png": {
+    "changed_bounds": [
+      0,
+      0,
+      390,
+      27
+    ],
+    "size": [
+      390,
+      844
+    ]
+  },
+  "sheet_question_edit_360x800_dark.png": {
+    "changed_bounds": [
+      0,
+      0,
+      360,
+      469
+    ],
+    "size": [
+      360,
+      800
+    ]
+  },
+  "sheet_question_edit_360x800_light.png": {
+    "changed_bounds": [
+      10,
+      12,
+      350,
+      469
+    ],
+    "size": [
+      360,
+      800
+    ]
+  },
+  "sheet_question_edit_360x800_text200_dark.png": {
+    "changed_bounds": [
+      0,
+      0,
+      360,
+      267
+    ],
+    "size": [
+      360,
+      800
+    ]
+  },
+  "sheet_question_edit_360x800_text200_light.png": {
+    "changed_bounds": [
+      16,
+      0,
+      344,
+      267
+    ],
+    "size": [
+      360,
+      800
+    ]
+  },
+  "sheet_question_edit_390x844_dark.png": {
+    "changed_bounds": [
+      16,
+      24,
+      390,
+      511
+    ],
+    "size": [
+      390,
+      844
+    ]
+  },
+  "sheet_question_edit_390x844_light.png": {
+    "changed_bounds": [
+      10,
+      24,
+      380,
+      511
+    ],
+    "size": [
+      390,
+      844
+    ]
+  },
+  "sheet_question_edit_390x844_text200_dark.png": {
+    "changed_bounds": [
+      0,
+      0,
+      390,
+      311
+    ],
+    "size": [
+      390,
+      844
+    ]
+  },
+  "sheet_question_edit_390x844_text200_light.png": {
+    "changed_bounds": [
+      16,
+      0,
+      374,
+      311
+    ],
+    "size": [
+      390,
+      844
+    ]
+  }
+}

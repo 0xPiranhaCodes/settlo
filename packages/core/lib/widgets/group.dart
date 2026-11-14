@@ -41,6 +41,8 @@ class SRow extends StatelessWidget {
   const new({
     required this.title,
     this.subtitle,
+    this.subtitleSemanticsLabel,
+    this.scaleLeading = false,
     this.leading,
     this.trailing,
     this.trailingSub,
@@ -54,8 +56,14 @@ class SRow extends StatelessWidget {
   /// Primary text, 17pt regular.
   final String title;
 
+  /// Scale tab glyphs with text, capped at 150 percent.
+  final bool scaleLeading;
+
   /// Secondary text, 15pt.
   final String? subtitle;
+
+  /// Spoken subtitle for currency notation.
+  final String? subtitleSemanticsLabel;
 
   /// A 36pt avatar or icon.
   final Widget? leading;
@@ -80,6 +88,9 @@ class SRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
+    final iconScale = scaleLeading
+        ? MediaQuery.textScalerOf(context).scale(17).clamp(17, 25.5) / 17
+        : 1.0;
     final text = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,6 +103,7 @@ class SRow extends StatelessWidget {
         if (subtitle != null)
           Text(
             subtitle!,
+            semanticsLabel: subtitleSemanticsLabel,
             style: SettloTypography.subheadline(color: c.textSecondary)
                 .copyWith(height: 1.2),
           ),
@@ -127,51 +139,95 @@ class SRow extends StatelessWidget {
           constraints: BoxConstraints(minHeight: subtitle == null ? 44 : 46),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                if (leading != null) ...[
-                  SizedBox.square(dimension: 36, child: leading),
-                  const SizedBox(width: 12),
-                ],
-                Expanded(
-                  child: large
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            text,
-                            if (trailing != null || trailingSub != null) ...[
-                              const SizedBox(height: 8),
-                              accessory,
-                            ],
-                          ],
-                        )
-                      : text,
-                ),
-                if (!large && (trailing != null || trailingSub != null)) ...[
-                  const SizedBox(width: 12),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.sizeOf(context).width * .5,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                var stack = large;
+                if (scaleLeading && (trailing != null || trailingSub != null)) {
+                  final available =
+                      constraints.maxWidth -
+                      (leading == null ? 0 : 36 * iconScale + 12) -
+                      (chevron ? 8 + 16 * iconScale : 0) -
+                      12;
+                  for (final entry in [
+                    (title, SettloTypography.body(color: c.textPrimary)),
+                    if (subtitle != null)
+                      (
+                        subtitle!,
+                        SettloTypography.subheadline(color: c.textSecondary),
+                      ),
+                  ]) {
+                    for (final word in entry.$1.split(RegExp(r'\s+'))) {
+                      final painter = TextPainter(
+                        text: TextSpan(text: word, style: entry.$2),
+                        textDirection: Directionality.of(context),
+                        textScaler: MediaQuery.textScalerOf(context),
+                      )..layout();
+                      stack = stack || painter.width > available / 2;
+                      painter.dispose();
+                    }
+                  }
+                }
+                return Row(
+                  children: [
+                    if (leading != null) ...[
+                      SizedBox.square(
+                        dimension: 36 * iconScale,
+                        child: FittedBox(
+                          child: SizedBox.square(
+                            dimension: 36,
+                            child: scaleLeading
+                                ? MediaQuery.withNoTextScaling(child: leading!)
+                                : leading,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Expanded(
+                      child: stack
+                          ? Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                text,
+                                if (trailing != null ||
+                                    trailingSub != null) ...[
+                                  const SizedBox(height: 8),
+                                  accessory,
+                                ],
+                              ],
+                            )
+                          : text,
                     ),
-                    child: accessory,
-                  ),
-                ],
-                if (chevron) ...[
-                  const SizedBox(width: 8),
-                  Icon(
-                    CupertinoIcons.chevron_right,
-                    size: 16,
-                    color: c.textSecondary,
-                  ),
-                ],
-              ],
+                    if (!stack &&
+                        (trailing != null || trailingSub != null)) ...[
+                      const SizedBox(width: 12),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.sizeOf(context).width * .5,
+                        ),
+                        child: accessory,
+                      ),
+                    ],
+                    if (chevron) ...[
+                      const SizedBox(width: 8),
+                      Icon(
+                        CupertinoIcons.chevron_right,
+                        size: 16 * iconScale,
+                        color: c.textSecondary,
+                      ),
+                    ],
+                  ],
+                );
+              },
             ),
           ),
         ),
         if (separator)
           Padding(
-            padding: EdgeInsets.only(left: leading == null ? 16 : 64),
+            padding: EdgeInsets.only(
+              left: leading == null ? 16 : 28 + 36 * iconScale,
+            ),
             child: SizedBox(height: .5, child: ColoredBox(color: c.hairline)),
           ),
       ],

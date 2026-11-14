@@ -123,15 +123,18 @@ class _GlassActionState extends State<GlassAction> {
       'enabled': widget.onPressed != null,
       'dark': Theme.of(context).brightness == Brightness.dark,
       'foreground':
-          (widget.decorative ||
+          (NeutralGlassActions.of(context) ||
+                      widget.decorative ||
                       widget._back ||
                       widget.symbol == sheetCloseSymbol
                   ? c.textPrimary
                   : c.action)
               .toARGB32(),
       // Inverted like a selected chip, never gold, as in SBell.
-      'badgeColor': c.action.toARGB32(),
-      'badgeText': c.onAction.toARGB32(),
+      'badgeColor': (NeutralGlassActions.of(context) ? c.textPrimary : c.action)
+          .toARGB32(),
+      'badgeText': (NeutralGlassActions.of(context) ? c.background : c.onAction)
+          .toARGB32(),
     };
   }
 
@@ -316,4 +319,16 @@ class _RenderInsetClip extends RenderProxyBox {
       oldLayer: layer as ClipRectLayer?,
     );
   }
+}
+
+/// Keeps routine tab actions neutral without changing sheet controls.
+class NeutralGlassActions extends InheritedWidget {
+  /// Wraps tab chrome.
+  const new({required super.child, super.key});
+
+  /// Whether this action belongs to neutral tab chrome.
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<NeutralGlassActions>() != null;
+  @override
+  bool updateShouldNotify(NeutralGlassActions oldWidget) => false;
 }
