@@ -332,9 +332,7 @@ class _AccountCard extends ConsumerWidget {
       await profile.signOut();
     } on Object {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("We couldn't sign you out. Try again.")),
-      );
+      showSettloNotice(context, "We couldn't sign you out. Try again.");
     } finally {
       profile.leaving = false;
     }
@@ -378,11 +376,7 @@ class _AccountCard extends ConsumerWidget {
       await profile.deleteAccount();
     } on Object {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("We couldn't delete your account. Try again."),
-        ),
-      );
+      showSettloNotice(context, "We couldn't delete your account. Try again.");
     } finally {
       profile.leaving = false;
     }
@@ -408,16 +402,13 @@ class _HelpCard extends ConsumerWidget {
   );
 
   Future<void> _openSupport(BuildContext context, WidgetRef ref) async {
-    final messenger = ScaffoldMessenger.of(context);
     try {
       final opened = await ref.read(openUrlProvider)(_supportUri);
       if (opened || !context.mounted) return;
     } on Object {
       if (!context.mounted) return;
     }
-    messenger.showSnackBar(
-      const SnackBar(content: Text("We couldn't open support. Try again.")),
-    );
+    showSettloNotice(context, "We couldn't open support. Try again.");
   }
 }
 
@@ -807,12 +798,9 @@ class _AppearanceSheet extends ConsumerWidget {
                   if (context.mounted) Navigator.of(context).pop();
                 } on Object {
                   if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "We couldn't change your appearance. Try again.",
-                      ),
-                    ),
+                  showSettloNotice(
+                    context,
+                    "We couldn't change your appearance. Try again.",
                   );
                 }
               },

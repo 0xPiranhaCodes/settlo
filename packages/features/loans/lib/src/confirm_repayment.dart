@@ -270,7 +270,24 @@ class _Receipt extends StatelessWidget {
                 ),
                 onPressed: decision.busy || overpayment
                     ? null
-                    : decision.confirm,
+                    : () async {
+                        if (!await decision.confirm() ||
+                            !context.mounted ||
+                            // Mounted is not enough: the user may have gone
+                            // Back (exit transition) or pushed past us.
+                            ModalRoute.of(context)?.isCurrent != true) {
+                          return;
+                        }
+                        showSettloNotice(
+                          context,
+                          'Confirmed. ${formatInr(after)} left',
+                        );
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go(SettloRoutes.loan(loan.id));
+                        }
+                      },
               ),
             ),
             const SizedBox(height: SettloSpacing.x2),

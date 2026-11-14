@@ -55,44 +55,22 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  for (final permission in ['notDetermined', 'denied', 'granted']) {
-    testWidgets('first Remind tap requests in context: $permission', (
+  for (final permission in ['notDetermined', 'granted', 'denied']) {
+    testWidgets('Remind sends without asking for permission: $permission', (
       tester,
     ) async {
       final native = FakeNotificationPermission(permission)..install();
       final repo = FakeReminders();
       await pump(tester, repo, const RemindButton(loanId: 'loan'));
-      expect(native.calls, isEmpty);
       await tester.tap(find.text('Remind'));
       await tester.pumpAndSettle();
-      if (permission == 'notDetermined') {
-        expect(find.text('Get reminder notifications?'), findsOneWidget);
-        expect(repo.sends, 0);
-        await tester.tap(find.text('Continue'));
-        await tester.pumpAndSettle();
-      }
+      // Remind notifies the other person, so it never asks (#259).
+      expect(find.text('Get reminder notifications?'), findsNothing);
       expect(repo.sends, 1);
-      expect(native.requests, permission == 'notDetermined' ? 1 : 0);
+      expect(native.calls, isNot(contains('claimPrompt')));
+      expect(native.requests, 0);
     });
   }
-  testWidgets('dismissing Remind explanation does not nag on another loan', (
-    tester,
-  ) async {
-    final native = FakeNotificationPermission('notDetermined')..install();
-    await pump(tester, FakeReminders(), const RemindButton(loanId: 'first'));
-    await tester.tap(find.text('Remind'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Not now'));
-    await tester.pumpAndSettle();
-    await tester.pumpWidget(const SizedBox());
-    final repo = FakeReminders();
-    await pump(tester, repo, const RemindButton(loanId: 'second'));
-    await tester.tap(find.text('Remind'));
-    await tester.pumpAndSettle();
-    expect(find.text('Get reminder notifications?'), findsNothing);
-    expect(native.requests, 0);
-    expect(repo.sends, 1);
-  });
 
   Future<void> screenshot(String name) async {
     if (!const bool.fromEnvironment('REMINDER_EVIDENCE')) return;

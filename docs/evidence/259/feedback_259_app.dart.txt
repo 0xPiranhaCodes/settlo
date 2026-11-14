@@ -1,0 +1,28 @@
+// Scratch evidence entry for #259 (not committed as Dart). The demo app in
+// light mode, signed in with fixture data; Help and support always fails to
+// open, so Profile's error notice can be shown.
+import 'package:flutter/material.dart';
+import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_platform/settlo_platform.dart';
+import 'package:settlo_profile/settlo_profile.dart';
+
+import '../test/support/fake_home.dart';
+import '../test/support/fake_profile.dart';
+import '../test/support/fake_session.dart';
+
+void main() => runApp(
+  fakeSessionApp(
+    fakeSession,
+    themeMode: ThemeMode.light,
+    home: FakeHomeRepository(homeMain),
+    // Synthetic number only, for screenshots.
+    profileRepository: FakeProfileRepository(
+      const ProfileData(
+        name: 'Satheesh',
+        phone: '+919000000001',
+        upiId: 'demo@upi',
+      ),
+    ),
+    overrides: [openUrlProvider.overrideWithValue((_) async => false)],
+  ),
+);
