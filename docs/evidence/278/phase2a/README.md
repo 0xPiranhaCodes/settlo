@@ -34,4 +34,10 @@ root-sheet tab isolation, return to the originating tab, dirty-form dismissal,
 confirmation races, and equal-width repayment actions with complete labels at
 200% text.
 
-Validation results and contact sheets are recorded after the final rebased run.
+The PR is **not merge-ready**: the Docker suite has 1,915 passes and 12
+failures in the profile package. Merged coverage is **97.73% (6072/6213)**,
+below main's **98.11%** baseline. Remaining work is to resolve those profile
+tests and restore the coverage gate.
+
+See [validation.txt](validation.txt) for package totals,
+[profile failure output](profile-test-failures.log), and [LCOV](lcov.info).
