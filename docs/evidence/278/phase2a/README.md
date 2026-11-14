@@ -14,7 +14,17 @@ glass rendering or UIKit touch behavior. The old native delete-account alert
 uses a system-font fallback in the Linux renderer; its before image documents
 modal structure, not native text rendering.
 
-`app/test/phase2a_sheet_golden_test.dart` reproduces the matrix. Existing feature
+`app/test/phase2a_sheet_golden_test.dart` reproduces the 78-case matrix.
+`app/test/phase2a_repayment_actions_test.dart` adds four scrolled SE captures
+at 100%/200% text, checking the painted pill widths as well as touch targets.
+
+| Size | Light | Dark |
+| --- | --- | --- |
+| 390×844 | [Contact sheet](contact-390x844-light.jpg) | [Contact sheet](contact-390x844-dark.jpg) |
+| SE 375×667 | [Contact sheet](contact-se375x667-light.jpg) | [Contact sheet](contact-se375x667-dark.jpg) |
+| SE 200% text | [Contact sheet](contact-se375x667_text200-light.jpg) | [Contact sheet](contact-se375x667_text200-dark.jpg) |
+
+[Repayment action comparison](contact-actions.jpg). Existing feature
 golden tests additionally cover content states and Android presentation.
 
 The core behavioral tests exercise instant reduced-motion presentation and
