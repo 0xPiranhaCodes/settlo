@@ -909,7 +909,7 @@ void main() {
     });
 
     testWidgets('primary no-pump double tap sends once', (tester) async {
-      final (router: _, :loans) = await _pump(
+      final (:router, :loans) = await _pump(
         tester,
         location: SettloRoutes.confirmRepayment('r3'),
       );
@@ -925,11 +925,32 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(loans.calls, [startsWith('confirm_repayment ')]);
+      // Opened directly, so there is nothing to pop: it goes to the loan.
+      expect(router.state.uri.toString(), SettloRoutes.loan('l1'));
+      expect(find.text('Confirmed. ₹6,50,000 left'), findsOne);
+    });
+
+    testWidgets('confirming says so and pops back to the loan (#259)', (
+      tester,
+    ) async {
+      final (:router, loans: _) = await _pump(
+        tester,
+        location: SettloRoutes.loan('l1'),
+      );
+      await _tap(tester, find.text('awaiting you'));
+      await _tap(
+        tester,
+        find.widgetWithText(FilledButton, 'Confirm ₹25,000 received'),
+      );
+
+      expect(router.state.uri.toString(), SettloRoutes.loan('l1'));
+      expect(find.byType(ConfirmRepaymentScreen), findsNothing);
+      expect(find.byType(LoanDetailScreen), findsOne);
+      expect(find.text('Confirmed. ₹6,50,000 left'), findsOne);
       expect(
         find.text('This repayment has already been answered and is read-only.'),
-        findsOne,
+        findsNothing,
       );
-      expect(find.text('₹6,50,000'), findsOne);
     });
 
     testWidgets('overpayment warns, clamps to zero and cannot confirm', (

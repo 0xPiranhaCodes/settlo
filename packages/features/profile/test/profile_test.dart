@@ -519,8 +519,14 @@ void main() {
     expect(opened, [Uri.parse('https://sabkijeb.app/support/')]);
   });
 
-  for (final failure in ['returns false', 'throws']) {
-    testWidgets('support $failure shows safe feedback', (tester) async {
+  for (final (failure, platform) in [
+    ('returns false', TargetPlatform.android),
+    ('throws', TargetPlatform.android),
+    ('throws', TargetPlatform.iOS),
+  ]) {
+    testWidgets('support $failure shows safe feedback on ${platform.name}', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -535,7 +541,7 @@ void main() {
             }),
           ],
           child: MaterialApp(
-            theme: SettloTheme.dark(),
+            theme: SettloTheme.dark().copyWith(platform: platform),
             home: const ProfileScreen(),
           ),
         ),
@@ -556,6 +562,13 @@ void main() {
 
       expect(find.text("We couldn't open support. Try again."), findsOne);
       expect(find.textContaining('private'), findsNothing);
+      // iOS has no snackbars: the notice is a banner (#259).
+      expect(
+        find.byType(SnackBar),
+        platform == TargetPlatform.iOS ? findsNothing : findsOne,
+      );
+      // Let the iOS banner's timer run out.
+      await tester.pump(const Duration(seconds: 5));
     });
   }
 

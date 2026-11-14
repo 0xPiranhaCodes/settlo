@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settlo/router/router.dart';
 import 'package:settlo_activity/settlo_activity.dart';
@@ -79,6 +80,20 @@ class SettloApp extends ConsumerWidget {
       darkTheme: SettloTheme.dark(),
       themeMode: ref.watch(themeModeProvider).value ?? ThemeMode.dark,
       routerConfig: ref.watch(routerProvider),
+      // A closing sheet removes its light status bar region and nothing else
+      // replaces it; this one sits under every route (#259).
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: Theme.of(context).brightness == Brightness.dark
+            ? const SystemUiOverlayStyle(
+                statusBarBrightness: Brightness.dark,
+                statusBarIconBrightness: Brightness.light,
+              )
+            : const SystemUiOverlayStyle(
+                statusBarBrightness: Brightness.light,
+                statusBarIconBrightness: Brightness.dark,
+              ),
+        child: child!,
+      ),
     );
   }
 }

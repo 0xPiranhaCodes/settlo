@@ -54,13 +54,16 @@ Future<T?> showSettloPopup<T>({
 
 /// Asks with a native [CupertinoAlertDialog], for an irreversible choice
 /// such as deleting the account. True when [destructive] is chosen, false
-/// for [cancel]. iOS only.
+/// for [cancel]. iOS only. With [danger] false, [destructive] is an
+/// ordinary action in the brand tint, such as a permission explanation's
+/// Continue.
 Future<bool?> showSettloAlert({
   required BuildContext context,
   required String title,
   required String message,
   required String destructive,
   required String cancel,
+  bool danger = true,
 }) => Navigator.of(context, rootNavigator: true).push(
   CupertinoDialogRoute<bool>(
     context: context,
@@ -79,11 +82,13 @@ Future<bool?> showSettloAlert({
             child: Text(cancel),
           ),
           CupertinoDialogAction(
-            isDestructiveAction: true,
+            isDestructiveAction: danger,
             onPressed: () => _answer(context, true),
             child: Text(
               destructive,
-              style: TextStyle(color: SettloColors.of(context).error),
+              style: danger
+                  ? TextStyle(color: SettloColors.of(context).error)
+                  : null,
             ),
           ),
         ],

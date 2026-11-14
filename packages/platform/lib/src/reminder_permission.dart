@@ -6,15 +6,21 @@ import 'package:settlo_platform/src/reminders.dart';
 
 /// Each meaningful context gets at most one explanation per installation.
 enum ReminderPermissionTrigger {
-  /// A deliberate manual nudge.
+  /// A deliberate manual nudge. Unused since #259: Remind notifies the other
+  /// person. Kept because the native side stores claims by name.
   remind,
 
   /// Creating or accepting a scheduled loan.
   instalmentLoan,
 
-  /// Opening the reminder setting, or enabling it there.
+  /// Turning the reminder setting on.
   profile,
 }
+
+const _title = 'Get reminder notifications?';
+const _message =
+    'SabkiJeb can notify you about loan nudges and missed instalments. '
+    'Names and amounts stay off your lock screen.';
 
 /// Reuses the same explanation and guards navigation and account changes.
 Future<void> showReminderPermission(
@@ -36,27 +42,32 @@ Future<void> showReminderPermission(
     enabled: repository.enabled,
     active: active,
     explain: () async =>
-        await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Get reminder notifications?'),
-            content: const Text(
-              'SabkiJeb can notify you about loan nudges '
-              'and missed instalments. '
-              'Names and amounts stay off your lock screen.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Not now'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Continue'),
-              ),
-            ],
-          ),
-        ) ??
+        await (Theme.of(context).platform == TargetPlatform.iOS
+            ? showSettloAlert(
+                context: context,
+                title: _title,
+                message: _message,
+                destructive: 'Continue',
+                cancel: 'Not now',
+                danger: false,
+              )
+            : showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text(_title),
+                  content: const Text(_message),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Not now'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Continue'),
+                    ),
+                  ],
+                ),
+              )) ??
         false,
   );
   if (active()) ref.invalidate(remindersEnabledProvider);

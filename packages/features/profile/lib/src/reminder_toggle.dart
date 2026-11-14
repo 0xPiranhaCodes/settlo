@@ -25,15 +25,8 @@ class _ReminderToggleState extends ConsumerState<ReminderToggle> {
   void initState() {
     super.initState();
     _lifecycle = AppLifecycleListener(onResume: () => unawaited(_status()));
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      await showReminderPermission(
-        context,
-        ref,
-        ReminderPermissionTrigger.profile,
-      );
-      await _status();
-    });
+    // Opening Profile never asks; turning Reminders on does (#259).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _status());
   }
 
   Future<void> _status() async {

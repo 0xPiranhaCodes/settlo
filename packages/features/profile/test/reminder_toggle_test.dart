@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,7 +53,7 @@ Future<void> _pump(WidgetTester tester, _Repository repo) async {
 void main() {
   for (final status in ['notDetermined', 'denied', 'granted']) {
     for (final accept in [false, true]) {
-      testWidgets('opening default-on reminders: $status, continue=$accept', (
+      testWidgets('asks only when turned on: $status, continue=$accept', (
         tester,
       ) async {
         const channel = MethodChannel('app.settlo/reminders');
@@ -77,8 +78,13 @@ void main() {
             null,
           ),
         );
-        final repo = _Repository();
+        final repo = _Repository()..on = false;
         await _pump(tester, repo);
+        // Opening Profile never asks (#259).
+        expect(find.text('Get reminder notifications?'), findsNothing);
+        expect(calls, isNot(contains('claimPrompt')));
+        await tester.tap(find.byType(Switch));
+        await tester.pumpAndSettle();
         expect(
           find.text('Get reminder notifications?'),
           status == 'notDetermined' ? findsOneWidget : findsNothing,
@@ -111,6 +117,60 @@ void main() {
       });
     }
   }
+  testWidgets('opening default-on reminders never asks (#259)', (tester) async {
+    const channel = MethodChannel('app.settlo/reminders');
+    final calls = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
+      call,
+    ) async {
+      calls.add(call.method);
+      return switch (call.method) {
+        'permissionStatus' => 'notDetermined',
+        'claimPrompt' => true,
+        _ => null,
+      };
+    });
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        null,
+      ),
+    );
+    await _pump(tester, _Repository());
+    expect(find.text('Get reminder notifications?'), findsNothing);
+    expect(calls, isNot(contains('claimPrompt')));
+  });
+  testWidgets(
+    'iOS explains with a native alert',
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    (tester) async {
+      const channel = MethodChannel('app.settlo/reminders');
+      var requested = false;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        (call) async => switch (call.method) {
+          'permissionStatus' => requested ? 'granted' : 'notDetermined',
+          'claimPrompt' => true,
+          'requestPermission' => requested = true,
+          _ => null,
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          channel,
+          null,
+        ),
+      );
+      await _pump(tester, _Repository()..on = false);
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+      expect(find.byType(CupertinoAlertDialog), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      expect(requested, isTrue);
+    },
+  );
   testWidgets('one pending write, saved preference survives reopening', (
     tester,
   ) async {
