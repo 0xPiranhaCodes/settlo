@@ -21,7 +21,6 @@ class LoanScreen extends ConsumerWidget {
     return Scaffold(
       body: SettloTabScaffold(
         title: 'Loans',
-
         onRefresh: () => ref.refresh(loansProvider.future),
         children: [
           SettloNavigationHeader(
@@ -155,7 +154,7 @@ class _LoanCard extends StatelessWidget {
               _ => MoneyTone.youOwe,
             },
           ),
-          separator: separator,
+          separator: false,
           chevron: true,
           onTap: () => context.go(SettloRoutes.loan(loan.id)),
         ),
@@ -195,6 +194,13 @@ class _LoanCard extends StatelessWidget {
             ),
           ),
         ),
+        if (separator)
+          Divider(
+            height: 0.5,
+            thickness: 0.5,
+            indent: 64,
+            color: SettloColors.of(context).hairline,
+          ),
       ],
     );
   }

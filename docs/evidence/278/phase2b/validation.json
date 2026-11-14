@@ -12,8 +12,8 @@
   "native_only_share_files": 6,
   "combined_total": 1775,
   "line_coverage": {
-    "hit": 6160,
-    "found": 6265,
+    "hit": 6162,
+    "found": 6267,
     "percent": 98.32,
     "main_baseline": 98.11
   },
@@ -21,5 +21,10 @@
     "hit": 110,
     "found": 110,
     "percent": 100
-  }
+  },
+  "focused_linux": 269,
+  "native_focused": 245,
+  "capture_tests": 80,
+  "changed_golden_files": 49,
+  "refreshed_after_captures": 20
 }

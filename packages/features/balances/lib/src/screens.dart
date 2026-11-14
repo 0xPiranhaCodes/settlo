@@ -27,70 +27,65 @@ class HomeScreen extends ConsumerWidget {
     // The canvas sets letter spacing and line height only where it means
     // to; elsewhere they are 0 and CSS `normal` (1.2 for Figtree).
     return Scaffold(
-      body: Stack(
-        children: [
-          DefaultTextStyle.merge(
-            style: const TextStyle(letterSpacing: 0, height: 1.2),
-            child: SettloTabScaffold(
+      body: DefaultTextStyle.merge(
+        style: const TextStyle(letterSpacing: 0, height: 1.2),
+        child: SettloTabScaffold(
+          title: 'Home',
+          onRefresh: () => _refresh(ref),
+          children: [
+            SettloNavigationHeader(
               title: 'Home',
-
-              onRefresh: () => _refresh(ref),
-              children: [
-                SettloNavigationHeader(
-                  title: 'Home',
-                  trailing: SettloTabActions(
-                    name: data?.name,
-                    onBell: () => context.go(SettloRoutes.activity),
-                  ),
-                ),
-                ...switch (data) {
-                  null => [
-                    _NetCard.muted(
-                      caption: home.hasError
-                          ? "We couldn't load your balances. Pull down to "
-                                'try again.'
-                          : '',
-                    ),
-                  ],
-                  HomeData(isEmpty: true) => const [
-                    _NetCard.empty(
-                      caption:
-                          'Nothing recorded yet. Your first entry takes '
-                          'about ten seconds.',
-                    ),
-                    gap,
-                    _JobTile(
-                      icon: _SpaceIcon(SpaceKind.flat, tile: false),
-                      title: 'Start a space',
-                      body:
-                          'Flatmates, a trip, or one friend. Add people by '
-                          "phone number — they don't need the app yet.",
-                      route: SettloRoutes.spaces,
-                    ),
-                    SizedBox(height: SettloTabScaffold.groupGap),
-                    _JobTile(
-                      icon: _LoanIcon(),
-                      title: 'Record a loan',
-                      body:
-                          'Money you lent or borrowed. Both of you see every '
-                          'repayment and confirm it.',
-                      route: SettloRoutes.newLoan,
-                    ),
-                  ],
-                  HomeData(claims: [_, ...]) => [
-                    _ClaimsCard(data),
-                    gap,
-                    const _NetCard.blank(),
-                    gap,
-                    const _Note(),
-                    ..._balances(data),
-                  ],
-                  _ => [_NetCard(data), gap, _Actions(), ..._balances(data)],
-                },
-              ],
+              trailing: SettloTabActions(
+                name: data?.name,
+                onBell: () => context.go(SettloRoutes.activity),
+              ),
             ),
-          ),
-        ],
+            ...switch (data) {
+              null => [
+                _NetCard.muted(
+                  caption: home.hasError
+                      ? "We couldn't load your balances. Pull down to "
+                            'try again.'
+                      : '',
+                ),
+              ],
+              HomeData(isEmpty: true) => const [
+                _NetCard.empty(
+                  caption:
+                      'Nothing recorded yet. Your first entry takes '
+                      'about ten seconds.',
+                ),
+                gap,
+                _JobTile(
+                  icon: _SpaceIcon(SpaceKind.flat, tile: false),
+                  title: 'Start a space',
+                  body:
+                      'Flatmates, a trip, or one friend. Add people by '
+                      "phone number — they don't need the app yet.",
+                  route: SettloRoutes.spaces,
+                ),
+                SizedBox(height: SettloTabScaffold.groupGap),
+                _JobTile(
+                  icon: _LoanIcon(),
+                  title: 'Record a loan',
+                  body:
+                      'Money you lent or borrowed. Both of you see every '
+                      'repayment and confirm it.',
+                  route: SettloRoutes.newLoan,
+                ),
+              ],
+              HomeData(claims: [_, ...]) => [
+                _ClaimsCard(data),
+                gap,
+                const _NetCard.blank(),
+                gap,
+                const _Note(),
+                ..._balances(data),
+              ],
+              _ => [_NetCard(data), gap, _Actions(), ..._balances(data)],
+            },
+          ],
+        ),
       ),
     );
   }
@@ -306,16 +301,10 @@ class _Actions extends StatelessWidget {
 
 /// A card titled [title] with an optional trailing link.
 class _Section extends StatelessWidget {
-  const new({
-    required this.title,
-    required this.children,
-    this.bottom = 6,
-    this.action,
-  });
+  const new({required this.title, required this.children, this.action});
 
   final String title;
   final List<Widget> children;
-  final double bottom;
   final (String, String)? action;
 
   @override
@@ -347,7 +336,6 @@ class _Row extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.divider = false,
-    this.padding = const EdgeInsets.symmetric(vertical: 14),
   });
 
   final Widget leading;
@@ -360,13 +348,13 @@ class _Row extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool divider;
-  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
     return SRow(
       title: title,
       subtitle: detail,
+      subtitleColor: detailColor,
       subtitleSemanticsLabel: detailSpoken,
       leading: leading,
       scaleLeading: true,
@@ -468,12 +456,11 @@ class _LoansCard extends StatelessWidget {
     final c = SettloColors.of(context);
     return _Section(
       title: 'LOANS',
-      bottom: 20,
       children: [
         for (final (i, l) in loans.indexed) ...[
-          if (i > 0) const SizedBox(height: SettloTabScaffold.groupGap),
+          if (i > 0)
+            Divider(height: 0.5, thickness: 0.5, indent: 64, color: c.hairline),
           _Row(
-            padding: EdgeInsets.zero,
             leading: SAvatar(l.counterparty),
             title: '${l.counterparty} · interest free',
             detail: _detail(l, formatInr),
@@ -490,7 +477,6 @@ class _LoansCard extends StatelessWidget {
           )) ...[
             const SizedBox(height: 10),
             _Row(
-              padding: const EdgeInsets.symmetric(vertical: 8),
               leading: SizedBox(
                 width: 44,
                 child: Icon(CupertinoIcons.clock, color: c.pending),
@@ -510,7 +496,7 @@ class _LoansCard extends StatelessWidget {
               )
               when total > 0)
             Padding(
-              padding: const EdgeInsets.only(top: 14),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(2),
                 child: LinearProgressIndicator(

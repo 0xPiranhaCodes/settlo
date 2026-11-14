@@ -23,4 +23,4 @@ Try `flutter pub outdated` for more information.
 00:00 +3: a second export while the first share is open leaves the first's files alone
 00:00 +4: a failed export leaves nothing behind
 00:00 +5: app start clears what the last run left
-00:00 +6: All tests passed!
+00:01 +6: All tests passed!

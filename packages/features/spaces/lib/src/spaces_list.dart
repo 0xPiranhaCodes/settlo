@@ -230,7 +230,7 @@ class _SpaceCard extends StatelessWidget {
               _ when !s.hasExpenses => 'nothing yet',
               _ => 'settled',
             },
-            separator: separator,
+            separator: false,
             chevron: true,
             onTap: () => context.go(SettloRoutes.space(s.id)),
           ),
@@ -265,6 +265,13 @@ class _SpaceCard extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          if (separator)
+            Divider(
+              height: 0.5,
+              thickness: 0.5,
+              indent: 64,
+              color: SettloColors.of(context).hairline,
             ),
         ],
       ),

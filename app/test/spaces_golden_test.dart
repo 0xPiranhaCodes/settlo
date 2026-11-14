@@ -19,9 +19,12 @@ Future<Widget> spacesInShell(
   Widget screen, {
   Map<String, SpaceLedger>? ledgers,
   ActivityRepository? activity,
+  String? accountName,
 }) async {
   final container = ProviderContainer(
     overrides: [
+      if (accountName != null)
+        accountNameProvider.overrideWithValue(accountName),
       if (activity != null) ...[
         activityRepositoryProvider.overrideWithValue(activity),
         activityNowProvider.overrideWithValue(DateTime(2026, 11, 9, 18)),

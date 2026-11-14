@@ -11,6 +11,17 @@ with text to 150%, without scaling avatar lettering twice. Activity uses the
 Cupertino sliding segmented control and retains pinned date headings on iOS.
 Space-scoped Activity retains its existing sheet presentation.
 
+## Review fixes
+
+Spaces and Loans draw each inter-item hairline after the row's footer. Home
+loans use the same 16pt side/bottom progress inset as Loans, with hairlines
+between items. Pending repayment detail keeps its semantic colour. Home's
+activity header uses SEE ALL, and the tab capture fixtures all use Sana's initial.
+The scoped Activity copies identify Phase 2a (#283) as their removal point.
+
+Review items 4 (Activity emphasis, pending and action cues), 6 (segmented
+filter overflow), and 7 (row reflow measurement cost) remain Phase 3 follow-ups.
+
 ## Captures
 
 `before/` and `after/` contain the same fixture data for Home, Spaces, Loans and
@@ -49,12 +60,18 @@ local 75, platform 73, auth 60, and profile 48. The native complement adds
 one large-export test and six file-sharing tests: **1,775 distinct tests**.
 The six new core chrome checks also passed natively (already counted in Linux).
 
-Merged line coverage is **98.32% (6,160 / 6,265)** against the main baseline
+Merged line coverage is **98.32% (6,162 / 6,267)** against the main baseline
 of **98.11%**. Money coverage is **100% (110 / 110)**. See `linux-tests.log`,
 `validation.json`, and the normalized native LCOV inputs.
 
-The capture pass passed 281 tests; its progress is in `captures.log`. The
-baseline capture pass passed 24 tests. `flutter analyze` is clean, host
+The review-fix capture pass passed 80 selected tests; its progress is in `captures.log`. The
+baseline capture pass passed 24 tests. A 14-pixel dependent change at the top-right
+corner of the 200% dark Create space sheet is retained; its content is unchanged.
+A filtered-capture missing-logo artifact was discarded, and the normal-order
+full run verifies the original sheet-content baseline. The focused Linux pass passed 269 tests
+(263 app checks including the 24 tab goldens, plus 6 core chrome checks);
+the native focused pass passed 245. See `focused-linux.log`,
+`native-focused.log`, and `native-tab-chrome.log`. `flutter analyze` is clean, host
 `flutter pub get` is restored, and `pubspec.lock` is unchanged.
 
 The Docker container ran only after the parallel Phase 2a container exited;

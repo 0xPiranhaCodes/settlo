@@ -42,6 +42,7 @@ class SRow extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.subtitleSemanticsLabel,
+    this.subtitleColor,
     this.scaleLeading = false,
     this.leading,
     this.trailing,
@@ -61,6 +62,9 @@ class SRow extends StatelessWidget {
 
   /// Secondary text, 15pt.
   final String? subtitle;
+
+  /// Optional semantic colour for secondary text, such as pending repayment.
+  final Color? subtitleColor;
 
   /// Spoken subtitle for currency notation.
   final String? subtitleSemanticsLabel;
@@ -104,8 +108,9 @@ class SRow extends StatelessWidget {
           Text(
             subtitle!,
             semanticsLabel: subtitleSemanticsLabel,
-            style: SettloTypography.subheadline(color: c.textSecondary)
-                .copyWith(height: 1.2),
+            style: SettloTypography.subheadline(
+              color: subtitleColor ?? c.textSecondary,
+            ).copyWith(height: 1.2),
           ),
       ],
     );
@@ -153,7 +158,9 @@ class SRow extends StatelessWidget {
                     if (subtitle != null)
                       (
                         subtitle!,
-                        SettloTypography.subheadline(color: c.textSecondary),
+                        SettloTypography.subheadline(
+                          color: subtitleColor ?? c.textSecondary,
+                        ),
                       ),
                   ]) {
                     for (final word in entry.$1.split(RegExp(r'\s+'))) {

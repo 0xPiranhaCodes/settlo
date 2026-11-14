@@ -609,10 +609,9 @@ class ActivityPreview extends ConsumerWidget {
         Row(
           children: [
             const Expanded(child: SSectionLabel('Recent activity')),
-            IconButton(
-              tooltip: 'See all activity',
+            TextButton(
               onPressed: () => context.go(SettloRoutes.activity),
-              icon: const Icon(Icons.arrow_forward),
+              child: const Text('SEE ALL'),
             ),
           ],
         ),
@@ -894,6 +893,7 @@ class _FeedGroup extends StatelessWidget {
 
 // Scoped sheet activity keeps its existing presentation; #278 phase 2b
 // changes only the four tab roots.
+// Phase 2a (#283) deletes this scoped copy when the sheet adopts shared rows.
 class _ScopedNeedsYouCard extends StatelessWidget {
   const new(this.pending, {required this.onReview});
 
@@ -916,6 +916,7 @@ class _ScopedNeedsYouCard extends StatelessWidget {
   }
 }
 
+// Phase 2a (#283) deletes this scoped copy when the sheet adopts shared rows.
 class _ScopedPendingRow extends StatelessWidget {
   const new(this.answer, {required this.onReview});
 
@@ -978,6 +979,7 @@ class _ScopedPendingRow extends StatelessWidget {
 }
 
 /// Review: the card's primary action, 36 drawn inside a 44 target.
+// Phase 2a (#283) deletes this scoped copy when the sheet adopts shared rows.
 class _ScopedReviewPill extends StatelessWidget {
   const new({required this.onTap});
 
@@ -1019,6 +1021,7 @@ class _ScopedReviewPill extends StatelessWidget {
   }
 }
 
+// Phase 2a (#283) deletes this scoped copy when the sheet adopts shared rows.
 class _ScopedEntryRow extends StatelessWidget {
   const new(this.entry, {required this.divider, this.onQuestion});
 

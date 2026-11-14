@@ -328,9 +328,9 @@ void main() {
     ]) {
       testWidgets('$label goes to $location', (tester) async {
         final router = await _pump(tester, FakeHomeRepository(data));
-        await tester.ensureVisible(find.text(label));
+        await tester.ensureVisible(find.text(label).first);
         await tester.pumpAndSettle();
-        await tester.tap(find.text(label));
+        await tester.tap(find.text(label).first);
         await tester.pumpAndSettle();
         expect(router.state.uri.toString(), location);
       });
@@ -368,7 +368,12 @@ void main() {
     ) async {
       final router = await _pump(tester, FakeHomeRepository(homeMain));
       await _scrollToEnd(tester);
-      await tester.tap(find.text('₹25,000 · Review repayment'));
+      final detail = find.text('₹25,000 · Review repayment');
+      expect(
+        tester.widget<Text>(detail).style?.color,
+        SettloColors.of(tester.element(detail)).pending,
+      );
+      await tester.tap(detail);
       await tester.pumpAndSettle();
       expect(router.state.uri.toString(), SettloRoutes.confirmRepayment('r3'));
     });

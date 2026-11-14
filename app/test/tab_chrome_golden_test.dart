@@ -21,6 +21,7 @@ import 'support/fake_spaces.dart';
 Future<Widget> _feed(bool loans) async {
   final container = ProviderContainer(
     overrides: [
+      accountNameProvider.overrideWithValue(homeMain.name),
       sessionProvider.overrideWith(() => FakeSessionNotifier(fakeSession)),
       loansRepositoryProvider.overrideWithValue(
         FakeLoansRepository(loansList()),
@@ -94,6 +95,7 @@ void main() {
             'spaces' => await spacesInShell(
               spacesList,
               const SpacesListScreen(),
+              accountName: homeMain.name,
             ),
             _ => await _feed(tab == 'loans'),
           };

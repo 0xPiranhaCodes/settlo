@@ -16,13 +16,6 @@ Downloading packages...
 Got dependencies in `/Users/hackerearth381/orca/workspaces/settlo/chrome2b`!
 13 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
-00:00 +0: loading /Users/hackerearth381/orca/workspaces/settlo/chrome2b/packages/core/test/widgets/tab_chrome_test.dart
-00:00 +0: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/packages/core/test/widgets/tab_chrome_test.dart: tabs share inset, collapse and material TargetPlatform.iOS 1.0
-00:03 +1: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/packages/core/test/widgets/tab_chrome_test.dart: tabs share inset, collapse and material TargetPlatform.iOS 2.0
-00:04 +2: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/packages/core/test/widgets/tab_chrome_test.dart: tabs share inset, collapse and material TargetPlatform.android 1.0
-00:06 +3: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/packages/core/test/widgets/tab_chrome_test.dart: tabs share inset, collapse and material TargetPlatform.android 2.0
-00:07 +4: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/packages/core/test/widgets/tab_chrome_test.dart: tab row avatars cap at 1.5 and amounts wrap below title
-00:07 +5: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/packages/core/test/widgets/tab_chrome_test.dart: iOS tab action sends neutral foreground to native glass
-00:07 +6: loading /Users/hackerearth381/orca/workspaces/settlo/chrome2b/packages/core/test/export/large_export_test.dart
-00:09 +6: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/packages/core/test/export/large_export_test.dart: 5,000 expenses: built off the UI isolate, across pages
-00:10 +7: All tests passed!
+00:00 +0: loading /Users/hackerearth381/orca/workspaces/settlo/chrome2b/packages/core/test/export/large_export_test.dart
+00:00 +0: 5,000 expenses: built off the UI isolate, across pages
+00:03 +1: All tests passed!

@@ -1,0 +1,262 @@
+Resolving dependencies in `/Users/hackerearth381/orca/workspaces/settlo/chrome2b`...
+Downloading packages...
+  app_links_linux 1.0.4 (1.0.5 available)
+  archive 4.6.0 (4.7.1 available)
+  built_collection 5.1.2 (6.0.0 available)
+  cli_util 0.4.2 (0.6.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  go_router 18.1.3 (18.1.4 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.10.0 (1.11.0 available)
+  objective_c 9.6.3 (9.6.4 available)
+  qr 3.0.3 (4.0.1 available)
+  shared_preferences_android 2.5.4 (2.5.5 available)
+  shared_preferences_foundation 2.6.1 (2.6.2 available)
+  test_api 0.7.12 (0.7.15 available)
+Got dependencies in `/Users/hackerearth381/orca/workspaces/settlo/chrome2b`!
+13 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart
+00:00 +0: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: homeProvider loads Home and totals balances in paise
+00:00 +1: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: homeProvider accepting a claim reloads it into the balances
+00:00 +2: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: homeProvider rejecting a claim drops it without a balance
+00:00 +3: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: homeProvider a refused claim call throws and leaves Home as it was
+00:00 +4: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home shows the net position, stats and both cards
+00:01 +5: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home accepting a claim moves it into the balances
+00:01 +6: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home 'This isn't me' removes the claim
+00:01 +7: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home a no-pump double tap on "Accept" answers once
+00:01 +8: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home a no-pump double tap on "This isn't me" answers once
+00:01 +9: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home signing out while "Accept" is queued says nothing
+00:01 +10: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home signing out while "This isn't me" is queued says nothing
+00:02 +11: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home a retry reuses its key; each button has its own
+00:02 +12: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home a refused claim says so and keeps the claim
+00:02 +13: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home a failed load keeps the hero in place and says why
+00:02 +14: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home pulling down reloads
+00:02 +15: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home Add expense goes to /expenses/new
+00:02 +16: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home Settle up goes to /settle
+00:02 +17: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home SEE ALL goes to /spaces
+00:02 +18: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home Flat 402 goes to /spaces/s1
+00:03 +19: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home Arjun · interest free goes to /loans/l1
+00:03 +20: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home Start a space goes to /spaces
+00:03 +21: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home Record a loan goes to /loans/new
+00:03 +22: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home Notifications goes to /activity
+00:03 +23: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home Profile goes to /profile
+00:03 +24: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home Home uses a large title without the decorative mark (#278)
+00:03 +25: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home pending repayment opens its confirmation receipt
+00:03 +26: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home a borrowed, flexible loan reads from your side
+00:04 +27: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home scheduled loan keeps direction without hue: true
+00:04 +28: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Home scheduled loan keeps direction without hue: false
+00:04 +29: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: every control is at least 44x44pt Home meets the iOS tap target guideline
+00:04 +30: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: every control is at least 44x44pt Home · empty meets the iOS tap target guideline
+00:04 +31: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: every control is at least 44x44pt Home · ledger found meets the iOS tap target guideline
+00:04 +32: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: every control is at least 44x44pt header, See all and the loan row
+00:04 +33: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: every control is at least 44x44pt a single-line loan row still has a 44pt target
+00:04 +34: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: every control is at least 44x44pt claim actions
+00:04 +35: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: amounts are announced in rupees beside their labels
+00:04 +36: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: claims are announced in rupees
+00:04 +37: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: fits 360x800 without overflow Home
+00:05 +38: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: fits 360x800 without overflow Home · empty
+00:05 +39: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: fits 360x800 without overflow Home · ledger found
+00:05 +40: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: empty Home fits at 200% text scaling
+00:05 +41: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: populated Home fits at 200% text scaling
+00:05 +42: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: empty action cards expose a semantic tap action
+00:05 +43: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/home_test.dart: Reduce Motion makes Home press feedback immediate
+00:05 +44: loading /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart
+00:06 +44: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: selected space tab has one enabled button announcement
+00:08 +45: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: spacesProvider creates a space and reloads it into the list
+00:08 +46: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Spaces each card is a mini balance sheet
+00:08 +47: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Spaces pending member card shares a token link without an amount
+00:08 +48: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Spaces a payer who left still counts in the bar and history
+00:08 +49: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Spaces no Pay to someone who left: it cannot be recorded
+00:08 +50: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Spaces the chips filter by kind
+00:08 +51: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Spaces a card opens its space
+00:09 +52: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Spaces with no spaces it offers to start one
+00:09 +53: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Spaces a failed load says why, and pulling down reloads
+00:09 +54: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space create space → it appears in the list
+00:09 +55: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space uses the task-sheet layout on iOS
+00:10 +56: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space uses the task-sheet layout on android
+00:10 +57: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space a retry after a failure reuses the idempotency key
+00:10 +58: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space a reopened sheet gets a new key
+00:11 +59: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space a key reused with other details says it was saved
+00:11 +60: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space numbers must be phone numbers, once each
+00:11 +61: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space your own number is refused: 98765 43210
+00:11 +62: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space your own number is refused: +91 98765 43210
+00:11 +63: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space your own number is refused: 09876543210
+00:12 +64: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: New space a person without a name is shown by number
+00:12 +65: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Home refreshes after a space is created creating bumps the ledger revision Home watches
+00:12 +66: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Home refreshes after a space is created Home → create on Spaces → Home shows it
+00:12 +67: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space · empty says the others see expenses when they join
+00:12 +68: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space · empty a space with expenses is not empty
+00:12 +69: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space · empty Add first expense goes to /expenses/new?space=s9
+00:12 +70: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space · empty Add rent as a monthly expense goes to /expenses/new?space=s9
+00:12 +71: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space · empty Add your UPI ID so settle-ups are one tap goes to /profile
+00:13 +72: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space · empty Back returns to the list
+00:13 +73: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses expenses are grouped by month with payer, date and share
+00:13 +74: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses the tabs and actions go where they say
+00:13 +75: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses balances: who paid against a fair share, then settling
+00:14 +76: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses Remind sends a WhatsApp nudge and never opens Settle up
+00:14 +77: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses without WhatsApp, Remind offers the share sheet
+00:14 +78: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses the segments stay put when switching
+00:14 +79: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses the avatars open Members, where people can be added
+00:14 +80: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses a failed add says so and keeps the people
+00:14 +81: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses fairness deltas never use outstanding-balance colours
+00:15 +82: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses paid and fair share are read in rupees
+00:15 +83: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses only the creator or an owner sees edit and delete
+00:15 +84: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses an edit saves through update_expense with one key
+00:15 +85: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses editing a pending settle-up leaves the spend unchanged
+00:15 +86: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses the payee confirms a pending settle-up, once
+00:15 +87: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses the payee says a settle-up didn't arrive, with a reason
+00:16 +88: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses a double tap on "Yes, I received ₹300" answers once, closing only the sheet
+00:16 +89: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses a double tap on "Mark as not received" answers once, closing only the sheet
+00:16 +90: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses a split by amounts keeps its amount
+00:16 +91: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses delete asks once more, then removes it
+00:17 +92: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses on iOS, delete asks with an action sheet
+00:17 +93: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: Space with expenses on iOS, the space has sheet chrome and closes to Spaces
+00:17 +94: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: every control is at least 44x44pt Spaces meets the iOS tap target guideline
+00:18 +95: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: every control is at least 44x44pt Space · empty meets the iOS tap target guideline
+00:18 +96: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: every control is at least 44x44pt Space · expenses meets the iOS tap target guideline
+00:18 +97: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: every control is at least 44x44pt Space · balances meets the iOS tap target guideline
+00:18 +98: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: every control is at least 44x44pt New space meets the iOS tap target guideline
+00:18 +99: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: amounts are announced in rupees
+00:18 +100: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: fits 360x800 without overflow Spaces
+00:18 +101: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: fits 360x800 without overflow Space · empty
+00:18 +102: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: fits 360x800 without overflow Space · expenses
+00:18 +103: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: fits 360x800 without overflow Space · balances
+00:19 +104: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/spaces_test.dart: fits 360x800 without overflow New space
+00:19 +105: loading /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart
+00:20 +105: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: India date crosses midnight independently of a UTC-8 device
+00:20 +106: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: ring geometry the canvas ring: r 51 in a 112 box, from twelve o'clock
+00:20 +107: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: ring geometry 0.0 sweeps 0.0
+00:20 +108: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: ring geometry 0.5 sweeps 3.141592653589793
+00:20 +109: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: ring geometry 1.0 sweeps 6.283185307179586
+00:20 +110: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: ring geometry 1.4 sweeps 6.283185307179586
+00:20 +111: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: ring geometry -0.2 sweeps 0.0
+00:20 +112: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: ring geometry the label rounds down, so 100% means fully repaid
+00:20 +113: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loans tab lists loans open first, each from your side
+00:21 +114: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loans tab scheduled loan keeps direction without hue: true
+00:22 +115: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loans tab scheduled loan keeps direction without hue: false
+00:22 +116: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loans tab a loan opens its detail
+00:22 +117: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loans tab with no loans it offers to record one
+00:23 +118: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loans tab a failed load says so
+00:23 +119: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail ring, three tiles and the history
+00:23 +120: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail record → pending → confirm: only confirmed counts
+00:24 +121: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail paid-on picker is bounded by loan start and today
+00:24 +122: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail reference trims Unicode whitespace and filters Cc/Cf
+00:25 +123: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail reference limit counts Unicode code points
+00:25 +124: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail a retried confirmation reuses its key and shows plain copy
+00:25 +125: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail dispute asks for a reason and never counts
+00:25 +126: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail more than is outstanding cannot be recorded
+00:26 +127: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail a refused repayment shows the plain reason
+00:26 +128: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail a closed loan cannot take more repayments
+00:26 +129: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail back returns to the list
+00:26 +130: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Loan detail download statement shares one PDF, even on a no-pump double tap
+00:27 +131: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan creating an instalment loan: notDetermined
+00:28 +132: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan creating an instalment loan: denied
+00:29 +133: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan creating an instalment loan: granted
+00:29 +134: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan flexible loan never asks for instalment permission
+00:30 +135: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan the + opens it; it creates the loan, tells them on WhatsApp and lands on it
+00:30 +136: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan the WhatsApp text never carries the label typed
+00:31 +137: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan without a profile name the greeting is fixed
+00:31 +138: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan borrowed with no monthly amount is flexible
+00:32 +139: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan a monthly amount over the principal cannot be saved
+00:32 +140: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan your own number or a bad one is refused
+00:32 +141: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan a retry after a dropped connection reuses the key
+00:33 +142: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan a refusal shows plain copy and stays open
+00:33 +143: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan without WhatsApp it says so and still shows the loan
+00:33 +144: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan close goes back to Loans
+00:33 +145: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan interest is off, with the later path shown
+00:34 +146: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: New loan ends in the month of the last instalment
+00:34 +147: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Home opens New loan, and shows the loan once created
+00:34 +148: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Confirm repayment shows a spoken receipt and routes from the pending row
+00:35 +149: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Confirm repayment on iOS, back is the shared glass control
+00:35 +150: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Confirm repayment borrower copy names the lender and describes money paid
+00:35 +151: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Confirm repayment primary no-pump double tap sends once
+00:35 +152: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Confirm repayment confirming says so and pops back to the loan (#259)
+00:35 +153: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Confirm repayment a slow confirm leaves navigation alone (#277) after Back
+00:35 +154: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Confirm repayment a slow confirm leaves navigation alone (#277) after another route is pushed
+00:36 +155: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Confirm repayment overpayment warns, clamps to zero and cannot confirm
+00:36 +156: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Confirm repayment the recording party sees a read-only receipt
+00:36 +157: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: Confirm repayment controls and receipt rows meet accessibility guidelines
+00:36 +158: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: a double tap in one frame sends once record
+00:36 +159: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: a double tap in one frame sends once confirm
+00:36 +160: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: a double tap in one frame sends once create
+00:36 +161: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: a double tap in one frame sends once dispute
+00:36 +162: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: targets are at least 44pt Loans tab
+00:37 +163: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: targets are at least 44pt Loan detail
+00:37 +164: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: targets are at least 44pt new loan sheet
+00:37 +165: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/loans_test.dart: targets are at least 44pt record repayment sheet
+00:37 +166: loading /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart
+00:38 +166: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/reminded exposes money direction
+00:40 +167: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/due exposes money direction
+00:40 +168: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/created exposes money direction
+00:40 +169: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/edited exposes money direction
+00:40 +170: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/deleted exposes money direction
+00:40 +171: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/restored exposes money direction
+00:40 +172: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/recorded exposes money direction
+00:40 +173: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/confirmed exposes money direction
+00:40 +174: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/disputed exposes money direction
+00:40 +175: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/rejected exposes money direction
+00:40 +176: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: expense/closed exposes money direction
+00:40 +177: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/reminded exposes money direction
+00:40 +178: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/due exposes money direction
+00:40 +179: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/created exposes money direction
+00:41 +180: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/edited exposes money direction
+00:41 +181: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/deleted exposes money direction
+00:41 +182: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/restored exposes money direction
+00:41 +183: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/recorded exposes money direction
+00:41 +184: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/confirmed exposes money direction
+00:41 +185: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/disputed exposes money direction
+00:41 +186: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/rejected exposes money direction
+00:41 +187: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/closed exposes money direction
+00:41 +188: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/reminded exposes money direction
+00:41 +189: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/due exposes money direction
+00:41 +190: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/created exposes money direction
+00:41 +191: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/edited exposes money direction
+00:41 +192: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/deleted exposes money direction
+00:41 +193: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/restored exposes money direction
+00:41 +194: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/recorded exposes money direction
+00:41 +195: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/confirmed exposes money direction
+00:41 +196: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/disputed exposes money direction
+00:42 +197: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/rejected exposes money direction
+00:42 +198: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan/closed exposes money direction
+00:42 +199: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/reminded exposes money direction
+00:42 +200: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/due exposes money direction
+00:42 +201: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/created exposes money direction
+00:42 +202: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/edited exposes money direction
+00:42 +203: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/deleted exposes money direction
+00:42 +204: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/restored exposes money direction
+00:42 +205: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/recorded exposes money direction
+00:42 +206: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/confirmed exposes money direction
+00:42 +207: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/disputed exposes money direction
+00:42 +208: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/rejected exposes money direction
+00:42 +209: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/closed exposes money direction
+00:42 +210: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/pending keeps direction for another actor
+00:42 +211: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/confirmed keeps direction for another actor
+00:42 +212: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/disputed keeps direction for another actor
+00:42 +213: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: settlement/deleted keeps direction for another actor
+00:42 +214: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/pending keeps direction for another actor
+00:42 +215: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/confirmed keeps direction for another actor
+00:42 +216: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/disputed keeps direction for another actor
+00:42 +217: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: repayment/deleted keeps direction for another actor
+00:42 +218: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: loan nudges have polite Activity copy
+00:43 +219: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: the feed reads like the canvas, edits before and after
+00:43 +220: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: only money in or out of your pocket is coloured
+00:43 +221: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: 'Needs you' narrows to what waits for you
+00:43 +222: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: empty: says what will show up, in both filters
+00:43 +223: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: confirming a settle-up from the feed uses the space sheet, then refreshes
+00:43 +224: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: Review on a repayment opens its confirmation
+00:43 +225: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: link-only decline says the underlying invite remains open
+00:43 +226: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: a double tap on Review in one frame opens it once
+00:44 +227: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: a settle-up already answered says so
+00:44 +228: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: scrolling to the end loads the next page by keyset
+00:44 +229: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: pull to refresh drops the cursor and reloads from the top
+00:45 +230: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: filters (#109) a space chip and Loans read the feed through the filter
+00:45 +231: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: filters (#109) a filtered feed pages by keyset through the same filter
+00:45 +232: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: filters (#109) a filter with nothing in it says so
+00:45 +233: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: seen (#109) opening marks what is new since the last open seen
+00:45 +234: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: seen (#109) a question about your edit rings for you, the editor, only
+00:45 +235: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: seen (#109) with nothing new it marks nothing
+00:45 +236: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: 'Question this' (#109) someone else's edit takes a short note, shown on its row
+00:46 +237: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: 'Question this' (#109) a note that cannot be sent stays to try again
+00:46 +238: /Users/hackerearth381/orca/workspaces/settlo/chrome2b/app/test/activity_test.dart: 'Question this' (#109) members' notes show; your own edit cannot be questioned
+00:46 +239: All tests passed!
