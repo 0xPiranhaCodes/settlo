@@ -57,5 +57,10 @@
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="upi"/>
         </intent>
+        <!-- Remind checks for WhatsApp before falling back to the share sheet. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="whatsapp"/>
+        </intent>
     </queries>
 </manifest>

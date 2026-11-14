@@ -395,6 +395,50 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
     if (mounted) setState(() => _busy = false);
   }
 
+  /// Says who is waiting and offers the invite, so a tap never leaves the
+  /// app unannounced.
+  Future<void> _ask(String detail) async {
+    final c = SettloColors.of(context);
+    final member = widget.member;
+    final send = await showSettloSheet<bool>(
+      context: context,
+      builder: (sheet) => SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(
+          SettloSpacing.screenMargin,
+          SettloSpacing.x2,
+          SettloSpacing.screenMargin,
+          SettloSpacing.x3,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                "${member.name} hasn't joined yet",
+                style: SettloTypography.title3(color: c.textPrimary),
+              ),
+              const SizedBox(height: SettloSpacing.x1),
+              Text(
+                '$detail. They see the space once they open the link and '
+                'verify their number.',
+                style: SettloTypography.body(color: c.textSecondary)
+                    .copyWith(height: 1.4),
+              ),
+              const SizedBox(height: SettloSpacing.x3),
+              SPrimaryButton(
+                label: 'Resend invite on WhatsApp',
+                onPressed: () => Navigator.of(sheet).pop(true),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (send ?? false) await _send();
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = SettloColors.of(context);
@@ -407,10 +451,10 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
         : '$amount in ${space.name} is recorded against $number';
     return SPressable(
       label:
-          'Send ${member.name} an invite on WhatsApp. '
+          "${member.name} hasn't joined yet. "
           '${detail(spokenInr(Paise(b.value.abs())))}',
       ringRadius: BorderRadius.circular(SettloRadius.card),
-      onTap: _busy ? null : _send,
+      onTap: _busy ? null : () => _ask(detail(formatInr(Paise(b.value.abs())))),
       child: SCard(
         child: Row(
           children: [

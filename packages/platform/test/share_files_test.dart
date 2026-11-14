@@ -68,6 +68,14 @@ void main() {
     expect(params.sharePositionOrigin, _origin);
   });
 
+  test('a text share gets the text and the origin', () async {
+    await ProviderContainer().read(shareTextProvider)('Hi Priya', _origin);
+    final params = platform.shared.single;
+    expect(params.text, 'Hi Priya');
+    expect(params.files, isNull);
+    expect(params.sharePositionOrigin, _origin);
+  });
+
   test(
     'each export gets its own folder, deleted when its share ends',
     () async {

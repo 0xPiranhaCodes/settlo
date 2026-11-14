@@ -1332,6 +1332,13 @@ final class _SpacesRepository implements SpacesRepository {
     required List<NewSpaceMember> members,
     required String idempotencyKey,
   }) => throw UnimplementedError();
+
+  @override
+  Future<void> addMembers(
+    String spaceId,
+    List<NewSpaceMember> members, {
+    required String idempotencyKey,
+  }) => throw UnimplementedError();
 }
 
 final class _LedgerRepository implements SpaceLedgerRepository {

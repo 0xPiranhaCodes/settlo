@@ -1,0 +1,23 @@
+// Evidence launcher for #260: the real app and router over test fixtures.
+// Copy to app/test/capture260.dart and build with -t test/capture260.dart.
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'support/fake_activity.dart';
+import 'support/fake_session.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // No WhatsApp on the simulator: Remind and invites fail visibly.
+  runApp(
+    fakeSessionApp(
+      fakeSession,
+      themeMode: ThemeMode.light,
+      activity: FakeActivityRepository(
+        pending: [rahulSettleUpAnswer, arjunRepaymentAnswer],
+        seenAt: DateTime(2026),
+      ),
+    ),
+  );
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+}

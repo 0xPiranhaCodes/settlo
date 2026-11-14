@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,6 +52,7 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
   WidgetTester tester, {
   String location = SettloRoutes.loans,
   FakeLoansRepository? loans,
+  TargetPlatform? platform,
 }) async {
   await loadSettloFonts();
   tester.view
@@ -82,7 +84,7 @@ Future<({GoRouter router, FakeLoansRepository loans})> _pump(
         exportsDirectoryProvider.overrideWithValue(() async => exports),
       ],
       child: MaterialApp.router(
-        theme: SettloTheme.dark(),
+        theme: SettloTheme.dark().copyWith(platform: platform),
         routerConfig: router,
       ),
     ),
@@ -853,6 +855,22 @@ void main() {
       expect(find.text("Didn't receive this"), findsOne);
       expect(find.textContaining('Confirming is final'), findsOne);
       semantics.dispose();
+    });
+
+    testWidgets('on iOS, back is the shared glass control', (tester) async {
+      final (:router, loans: _) = await _pump(
+        tester,
+        location: SettloRoutes.loan('l1'),
+        platform: TargetPlatform.iOS,
+      );
+      await _tap(tester, find.text('awaiting you'));
+
+      expect(find.byType(CupertinoSliverNavigationBar), findsOne);
+      expect(find.text('Confirm repayment'), findsWidgets);
+      expect(find.byType(IconButton), findsNothing, reason: 'no round chevron');
+      await tester.tap(find.byType(GlassAction));
+      await tester.pumpAndSettle();
+      expect(router.state.uri.toString(), SettloRoutes.loan('l1'));
     });
 
     testWidgets('borrower copy names the lender and describes money paid', (

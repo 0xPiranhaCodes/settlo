@@ -107,7 +107,7 @@ void main() {
       expect(find.byTooltip('New space'), findsOneWidget);
     });
 
-    testWidgets('iOS: Create space is a page sheet with Cancel and Create', (
+    testWidgets('iOS: Create space is a page sheet with ✕ and Create space', (
       tester,
     ) async {
       await _pump(tester, SettloRoutes.spaces, _ios);
@@ -117,25 +117,22 @@ void main() {
         ModalRoute.of(tester.element(find.text('New space').last)),
         isA<CupertinoSheetRoute<void>>(),
       );
-      expect(find.text('Create space'), findsNothing, reason: 'no footer');
-      final create = find.widgetWithText(CupertinoButton, 'Create');
-      expect(tester.widget<CupertinoButton>(create).onPressed, isNull);
+      // The task-sheet layout (#260): grabber, ✕, one bottom button.
+      expect(find.text('Cancel'), findsNothing);
+      expect(find.byKey(const ValueKey('task-sheet-grabber')), findsOneWidget);
+      final create = find.widgetWithText(FilledButton, 'Create space');
+      expect(tester.widget<FilledButton>(create).onPressed, isNull);
 
       await tester.enterText(find.byType(TextField).first, 'Book club');
       await tester.pumpAndSettle();
-      expect(tester.widget<CupertinoButton>(create).onPressed, isNotNull);
-      expect(
-        tester.widget<Text>(find.text('Create')).style?.color,
-        SettloColors.dark.action,
-        reason: 'the confirming action is the action colour',
-      );
+      expect(tester.widget<FilledButton>(create).onPressed, isNotNull);
       expect(
         find.byType(CupertinoSlidingSegmentedControl<SpaceKind>),
         findsOneWidget,
       );
 
-      // Cancel with input asks first; Keep editing stays.
-      await _tap(tester, find.text('Cancel'));
+      // ✕ with input asks first; Keep editing stays.
+      await _tap(tester, find.bySemanticsLabel('Close'));
       expect(find.text('Discard changes?'), findsOneWidget);
       await _tap(tester, find.text('Keep editing'));
       expect(find.text('Book club'), findsOneWidget);
@@ -161,12 +158,12 @@ void main() {
       semantics.dispose();
     });
 
-    testWidgets('iOS: an untouched Create space closes on Cancel', (
+    testWidgets('iOS: an untouched Create space closes on ✕', (
       tester,
     ) async {
       await _pump(tester, SettloRoutes.spaces, _ios);
       await _tap(tester, find.bySemanticsLabel('New space'));
-      await _tap(tester, find.text('Cancel'));
+      await _tap(tester, find.bySemanticsLabel('Close'));
       expect(find.text('Discard changes?'), findsNothing);
       expect(find.text('PEOPLE'), findsNothing);
     });

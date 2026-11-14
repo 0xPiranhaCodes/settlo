@@ -255,6 +255,31 @@ void main() {
       semantics.dispose();
     });
 
+    testWidgets('a short screen pins the action below scrolling cards', (
+      tester,
+    ) async {
+      final router = await _pump(tester, auth, location: SettloRoutes.welcome);
+      tester.view.physicalSize = const Size(375, 667);
+      await tester.pumpAndSettle();
+
+      final action = find.text('Continue with phone number');
+      expect(tester.getRect(action).bottom, lessThan(667));
+      expect(
+        find.ancestor(of: action, matching: find.byType(Scrollable)),
+        findsNothing,
+      );
+      expect(
+        find.ancestor(
+          of: find.bySemanticsLabel(RegExp('^Example: Rahul')),
+          matching: find.byType(Scrollable),
+        ),
+        findsOne,
+      );
+      await tester.tap(action);
+      await tester.pumpAndSettle();
+      expect(router.state.uri.path, SettloRoutes.phone);
+    });
+
     testWidgets('press scales the group and nudges the arrow', (tester) async {
       await _pump(tester, auth, location: SettloRoutes.welcome);
       await tester.ensureVisible(find.text('Continue with phone number'));

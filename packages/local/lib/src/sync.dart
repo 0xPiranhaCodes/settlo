@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// first sent longer ago is dropped a day early rather than risk applying
 /// twice.
 const _purgedKinds = {
+  'add_space_members',
   'update_expense',
   'delete_expense',
   'confirm_settlement',
@@ -222,6 +223,18 @@ final class SyncEngine {
             'local:${m.key}:${r['user_id'] == owner ? 'me' : r['phone']}':
                 r['id'] as String,
         };
+      case 'add_space_members':
+        // Only the active row: a former member with the same phone has
+        // its own.
+        final rows = await _client
+            .from('space_members')
+            .select('id, phone')
+            .eq('space_id', m.params['p_space_id'] as String)
+            .isFilter('left_at', null);
+        return {
+          for (final r in rows)
+            'local:${m.key}:${r['phone']}': r['id'] as String,
+        };
     }
     return const {};
   }
@@ -309,6 +322,7 @@ String rejection(Mutation m, PostgrestException e) {
     'update_expense' => 'Your edit to “${p['description']}”',
     'delete_expense' => 'Deleting that expense',
     'create_space' => 'The space “${p['p_name']}”',
+    'add_space_members' => 'Adding people to that space',
     'confirm_settlement' => 'Your confirmation of that settle-up',
     'dispute_settlement' => 'Your dispute of that settle-up',
     'create_loan' =>
@@ -328,6 +342,7 @@ String rejection(Mutation m, PostgrestException e) {
     ('orphan', _) => 'it depended on a change that wasn’t saved',
     ('PT409', _) => 'a different version of it was already saved',
     (_, 'departed_member') => 'someone in it has left the space',
+    (_, 'already_member') => 'someone in it is already in the space',
     (_, 'settlement_pending') => 'a settle-up between you is already waiting',
     (_, 'settlement_changed') => 'the settle-up changed since you saw it',
     (_, 'settlement_final') => 'the settle-up was already answered',

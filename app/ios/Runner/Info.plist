@@ -40,6 +40,7 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>upi</string>
+		<string>whatsapp</string>
 	</array>
 	<key>NSSupportsLiveActivities</key>
 	<true/>

@@ -69,28 +69,36 @@ class _Unavailable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: _bar(context),
-    body: Center(
-      child: Text(
-        loading
-            ? 'Loading…'
-            : failed
-            ? "We couldn't load this repayment. Try again."
-            : 'This repayment is no longer available.',
-      ),
+    body: SettloScrollScaffold(
+      title: 'Confirm repayment',
+      largeTitle: 'Confirm repayment',
+      children: [
+        _header(context),
+        const SizedBox(height: SettloSpacing.x5),
+        Text(
+          loading
+              ? 'Loading…'
+              : failed
+              ? "We couldn't load this repayment. Try again."
+              : 'This repayment is no longer available.',
+          textAlign: TextAlign.center,
+        ),
+      ],
     ),
   );
 }
 
-AppBar _bar(BuildContext context, {bool embedded = false}) {
+/// The header off iOS; iOS shows the shared navigation bar and glass back.
+Widget _header(BuildContext context) {
   final c = SettloColors.of(context);
-  return AppBar(
-    primary: false,
-    toolbarHeight: 56,
-    leadingWidth: embedded ? 44 : 64,
-    leading: Padding(
-      padding: EdgeInsets.only(left: embedded ? 0 : 20),
-      child: Center(
+  return MediaQuery.removePadding(
+    context: context,
+    removeTop: true,
+    child: AppBar(
+      primary: false,
+      toolbarHeight: 56,
+      leadingWidth: 44,
+      leading: Center(
         child: IconButton(
           tooltip: 'Back',
           onPressed: context.pop,
@@ -102,12 +110,12 @@ AppBar _bar(BuildContext context, {bool embedded = false}) {
           icon: LoanGlyph(LoanGlyph.back, color: c.textPrimary),
         ),
       ),
+      title: Text(
+        'Confirm',
+        style: SettloTypography.headline(color: c.textPrimary),
+      ),
+      centerTitle: true,
     ),
-    title: Text(
-      'Confirm',
-      style: SettloTypography.headline(color: c.textPrimary),
-    ),
-    centerTitle: true,
   );
 }
 
@@ -158,12 +166,9 @@ class _Receipt extends StatelessWidget {
     return Scaffold(
       body: SettloScrollScaffold(
         title: 'Confirm repayment',
+        largeTitle: 'Confirm repayment',
         children: [
-          MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            child: _bar(context, embedded: true),
-          ),
+          _header(context),
 
           SAvatar(loan.counterparty, size: 72),
           const SizedBox(height: SettloSpacing.x2),

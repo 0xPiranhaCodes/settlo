@@ -78,6 +78,17 @@ final class DriftSpacesRepository implements SpacesRepository {
     // create_space makes the key the space's id.
     return idempotencyKey;
   }
+
+  @override
+  Future<void> addMembers(
+    String spaceId,
+    List<NewSpaceMember> members, {
+    required String idempotencyKey,
+  }) => _sync.submit(
+    'add_space_members',
+    addSpaceMembersParams(spaceId, members, idempotencyKey: idempotencyKey),
+    idempotencyKey,
+  );
 }
 
 /// [ExpensesRepository] that queues every expense.

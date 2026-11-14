@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:settlo_core/settlo_core.dart';
+import 'package:settlo_spaces/src/create_space_sheet.dart';
 import 'package:settlo_spaces/src/glyphs.dart';
 import 'package:settlo_spaces/src/text.dart';
 
@@ -213,6 +214,7 @@ class SpaceHeader extends StatelessWidget {
 }
 
 /// Up to three of [space]'s members, overlapping; dimmed until they join.
+/// Opens the space's Members, where more people can be added.
 class SpaceAvatars extends StatelessWidget {
   /// The members of [space].
   const new(this.space, {super.key});
@@ -223,20 +225,35 @@ class SpaceAvatars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final members = [space.you, ...space.others];
-    return ExcludeSemantics(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final (i, m) in members.take(3).indexed)
-            // Overlap by 8 and stay flush with the margin.
-            Transform.translate(
-              offset: Offset(8.0 * (math.min(members.length, 3) - 1 - i), 0),
-              child: Opacity(
-                opacity: m.joined ? 1 : 0.5,
-                child: SAvatar(m.name, size: 30),
-              ),
-            ),
-        ],
+    return SPressable(
+      label: 'Members of ${space.name}',
+      ringRadius: BorderRadius.circular(SettloRadius.pill),
+      onTap: () => showCreateSpaceSheet(context, space: space),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minWidth: SettloSpacing.minTouchTarget,
+          minHeight: SettloSpacing.minTouchTarget,
+        ),
+        child: ExcludeSemantics(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              for (final (i, m) in members.take(3).indexed)
+                // Overlap by 8 and stay flush with the margin.
+                Transform.translate(
+                  offset: Offset(
+                    8.0 * (math.min(members.length, 3) - 1 - i),
+                    0,
+                  ),
+                  child: Opacity(
+                    opacity: m.joined ? 1 : 0.5,
+                    child: SAvatar(m.name, size: 30),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
