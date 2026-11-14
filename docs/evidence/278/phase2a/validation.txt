@@ -1,0 +1,15 @@
+Phase 2a validation
+
+Docker image: settlo/flutter-goldens:3.47.9-amd64
+App: 1,148 tests passed with coverage (application source at 219ba23).
+Final capture refresh: 279 tests passed.
+Focused regression checks: 101 tests passed.
+Core/package rerun and merged coverage gate: in progress.
+Main coverage baseline: 98.11%.
+Native export: 1 passed; native platform share_files: 6 passed.
+Flutter analyze and iOS simulator debug build passed before the final fixture-only updates.
+No simulator was created or booted.
+
+The app coverage is retained while rerunning the remaining packages after
+updating six core test fixtures for the new sheet navigator and header.
+Full final totals will be appended when the serial package run completes.
